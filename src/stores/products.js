@@ -24,6 +24,7 @@ export const useProductsStore = defineStore('products', () => {
   const mapProductFields = (dbProduct) => {
     return {
       id: dbProduct.id,
+      sellerId: dbProduct.seller_id,
       name: dbProduct.name,
       nameAr: dbProduct.name_ar,
       price: dbProduct.price,

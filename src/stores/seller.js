@@ -1,0 +1,161 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { supabase } from '../supabase'
+
+export const useSellerStore = defineStore('seller', () => {
+  const products = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+
+  // Getters
+  const totalProducts = computed(() => products.value.length)
+  const activeProducts = computed(() => products.value.filter(p => p.in_stock))
+  const inactiveProducts = computed(() => products.value.filter(p => !p.in_stock))
+
+  // Actions
+  const fetchSellerProducts = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not authenticated')
+
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (fetchError) throw fetchError
+
+      products.value = data || []
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching seller products:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const createProduct = async (productData) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not authenticated')
+
+      const { data, error: createError } = await supabase
+        .from('products')
+        .insert({
+          seller_id: user.id,
+          name: productData.name,
+          name_ar: productData.nameAr,
+          price: productData.price,
+          original_price: productData.originalPrice,
+          image: productData.image,
+          category: productData.category,
+          description: productData.description,
+          description_ar: productData.descriptionAr,
+          in_stock: productData.inStock,
+          is_new: productData.isNew,
+          is_on_sale: productData.isOnSale,
+          rating: 0,
+          reviews: 0
+        })
+        .select()
+        .single()
+
+      if (createError) throw createError
+
+      products.value.unshift(data)
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Error creating product:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateProduct = async (productId, updates) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: updateError } = await supabase
+        .from('products')
+        .update(updates)
+        .eq('id', productId)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+
+      const index = products.value.findIndex(p => p.id === productId)
+      if (index !== -1) {
+        products.value[index] = data
+      }
+
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Error updating product:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deleteProduct = async (productId) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId)
+
+      if (deleteError) throw deleteError
+
+      products.value = products.value.filter(p => p.id !== productId)
+    } catch (err) {
+      error.value = err.message
+      console.error('Error deleting product:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const toggleProductStatus = async (productId, inStock) => {
+    return await updateProduct(productId, { in_stock: inStock })
+  }
+
+  const clearError = () => {
+    error.value = null
+  }
+
+  return {
+    // State
+    products,
+    loading,
+    error,
+    
+    // Getters
+    totalProducts,
+    activeProducts,
+    inactiveProducts,
+    
+    // Actions
+    fetchSellerProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    toggleProductStatus,
+    clearError
+  }
+}) 

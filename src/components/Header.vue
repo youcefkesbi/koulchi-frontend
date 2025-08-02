@@ -60,8 +60,18 @@
 
             <!-- Auth Section -->
             <div class="flex items-center space-x-3 space-x-reverse">
-              <!-- Become a Seller Button -->
+              <!-- Become a Seller Button / Seller Dashboard -->
+              <div v-if="authStore.isAuthenticated && authStore.isSeller">
+                <router-link
+                  to="/seller/dashboard"
+                  class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  <i class="fas fa-chart-line mr-2"></i>
+                  {{ $t('seller.dashboard') }}
+                </router-link>
+              </div>
               <button
+                v-else
                 @click="handleBecomeSeller"
                 class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-md hover:shadow-lg"
               >
@@ -155,6 +165,9 @@
 
     <!-- Login Modal -->
     <LoginModal :is-open="showLoginModal" @close="showLoginModal = false" />
+    
+    <!-- Become Seller Modal -->
+    <BecomeSellerModal :is-open="showBecomeSellerModal" @close="showBecomeSellerModal = false" />
   </header>
 </template>
 
@@ -164,12 +177,14 @@ import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import { useAuthStore } from '../stores/auth'
 import LoginModal from './LoginModal.vue'
+import BecomeSellerModal from './BecomeSellerModal.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
 export default {
   name: 'Header',
   components: {
     LoginModal,
+    BecomeSellerModal,
     LanguageSwitcher
   },
   setup() {
@@ -178,6 +193,7 @@ export default {
     const authStore = useAuthStore()
     const searchQuery = ref('')
     const showLoginModal = ref(false)
+    const showBecomeSellerModal = ref(false)
     const userMenuOpen = ref(false)
 
     const handleSearch = () => {
@@ -189,9 +205,11 @@ export default {
     }
 
     const handleBecomeSeller = () => {
-      // TODO: Implement become a seller functionality
-      console.log('Become a seller clicked')
-      // You can redirect to a seller registration page or show a modal
+      if (authStore.isAuthenticated) {
+        showBecomeSellerModal.value = true
+      } else {
+        showLoginModal.value = true
+      }
     }
 
     const handleLogout = async () => {
@@ -221,6 +239,7 @@ export default {
       authStore,
       searchQuery,
       showLoginModal,
+      showBecomeSellerModal,
       userMenuOpen,
       handleSearch,
       selectCategory,
