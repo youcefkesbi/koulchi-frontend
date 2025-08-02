@@ -1,0 +1,137 @@
+<template>
+  <div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+      <div>
+        <h1 class="text-3xl font-bold text-dark">المنتجات</h1>
+        <p class="text-gray-600 mt-2">
+          {{ filteredProducts.length }} منتج متوفر
+          <span v-if="productsStore.selectedCategory !== 'all'">
+            في فئة {{ getCurrentCategoryName }}
+          </span>
+        </p>
+      </div>
+      
+      <!-- Search and Filter Controls -->
+      <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            @input="handleSearch"
+            type="text"
+            placeholder="ابحث في المنتجات..."
+            class="input-field pr-10"
+          />
+          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+        
+        <button
+          @click="clearFilters"
+          class="btn-outline"
+        >
+          <i class="fas fa-times ml-2"></i>
+          مسح الفلاتر
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="flex flex-wrap gap-2">
+      <button
+        v-for="category in productsStore.categories"
+        :key="category.id"
+        @click="selectCategory(category.id)"
+        :class="[
+          'px-4 py-2 rounded-lg transition-colors text-sm',
+          productsStore.selectedCategory === category.id
+            ? 'bg-primary text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        ]"
+      >
+        {{ category.nameAr }}
+      </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <ProductCard
+        v-for="product in filteredProducts"
+        :key="product.id"
+        :product="product"
+      />
+    </div>
+
+    <!-- No Products Found -->
+    <div v-else class="text-center py-12">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-search text-gray-400 text-3xl"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">لم يتم العثور على منتجات</h3>
+      <p class="text-gray-500 mb-6">
+        جرب تغيير الفلاتر أو البحث بكلمات مختلفة
+      </p>
+      <button
+        @click="clearFilters"
+        class="btn-primary"
+      >
+        <i class="fas fa-refresh ml-2"></i>
+        عرض جميع المنتجات
+      </button>
+    </div>
+
+    <!-- Load More Button (if needed) -->
+    <div v-if="filteredProducts.length > 0" class="text-center">
+      <button class="btn-outline">
+        <i class="fas fa-plus ml-2"></i>
+        عرض المزيد
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, computed } from 'vue'
+import { useProductsStore } from '../stores/products'
+import ProductCard from '../components/ProductCard.vue'
+
+export default {
+  name: 'Products',
+  components: {
+    ProductCard
+  },
+  setup() {
+    const productsStore = useProductsStore()
+    const searchQuery = ref('')
+
+    const filteredProducts = computed(() => productsStore.filteredProducts)
+
+    const getCurrentCategoryName = computed(() => {
+      const category = productsStore.categories.find(cat => cat.id === productsStore.selectedCategory)
+      return category ? category.nameAr : ''
+    })
+
+    const handleSearch = () => {
+      productsStore.setSearchQuery(searchQuery.value)
+    }
+
+    const selectCategory = (categoryId) => {
+      productsStore.setCategory(categoryId)
+    }
+
+    const clearFilters = () => {
+      productsStore.clearFilters()
+      searchQuery.value = ''
+    }
+
+    return {
+      productsStore,
+      searchQuery,
+      filteredProducts,
+      getCurrentCategoryName,
+      handleSearch,
+      selectCategory,
+      clearFilters
+    }
+  }
+}
+</script> 

@@ -1,0 +1,92 @@
+{
+  "welcome": "Welcome",
+  "cart": "Your Cart",
+  "login": "Login",
+  "logout": "Logout",
+  "signup": "Sign Up",
+  "email": "Email",
+  "password": "Password",
+  "loginWithGoogle": "Login with Google",
+  "loginWithFacebook": "Login with Facebook",
+  "or": "or",
+  "becomeASeller": "Become a Seller",
+  "language": "Language",
+  "search": "Search",
+  "searchPlaceholder": "Search for products...",
+  "freeShipping": "Free shipping for orders over 5000 DZD",
+  "phone": "Phone",
+  "contact": "Contact",
+  "home": "Home",
+  "products": "Products",
+  "profile": "Profile",
+  "orders": "Orders",
+  "settings": "Settings",
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "loading": "Loading...",
+  "error": "Error",
+  "success": "Success",
+  "hero": {
+    "title": "Shop with Confidence with Koulchi",
+    "subtitle": "Best products with Cash on Delivery",
+    "shopNow": "Shop Now",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "fastDelivery": "Fast Delivery",
+    "fastDeliveryDesc": "Free shipping for orders over 5000 DZD",
+    "cod": "Cash on Delivery",
+    "codDesc": "Pay safely when you receive your order",
+    "qualityGuarantee": "Quality Guarantee",
+    "qualityGuaranteeDesc": "Original products with quality guarantee"
+  },
+  "sections": {
+    "newProducts": "New Products",
+    "saleProducts": "Sale Products",
+    "viewAll": "View All",
+    "browseByCategory": "Browse by Category",
+    "whyChooseUs": "Why Choose Koulchi?"
+  },
+  "benefits": {
+    "securePayment": "Secure Cash on Delivery",
+    "securePaymentDesc": "Pay only when you receive and inspect your order",
+    "fastDeliveryAlgeria": "Fast Delivery Across Algeria",
+    "fastDeliveryAlgeriaDesc": "We deliver to all Algerian provinces",
+    "originalProducts": "Original Guaranteed Products",
+    "originalProductsDesc": "All our products are original with quality guarantee",
+    "competitivePrices": "Competitive Prices",
+    "competitivePricesDesc": "Best prices in the Algerian market",
+    "customerService": "24/7 Customer Service",
+    "customerServiceDesc": "Support team available around the clock",
+    "easyOrdering": "Easy Ordering",
+    "easyOrderingDesc": "User-friendly interface for quick ordering"
+  },
+  "product": {
+    "new": "New",
+    "sale": "Sale",
+    "cod": "Cash on Delivery",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "view": "View"
+  },
+  "footer": {
+    "description": "Leading e-commerce platform in Algeria, offering the best products with Cash on Delivery service",
+    "quickLinks": "Quick Links",
+    "aboutUs": "About Us",
+    "privacyPolicy": "Privacy Policy",
+    "contactInfo": "Contact Information",
+    "address": "Algiers, Algeria",
+    "acceptedPaymentMethods": "Accepted Payment Methods",
+    "allPricesInDZD": "All prices in Algerian Dinar (DZD)",
+    "copyright": "© 2025 Koulchi. All rights reserved"
+  },
+  "navigation": {
+    "home": "Home",
+    "products": "Products",
+    "cart": "Cart",
+    "profile": "Profile",
+    "orders": "Orders",
+    "settings": "Settings"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "welcome": "Bienvenue",
+  "cart": "Votre panier",
+  "login": "Connexion",
+  "logout": "Déconnexion",
+  "signup": "S'inscrire",
+  "email": "Email",
+  "password": "Mot de passe",
+  "loginWithGoogle": "Se connecter avec Google",
+  "loginWithFacebook": "Se connecter avec Facebook",
+  "or": "ou",
+  "becomeASeller": "Devenir Vendeur",
+  "language": "Langue",
+  "search": "Rechercher",
+  "searchPlaceholder": "Rechercher des produits...",
+  "freeShipping": "Livraison gratuite pour les commandes de plus de 5000 DZD",
+  "phone": "Téléphone",
+  "contact": "Contact",
+  "home": "Accueil",
+  "products": "Produits",
+  "profile": "Profil",
+  "orders": "Commandes",
+  "settings": "Paramètres",
+  "close": "Fermer",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "loading": "Chargement...",
+  "error": "Erreur",
+  "success": "Succès",
+  "hero": {
+    "title": "Achetez en toute confiance avec Koulchi",
+    "subtitle": "Meilleurs produits avec paiement à la livraison",
+    "shopNow": "Acheter maintenant",
+    "learnMore": "En savoir plus"
+  },
+  "features": {
+    "fastDelivery": "Livraison rapide",
+    "fastDeliveryDesc": "Livraison gratuite pour les commandes de plus de 5000 DZD",
+    "cod": "Paiement à la livraison",
+    "codDesc": "Payez en toute sécurité à la réception de votre commande",
+    "qualityGuarantee": "Garantie qualité",
+    "qualityGuaranteeDesc": "Produits originaux avec garantie qualité"
+  },
+  "sections": {
+    "newProducts": "Nouveaux produits",
+    "saleProducts": "Produits en promotion",
+    "viewAll": "Voir tout",
+    "browseByCategory": "Parcourir par catégorie",
+    "whyChooseUs": "Pourquoi choisir Koulchi ?"
+  },
+  "benefits": {
+    "securePayment": "Paiement sécurisé à la livraison",
+    "securePaymentDesc": "Payez seulement à la réception et inspection de votre commande",
+    "fastDeliveryAlgeria": "Livraison rapide dans toute l'Algérie",
+    "fastDeliveryAlgeriaDesc": "Nous livrons dans toutes les provinces algériennes",
+    "originalProducts": "Produits originaux garantis",
+    "originalProductsDesc": "Tous nos produits sont originaux avec garantie qualité",
+    "competitivePrices": "Prix compétitifs",
+    "competitivePricesDesc": "Meilleurs prix du marché algérien",
+    "customerService": "Service client 24/7",
+    "customerServiceDesc": "Équipe de support disponible 24h/24 et 7j/7",
+    "easyOrdering": "Commande facile",
+    "easyOrderingDesc": "Interface conviviale pour commander rapidement"
+  },
+  "product": {
+    "new": "Nouveau",
+    "sale": "Promotion",
+    "cod": "Paiement à la livraison",
+    "addToCart": "Ajouter au panier",
+    "outOfStock": "Rupture de stock",
+    "view": "Voir"
+  },
+  "footer": {
+    "description": "Plateforme e-commerce leader en Algérie, offrant les meilleurs produits avec service de paiement à la livraison",
+    "quickLinks": "Liens rapides",
+    "aboutUs": "À propos de nous",
+    "privacyPolicy": "Politique de confidentialité",
+    "contactInfo": "Informations de contact",
+    "address": "Alger, Algérie",
+    "acceptedPaymentMethods": "Méthodes de paiement acceptées",
+    "allPricesInDZD": "Tous les prix en Dinar algérien (DZD)",
+    "copyright": "© 2025 Koulchi. Tous droits réservés"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "products": "Produits",
+    "cart": "Panier",
+    "profile": "Profil",
+    "orders": "Commandes",
+    "settings": "Paramètres"
+  }
+}

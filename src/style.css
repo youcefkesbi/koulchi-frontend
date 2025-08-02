@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Noto Sans Arabic', 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-light-gray text-dark;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-200;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-medium hover:bg-primary hover:text-white transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-md p-6;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-cod {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .badge-new {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .badge-sale {
+    @apply bg-red-100 text-red-800;
+  }
+}
+
+/* RTL Support */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-opacity-80;
+}
+
+/* Auth and Language Switcher Styles */
+.auth-button {
+  @apply transition-all duration-200 transform hover:scale-105;
+}
+
+.language-flag {
+  @apply border-2 border-gray-200 hover:border-primary transition-colors;
+}
+
+.user-menu-item {
+  @apply transition-colors duration-150;
+}
+
+/* Modal backdrop blur */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+/* RTL specific styles for auth components */
+[dir="rtl"] .auth-section {
+  direction: rtl;
+}
+
+[dir="rtl"] .language-switcher {
+  direction: rtl;
+} 

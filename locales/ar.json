@@ -1,0 +1,92 @@
+{
+  "welcome": "مرحبًا",
+  "cart": "سلة التسوق",
+  "login": "تسجيل الدخول",
+  "logout": "تسجيل الخروج",
+  "signup": "إنشاء حساب",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "loginWithGoogle": "تسجيل الدخول بجوجل",
+  "loginWithFacebook": "تسجيل الدخول بفيسبوك",
+  "or": "أو",
+  "becomeASeller": "كن بائعًا",
+  "language": "اللغة",
+  "search": "بحث",
+  "searchPlaceholder": "ابحث عن المنتجات...",
+  "freeShipping": "توصيل مجاني للطلبات أكثر من 5000 دج",
+  "phone": "الهاتف",
+  "contact": "اتصل بنا",
+  "home": "الرئيسية",
+  "products": "المنتجات",
+  "profile": "الملف الشخصي",
+  "orders": "الطلبات",
+  "settings": "الإعدادات",
+  "close": "إغلاق",
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "loading": "جاري التحميل...",
+  "error": "خطأ",
+  "success": "نجح",
+  "hero": {
+    "title": "تسوق بثقة مع كولشي",
+    "subtitle": "أفضل المنتجات مع الدفع عند الاستلام",
+    "shopNow": "تسوق الآن",
+    "learnMore": "تعرف علينا"
+  },
+  "features": {
+    "fastDelivery": "توصيل سريع",
+    "fastDeliveryDesc": "توصيل مجاني للطلبات أكثر من 5000 دج",
+    "cod": "دفع عند الاستلام",
+    "codDesc": "ادفع عند استلام طلبك بأمان تام",
+    "qualityGuarantee": "ضمان الجودة",
+    "qualityGuaranteeDesc": "منتجات أصلية مع ضمان الجودة"
+  },
+  "sections": {
+    "newProducts": "المنتجات الجديدة",
+    "saleProducts": "المنتجات المخفضة",
+    "viewAll": "عرض الكل",
+    "browseByCategory": "تصفح حسب الفئة",
+    "whyChooseUs": "لماذا تختار كولشي؟"
+  },
+  "benefits": {
+    "securePayment": "دفع آمن عند الاستلام",
+    "securePaymentDesc": "ادفع فقط عند استلام طلبك وفحصه",
+    "fastDeliveryAlgeria": "توصيل سريع في جميع أنحاء الجزائر",
+    "fastDeliveryAlgeriaDesc": "نوصل إلى جميع الولايات الجزائرية",
+    "originalProducts": "منتجات أصلية مضمونة",
+    "originalProductsDesc": "جميع منتجاتنا أصلية مع ضمان الجودة",
+    "competitivePrices": "أسعار تنافسية",
+    "competitivePricesDesc": "أفضل الأسعار في السوق الجزائري",
+    "customerService": "خدمة عملاء 24/7",
+    "customerServiceDesc": "فريق دعم متاح على مدار الساعة",
+    "easyOrdering": "سهولة الطلب",
+    "easyOrderingDesc": "واجهة سهلة الاستخدام للطلب السريع"
+  },
+  "product": {
+    "new": "جديد",
+    "sale": "تخفيض",
+    "cod": "دفع عند الاستلام",
+    "addToCart": "أضف للسلة",
+    "outOfStock": "غير متوفر",
+    "view": "عرض"
+  },
+  "footer": {
+    "description": "منصة تسوق إلكتروني رائدة في الجزائر، نقدم أفضل المنتجات مع خدمة الدفع عند الاستلام",
+    "quickLinks": "روابط سريعة",
+    "aboutUs": "من نحن",
+    "privacyPolicy": "سياسة الخصوصية",
+    "contactInfo": "معلومات الاتصال",
+    "address": "الجزائر العاصمة، الجزائر",
+    "acceptedPaymentMethods": "طرق الدفع المقبولة",
+    "allPricesInDZD": "جميع الأسعار بالدينار الجزائري (دج)",
+    "copyright": "© 2025 كولشي. جميع الحقوق محفوظة"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "products": "المنتجات",
+    "cart": "سلة التسوق",
+    "profile": "الملف الشخصي",
+    "orders": "الطلبات",
+    "settings": "الإعدادات"
+  }
+}
