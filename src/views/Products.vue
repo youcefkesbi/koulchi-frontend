@@ -90,7 +90,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useProductsStore } from '../stores/products'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -122,6 +122,11 @@ export default {
       productsStore.clearFilters()
       searchQuery.value = ''
     }
+
+    // Fetch products on component mount
+    onMounted(async () => {
+      await productsStore.fetchProducts()
+    })
 
     return {
       productsStore,

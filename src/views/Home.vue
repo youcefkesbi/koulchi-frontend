@@ -176,7 +176,8 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useProductsStore } from '../stores/products'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -186,6 +187,7 @@ export default {
     ProductCard
   },
   setup() {
+    const router = useRouter()
     const productsStore = useProductsStore()
 
     const newProducts = computed(() => productsStore.newProducts.slice(0, 4))
@@ -194,7 +196,7 @@ export default {
 
     const selectCategory = (categoryId) => {
       productsStore.setCategory(categoryId)
-      this.$router.push('/products')
+      router.push('/products')
     }
 
     const getCategoryIcon = (categoryId) => {
@@ -206,6 +208,11 @@ export default {
       }
       return icons[categoryId] || 'fas fa-box'
     }
+
+    // Fetch products on component mount
+    onMounted(async () => {
+      await productsStore.fetchProducts()
+    })
 
     return {
       newProducts,

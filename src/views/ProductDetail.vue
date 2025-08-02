@@ -203,11 +203,9 @@ export default {
     const productsStore = useProductsStore()
     const cartStore = useCartStore()
     const quantity = ref(1)
-
-    const product = computed(() => {
-      const productId = parseInt(props.id)
-      return productsStore.getProductById(productId)
-    })
+    const product = ref(null)
+    const loading = ref(true)
+    const error = ref(null)
 
     const relatedProducts = computed(() => {
       if (!product.value) return []
@@ -235,27 +233,49 @@ export default {
       }
     }
 
-    const addToCart = () => {
+    const addToCart = async () => {
       if (product.value && product.value.inStock) {
         // Add multiple quantities
         for (let i = 0; i < quantity.value; i++) {
-          cartStore.addToCart(product.value)
+          await cartStore.addToCart(product.value)
         }
         quantity.value = 1
       }
     }
 
-    onMounted(() => {
-      // Update page title
-      if (product.value) {
-        document.title = `${product.value.nameAr} - كولشي`
+    const fetchProduct = async () => {
+      try {
+        loading.value = true
+        error.value = null
+        
+        const productId = parseInt(props.id)
+        const fetchedProduct = await productsStore.fetchProductById(productId)
+        
+        if (fetchedProduct) {
+          product.value = fetchedProduct
+          // Update page title
+          document.title = `${fetchedProduct.nameAr} - كولشي`
+        } else {
+          error.value = 'Product not found'
+        }
+      } catch (err) {
+        error.value = err.message
+        console.error('Error fetching product:', err)
+      } finally {
+        loading.value = false
       }
+    }
+
+    onMounted(async () => {
+      await fetchProduct()
     })
 
     return {
       product,
       relatedProducts,
       quantity,
+      loading,
+      error,
       getDiscountPercentage,
       formatPrice,
       increaseQuantity,

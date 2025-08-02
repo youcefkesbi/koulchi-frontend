@@ -166,7 +166,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import ProductCard from '../components/ProductCard.vue'
@@ -192,13 +192,21 @@ export default {
       return price.toLocaleString('ar-DZ')
     }
 
-    const updateQuantity = (productId, quantity) => {
-      cartStore.updateQuantity(productId, quantity)
+    const updateQuantity = async (productId, quantity) => {
+      await cartStore.updateQuantity(productId, quantity)
     }
 
-    const removeItem = (productId) => {
-      cartStore.removeFromCart(productId)
+    const removeItem = async (productId) => {
+      await cartStore.removeFromCart(productId)
     }
+
+    // Fetch cart and products on component mount
+    onMounted(async () => {
+      await Promise.all([
+        cartStore.fetchCart(),
+        productsStore.fetchProducts()
+      ])
+    })
 
     return {
       cartStore,

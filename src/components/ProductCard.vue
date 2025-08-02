@@ -95,9 +95,9 @@ export default {
       return price.toLocaleString('ar-DZ')
     }
 
-    const addToCart = () => {
+    const addToCart = async () => {
       if (props.product.inStock) {
-        cartStore.addToCart(props.product)
+        await cartStore.addToCart(props.product)
       }
     }
 

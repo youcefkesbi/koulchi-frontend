@@ -1,11 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
-} from 'firebase/auth'
-import { auth, googleProvider, facebookProvider } from '../firebase'
+import { supabase } from '../supabase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -13,14 +8,21 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
 
   const isAuthenticated = computed(() => !!user.value)
-  const userDisplayName = computed(() => user.value?.displayName || '')
+  const userDisplayName = computed(() => user.value?.user_metadata?.full_name || user.value?.email || '')
   const userEmail = computed(() => user.value?.email || '')
-  const userPhotoURL = computed(() => user.value?.photoURL || '')
+  const userPhotoURL = computed(() => user.value?.user_metadata?.avatar_url || '')
 
   // Initialize auth state listener
   const initAuth = () => {
-    onAuthStateChanged(auth, (firebaseUser) => {
-      user.value = firebaseUser
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      user.value = session?.user ?? null
+      loading.value = false
+    })
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      user.value = session?.user ?? null
       loading.value = false
     })
   }
@@ -30,7 +32,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      await signInWithPopup(auth, googleProvider)
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      })
+      
+      if (authError) throw authError
     } catch (err) {
       error.value = err.message
       console.error('Google login error:', err)
@@ -44,7 +53,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      await signInWithPopup(auth, facebookProvider)
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: window.location.origin
+        }
+      })
+      
+      if (authError) throw authError
     } catch (err) {
       error.value = err.message
       console.error('Facebook login error:', err)
@@ -58,7 +74,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       error.value = null
-      await signOut(auth)
+      const { error: authError } = await supabase.auth.signOut()
+      
+      if (authError) throw authError
     } catch (err) {
       error.value = err.message
       console.error('Logout error:', err)
