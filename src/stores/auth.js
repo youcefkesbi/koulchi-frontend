@@ -133,6 +133,37 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Signup
+  const signup = async ({ username, email, password, confirmPassword }) => {
+    if (password !== confirmPassword) {
+      error.value = "Passwords do not match."
+      return
+    }
+    try {
+      loading.value = true
+      error.value = null
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: username
+          }
+        }
+      })
+      if (signUpError) throw signUpError
+      user.value = data.user
+      // Optionally, you can send a confirmation email or handle post-signup logic here
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Signup error:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Logout
   const logout = async () => {
     try {
@@ -169,6 +200,7 @@ export const useAuthStore = defineStore('auth', () => {
     createSellerProfile,
     loginWithGoogle,
     loginWithFacebook,
+    signup,
     logout,
     clearError
   }
