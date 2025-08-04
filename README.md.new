@@ -1,0 +1,225 @@
+# Koulchi E-commerce Platform
+
+A full-stack e-commerce platform built with a modern tech stack, designed for scalability and maintainability with a clear separation between frontend and backend.
+
+## Project Structure
+
+### Backend (`/koulchi-backend`)
+A Node.js/Express.js application with Prisma ORM, following clean architecture principles.
+
+```
+koulchi-backend/
+├── src/
+│   ├── config/          # Configuration files
+│   ├── controllers/     # Route controllers
+│   ├── middlewares/     # Custom middlewares
+│   ├── models/         # Database models (Prisma)
+│   ├── routes/         # API routes
+│   ├── services/       # Business logic
+│   ├── utils/          # Utility functions
+│   └── validators/     # Request validation
+├── prisma/             # Prisma schema and migrations
+├── .env                # Environment variables
+├── package.json
+└── server.js           # Application entry point
+```
+
+### Frontend (`/koulchi-frontend`)
+A Vue.js 3 application with Pinia for state management, following a clean architecture.
+
+```
+koulchi-frontend/
+├── public/             # Static files
+├── src/
+│   ├── api/            # API client configuration
+│   ├── assets/         # Static assets
+│   ├── components/     # Reusable UI components
+│   │   ├── common/     # Common components
+│   │   ├── forms/      # Form components
+│   │   ├── layout/     # Layout components
+│   │   └── ui/         # UI components
+│   ├── composables/    # Composable functions
+│   ├── config/         # App configuration
+│   ├── router/         # Vue Router configuration
+│   ├── services/       # API services
+│   ├── stores/         # Pinia stores
+│   ├── utils/          # Utility functions
+│   ├── views/          # Page components
+│   ├── App.vue         # Root component
+│   └── main.js         # App entry point
+├── .env                # Environment variables
+└── package.json
+```
+
+## Tech Stack
+
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web application framework
+- **Prisma** - Next-generation ORM for Node.js
+- **PostgreSQL** - Primary database
+- **JWT** - JSON Web Tokens for authentication
+- **Redis** - Caching and rate limiting
+- **Docker** - Containerization
+
+### Frontend
+- **Vue 3** - Progressive JavaScript framework
+- **Vue Router** - Official router for Vue.js
+- **Pinia** - State management
+- **Axios** - HTTP client
+- **Tailwind CSS** - Utility-first CSS framework
+- **Vite** - Next generation frontend tooling
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 16+ and npm 8+
+- PostgreSQL 13+
+- Redis (for caching and rate limiting)
+- Docker (optional)
+
+### Backend Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd koulchi-backend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. **Set up database**
+   ```bash
+   # Run database migrations
+   npx prisma migrate dev
+   
+   # Seed initial data (optional)
+   npx prisma db seed
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**
+   ```bash
+   cd ../koulchi-frontend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+## Mobile App Integration
+
+### Architecture Overview
+The backend is designed to be API-first, making it ideal for mobile app integration. The same API endpoints used by the web frontend can be consumed by a mobile app.
+
+### Recommended Approach
+1. **Use a cross-platform framework** like React Native or Flutter for the mobile app
+2. **Reuse API services** - The API layer is already separated and can be used directly
+3. **Implement token-based authentication** - The JWT authentication system is already in place
+4. **Leverage web views** for content-heavy pages when appropriate
+
+### Key Endpoints for Mobile
+- `POST /api/v1/auth/login` - User authentication
+- `GET /api/v1/products` - List products
+- `POST /api/v1/orders` - Create a new order
+- `GET /api/v1/users/me` - Get current user profile
+
+## Deployment
+
+### Backend
+
+**Option 1: Docker (Recommended)**
+```bash
+docker-compose up -d
+```
+
+**Option 2: Manual**
+1. Set up a production database
+2. Configure environment variables
+3. Build and run:
+   ```bash
+   npm run build
+   NODE_ENV=production node dist/server.js
+   ```
+
+### Frontend
+
+**Using Vite**
+```bash
+npm run build
+# Serve the dist/ directory with your preferred web server
+```
+
+## Environment Variables
+
+### Backend (`.env`)
+```
+NODE_ENV=development
+PORT=8000
+DATABASE_URL=postgresql://user:password@localhost:5432/koulchi?schema=public
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=90d
+JWT_COOKIE_EXPIRES_IN=90
+FRONTEND_URL=http://localhost:3000
+RATE_LIMIT_WINDOW_MS=15
+RATE_LIMIT_MAX_REQUESTS=100
+```
+
+### Frontend (`.env`)
+```
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_APP_NAME=Koulchi
+VITE_APP_DESCRIPTION=Modern E-commerce Platform
+```
+
+## API Documentation
+
+API documentation is available at `/api-docs` when running the backend in development mode.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Vue.js](https://vuejs.org/)
+- [Express.js](https://expressjs.com/)
+- [Prisma](https://www.prisma.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Vite](https://vitejs.dev/)
