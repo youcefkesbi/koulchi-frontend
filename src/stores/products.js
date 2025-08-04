@@ -10,6 +10,7 @@ export const fetchCategories = async () => {
 
 export const useProductsStore = defineStore('products', () => {
   const products = ref([])
+  const categories = ref([])
 
   const selectedCategory = ref('all')
   const searchQuery = ref('')
