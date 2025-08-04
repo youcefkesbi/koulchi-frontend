@@ -1,20 +1,27 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../supabase'
+import axios from 'axios';
+
+export const fetchCategories = async () => {
+  const response = await axios.get('http://localhost:5000/api/categories');
+  return response.data;
+};
 
 export const useProductsStore = defineStore('products', () => {
   const products = ref([])
-  const categories = ref([
-    { id: 'all', name: 'All Products', nameFr:'Tous les produits', nameAr: 'جميع المنتجات' },
-    { id: 'cars', name: 'Cars', nameAr: 'السيارات' },
-    { id: 'realestate', name: 'Real Estate', nameAr: 'العقارات' },
-    { id: 'electronics', name: 'Electronics', nameAr: 'الإلكترونيات' },
-    { id: 'fashion', name: 'Fashion', nameAr: 'الموضة' },
-    { id: 'home', name: 'Home & Kitchen', nameAr: 'المنزل والمطبخ' },
-    { id: 'beauty', name: 'Beauty & Personal Care', nameAr: 'الجمال والرعاية الشخصية' },
-    { id: 'kids', name: 'Kids', nameAr: 'الأطفال' },
-    { id: 'food', name: 'Food & Beverages', nameAr: 'الطعام والمشروبات' }
-  ])
+  // const categories = ref([
+  //   { id: 'all', name: 'All Products', nameFr:'Tous les produits', nameAr: 'جميع المنتجات' },
+  //   { id: 'cars', name: 'Cars', nameAr: 'السيارات' },
+  //   { id: 'realestate', name: 'Real Estate', nameAr: 'العقارات' },
+  //   { id: 'electronics', name: 'Electronics', nameAr: 'الإلكترونيات' },
+  //   { id: 'fashion', name: 'Fashion', nameAr: 'الموضة' },
+  //   { id: 'home', name: 'Home & Kitchen', nameAr: 'المنزل والمطبخ' },
+  //   { id: 'beauty', name: 'Beauty & Personal Care', nameAr: 'الجمال والرعاية الشخصية' },
+  //   { id: 'kids', name: 'Kids', nameAr: 'الأطفال' },
+  //   { id: 'food', name: 'Food & Beverages', nameAr: 'الطعام والمشروبات' }
+  // ])
+
   const selectedCategory = ref('all')
   const searchQuery = ref('')
   const loading = ref(false)
