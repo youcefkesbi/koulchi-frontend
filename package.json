@@ -1,22 +1,19 @@
 {
   "name": "koulchi-frontend",
   "version": "1.0.0",
-  "description": "Mini-Temo frontend web app tailored to Algerian market with COD payment",
-  "main": "index.js",
+  "description": "Simplified e-commerce platform frontend",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "serve": "vite preview"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.16",
-    "@supabase/supabase-js": "^2.53.0",
-    "@vueuse/core": "^10.3.0",
+    "@heroicons/vue": "^2.0.18",
     "axios": "^1.11.0",
     "pinia": "^2.1.6",
     "vue": "^3.3.4",
-    "vue-i18n": "^11.1.11",
     "vue-router": "^4.2.4"
   },
   "devDependencies": {
@@ -28,10 +25,9 @@
   },
   "keywords": [
     "vue",
-    "algeria",
     "ecommerce",
-    "cod",
-    "koulchi"
+    "mvp",
+    "tailwind"
   ],
   "author": "Koulchi Team",
   "license": "MIT"

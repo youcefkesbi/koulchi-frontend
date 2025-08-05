@@ -212,6 +212,8 @@ export default {
       }
     }
 
+
+
     const handleLogout = async () => {
       await authStore.logout()
       userMenuOpen.value = false
@@ -225,7 +227,6 @@ export default {
     }
 
     onMounted(() => {
-      authStore.initAuth()
       document.addEventListener('click', handleClickOutside)
     })
 

@@ -83,6 +83,15 @@ class AuthService extends ApiService {
   }
 
   /**
+   * Sign up a new user (alias for register)
+   * @param {Object} userData - User registration data
+   * @returns {Promise} - API response
+   */
+  signup(userData) {
+    return this.register(userData);
+  }
+
+  /**
    * Request password reset
    * @param {string} email - User's email
    * @returns {Promise} - API response
@@ -110,7 +119,7 @@ class AuthService extends ApiService {
    * @returns {Promise} - API response
    */
   getProfile() {
-    return api.get(`/users/me`);
+    return api.get(`/users/profile`);
   }
 
   /**
@@ -119,7 +128,7 @@ class AuthService extends ApiService {
    * @returns {Promise} - API response
    */
   updateProfile(userData) {
-    return api.patch(`/users/me`, userData);
+    return api.put(`/users/profile`, userData);
   }
 
   /**
@@ -130,7 +139,7 @@ class AuthService extends ApiService {
    * @returns {Promise} - API response
    */
   updatePassword(currentPassword, newPassword, newPasswordConfirm) {
-    return api.patch(`/users/me/password`, {
+    return api.patch(`/users/profile/password`, {
       currentPassword,
       newPassword,
       newPasswordConfirm,

@@ -6,6 +6,7 @@ import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
 import SellerDashboard from '../views/SellerDashboard.vue'
+import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
   {
@@ -44,6 +45,11 @@ const routes = [
     name: 'SellerDashboard',
     component: SellerDashboard,
     meta: { requiresAuth: true, requiresSeller: true }
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallback
   }
 ]
 

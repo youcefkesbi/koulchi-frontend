@@ -65,7 +65,21 @@
       {{ $t('signup') }}
     </button>
   </form>
-  <div v-else class="space-y-4">
+  <div v-else>
+  <form @submit.prevent="handleLogin" class="space-y-4">
+    <div>
+      <label class="block mb-1 text-sm font-medium text-gray-700">{{ $t('email') }}</label>
+      <input v-model="loginForm.email" type="email" required class="w-full px-3 py-2 border rounded" />
+    </div>
+    <div>
+      <label class="block mb-1 text-sm font-medium text-gray-700">{{ $t('password') }}</label>
+      <input v-model="loginForm.password" type="password" required class="w-full px-3 py-2 border rounded" />
+    </div>
+    <button type="submit" :disabled="authStore.loading" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors disabled:opacity-50">
+      {{ $t('login') }}
+    </button>
+  </form>
+  <div class="mt-4 space-y-2">
     <!-- Google Login -->
     <button
       @click="handleGoogleLogin"
@@ -91,12 +105,13 @@
       </svg>
       {{ $t('loginWithFacebook') }}
     </button>
-    <!-- Loading State -->
-    <div v-if="authStore.loading" class="flex items-center justify-center py-4">
-      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-      <span class="ml-2 text-gray-600">{{ $t('loading') }}</span>
-    </div>
   </div>
+  <!-- Loading State -->
+  <div v-if="authStore.loading" class="flex items-center justify-center py-4">
+    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+    <span class="ml-2 text-gray-600">{{ $t('loading') }}</span>
+  </div>
+</div>
 </div>
 
               <!-- Close Button -->
@@ -169,6 +184,10 @@ export default {
       password: '',
       confirmPassword: ''
     })
+    const loginForm = reactive({
+      email: '',
+      password: ''
+    })
 
     const toggleMode = () => {
       isSignup.value = !isSignup.value
@@ -182,6 +201,14 @@ export default {
       }
     }
 
+    const handleLogin = async () => {
+      console.log('Login button clicked', loginForm.email, loginForm.password);
+      await authStore.login(loginForm.email, loginForm.password)
+      if (!authStore.error) {
+        closeModal()
+      }
+    }
+
     return {
       authStore,
       closeModal,
@@ -190,7 +217,9 @@ export default {
       isSignup,
       toggleMode,
       signupForm,
-      handleSignup
+      handleSignup,
+      loginForm,
+      handleLogin
     }
   }
 }

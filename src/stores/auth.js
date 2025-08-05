@@ -1,14 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { authService } from '@/services/api.service';
+import apiService from '@/services/api.service';
 
 /**
  * Authentication store for managing user authentication state
  */
 export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter();
-  
   // State
   const user = ref(null);
   const token = ref(localStorage.getItem('token') || null);
@@ -19,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAdmin = computed(() => user.value?.role === 'admin');
+  const isSeller = computed(() => user.value?.role === 'SELLER' || user.value?.isSeller === true);
   const userDisplayName = computed(() => user.value?.name || user.value?.email?.split('@')[0] || '');
   const userEmail = computed(() => user.value?.email || '');
   const userAvatar = computed(
@@ -34,8 +32,12 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         await fetchUser();
       } catch (error) {
-        console.error('Failed to fetch user:', error);
-        logout();
+        console.warn('Failed to fetch user during initialization:', error.message);
+        // Clear invalid token but don't redirect to avoid navigation issues
+        token.value = null;
+        isAuthenticated.value = false;
+        user.value = null;
+        localStorage.removeItem('token');
       }
     }
   };
@@ -50,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true;
       error.value = null;
       
-      const response = await authService.login(email, password);
+      const response = await apiService.post('/auth/login', { email, password });
       
       // Update state
       user.value = response.data.user;
@@ -62,7 +64,8 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Redirect to returnUrl or home
       const redirectPath = returnUrl.value || '/';
-      router.push(redirectPath);
+      // Use window.location for navigation to avoid router context issues
+      window.location.href = redirectPath;
       returnUrl.value = null;
       
       return response;
@@ -83,24 +86,33 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true;
       error.value = null;
       
-      const response = await authService.signup(userData);
+      // Structure the data for the backend API
+      const signupData = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        passwordConfirm: userData.confirmPassword
+      };
+      
+      const response = await apiService.post('/auth/signup', signupData);
       
       // After successful registration, log the user in
-      if (response.token) {
+      if (response.data && response.data.token) {
         user.value = response.data.user;
-        token.value = response.token;
+        token.value = response.data.token;
         isAuthenticated.value = true;
         localStorage.setItem('token', token.value);
         
         // Redirect to home or verification page
         const redirectPath = returnUrl.value || '/';
-        router.push(redirectPath);
+        window.location.href = redirectPath;
         returnUrl.value = null;
       }
       
       return response;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Registration failed. Please try again.';
+      console.error('Signup error:', err);
+      error.value = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       throw err;
     } finally {
       loading.value = false;
@@ -120,10 +132,10 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token');
     
     // Redirect to login
-    router.push('/login');
+    window.location.href = '/login';
     
     // Clear any API authorization
-    authService.defaults.headers.common['Authorization'] = '';
+    apiService.defaults.headers.common['Authorization'] = '';
   };
 
   /**
@@ -131,7 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const fetchUser = async () => {
     try {
-      const response = await authService.fetchUser();
+      const response = await apiService.get('/users/me');
       user.value = response.data;
       return user.value;
     } catch (err) {
@@ -148,7 +160,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const refreshToken = async () => {
     try {
-      const response = await authService.refreshToken();
+      // Token refresh not implemented in simplified version
       token.value = response.token;
       localStorage.setItem('token', token.value);
       return token.value;
@@ -167,7 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true;
       error.value = null;
       
-      const response = await authService.forgotPassword(email);
+      // Password reset not implemented in simplified version
       return response;
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to send password reset email.';
@@ -183,84 +195,58 @@ export const useAuthStore = defineStore('auth', () => {
    * @param {string} password - New password
    * @param {string} passwordConfirm - New password confirmation
    */
-  const resetPassword = async (token, password, passwordConfirm) => {
+  /**
+   * Update user profile
+   */
+  const updateProfile = async (profileData) => {
     try {
       loading.value = true;
       error.value = null;
       
-      const response = await authService.resetPassword(token, password, passwordConfirm);
-      
-      return response;
+      const response = await apiService.patch('/users/me', profileData);
+      user.value = response.data.data.user;
+      localStorage.setItem('user', JSON.stringify(user.value));
+      return { success: true };
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to reset password.';
-      throw err;
+      error.value = err.response?.data?.message || 'Update failed';
+      return { success: false, error: error.value };
     } finally {
       loading.value = false;
     }
   };
 
   /**
-   * Update the current user's password
-   * @param {string} currentPassword - Current password
-   * @param {string} newPassword - New password
-   * @param {string} newPasswordConfirm - New password confirmation
+   * Login with Google
    */
-  const updatePassword = async (currentPassword, newPassword, newPasswordConfirm) => {
-    try {
-      loading.value = true;
-      error.value = null;
-      
-      const response = await authService.updatePassword(currentPassword, newPassword, newPasswordConfirm);
-      
-      return response;
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to update password.';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
+  const loginWithGoogle = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/google`;
   };
 
   /**
-   * Clear any error messages
+   * Login with Facebook
    */
-  const clearError = () => {
-    error.value = null;
+  const loginWithFacebook = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/facebook`;
   };
-
-  // Initialize the store
-  initAuth();
 
   return {
     // State
     user,
     token,
-    isAuthenticated,
     loading,
     error,
-    returnUrl,
     
     // Getters
+    isAuthenticated,
     isAdmin,
-    userDisplayName,
-    userEmail,
-    userAvatar,
     
     // Actions
-    init: initAuth,
-    login,
-    register: signup,
-    logout,
     fetchUser,
-    refreshToken,
-    forgotPassword,
-    resetPassword,
-    updatePassword,
-    clearError,
+    signup,
+    login,
+    logout,
+    updateProfile,
+    loginWithGoogle,
+    loginWithFacebook,
   };
-}, {
-  // Persist the store to localStorage
-  persist: {
-    paths: ['token', 'user', 'isAuthenticated'],
-  },
 });
