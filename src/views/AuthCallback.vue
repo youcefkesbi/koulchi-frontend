@@ -38,7 +38,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { supabase } from '@/supabase'
 
 export default {
   name: 'AuthCallback',
@@ -54,53 +53,41 @@ export default {
 
     const handleAuthCallback = async () => {
       try {
-        // Get the session from Supabase
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          throw sessionError
-        }
+        // Extract JWT token from URL (?token=...)
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        if (!token) throw new Error('No token found in callback URL');
 
-        if (session && session.user) {
-          // Update auth store with Supabase user data
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
-            avatar: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-            provider: session.user.app_metadata?.provider
-          }
-          
-          // Update auth store with Supabase user data using reactive properties
-          authStore.$patch({
-            user: userData,
-            token: session.access_token,
-            isAuthenticated: true,
-            error: null,
-            returnUrl: null
-          });
-          
-          // Store in localStorage for persistence
-          localStorage.setItem('supabase.auth.token', session.access_token)
-          localStorage.setItem('token', session.access_token)
-          
-          // Get return URL before clearing it
-          const returnUrl = authStore.returnUrl || '/'
-          
-          setTimeout(() => {
-            router.push(returnUrl)
-          }, 1500)
-          
-        } else {
-          throw new Error('No session found')
-        }
-        
+        // Decode JWT payload (optional, for user info)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userData = {
+          id: payload.id,
+          email: payload.email,
+          name: payload.name || '',
+          avatar: payload.picture || '',
+          provider: 'google',
+        };
+
+        // Update auth store
+        authStore.$patch({
+          user: userData,
+          token,
+          isAuthenticated: true,
+          error: null,
+          returnUrl: null
+        });
+        localStorage.setItem('token', token);
+
+        // Redirect to main page
+        setTimeout(() => {
+          router.push('/');
+        }, 1200);
       } catch (err) {
-        console.error('OAuth callback error:', err)
-        error.value = err.message || 'Authentication failed'
-        authStore.$patch({ error: error.value })
+        console.error('OAuth callback error:', err);
+        error.value = err.message || 'Authentication failed';
+        authStore.$patch({ error: error.value });
       } finally {
-        loading.value = false
+        loading.value = false;
       }
     }
 

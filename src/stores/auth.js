@@ -219,14 +219,14 @@ export const useAuthStore = defineStore('auth', () => {
    * Login with Google
    */
   const loginWithGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/auth/google`;
   };
 
   /**
    * Login with Facebook
    */
   const loginWithFacebook = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/facebook`;
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/auth/facebook`;
   };
 
   return {

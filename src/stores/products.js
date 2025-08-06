@@ -70,46 +70,58 @@ export const useProductsStore = defineStore('products', () => {
   // Actions
   const fetchProducts = async () => {
     try {
-      loading.value = true
-      error.value = null
-      
-      const { data, error: fetchError } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (fetchError) throw fetchError
-      
-      // Map database fields to frontend fields
-      products.value = (data || []).map(mapProductFields)
+      loading.value = true;
+      error.value = null;
+
+      // Fetch from backend API
+      const response = await axios.get('http://localhost:8000/products');
+      const apiProducts = response.data?.data?.products || [];
+
+      // Map backend fields to frontend fields
+      products.value = apiProducts.map((p) => ({
+        id: p.id,
+        sellerId: p.user?.id,
+        name: p.title,
+        price: p.price,
+        image: p.image,
+        category: p.category?.name,
+        description: p.description,
+        inStock: true, // Adjust if backend provides this
+        createdAt: p.createdAt,
+      }));
     } catch (err) {
-      error.value = err.message
-      console.error('Error fetching products:', err)
+      error.value = err.message || (err.response && err.response.data && err.response.data.message) || 'Error fetching products';
+      console.error('Error fetching products:', err);
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
   const fetchProductById = async (id) => {
     try {
-      loading.value = true
-      error.value = null
-      
-      const { data, error: fetchError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single()
-      
-      if (fetchError) throw fetchError
-      
-      return data ? mapProductFields(data) : null
+      loading.value = true;
+      error.value = null;
+
+      const response = await axios.get(`http://localhost:8000/products/${id}`);
+      const p = response.data?.data?.product;
+      if (!p) return null;
+      return {
+        id: p.id,
+        sellerId: p.user?.id,
+        name: p.title,
+        price: p.price,
+        image: p.image,
+        category: p.category?.name,
+        description: p.description,
+        inStock: true, // Adjust if backend provides this
+        createdAt: p.createdAt,
+      };
     } catch (err) {
-      error.value = err.message
-      console.error('Error fetching product:', err)
-      return null
+      error.value = err.message || (err.response && err.response.data && err.response.data.message) || 'Error fetching product';
+      console.error('Error fetching product:', err);
+      return null;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
