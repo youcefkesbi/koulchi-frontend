@@ -1,51 +1,54 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../supabase'
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+
 export const fetchCategories = async () => {
-  const response = await axios.get('http://localhost:5000/api/categories');
-  return response.data;
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/categories`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
 };
 
 export const useProductsStore = defineStore('products', () => {
   const products = ref([])
   const categories = ref([])
-
   const selectedCategory = ref('all')
   const searchQuery = ref('')
   const loading = ref(false)
   const error = ref(null)
+  const totalProducts = ref(0)
+  const currentPage = ref(1)
+  const perPage = 10
 
   // Helper function to map database fields to frontend fields
-  const mapProductFields = (dbProduct) => {
+  const mapProductFields = (apiProduct) => {
     return {
-      id: dbProduct.id,
-      sellerId: dbProduct.seller_id,
-      name: dbProduct.name,
-      nameAr: dbProduct.name_ar,
-      price: dbProduct.price,
-      originalPrice: dbProduct.original_price,
-      image: dbProduct.image,
-      category: dbProduct.category,
-      description: dbProduct.description,
-      descriptionAr: dbProduct.description_ar,
-      inStock: dbProduct.in_stock,
-      isNew: dbProduct.is_new,
-      isOnSale: dbProduct.is_on_sale,
-      rating: dbProduct.rating,
-      reviews: dbProduct.reviews,
-      createdAt: dbProduct.created_at
+      id: apiProduct.id,
+      userId: apiProduct.userId,
+      title: apiProduct.title,
+      description: apiProduct.description,
+      price: apiProduct.price,
+      image: apiProduct.image || 'https://via.placeholder.com/300',
+      category: apiProduct.category?.name || 'Uncategorized',
+      categoryId: apiProduct.categoryId,
+      user: apiProduct.user,
+      createdAt: apiProduct.createdAt,
+      updatedAt: apiProduct.updatedAt
     }
   }
 
   // Getters
   const filteredProducts = computed(() => {
-    let filtered = products.value
+    let filtered = [...products.value]
 
     // Filter by category
     if (selectedCategory.value !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory.value)
+      filtered = filtered.filter(product => product.category === selectedCategory.value || product.categoryId === selectedCategory.value)
     }
 
     // Filter by search query
@@ -68,60 +71,59 @@ export const useProductsStore = defineStore('products', () => {
   const getProductById = computed(() => (id) => products.value.find(product => product.id === id))
 
   // Actions
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1, search = '', category = '') => {
+    loading.value = true
+    error.value = null
+    currentPage.value = page
+    
     try {
-      loading.value = true;
-      error.value = null;
-
-      // Fetch from backend API
-      const response = await axios.get('http://localhost:8000/products');
-      const apiProducts = response.data?.data?.products || [];
-
-      // Map backend fields to frontend fields
-      products.value = apiProducts.map((p) => ({
-        id: p.id,
-        sellerId: p.user?.id,
-        name: p.title,
-        price: p.price,
-        image: p.image,
-        category: p.category?.name,
-        description: p.description,
-        inStock: true, // Adjust if backend provides this
-        createdAt: p.createdAt,
-      }));
+      // Build query params
+      const params = new URLSearchParams({
+        page,
+        limit: perPage,
+        ...(search && { search }),
+        ...(category && category !== 'all' && { categoryId: category })
+      })
+      
+      const response = await axios.get(`${API_BASE_URL}/api/products?${params}`)
+      
+      // Map the data to our frontend format
+      products.value = response.data.products.map(mapProductFields)
+      totalProducts.value = response.data.total || 0
+      
+      // If categories are not loaded, fetch them
+      if (categories.value.length === 0) {
+        categories.value = await fetchCategories()
+      }
+      
+      return response.data
     } catch (err) {
-      error.value = err.message || (err.response && err.response.data && err.response.data.message) || 'Error fetching products';
-      console.error('Error fetching products:', err);
+      console.error('Error fetching products:', err)
+      error.value = err.response?.data?.message || 'Failed to fetch products'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
   const fetchProductById = async (id) => {
+    loading.value = true
+    error.value = null
+    
     try {
-      loading.value = true;
-      error.value = null;
-
-      const response = await axios.get(`http://localhost:8000/products/${id}`);
-      const p = response.data?.data?.product;
-      if (!p) return null;
-      return {
-        id: p.id,
-        sellerId: p.user?.id,
-        name: p.title,
-        price: p.price,
-        image: p.image,
-        category: p.category?.name,
-        description: p.description,
-        inStock: true, // Adjust if backend provides this
-        createdAt: p.createdAt,
-      };
+      const response = await axios.get(`${API_BASE_URL}/api/products/${id}`)
+      
+      if (!response.data) {
+        throw new Error('Product not found')
+      }
+      
+      return mapProductFields(response.data)
     } catch (err) {
-      error.value = err.message || (err.response && err.response.data && err.response.data.message) || 'Error fetching product';
-      console.error('Error fetching product:', err);
-      return null;
+      console.error(`Error fetching product ${id}:`, err)
+      error.value = err.response?.data?.message || 'Failed to fetch product'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
