@@ -137,6 +137,25 @@ import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } fro
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
 
+  // Create Account
+async function createAccount() {
+    const { data, error } = await supabase.auth.signUp({
+        email: this.signupForm.email,
+        password: this.signupForm.password,
+        options: {
+            data: {
+                username: this.signupForm.username
+            }
+        }
+    })
+    if(error) {
+        console.error('Error creating account:', error)
+    }
+    else {
+        console.log('Account created successfully:', data)
+    }
+}
+
 export default {
   name: 'LoginModal',
   components: {
@@ -153,6 +172,7 @@ export default {
     }
   },
   emits: ['close'],
+
   setup(props, { emit }) {
     const authStore = useAuthStore()
 
@@ -175,15 +195,11 @@ export default {
       }
     }
 
-    // use ref and reactive from Vue
-    // (imports are now at the top)
-
     const isSignup = ref(false)
     const signupForm = reactive({
       username: '',
       email: '',
       password: '',
-      confirmPassword: ''
     })
     const loginForm = reactive({
       email: '',
@@ -195,12 +211,12 @@ export default {
       authStore.clearError()
     }
 
-    const handleSignup = async () => {
-      await authStore.signup(signupForm)
-      if (!authStore.error) {
-        closeModal()
-      }
-    }
+    // const handleSignup = async () => {
+    //   await authStore.signup(signupForm)
+    //   if (!authStore.error) {
+    //     closeModal()
+    //   }
+    // }
 
     const handleLogin = async () => {
       console.log('Login button clicked', loginForm.email, loginForm.password);
