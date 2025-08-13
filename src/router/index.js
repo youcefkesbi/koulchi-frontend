@@ -15,6 +15,11 @@ const routes = [
     component: Home
   },
   {
+    path: '/login',
+    name: 'LoginModal',
+    component: Home
+  },
+  {
     path: '/products',
     name: 'Products',
     component: Products
@@ -44,7 +49,7 @@ const routes = [
     path: '/seller/dashboard',
     name: 'SellerDashboard',
     component: SellerDashboard,
-    meta: { requiresAuth: true, requiresSeller: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/auth/callback',
@@ -65,24 +70,23 @@ const router = createRouter({
   }
 })
 
-// Navigation guard for seller routes
+async function getUser(next) {
+  localUser = await supabase.auth.getSession()
+  if (localUser.data.session == null) {
+    next('/login')
+  } else {
+      next()
+  }
+}
+
+// Auth requirements
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
-    // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem('supabase.auth.token')
-    if (!isAuthenticated) {
-      next('/')
-      return
-    }
+    getUser(next);
   }
-  
-  if (to.meta.requiresSeller) {
-    // Check if user is a seller (this will be handled by the component)
-    next()
-    return
+  else {
+      next()
   }
-  
-  next()
 })
 
 export default router 

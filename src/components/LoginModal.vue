@@ -37,11 +37,6 @@
   </button>
 </div>
 
-              <!-- Error Message -->
-              <div v-if="authStore.error" class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {{ authStore.error }}
-              </div>
-
               <!-- Login/Signup Form -->
 <div>
   <form v-if="isSignup" @submit.prevent="handleSignup">
@@ -134,8 +129,12 @@
 <script>
 import { ref, reactive } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
-import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
+
+// Connect inputs
+let email = ref('');
+let password = ref('');
+let username = ref('');
 
   // Create Account
 async function createAccount() {
