@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../supabase'
+import { supabase } from '../lib/supabase'
 
 export const useSellerStore = defineStore('seller', () => {
   const products = ref([])
@@ -9,8 +9,8 @@ export const useSellerStore = defineStore('seller', () => {
 
   // Getters
   const totalProducts = computed(() => products.value.length)
-  const activeProducts = computed(() => products.value.filter(p => p.in_stock))
-  const inactiveProducts = computed(() => products.value.filter(p => !p.in_stock))
+  const activeProducts = computed(() => products.value.filter(p => p.is_active))
+  const inactiveProducts = computed(() => products.value.filter(p => !p.is_active))
 
   // Actions
   const fetchSellerProducts = async () => {
@@ -23,7 +23,7 @@ export const useSellerStore = defineStore('seller', () => {
 
       const { data, error: fetchError } = await supabase
         .from('products')
-        .select('*')
+        .select('*, categories(name, name_ar)')
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -55,12 +55,13 @@ export const useSellerStore = defineStore('seller', () => {
           price: productData.price,
           original_price: productData.originalPrice,
           image: productData.image,
-          category: productData.category,
+          category_id: productData.categoryId,
           description: productData.description,
           description_ar: productData.descriptionAr,
           in_stock: productData.inStock,
           is_new: productData.isNew,
           is_on_sale: productData.isOnSale,
+          is_active: true,
           rating: 0,
           reviews: 0
         })
@@ -131,8 +132,8 @@ export const useSellerStore = defineStore('seller', () => {
     }
   }
 
-  const toggleProductStatus = async (productId, inStock) => {
-    return await updateProduct(productId, { in_stock: inStock })
+  const toggleProductStatus = async (productId, isActive) => {
+    return await updateProduct(productId, { is_active: isActive })
   }
 
   const clearError = () => {
