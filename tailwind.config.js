@@ -11,6 +11,7 @@ export default {
         'algeria-red': '#CC0000',
         'algeria-white': '#FFFFFF',
         'primary': '#006633',
+        'primary-dark': '#004d26',
         'secondary': '#CC0000',
         'accent': '#FFD700',
         'dark': '#1a1a1a',

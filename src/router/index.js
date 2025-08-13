@@ -5,7 +5,7 @@ import ProductDetail from '../views/ProductDetail.vue'
 import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
-import SellerDashboard from '../views/SellerDashboard.vue'
+import UserDashboard from '../views/SellerDashboard.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
@@ -46,9 +46,15 @@ const routes = [
     component: OrderConfirmation
   },
   {
-    path: '/seller/dashboard',
-    name: 'SellerDashboard',
-    component: SellerDashboard,
+    path: '/dashboard',
+    name: 'UserDashboard',
+    component: UserDashboard,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/announcements/new',
+    name: 'NewAnnouncement',
+    component: () => import('../components/PostAnnouncement.vue'),
     meta: { requiresAuth: true }
   },
   {

@@ -9,8 +9,9 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from './stores/auth'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
@@ -22,9 +23,15 @@ export default {
   },
   setup() {
     const { locale } = useI18n()
+    const authStore = useAuthStore()
 
     const currentDir = computed(() => {
       return locale.value === 'ar' ? 'rtl' : 'ltr'
+    })
+
+    onMounted(async () => {
+      // Initialize authentication
+      await authStore.initAuth()
     })
 
     return {

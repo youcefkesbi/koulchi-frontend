@@ -1,0 +1,146 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { supabase } from '../lib/supabase'
+
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null)
+  const loading = ref(false)
+  const error = ref(null)
+
+  // Getters
+  const isAuthenticated = computed(() => !!user.value)
+  const userDisplayName = computed(() => user.value?.user_metadata?.full_name || user.value?.email || 'User')
+  const userEmail = computed(() => user.value?.email || '')
+  const userPhotoURL = computed(() => user.value?.user_metadata?.avatar_url || null)
+
+  // Actions
+  const login = async (email, password) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (authError) throw authError
+
+      user.value = data.user
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const signUp = async (email, password, userData = {}) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      })
+
+      if (authError) throw authError
+
+      user.value = data.user
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const logout = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { error: authError } = await supabase.auth.signOut()
+      if (authError) throw authError
+
+      user.value = null
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const getCurrentUser = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
+      if (authError) throw authError
+
+      user.value = currentUser
+      return currentUser
+    } catch (err) {
+      error.value = err.message
+      user.value = null
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const clearError = () => {
+    error.value = null
+  }
+
+  // Initialize auth state
+  const initAuth = async () => {
+    try {
+      // Get initial session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        user.value = session.user
+      }
+
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          user.value = session?.user || null
+        }
+      )
+
+      return subscription
+    } catch (err) {
+      console.error('Error initializing auth:', err)
+    }
+  }
+
+  return {
+    // State
+    user,
+    loading,
+    error,
+    
+    // Getters
+    isAuthenticated,
+    userDisplayName,
+    userEmail,
+    userPhotoURL,
+    
+    // Actions
+    login,
+    signUp,
+    logout,
+    getCurrentUser,
+    clearError,
+    initAuth
+  }
+})

@@ -60,23 +60,23 @@
 
             <!-- Auth Section -->
             <div class="flex items-center space-x-3 space-x-reverse">
-              <!-- Become a Seller Button / Seller Dashboard -->
-              <div v-if="authStore.isAuthenticated && authStore.isSeller">
+              <!-- Post Announcement Button / User Dashboard -->
+              <div v-if="authStore.isAuthenticated">
                 <router-link
-                  to="/seller/dashboard"
+                  to="/dashboard"
                   class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <i class="fas fa-chart-line mr-2"></i>
-                  {{ $t('seller.dashboard') }}
+                  {{ $t('dashboard.userDashboard') }}
                 </router-link>
               </div>
               <button
                 v-else
-                @click="handleBecomeSeller"
+                @click="handlePostAnnouncement"
                 class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                <i class="fas fa-store mr-2"></i>
-                {{ $t('becomeASeller') }}
+                <i class="fas fa-bullhorn mr-2"></i>
+                {{ $t('postAnnouncement') }}
               </button>
 
               <!-- User Menu / Login Button -->
@@ -166,35 +166,37 @@
     <!-- Login Modal -->
     <LoginModal :is-open="showLoginModal" @close="showLoginModal = false" />
     
-    <!-- Become Seller Modal -->
-    <BecomeSellerModal :is-open="showBecomeSellerModal" @close="showBecomeSellerModal = false" />
+    <!-- Post Announcement Modal -->
+    <PostAnnouncement :is-open="showPostAnnouncementModal" @close="showPostAnnouncementModal = false" />
   </header>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 import { useProductsStore } from '../stores/products'
 import { useAuthStore } from '../stores/auth'
 import LoginModal from './LoginModal.vue'
-import BecomeSellerModal from './BecomeSellerModal.vue'
+import PostAnnouncement from './PostAnnouncement.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
 export default {
   name: 'Header',
   components: {
     LoginModal,
-    BecomeSellerModal,
+    PostAnnouncement,
     LanguageSwitcher
   },
   setup() {
+    const router = useRouter()
     const cartStore = useCartStore()
     const productsStore = useProductsStore()
     const authStore = useAuthStore()
     const searchQuery = ref('')
     const showLoginModal = ref(false)
-    const showBecomeSellerModal = ref(false)
     const userMenuOpen = ref(false)
+    const showPostAnnouncementModal = ref(false)
 
     const handleSearch = () => {
       productsStore.setSearchQuery(searchQuery.value)
@@ -204,15 +206,13 @@ export default {
       productsStore.setCategory(categoryId)
     }
 
-    const handleBecomeSeller = () => {
+    const handlePostAnnouncement = () => {
       if (authStore.isAuthenticated) {
-        showBecomeSellerModal.value = true
+        showPostAnnouncementModal.value = true
       } else {
         showLoginModal.value = true
       }
     }
-
-
 
     const handleLogout = async () => {
       await authStore.logout()
@@ -240,11 +240,11 @@ export default {
       authStore,
       searchQuery,
       showLoginModal,
-      showBecomeSellerModal,
       userMenuOpen,
+      showPostAnnouncementModal,
       handleSearch,
       selectCategory,
-      handleBecomeSeller,
+      handlePostAnnouncement,
       handleLogout
     }
   }

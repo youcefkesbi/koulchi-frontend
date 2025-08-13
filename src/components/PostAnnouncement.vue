@@ -28,7 +28,7 @@
               <!-- Header -->
               <div class="flex items-center justify-between mb-6">
                 <DialogTitle as="h3" class="text-2xl font-bold text-gray-900">
-                  {{ $t('seller.becomeSeller') }}
+                  {{ $t('announcement.postAnnouncement') }}
                 </DialogTitle>
                 <button
                   @click="closeModal"
@@ -38,69 +38,126 @@
                 </button>
               </div>
 
-              <!-- Error Message -->
-              <div v-if="authStore.error" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                {{ authStore.error }}
+              <!-- Success Message -->
+              <div v-if="showSuccess" class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                {{ $t('announcement.success') }}
               </div>
 
-
+              <!-- Error Message -->
+              <div v-if="error" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {{ error }}
+              </div>
 
               <!-- Form -->
               <form @submit.prevent="submitForm" class="space-y-6">
-                <!-- Business Information -->
+                <!-- Product Information -->
                 <div class="space-y-4">
                   <h4 class="text-lg font-semibold text-gray-900 border-b pb-2">
-                    {{ $t('seller.businessInfo') }}
+                    {{ $t('announcement.productInfo') }}
                   </h4>
                   
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ $t('seller.businessName') }} *
+                        {{ $t('announcement.productName') }} (English) *
                       </label>
                       <input
-                        v-model="form.businessName"
+                        v-model="form.name"
                         type="text"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        :placeholder="$t('seller.businessNamePlaceholder')"
+                        :placeholder="$t('announcement.productNamePlaceholder')"
                       />
                     </div>
                     
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ $t('seller.phone') }} *
+                        {{ $t('announcement.productName') }} (Arabic) *
                       </label>
                       <input
-                        v-model="form.phone"
-                        type="tel"
+                        v-model="form.nameAr"
+                        type="text"
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        :placeholder="$t('seller.phonePlaceholder')"
+                        :placeholder="$t('announcement.productNameArPlaceholder')"
                       />
                     </div>
                   </div>
 
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ $t('announcement.category') }} *
+                      </label>
+                      <select
+                        v-model="form.category"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      >
+                        <option value="">{{ $t('announcement.selectCategory') }}</option>
+                        <option value="cars">{{ $t('seller.cars') }}</option>
+                        <option value="realestate">{{ $t('seller.realestate') }}</option>
+                        <option value="electronics">{{ $t('seller.electronics') }}</option>
+                        <option value="fashion">{{ $t('seller.fashion') }}</option>
+                        <option value="home">{{ $t('seller.home') }}</option>
+                        <option value="beauty">{{ $t('seller.beauty') }}</option>
+                        <option value="kids">{{ $t('seller.kids') }}</option>
+                        <option value="food">{{ $t('seller.food') }}</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ $t('announcement.price') }} *
+                      </label>
+                      <input
+                        v-model="form.price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        :placeholder="$t('announcement.pricePlaceholder')"
+                      />
+                    </div>
+                  </div>
 
-                </div>
-
-                <!-- Address Information -->
-                <div class="space-y-4">
-                  <h4 class="text-lg font-semibold text-gray-900 border-b pb-2">
-                    {{ $t('seller.addressInfo') }}
-                  </h4>
-                  
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                      {{ $t('seller.city') }} *
+                      {{ $t('announcement.image') }}
                     </label>
                     <input
-                      v-model="form.city"
-                      type="text"
-                      required
+                      v-model="form.image"
+                      type="url"
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      :placeholder="$t('seller.cityPlaceholder')"
+                      :placeholder="$t('announcement.imageUrlPlaceholder')"
                     />
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ $t('announcement.description') }} (English)
+                      </label>
+                      <textarea
+                        v-model="form.description"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        :placeholder="$t('announcement.descriptionPlaceholder')"
+                      ></textarea>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ $t('announcement.description') }} (Arabic)
+                      </label>
+                      <textarea
+                        v-model="form.descriptionAr"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        :placeholder="$t('announcement.descriptionArPlaceholder')"
+                      ></textarea>
+                    </div>
                   </div>
                 </div>
 
@@ -115,21 +172,19 @@
                   </button>
                   <button
                     type="submit"
-                    :disabled="authStore.loading"
+                    :disabled="loading"
                     class="px-6 py-3 bg-primary text-white border border-transparent rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span v-if="authStore.loading">
+                    <span v-if="loading">
                       <i class="fas fa-spinner fa-spin mr-2"></i>
-                      {{ $t('common.starting') }}
+                      {{ $t('announcement.submitting') }}
                     </span>
                     <span v-else>
-                      {{ $t('seller.start') }}
+                      {{ $t('announcement.submit') }}
                     </span>
                   </button>
                 </div>
               </form>
-
-
             </DialogPanel>
           </TransitionChild>
         </div>
@@ -140,12 +195,11 @@
 
 <script>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
-import { useAuthStore } from '../stores/auth'
+import { supabase } from '../lib/supabase'
 
 export default {
-  name: 'BecomeSellerModal',
+  name: 'PostAnnouncement',
   components: {
     TransitionRoot,
     TransitionChild,
@@ -159,35 +213,80 @@ export default {
       default: false
     }
   },
-  emits: ['close'],
+  emits: ['close', 'announcement-posted'],
   setup(props, { emit }) {
-    const authStore = useAuthStore()
-    const router = useRouter()
+    const loading = ref(false)
+    const error = ref('')
+    const showSuccess = ref(false)
+    
     const form = reactive({
-      businessName: '',
-      phone: '',
-      city: ''
+      name: '',
+      nameAr: '',
+      category: '',
+      price: '',
+      image: '',
+      description: '',
+      descriptionAr: ''
     })
 
     const closeModal = () => {
-      authStore.clearError()
+      error.value = ''
+      showSuccess.value = false
+      // Reset form
+      Object.keys(form).forEach(key => {
+        form[key] = ''
+      })
       emit('close')
     }
 
     const submitForm = async () => {
       try {
-        await authStore.createSellerProfile(form)
-        await authStore.fetchSellerProfile() // Ensure isSeller is updated
-        emit('close')
-        router.push('/seller/dashboard')
-      } catch (error) {
-        // Error is handled by the store
+        loading.value = true
+        error.value = ''
+
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('User not authenticated')
+
+        const { data, error: createError } = await supabase
+          .from('products')
+          .insert({
+            seller_id: user.id,
+            name: form.name,
+            name_ar: form.nameAr,
+            price: parseFloat(form.price),
+            image: form.image || null,
+            category: form.category,
+            description: form.description || null,
+            description_ar: form.descriptionAr || null,
+            in_stock: true,
+            is_new: true,
+            is_on_sale: false,
+            rating: 0,
+            reviews: 0
+          })
+          .select()
+          .single()
+
+        if (createError) throw createError
+
+        showSuccess.value = true
+        emit('announcement-posted')
+        setTimeout(() => {
+          closeModal()
+        }, 2000)
+      } catch (err) {
+        error.value = err.message || $t('announcement.error')
+        console.error('Error creating product:', err)
+      } finally {
+        loading.value = false
       }
     }
 
     return {
-      authStore,
       form,
+      loading,
+      error,
+      showSuccess,
       closeModal,
       submitForm
     }

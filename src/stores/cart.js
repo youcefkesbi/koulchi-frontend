@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../supabase'
+import { supabase } from '../lib/supabase'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
@@ -43,7 +43,14 @@ export const useCartStore = defineStore('cart', () => {
       error.value = null
       
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        // If no user, try to load from localStorage for guest users
+        const savedCart = localStorage.getItem('guest-cart')
+        if (savedCart) {
+          items.value = JSON.parse(savedCart)
+        }
+        return
+      }
 
       // Fetch cart items
       const { data: cartItems, error: cartError } = await supabase
@@ -74,6 +81,11 @@ export const useCartStore = defineStore('cart', () => {
     } catch (err) {
       error.value = err.message
       console.error('Error fetching cart:', err)
+      // Fallback to localStorage for guest users
+      const savedCart = localStorage.getItem('guest-cart')
+      if (savedCart) {
+        items.value = JSON.parse(savedCart)
+      }
     } finally {
       loading.value = false
     }
@@ -82,7 +94,11 @@ export const useCartStore = defineStore('cart', () => {
   const syncCartToDatabase = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        // For guest users, save to localStorage
+        localStorage.setItem('guest-cart', JSON.stringify(items.value))
+        return
+      }
 
       // Clear existing cart items for this user
       await supabase
@@ -106,68 +122,72 @@ export const useCartStore = defineStore('cart', () => {
         if (insertError) throw insertError
       }
     } catch (err) {
+      error.value = err.message
       console.error('Error syncing cart to database:', err)
+      // Fallback to localStorage
+      localStorage.setItem('guest-cart', JSON.stringify(items.value))
     }
   }
 
-  const addToCart = async (product) => {
-    const existingItem = items.value.find(item => item.id === product.id)
-    
-    if (existingItem) {
-      existingItem.quantity += 1
-    } else {
-      items.value.push({
-        id: product.id,
-        name: product.name,
-        nameAr: product.nameAr,
-        price: product.price,
-        image: product.image,
-        quantity: 1
-      })
-    }
+  const addToCart = async (product, quantity = 1) => {
+    try {
+      const existingItem = items.value.find(item => item.id === product.id)
+      
+      if (existingItem) {
+        existingItem.quantity += quantity
+      } else {
+        items.value.push({
+          id: product.id,
+          name: product.name || product.name_ar,
+          nameAr: product.name_ar || product.name,
+          price: product.price,
+          image: product.image,
+          quantity
+        })
+      }
 
-    // Sync to database
-    await syncCartToDatabase()
+      await syncCartToDatabase()
+    } catch (err) {
+      error.value = err.message
+      console.error('Error adding to cart:', err)
+    }
   }
 
   const removeFromCart = async (productId) => {
-    const index = items.value.findIndex(item => item.id === productId)
-    if (index > -1) {
-      items.value.splice(index, 1)
+    try {
+      items.value = items.value.filter(item => item.id !== productId)
+      await syncCartToDatabase()
+    } catch (err) {
+      error.value = err.message
+      console.error('Error removing from cart:', err)
     }
-
-    // Sync to database
-    await syncCartToDatabase()
   }
 
   const updateQuantity = async (productId, quantity) => {
-    const item = items.value.find(item => item.id === productId)
-    if (item) {
-      if (quantity <= 0) {
-        await removeFromCart(productId)
-      } else {
-        item.quantity = quantity
-        // Sync to database
-        await syncCartToDatabase()
+    try {
+      const item = items.value.find(item => item.id === productId)
+      if (item) {
+        if (quantity <= 0) {
+          await removeFromCart(productId)
+        } else {
+          item.quantity = quantity
+          await syncCartToDatabase()
+        }
       }
+    } catch (err) {
+      error.value = err.message
+      console.error('Error updating quantity:', err)
     }
   }
 
   const clearCart = async () => {
-    items.value = []
-    deliveryAddress.value = null
-    customerInfo.value = null
-
-    // Clear from database
-    await syncCartToDatabase()
-  }
-
-  const setDeliveryAddress = (address) => {
-    deliveryAddress.value = address
-  }
-
-  const setCustomerInfo = (info) => {
-    customerInfo.value = info
+    try {
+      items.value = []
+      await syncCartToDatabase()
+    } catch (err) {
+      error.value = err.message
+      console.error('Error clearing cart:', err)
+    }
   }
 
   const clearError = () => {
@@ -196,8 +216,6 @@ export const useCartStore = defineStore('cart', () => {
     removeFromCart,
     updateQuantity,
     clearCart,
-    setDeliveryAddress,
-    setCustomerInfo,
     clearError
   }
 }) 

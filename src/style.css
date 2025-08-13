@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-secondary: #f59e0b;
+  --color-dark: #1f2937;
+  --color-light-gray: #f9fafb;
+}
+
 @layer base {
   html {
     font-family: 'Noto Sans Arabic', 'Inter', system-ui, sans-serif;
