@@ -140,11 +140,11 @@ import { supabase } from '../lib/supabase'
   // Create Account
 async function createAccount() {
     const { data, error } = await supabase.auth.signUp({
-        email: this.signupForm.email,
-        password: this.signupForm.password,
+        email: email.value,
+        password: password.value,
         options: {
             data: {
-                username: this.signupForm.username
+                username: username.value
             }
         }
     })
@@ -153,6 +153,31 @@ async function createAccount() {
     }
     else {
         console.log('Account created successfully:', data)
+    }
+}
+
+// Login
+async function login() {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.value,
+        password: password.value
+    })
+    if(error) {
+        console.error('Error logging in:', error)
+    }
+    else {
+        console.log('Logged in successfully:', data)
+    }
+}
+
+// Logout
+async function logout() {
+    const { error } = await supabase.auth.signOut()
+    if(error) {
+        console.error('Error logging out:', error)
+    }
+    else {
+        console.log('Logged out successfully')
     }
 }
 
@@ -174,12 +199,11 @@ export default {
   emits: ['close'],
 
   setup(props, { emit }) {
-    const authStore = useAuthStore()
 
     const closeModal = () => {
-      authStore.clearError()
-      emit('close')
-    }
+  emit('close')
+}
+    // Google and Facebook login handlers
 
     const handleGoogleLogin = async () => {
       await authStore.loginWithGoogle()
