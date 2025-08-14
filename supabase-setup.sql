@@ -23,9 +23,9 @@ CREATE TABLE profiles (
 CREATE TABLE categories (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
+  name_fr TEXT NOT NULL,
   name_ar TEXT NOT NULL,
   description TEXT,
-  description_ar TEXT,
   icon TEXT,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -37,9 +37,8 @@ CREATE TABLE products (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
-  name_ar TEXT NOT NULL,
+  name_ar TEXT,
   description TEXT,
-  description_ar TEXT,
   price DECIMAL(10,2) NOT NULL,
   original_price DECIMAL(10,2),
   image TEXT,
@@ -167,25 +166,27 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- Insert seed data
-INSERT INTO categories (name, name_ar, description, description_ar) VALUES
-('Cars', 'السيارات', 'Automotive vehicles and parts', 'المركبات وقطع غيار السيارات'),
-('Real Estate', 'العقارات', 'Properties for sale or rent', 'العقارات للبيع أو الإيجار'),
-('Electronics', 'الإلكترونيات', 'Electronic devices and gadgets', 'الأجهزة الإلكترونية والأدوات'),
-('Fashion', 'الموضة', 'Clothing and accessories', 'الملابس والإكسسوارات'),
-('Home & Kitchen', 'المنزل والمطبخ', 'Home goods and kitchen items', 'مستلزمات المنزل والمطبخ'),
-('Beauty & Personal Care', 'الجمال والرعاية الشخصية', 'Beauty products and personal care', 'منتجات التجميل والعناية الشخصية'),
-('Kids', 'الأطفال', 'Children products and toys', 'منتجات الأطفال والألعاب'),
-('Food & Beverages', 'الطعام والمشروبات', 'Food and drink items', 'الطعام والمشروبات');
+INSERT INTO categories (name, name_fr, name_ar) VALUES
+('Cars', 'Véhicules', 'السيارات'),
+('Real Estate', 'Immobilier', 'العقارات'),
+('Electronics', 'Électronique', 'الإلكترونيات'),
+('Clothing', 'Vêtements', 'الملابس'),
+('Home & Kitchen', 'Maison et Cuisine', 'المنزل والمطبخ'),
+('Health & Beauty', 'Santé et Beauté', 'الصحة والتجميل'),
+('Kids', 'Enfants', 'الأطفال'),
+('Games', 'Jeux', 'الألعاب'),
+('Food & Beverages', 'Alimentation et Boissons', 'الطعام والمشروبات'),
+('Books', 'Livres', 'الكتب'),
+('Sports & Outdoors', 'Sport et Extérieur', 'الرياضة');
 
 -- Insert sample products
-INSERT INTO products (seller_id, name, name_ar, description, description_ar, price, category_id, image) VALUES
+INSERT INTO products (seller_id, name, name_ar, description, price, category_id, image) VALUES
 (
   (SELECT id FROM profiles LIMIT 1),
   'iPhone 15 Pro',
   'آيفون 15 برو',
   'Latest iPhone with advanced features',
-  'أحدث آيفون مع ميزات متقدمة',
-  250000,
+  250000.00,
   (SELECT id FROM categories WHERE name = 'Electronics'),
   'https://via.placeholder.com/300x300?text=iPhone+15+Pro'
 ),
@@ -194,8 +195,7 @@ INSERT INTO products (seller_id, name, name_ar, description, description_ar, pri
   'Toyota Camry 2024',
   'تويوتا كامري 2024',
   'Reliable family sedan',
-  'سيارة عائلية موثوقة',
-  8500000,
+  8500000.00,
   (SELECT id FROM categories WHERE name = 'Cars'),
   'https://via.placeholder.com/300x300?text=Toyota+Camry'
 ),
@@ -204,8 +204,7 @@ INSERT INTO products (seller_id, name, name_ar, description, description_ar, pri
   'Modern Apartment',
   'شقة عصرية',
   'Beautiful 3-bedroom apartment in city center',
-  'شقة جميلة من 3 غرف نوم في وسط المدينة',
-  45000000,
+  45000000.00,
   (SELECT id FROM categories WHERE name = 'Real Estate'),
   'https://via.placeholder.com/300x300?text=Apartment'
 );
