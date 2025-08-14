@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Setting up Koulchi Frontend..."
+echo "�� Setting up Koulchi E-commerce Platform..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
@@ -15,31 +15,36 @@ if [ "$NODE_VERSION" -lt 16 ]; then
     exit 1
 fi
 
-echo "✅ Node.js version: $(node -v)"
+echo "✅ Node.js $(node -v) detected"
 
 # Install dependencies
 echo "📦 Installing dependencies..."
 npm install
 
-# Check if .env.local exists
+# Create environment file if it doesn't exist
 if [ ! -f .env.local ]; then
-    echo "⚠️  .env.local file not found. Creating template..."
+    echo "🔧 Creating .env.local template..."
     cat > .env.local << EOF
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_project_url_here
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+
+# Example:
+# VITE_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
+# VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 EOF
-    echo "📝 Please update .env.local with your actual Supabase credentials"
+    echo "📝 Please edit .env.local with your Supabase credentials"
 else
-    echo "✅ .env.local file found"
+    echo "✅ .env.local already exists"
 fi
 
 echo ""
 echo "🎉 Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Update .env.local with your Supabase credentials"
-echo "2. Run 'npm run dev' to start the development server"
-echo "3. Open http://localhost:5173 in your browser"
+echo "1. Create a Supabase project at https://supabase.com"
+echo "2. Edit .env.local with your Supabase credentials"
+echo "3. Run the SQL script from supabase-setup.sql in your Supabase SQL editor"
+echo "4. Run 'npm run dev' to start the development server"
 echo ""
 echo "For more information, see README.md"

@@ -100,6 +100,22 @@
           </div>
         </div>
 
+        <!-- Pending Shipments -->
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.pendingShipments') }}</h3>
+          <div v-if="pendingShipments.length > 0" class="space-y-3">
+            <div v-for="shipment in pendingShipments" :key="shipment.id" class="p-3 bg-yellow-50 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium">{{ shipment.product_name }}</span>
+                <span class="text-xs text-yellow-600">{{ shipment.status }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-4 text-gray-500">
+            <p class="text-sm">{{ $t('dashboard.noPendingShipments') }}</p>
+          </div>
+        </div>
+
         <!-- Simple Stats -->
         <div class="grid grid-cols-2 gap-4">
           <div class="text-center p-3 bg-blue-50 rounded-lg">
@@ -139,9 +155,10 @@ export default {
     const sellerStore = useSellerStore()
     const showPostAnnouncementModal = ref(false)
     
-    // Mock data for now - these would come from actual API calls
+    // Mock data for now - these would come from actual Supabase calls
     const orders = ref([])
     const wishlist = ref([])
+    const pendingShipments = ref([])
 
     const formatPrice = (price) => {
       return price.toLocaleString('ar-DZ')
@@ -154,7 +171,7 @@ export default {
 
     onMounted(async () => {
       await sellerStore.fetchSellerProducts()
-      // Here you would also fetch orders and wishlist data
+      // Here you would also fetch orders, wishlist, and pending shipments data
     })
 
     return {
@@ -163,6 +180,7 @@ export default {
       showPostAnnouncementModal,
       orders,
       wishlist,
+      pendingShipments,
       formatPrice,
       onAnnouncementPosted
     }

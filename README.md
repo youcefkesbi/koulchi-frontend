@@ -1,21 +1,123 @@
-# Koulchi Frontend
+# Koulchi E-commerce Platform
 
-A modern e-commerce platform built with Vue 3, Tailwind CSS, and Supabase for authentication and data management.
+A modern, multi-language e-commerce platform built with Vue 3, Supabase, and Tailwind CSS.
 
 ## Features
 
-- **User Authentication**: Supabase-powered authentication system
-- **Multi-language Support**: Arabic, English, and French
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **User Dashboard**: Combined buying and selling functionality
-- **Product Management**: Post announcements and manage listings
-- **Shopping Cart**: Full cart functionality with persistence
+- 🛒 **E-commerce Platform**: Buy and sell products with a user-friendly interface
+- 🌍 **Multi-language Support**: Arabic, English, and French
+- 🔐 **Supabase Authentication**: Secure user authentication and authorization
+- 👥 **Dual Role System**: Users can buy and sell products, admins have full control
+- 📱 **Responsive Design**: Mobile-first design with Tailwind CSS
+- 🚀 **Modern Tech Stack**: Vue 3, Pinia, Vue Router, Vite
 
-## Prerequisites
+## Tech Stack
+
+- **Frontend**: Vue 3, Pinia, Vue Router, Tailwind CSS
+- **Backend**: Supabase (Database, Auth, Storage)
+- **Build Tool**: Vite
+- **State Management**: Pinia
+- **Styling**: Tailwind CSS
+
+## Quick Start
+
+### Prerequisites
 
 - Node.js 16+ 
 - npm or yarn
-- Supabase account and project
+- Supabase account
+
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd koulchi-frontend
+npm install
+```
+
+### 2. Set up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Get your project URL and anon key
+3. Create a `.env.local` file:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Set up Database
+
+1. Go to your Supabase project SQL editor
+2. Copy and paste the contents of `supabase-setup.sql`
+3. Run the SQL script to create tables and seed data
+
+### 4. Run the Application
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173` to see your application.
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable Vue components
+├── views/              # Page components
+├── stores/             # Pinia stores for state management
+├── router/             # Vue Router configuration
+├── lib/                # Utility libraries (Supabase client)
+├── locales/            # Internationalization files
+└── main.js             # Application entry point
+```
+
+## Database Schema
+
+### Tables
+
+- **profiles**: User profiles with role-based access
+- **categories**: Product categories
+- **products**: Product listings
+- **orders**: Purchase orders
+- **wishlist**: User wishlists
+
+### Key Features
+
+- **Row Level Security (RLS)**: Secure data access
+- **Role-based Access**: Users vs Admin permissions
+- **Automatic User Creation**: Trigger-based profile creation
+
+## User Roles
+
+### User (Default)
+- Can buy and sell products
+- Manage their own profile
+- View and manage orders
+- Maintain wishlist
+
+### Admin
+- Full system access
+- Manage categories
+- Monitor all activities
+- Can only be set from Supabase dashboard
+
+## API Endpoints
+
+All data operations go through Supabase:
+
+- **Authentication**: `supabase.auth.*`
+- **Products**: `supabase.from('products')`
+- **Categories**: `supabase.from('categories')`
+- **Orders**: `supabase.from('orders')`
+- **Wishlist**: `supabase.from('wishlist')`
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
 ## Environment Variables
 
@@ -26,70 +128,31 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-## Installation
+## Deployment
 
-1. Install dependencies:
-```bash
-npm install
-```
+### Build for Production
 
-2. Set up environment variables (see above)
-
-3. Run the development server:
-```bash
-npm run dev
-```
-
-4. Build for production:
 ```bash
 npm run build
 ```
 
-## Project Structure
+### Deploy to Vercel/Netlify
 
-```
-src/
-├── components/          # Reusable Vue components
-├── views/              # Page components
-├── stores/             # Pinia state management
-├── router/             # Vue Router configuration
-├── lib/                # External library configurations
-├── locales/            # Internationalization files
-└── style.css           # Global styles and Tailwind
-```
-
-## Key Components
-
-- **Header**: Navigation and authentication
-- **UserDashboard**: Combined buying/selling dashboard
-- **PostAnnouncement**: Product announcement form
-- **ProductCard**: Product display component
-
-## Authentication
-
-The app uses Supabase for authentication with two main roles:
-- **User**: Can buy and sell products
-- **Admin**: Full administrative access (set in Supabase dashboard)
-
-## Styling
-
-- Tailwind CSS for utility-first styling
-- Custom CSS variables for brand colors
-- RTL support for Arabic language
-- Responsive design patterns
-
-## Development
-
-- Vue 3 Composition API
-- Pinia for state management
-- Vue Router for navigation
-- Vue I18n for internationalization
-- Headless UI for accessible components
+1. Connect your repository
+2. Set environment variables
+3. Deploy automatically on push
 
 ## Contributing
 
-1. Follow Vue 3 best practices
-2. Use Composition API
-3. Maintain responsive design
-4. Add proper TypeScript types (if applicable)
-5. Test on multiple devices and languages
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Support
+
+For support, please open an issue in the repository or contact the development team.

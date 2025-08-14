@@ -255,12 +255,13 @@ export default {
             name_ar: form.nameAr,
             price: parseFloat(form.price),
             image: form.image || null,
-            category: form.category,
+            category_id: form.category,
             description: form.description || null,
             description_ar: form.descriptionAr || null,
             in_stock: true,
             is_new: true,
             is_on_sale: false,
+            is_active: true,
             rating: 0,
             reviews: 0
           })
