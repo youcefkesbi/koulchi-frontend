@@ -7,6 +7,7 @@ import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
 import UserDashboard from '../views/UserDashboard.vue'
+import Profile from '../views/Profile.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 
 const routes = [
@@ -50,6 +51,12 @@ const routes = [
     path: '/dashboard',
     name: 'UserDashboard',
     component: UserDashboard,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
     meta: { requiresAuth: true }
   },
   {

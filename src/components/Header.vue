@@ -76,13 +76,26 @@
               </button>
 
               <!-- User Dashboard / Login Button -->
-              <div v-if="authStore.isAuthenticated">
+              <div v-if="authStore.isAuthenticated" class="flex items-center space-x-4 space-x-reverse">
+                <!-- Debug info (remove this later) -->
+                <div class="text-xs text-gray-500 mr-2">
+                  Auth: {{ authStore.isAuthenticated }} | User: {{ authStore.user ? 'Yes' : 'No' }}
+                </div>
+                
                 <router-link
                   to="/dashboard"
                   class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
                 >
                   <i class="fas fa-chart-line mr-2"></i>
                   User Dashboard
+                </router-link>
+                
+                <router-link
+                  to="/profile"
+                  class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
+                >
+                  <i class="fas fa-user mr-2"></i>
+                  My Profile
                 </router-link>
               </div>
 
@@ -111,7 +124,7 @@
                     <i class="fas fa-chart-line mr-3"></i>Dashboard
                   </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-user mr-3"></i>Profile
+                    <i class="fas fa-user mr-3"></i>My Profile
                   </router-link>
                   <button @click="logout" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
                     <i class="fas fa-sign-out-alt mr-3"></i>Logout

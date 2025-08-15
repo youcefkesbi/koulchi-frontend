@@ -34,7 +34,7 @@ You already have the OAuth credentials in your `.env` file:
 5. Add these **Authorized redirect URIs**:
    ```
    https://dngrxmydwffmfkgtivyh.supabase.co/auth/v1/callback
-   http://localhost:3000
+   http://localhost:3000/auth/callback
    ```
 
 ## Step 3: Configure OAuth in Facebook Developers
@@ -45,7 +45,7 @@ You already have the OAuth credentials in your `.env` file:
 4. Add these **Valid OAuth Redirect URIs**:
    ```
    https://dngrxmydwffmfkgtivyh.supabase.co/auth/v1/callback
-   http://localhost:3000
+   http://localhost:3000/auth/callback
    ```
 
 ## Step 4: Test OAuth Login
@@ -73,14 +73,14 @@ You already have the OAuth credentials in your `.env` file:
    - Make sure they match exactly with Supabase configuration
 
 4. **OAuth not working in development**
-   - Add `http://localhost:3000` to your OAuth provider's redirect URIs
+   - Add `http://localhost:3000/auth/callback` to your OAuth provider's redirect URIs
    - This allows testing OAuth locally
 
 ### Testing OAuth Locally:
 
 For local development, you can also use:
 ```
-http://localhost:3000
+http://localhost:3000/auth/callback
 ```
 
 ## Security Notes

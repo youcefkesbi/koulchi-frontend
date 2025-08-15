@@ -37,7 +37,8 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '../stores/auth'
+import { supabase } from '../lib/supabase'
 
 export default {
   name: 'AuthCallback',
@@ -53,41 +54,36 @@ export default {
 
     const handleAuthCallback = async () => {
       try {
-        // Extract JWT token from URL (?token=...)
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        if (!token) throw new Error('No token found in callback URL');
-
-        // Decode JWT payload (optional, for user info)
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const userData = {
-          id: payload.id,
-          email: payload.email,
-          name: payload.name || '',
-          avatar: payload.picture || '',
-          provider: 'google',
-        };
-
-        // Update auth store
-        authStore.$patch({
-          user: userData,
-          token,
-          isAuthenticated: true,
-          error: null,
-          returnUrl: null
-        });
-        localStorage.setItem('token', token);
-
-        // Redirect to main page
-        setTimeout(() => {
-          router.push('/');
-        }, 1200);
+        // Wait for Supabase to process the OAuth callback
+        // Check for session multiple times with increasing delays
+        let session = null
+        let attempts = 0
+        const maxAttempts = 10
+        
+        while (attempts < maxAttempts && !session) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const { data } = await supabase.auth.getSession()
+          session = data.session
+          attempts++
+          console.log(`Attempt ${attempts}: Session found:`, !!session)
+        }
+        
+        if (session?.user) {
+          console.log('OAuth login successful:', session.user.email)
+          // Force refresh the auth store
+          await authStore.getCurrentUser()
+          // Redirect to main page after successful login
+          setTimeout(() => {
+            router.push('/')
+          }, 1000)
+        } else {
+          throw new Error('No session found after OAuth callback')
+        }
       } catch (err) {
-        console.error('OAuth callback error:', err);
-        error.value = err.message || 'Authentication failed';
-        authStore.$patch({ error: error.value });
+        console.error('OAuth callback error:', err)
+        error.value = err.message || 'Authentication failed'
       } finally {
-        loading.value = false;
+        loading.value = false
       }
     }
 

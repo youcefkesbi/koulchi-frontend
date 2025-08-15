@@ -69,7 +69,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
@@ -96,7 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             scope: 'email,public_profile'
           }
@@ -150,6 +150,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateProfile = async (profileData) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        data: profileData
+      })
+
+      if (updateError) throw updateError
+
+      // Update local user data
+      if (data.user) {
+        user.value = data.user
+      }
+
+      return { data, error: null }
+    } catch (err) {
+      error.value = err.message
+      return { data: null, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const clearError = () => {
     error.value = null
   }
@@ -161,12 +186,29 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         user.value = session.user
+        console.log('Initial session found:', session.user.email)
       }
 
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log('Auth state change:', event, session?.user?.email)
+          console.log('Session data:', session)
           user.value = session?.user || null
+          
+          // If we get a SIGNED_IN event, also try to get the current user
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('User signed in, updating local state')
+            try {
+              const { data: { user: currentUser } } = await supabase.auth.getUser()
+              if (currentUser) {
+                user.value = currentUser
+                console.log('Local user state updated:', currentUser.email)
+              }
+            } catch (err) {
+              console.error('Error getting current user:', err)
+            }
+          }
         }
       )
 
@@ -195,6 +237,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithFacebook,
     logout,
     getCurrentUser,
+    updateProfile,
     clearError,
     initAuth
   }
