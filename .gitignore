@@ -1,4 +1,2 @@
-# Vite / Vue
-dist/                          ✅ Yes — this is the Vite build output
-*.local                        🟨 Optional — only if you're using .local envs
-*.lock                         ✅ Yes — if you're using package-lock.json/yarn.lock
+.env
+package-lock.json

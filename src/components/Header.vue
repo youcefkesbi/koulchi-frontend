@@ -122,7 +122,7 @@
               <!-- Login Button -->
               <button
                 v-else
-                @click="showLoginModal = true"
+                @click="handleLoginClick"
                 class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
               >
                 <i class="fas fa-sign-in-alt mr-2"></i>Login
@@ -134,7 +134,7 @@
     </div>
 
     <!-- Login Modal -->
-    <LoginModal v-if="showLoginModal" @close="showLoginModal = false" />
+    <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
   </header>
 </template>
 
@@ -178,6 +178,10 @@ export default {
       }
     }
 
+    const handleLoginClick = () => {
+      showLoginModal.value = true
+    }
+
     const logout = async () => {
       try {
         await authStore.logout()
@@ -196,6 +200,7 @@ export default {
       cartStore,
       handleSearch,
       handlePostAnnouncement,
+      handleLoginClick,
       logout
     }
   }

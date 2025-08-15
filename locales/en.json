@@ -5,6 +5,7 @@
   "logout": "Logout",
   "signup": "Sign Up",
   "username": "Username",
+  "fullName": "Full Name",
   "email": "Email",
   "password": "Password",
   "confirmPassword": "Confirm Password",

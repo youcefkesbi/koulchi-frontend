@@ -61,6 +61,59 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const loginWithGoogle = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const loginWithFacebook = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}`,
+          queryParams: {
+            scope: 'email,public_profile'
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      return data
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const logout = async () => {
     try {
       loading.value = true
@@ -138,6 +191,8 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     signUp,
+    loginWithGoogle,
+    loginWithFacebook,
     logout,
     getCurrentUser,
     clearError,
