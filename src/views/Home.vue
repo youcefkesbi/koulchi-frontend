@@ -1,7 +1,6 @@
 <template>
   <div class="space-y-20 animate-fade-in px-4">
-    <!-- Supabase Test Component (Temporary) -->
-    <SupabaseTest />
+
 
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-primary to-secondary text-white rounded-3xl overflow-hidden shadow-soft">
@@ -183,13 +182,10 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProductsStore } from '../stores/products'
 import ProductCard from '../components/ProductCard.vue'
-import SupabaseTest from '../components/SupabaseTest.vue'
-
 export default {
   name: 'Home',
   components: {
-    ProductCard,
-    SupabaseTest
+    ProductCard
   },
   setup() {
     const router = useRouter()
