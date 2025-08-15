@@ -53,9 +53,9 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/announcements/new',
+    path: '/myannouncements/new',
     name: 'NewAnnouncement',
-    component: () => import('../components/PostAnnouncement.vue'),
+    component: () => import('../views/NewAnnouncement.vue'),
     meta: { requiresAuth: true }
   },
   {

@@ -32,6 +32,7 @@
   "edit": "Edit",
   "delete": "Delete",
   "refresh": "Refresh",
+  "back": "Back",
   "saving": "Saving...",
   "submitting": "Submitting...",
   "starting": "Starting...",
@@ -108,6 +109,7 @@
   },
   "announcement": {
     "postAnnouncement": "Post an Announcement",
+    "description": "Create a new product listing to start selling on Koulchi",
     "productInfo": "Product Information",
     "productName": "Product Name",
     "productNamePlaceholder": "Enter product name in English",
@@ -122,9 +124,14 @@
     "image": "Product Image",
     "imageUrl": "Image URL",
     "imageUrlPlaceholder": "Enter image URL",
+    "imageHelp": "Enter a valid image URL (optional)",
+    "additionalOptions": "Additional Options",
+    "markAsNew": "Mark as New Product",
+    "markAsSale": "Mark as On Sale",
     "submit": "Post Announcement",
     "submitting": "Posting...",
     "success": "Announcement posted successfully!",
+    "successMessage": "Your product has been listed successfully. Redirecting to dashboard...",
     "error": "Error posting announcement"
   },
   "seller": {

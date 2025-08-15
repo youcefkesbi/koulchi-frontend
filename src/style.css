@@ -2,68 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Variables for the new color palette */
 :root {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-secondary: #f59e0b;
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+  --color-primary-light: #34d399;
+  --color-secondary: #f97316;
+  --color-secondary-dark: #ea580c;
+  --color-secondary-light: #fb923c;
+  --color-accent: #f59e0b;
+  --color-accent-dark: #d97706;
+  --color-accent-light: #fbbf24;
   --color-dark: #1f2937;
-  --color-light-gray: #f9fafb;
+  --color-light-gray: #f8fafc;
+  --color-white: #ffffff;
 }
 
-@layer base {
-  html {
-    font-family: 'Noto Sans Arabic', 'Inter', system-ui, sans-serif;
-  }
-  
-  body {
-    @apply bg-light-gray text-dark;
-  }
-}
-
+/* Enhanced component styles */
 @layer components {
   .btn-primary {
-    @apply bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-200;
+    @apply bg-primary text-white font-semibold px-6 py-3 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20;
   }
-  
+
   .btn-secondary {
-    @apply bg-secondary text-white px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-200;
+    @apply bg-secondary text-white font-semibold px-6 py-3 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-secondary/20;
   }
-  
+
   .btn-outline {
-    @apply border-2 border-primary text-primary px-6 py-3 rounded-lg font-medium hover:bg-primary hover:text-white transition-all duration-200;
+    @apply border-2 border-primary text-primary font-semibold px-6 py-3 rounded-2xl hover:bg-primary hover:text-white transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20;
   }
-  
+
   .card {
-    @apply bg-white rounded-xl shadow-md p-6;
+    @apply bg-white rounded-2xl shadow-soft border border-gray-100 p-6 hover:shadow-glow transform hover:scale-105 transition-all duration-300;
   }
-  
+
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all duration-200;
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft;
   }
-  
+
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white shadow-soft;
   }
-  
-  .badge-cod {
-    @apply bg-green-100 text-green-800;
+
+  .badge-secondary {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary text-white shadow-soft;
   }
-  
-  .badge-new {
-    @apply bg-blue-100 text-blue-800;
-  }
-  
-  .badge-sale {
-    @apply bg-red-100 text-red-800;
+
+  .badge-accent {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent text-white shadow-soft;
   }
 }
 
-/* RTL Support */
-[dir="rtl"] .rtl-flip {
-  transform: scaleX(-1);
-}
-
-/* Custom scrollbar */
+/* Enhanced scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -77,32 +67,73 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-opacity-80;
+  @apply bg-primary-dark;
 }
 
-/* Auth and Language Switcher Styles */
-.auth-button {
-  @apply transition-all duration-200 transform hover:scale-105;
+/* Smooth transitions for all elements */
+* {
+  transition: all 0.2s ease-in-out;
 }
 
-.language-flag {
-  @apply border-2 border-gray-200 hover:border-primary transition-colors;
+/* Enhanced animations */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
 }
 
-.user-menu-item {
-  @apply transition-colors duration-150;
+@keyframes slideUp {
+  from { 
+    transform: translateY(20px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
 }
 
-/* Modal backdrop blur */
-.modal-backdrop {
-  backdrop-filter: blur(4px);
+@keyframes bounceGentle {
+  0%, 100% { 
+    transform: translateY(0) scale(1); 
+  }
+  50% { 
+    transform: translateY(-5px) scale(1.02); 
+  }
 }
 
-/* RTL specific styles for auth components */
-[dir="rtl"] .auth-section {
-  direction: rtl;
+/* Animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
 }
 
-[dir="rtl"] .language-switcher {
-  direction: rtl;
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 2s ease-in-out infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  @apply transform hover:scale-105 transition-all duration-300;
+}
+
+.hover-glow {
+  @apply hover:shadow-glow transition-shadow duration-300;
+}
+
+/* Focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-4 focus:ring-primary/20 focus:ring-offset-2;
+}
+
+.focus-ring-secondary {
+  @apply focus:outline-none focus:ring-4 focus:ring-secondary/20 focus:ring-offset-2;
 } 
