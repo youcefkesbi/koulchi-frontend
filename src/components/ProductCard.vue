@@ -1,12 +1,39 @@
 <template>
   <div class="card group hover:shadow-lg transition-all duration-300">
     <!-- Product Image -->
-    <div class="relative overflow-hidden rounded-lg mb-4">
+    <div v-if="product.image" class="relative overflow-hidden rounded-lg mb-4">
       <img 
         :src="product.image" 
         :alt="product.name"
         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+        @error="handleImageError"
       />
+      
+      <!-- Badges -->
+      <div class="absolute top-2 right-2 flex flex-col space-y-1">
+        <span v-if="product.isNew" class="badge badge-new">
+          {{ $t('product.new') }}
+        </span>
+        <span v-if="product.isOnSale" class="badge badge-sale">
+          {{ $t('product.sale') }}
+        </span>
+      </div>
+      
+      <!-- COD Badge -->
+      <div class="absolute top-2 left-2">
+        <span class="badge badge-cod">
+          <i class="fas fa-money-bill-wave ml-1"></i>
+          {{ $t('product.cod') }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- No Image Placeholder -->
+    <div v-else class="relative overflow-hidden rounded-lg mb-4 bg-gray-100 flex items-center justify-center h-48">
+      <div class="text-center text-gray-400">
+        <i class="fas fa-image text-4xl mb-2"></i>
+        <p class="text-sm">No Image</p>
+      </div>
       
       <!-- Badges -->
       <div class="absolute top-2 right-2 flex flex-col space-y-1">
@@ -101,9 +128,16 @@ export default {
       }
     }
 
+    const handleImageError = (event) => {
+      // Hide the image if it fails to load
+      event.target.style.display = 'none'
+    }
+
     return {
+      cartStore,
       formatPrice,
-      addToCart
+      addToCart,
+      handleImageError
     }
   }
 }

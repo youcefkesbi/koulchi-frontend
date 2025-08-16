@@ -20,10 +20,15 @@
         >
           <!-- Product Image -->
           <img 
+            v-if="item.image"
             :src="item.image" 
             :alt="item.name"
             class="w-20 h-20 object-cover rounded-lg"
+            @error="handleImageError"
           />
+          <div v-else class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-image text-gray-400"></i>
+          </div>
           
           <!-- Product Info -->
           <div class="flex-1">
@@ -200,6 +205,11 @@ export default {
       await cartStore.removeFromCart(productId)
     }
 
+    const handleImageError = (event) => {
+      // Hide the image if it fails to load
+      event.target.style.display = 'none'
+    }
+
     // Fetch cart and products on component mount
     onMounted(async () => {
       await Promise.all([
@@ -213,7 +223,8 @@ export default {
       recommendedProducts,
       formatPrice,
       updateQuantity,
-      removeItem
+      removeItem,
+      handleImageError
     }
   }
 }

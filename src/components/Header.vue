@@ -77,11 +77,6 @@
 
               <!-- User Dashboard / Login Button -->
               <div v-if="authStore.isAuthenticated" class="flex items-center space-x-4 space-x-reverse">
-                <!-- Debug info (remove this later) -->
-                <div class="text-xs text-gray-500 mr-2">
-                  Auth: {{ authStore.isAuthenticated }} | User: {{ authStore.user ? 'Yes' : 'No' }}
-                </div>
-                
                 <router-link
                   to="/dashboard"
                   class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"

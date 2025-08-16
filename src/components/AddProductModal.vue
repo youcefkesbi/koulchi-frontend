@@ -315,17 +315,6 @@ export default {
       isOnSale: false
     })
 
-    const categories = [
-      { id: 'cars', name: 'Cars', nameAr: 'السيارات' },
-      { id: 'realestate', name: 'Real Estate', nameAr: 'العقارات' },
-      { id: 'electronics', name: 'Electronics', nameAr: 'الإلكترونيات' },
-      { id: 'fashion', name: 'Fashion', nameAr: 'الموضة' },
-      { id: 'home', name: 'Home & Kitchen', nameAr: 'المنزل والمطبخ' },
-      { id: 'beauty', name: 'Beauty & Personal Care', nameAr: 'الجمال والرعاية الشخصية' },
-      { id: 'kids', name: 'Kids', nameAr: 'الأطفال' },
-      { id: 'food', name: 'Food & Beverages', nameAr: 'الطعام والمشروبات' }
-    ]
-
     const isEditing = computed(() => !!props.product)
 
     // Watch for product changes to populate form
@@ -368,7 +357,7 @@ export default {
     }
 
     const handleImageError = (event) => {
-      event.target.src = 'https://via.placeholder.com/400x400?text=Image+Not+Found'
+      event.target.src = 'https://picsum.photos/400/400?random=error'
     }
 
     const submitForm = async () => {

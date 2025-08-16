@@ -63,24 +63,36 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loginWithGoogle = async () => {
     try {
+      console.log('=== GOOGLE OAUTH START ===')
+      console.log('Starting Google OAuth login...')
+      console.log('Method called at:', new Date().toISOString())
       loading.value = true
       error.value = null
 
+      console.log('About to call supabase.auth.signInWithOAuth...')
+      console.log('Supabase client:', supabase)
+      console.log('Supabase URL:', supabase.supabaseUrl)
+      console.log('Current window location:', window.location.href)
+      
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: 'http://localhost:3000', // or your prod domain later
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
           }
         }
       })
+      console.log('supabase.auth.signInWithOAuth completed')
+
+      console.log('Google OAuth response:', { data, error: authError })
 
       if (authError) throw authError
 
       return data
     } catch (err) {
+      console.error('Google OAuth error:', err)
       error.value = err.message
       throw err
     } finally {
@@ -96,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: 'http://localhost:3000', // or your prod domain later
           queryParams: {
             scope: 'email,public_profile'
           }
@@ -182,11 +194,18 @@ export const useAuthStore = defineStore('auth', () => {
   // Initialize auth state
   const initAuth = async () => {
     try {
+      console.log('Initializing auth store...')
+      
       // Get initial session
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('Initial session check:', session)
+      
       if (session?.user) {
         user.value = session.user
         console.log('Initial session found:', session.user.email)
+        console.log('User value set to:', user.value?.email)
+      } else {
+        console.log('No initial session found')
       }
 
       // Listen for auth changes
@@ -194,7 +213,11 @@ export const useAuthStore = defineStore('auth', () => {
         async (event, session) => {
           console.log('Auth state change:', event, session?.user?.email)
           console.log('Session data:', session)
+          console.log('Current user.value before update:', user.value?.email)
+          
           user.value = session?.user || null
+          console.log('Current user.value after update:', user.value?.email)
+          console.log('isAuthenticated computed value:', !!user.value)
           
           // If we get a SIGNED_IN event, also try to get the current user
           if (event === 'SIGNED_IN' && session?.user) {
@@ -212,6 +235,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       )
 
+      console.log('Auth store initialization complete')
       return subscription
     } catch (err) {
       console.error('Error initializing auth:', err)

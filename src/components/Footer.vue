@@ -40,22 +40,22 @@
               </router-link>
             </li>
             <li>
-              <router-link to="/about" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 من نحن
-              </router-link>
+              </a>
             </li>
             <li>
-              <router-link to="/contact" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 اتصل بنا
-              </router-link>
+              </a>
             </li>
             <li>
-              <router-link to="/help" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 المساعدة
-              </router-link>
+              </a>
             </li>
           </ul>
         </div>
