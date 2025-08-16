@@ -277,6 +277,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useSellerStore } from '../stores/seller'
+import { supabase } from '@/supabase'
 
 export default {
   name: 'AddProductModal',
@@ -314,7 +315,9 @@ export default {
       isNew: false,
       isOnSale: false
     })
-
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('*')
     const isEditing = computed(() => !!props.product)
 
     // Watch for product changes to populate form

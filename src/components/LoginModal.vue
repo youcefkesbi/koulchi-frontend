@@ -194,6 +194,7 @@
 import { ref, reactive, computed } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useAuthStore } from '../stores/auth'
+import { supabase } from '@/supabase'
 
 export default {
   name: 'LoginModal',
