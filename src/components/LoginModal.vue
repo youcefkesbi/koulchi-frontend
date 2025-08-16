@@ -194,7 +194,7 @@
 import { ref, reactive, computed } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useAuthStore } from '../stores/auth'
-import { supabase } from '@/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default {
   name: 'LoginModal',
@@ -211,17 +211,7 @@ export default {
       default: false
     }
   },
-  emits: ['close'],
-  
-  mounted() {
-    console.log('LoginModal mounted, isOpen:', this.isOpen)
-  },
-  
-  watch: {
-    isOpen(newVal) {
-      console.log('LoginModal isOpen changed to:', newVal)
-    }
-  },
+  emits: ['close'],  
 
   setup(props, { emit }) {
     const authStore = useAuthStore()

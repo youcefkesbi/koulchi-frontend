@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -63,16 +63,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loginWithGoogle = async () => {
     try {
-      console.log('=== GOOGLE OAUTH START ===')
-      console.log('Starting Google OAuth login...')
-      console.log('Method called at:', new Date().toISOString())
       loading.value = true
       error.value = null
-
-      console.log('About to call supabase.auth.signInWithOAuth...')
-      console.log('Supabase client:', supabase)
-      console.log('Supabase URL:', supabase.supabaseUrl)
-      console.log('Current window location:', window.location.href)
       
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -84,9 +76,6 @@ export const useAuthStore = defineStore('auth', () => {
           }
         }
       })
-      console.log('supabase.auth.signInWithOAuth completed')
-
-      console.log('Google OAuth response:', { data, error: authError })
 
       if (authError) throw authError
 
@@ -211,31 +200,22 @@ export const useAuthStore = defineStore('auth', () => {
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('Auth state change:', event, session?.user?.email)
-          console.log('Session data:', session)
-          console.log('Current user.value before update:', user.value?.email)
           
           user.value = session?.user || null
-          console.log('Current user.value after update:', user.value?.email)
-          console.log('isAuthenticated computed value:', !!user.value)
           
           // If we get a SIGNED_IN event, also try to get the current user
           if (event === 'SIGNED_IN' && session?.user) {
-            console.log('User signed in, updating local state')
             try {
               const { data: { user: currentUser } } = await supabase.auth.getUser()
               if (currentUser) {
                 user.value = currentUser
-                console.log('Local user state updated:', currentUser.email)
               }
             } catch (err) {
-              console.error('Error getting current user:', err)
             }
           }
         }
       )
 
-      console.log('Auth store initialization complete')
       return subscription
     } catch (err) {
       console.error('Error initializing auth:', err)
