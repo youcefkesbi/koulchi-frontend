@@ -14,7 +14,7 @@
             </div>
           </div>
           <p class="text-gray-300 leading-relaxed text-sm">
-            تسوق أونلاين في الجزائر مع الدفع عند الاستلام. نقدم أفضل المنتجات بأفضل الأسعار.
+            {{ $t('footer.description') }}
           </p>
           <div class="flex space-x-4 space-x-reverse">
             <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
@@ -31,30 +31,30 @@
 
         <!-- Quick Links -->
         <div class="space-y-4">
-          <h4 class="text-lg font-bold text-white mb-4">روابط سريعة</h4>
+          <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.quickLinks') }}</h4>
           <ul class="space-y-3">
             <li>
               <router-link to="/products" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                المنتجات
+                {{ $t('footer.products') }}
               </router-link>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                من نحن
+                {{ $t('footer.aboutUs') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                اتصل بنا
+                {{ $t('footer.contactUs') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                المساعدة
+                {{ $t('footer.help') }}
               </a>
             </li>
           </ul>
@@ -62,30 +62,30 @@
 
         <!-- Customer Service -->
         <div class="space-y-4">
-          <h4 class="text-lg font-bold text-white mb-4">خدمة العملاء</h4>
+          <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
-                سياسة الإرجاع
+                {{ $t('footer.returnPolicy') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
-                شروط الاستخدام
+                {{ $t('footer.termsOfUse') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
-                سياسة الخصوصية
+                {{ $t('footer.privacyPolicy') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
-                الأسئلة الشائعة
+                {{ $t('footer.faq') }}
               </a>
             </li>
           </ul>
@@ -93,7 +93,7 @@
 
         <!-- Contact Info -->
         <div class="space-y-4">
-          <h4 class="text-lg font-bold text-white mb-4">معلومات الاتصال</h4>
+          <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.contactInfo') }}</h4>
           <div class="space-y-3">
             <div class="flex items-center space-x-3 space-x-reverse text-gray-300">
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
@@ -111,7 +111,7 @@
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-map-marker-alt text-white text-sm"></i>
               </div>
-              <span class="text-sm">الجزائر العاصمة</span>
+              <span class="text-sm">{{ $t('footer.address') }}</span>
             </div>
           </div>
         </div>
@@ -121,12 +121,12 @@
       <div class="border-t border-gray-700 mt-8 pt-6">
         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p class="text-gray-400 text-sm">
-            © 2024 كولشي. جميع الحقوق محفوظة.
+            {{ $t('footer.copyright') }}
           </p>
           <div class="flex items-center space-x-6 space-x-reverse">
             <div class="bg-primary text-white rounded-lg px-4 py-2 shadow-soft">
-              <span class="font-bold text-sm">COD</span>
-              <span class="text-xs opacity-90 block">Cash on Delivery</span>
+              <span class="font-bold text-sm">{{ $t('footer.cod') }}</span>
+              <span class="text-xs opacity-90 block">{{ $t('footer.cashOnDelivery') }}</span>
             </div>
           </div>
         </div>

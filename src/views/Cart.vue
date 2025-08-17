@@ -2,10 +2,10 @@
   <div class="space-y-8">
     <!-- Page Header -->
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-dark">سلة التسوق</h1>
+      <h1 class="text-3xl font-bold text-dark">{{ $t('cartPage.title') }}</h1>
       <router-link to="/products" class="btn-outline">
         <i class="fas fa-arrow-left ml-2"></i>
-        متابعة التسوق
+        {{ $t('cartPage.continueShopping') }}
       </router-link>
     </div>
 
@@ -36,10 +36,10 @@
             <p class="text-gray-600 text-sm">{{ item.name }}</p>
             <div class="flex items-center space-x-4 space-x-reverse mt-2">
               <span class="text-lg font-bold text-primary">
-                {{ formatPrice(item.price) }} دج
+                {{ formatPrice(item.price) }} {{ $t('product.currency') }}
               </span>
               <span class="text-sm text-gray-500">
-                لكل قطعة
+                {{ $t('cartPage.perPiece') }}
               </span>
             </div>
           </div>
@@ -64,7 +64,7 @@
           <!-- Total Price -->
           <div class="text-right">
             <div class="text-lg font-bold text-primary">
-              {{ formatPrice(item.price * item.quantity) }} دج
+              {{ formatPrice(item.price * item.quantity) }} {{ $t('product.currency') }}
             </div>
           </div>
           
@@ -81,29 +81,29 @@
       <!-- Order Summary -->
       <div class="lg:col-span-1">
         <div class="card sticky top-4">
-          <h2 class="text-xl font-bold text-dark mb-6">ملخص الطلب</h2>
+          <h2 class="text-xl font-bold text-dark mb-6">{{ $t('cartPage.orderSummary') }}</h2>
           
           <!-- Summary Details -->
           <div class="space-y-4 mb-6">
             <div class="flex justify-between">
-              <span class="text-gray-600">عدد المنتجات:</span>
+              <span class="text-gray-600">{{ $t('cartPage.productCount') }}:</span>
               <span class="font-semibold">{{ cartStore.totalItems }}</span>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-gray-600">المجموع الفرعي:</span>
-              <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} دج</span>
+              <span class="text-gray-600">{{ $t('cartPage.subtotal') }}:</span>
+              <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} {{ $t('product.currency') }}</span>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-gray-600">رسوم التوصيل:</span>
-              <span class="font-semibold">{{ formatPrice(cartStore.deliveryFee) }} دج</span>
+              <span class="text-gray-600">{{ $t('cartPage.deliveryFee') }}:</span>
+              <span class="font-semibold">{{ formatPrice(cartStore.deliveryFee) }} {{ $t('product.currency') }}</span>
             </div>
             
             <div class="border-t pt-4">
               <div class="flex justify-between text-lg font-bold">
-                <span>المجموع الكلي:</span>
-                <span class="text-primary">{{ formatPrice(cartStore.total) }} دج</span>
+                <span>{{ $t('cartPage.total') }}:</span>
+                <span class="text-primary">{{ formatPrice(cartStore.total) }} {{ $t('product.currency') }}</span>
               </div>
             </div>
           </div>
@@ -113,9 +113,9 @@
             <div class="flex items-start space-x-3 space-x-reverse">
               <i class="fas fa-money-bill-wave text-green-600 text-xl mt-1"></i>
               <div>
-                <h4 class="font-semibold text-green-800 mb-1">دفع عند الاستلام</h4>
+                <h4 class="font-semibold text-green-800 mb-1">{{ $t('product.cod') }}</h4>
                 <p class="text-green-700 text-sm">
-                  ادفع {{ formatPrice(cartStore.total) }} دج عند استلام طلبك
+                  {{ $t('cartPage.payOnDelivery', { amount: formatPrice(cartStore.total), currency: $t('product.currency') }) }}
                 </p>
               </div>
             </div>
@@ -125,7 +125,7 @@
           <div v-if="cartStore.subtotal >= 5000" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-truck text-blue-600"></i>
-              <span class="text-blue-800 font-semibold">توصيل مجاني!</span>
+              <span class="text-blue-800 font-semibold">{{ $t('features.fastDelivery') }}!</span>
             </div>
           </div>
 
@@ -135,7 +135,7 @@
             class="btn-primary w-full text-center text-lg py-4"
           >
             <i class="fas fa-credit-card ml-2"></i>
-            إتمام الطلب
+            {{ $t('cartPage.checkout') }}
           </router-link>
         </div>
       </div>
@@ -146,19 +146,19 @@
       <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-shopping-cart text-gray-400 text-3xl"></i>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">سلة التسوق فارغة</h3>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">{{ $t('cartPage.emptyCart') }}</h3>
       <p class="text-gray-500 mb-6">
-        لم تقم بإضافة أي منتجات إلى سلة التسوق بعد
+        {{ $t('cartPage.emptyCartMessage') }}
       </p>
       <router-link to="/products" class="btn-primary">
         <i class="fas fa-shopping-bag ml-2"></i>
-        ابدأ التسوق
+        {{ $t('cartPage.startShopping') }}
       </router-link>
     </div>
 
     <!-- Recommended Products -->
     <section v-if="cartStore.hasItems" class="mt-12">
-      <h2 class="text-2xl font-bold text-dark mb-6">منتجات مقترحة</h2>
+      <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('sections.newProducts') }}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <ProductCard
           v-for="product in recommendedProducts"

@@ -32,7 +32,7 @@
     <div v-else class="relative overflow-hidden rounded-lg mb-4 bg-gray-100 flex items-center justify-center h-48">
       <div class="text-center text-gray-400">
         <i class="fas fa-image text-4xl mb-2"></i>
-        <p class="text-sm">No Image</p>
+        <p class="text-sm">{{ $t('product.noImage') }}</p>
       </div>
       
       <!-- Badges -->
@@ -76,10 +76,10 @@
       <!-- Price -->
       <div class="flex items-center space-x-2 space-x-reverse">
         <span class="text-xl font-bold text-primary">
-          {{ formatPrice(product.price) }} دج
+          {{ formatPrice(product.price) }} {{ $t('product.currency') }}
         </span>
         <span v-if="product.originalPrice > product.price" class="text-sm text-gray-500 line-through">
-          {{ formatPrice(product.originalPrice) }} دج
+          {{ formatPrice(product.originalPrice) }} {{ $t('product.currency') }}
         </span>
       </div>
 

@@ -1,6 +1,21 @@
 {
   "welcome": "مرحبًا",
   "cart": "سلة التسوق",
+  "cartPage": {
+    "title": "سلة التسوق",
+    "continueShopping": "متابعة التسوق",
+    "orderSummary": "ملخص الطلب",
+    "productCount": "عدد المنتجات",
+    "subtotal": "المجموع الفرعي",
+    "deliveryFee": "رسوم التوصيل",
+    "total": "المجموع",
+    "perPiece": "لكل قطعة",
+    "checkout": "إتمام الطلب",
+    "emptyCart": "سلة التسوق فارغة",
+    "emptyCartMessage": "ابدأ التسوق لإضافة منتجات إلى سلة التسوق",
+    "startShopping": "ابدأ التسوق",
+    "payOnDelivery": "ادفع {amount} {currency} عند استلام طلبك"
+  },
   "login": "تسجيل الدخول",
   "logout": "تسجيل الخروج",
   "signup": "إنشاء حساب",
@@ -13,6 +28,10 @@
   "loginWithGoogle": "تسجيل الدخول بجوجل",
   "loginWithFacebook": "تسجيل الدخول بفيسبوك",
   "or": "أو",
+  "fullNamePlaceholder": "أدخل اسمك الكامل",
+  "emailPlaceholder": "أدخل بريدك الإلكتروني",
+  "passwordPlaceholder": "أدخل كلمة المرور",
+  "confirmPasswordPlaceholder": "أكد كلمة المرور",
   "postAnnouncement": "نشر إعلان",
   "language": "اللغة",
   "search": "بحث",
@@ -85,7 +104,9 @@
     "cod": "دفع عند الاستلام",
     "addToCart": "أضف للسلة",
     "outOfStock": "غير متوفر",
-    "view": "عرض"
+    "view": "عرض",
+    "noImage": "لا توجد صورة",
+    "currency": "دج"
   },
   "dashboard": {
     "userDashboard": "لوحة تحكم المستخدم",
@@ -108,6 +129,7 @@
   },
   "announcement": {
     "postAnnouncement": "نشر إعلان",
+    "description": "إنشاء قائمة منتج جديدة لبدء البيع على كولشي",
     "productInfo": "معلومات المنتج",
     "productName": "اسم المنتج",
     "productNamePlaceholder": "أدخل اسم المنتج بالإنجليزية",
@@ -122,10 +144,18 @@
     "image": "صورة المنتج",
     "imageUrl": "رابط الصورة",
     "imageUrlPlaceholder": "أدخل رابط الصورة",
+    "imageHelp": "أدخل رابط صورة صحيح (اختياري)",
+    "additionalOptions": "خيارات إضافية",
+    "markAsNew": "علامة كمنتج جديد",
+    "markAsSale": "علامة كمنتج مخفض",
     "submit": "نشر الإعلان",
     "submitting": "جاري النشر...",
     "success": "تم نشر الإعلان بنجاح!",
+    "successMessage": "تم إدراج منتجك بنجاح. إعادة توجيه إلى لوحة التحكم...",
     "error": "خطأ في نشر الإعلان"
+  },
+  "common": {
+    "cancel": "إلغاء"
   },
   "seller": {
     "becomeSeller": "كن بائعًا",
@@ -203,7 +233,16 @@
     "address": "الجزائر العاصمة، الجزائر",
     "acceptedPaymentMethods": "طرق الدفع المقبولة",
     "allPricesInDZD": "جميع الأسعار بالدينار الجزائري (دج)",
-    "copyright": "© 2025 كولشي. جميع الحقوق محفوظة"
+    "copyright": "© 2025 كولشي. جميع الحقوق محفوظة",
+    "products": "المنتجات",
+    "contactUs": "اتصل بنا",
+    "help": "المساعدة",
+    "customerService": "خدمة العملاء",
+    "returnPolicy": "سياسة الإرجاع",
+    "termsOfUse": "شروط الاستخدام",
+    "faq": "الأسئلة الشائعة",
+    "cod": "دفع عند الاستلام",
+    "cashOnDelivery": "دفع عند الاستلام"
   },
   "navigation": {
     "home": "الرئيسية",
@@ -212,5 +251,15 @@
     "profile": "الملف الشخصي",
     "orders": "الطلبات",
     "settings": "الإعدادات"
+  },
+  "header": {
+    "freeShipping": "توصيل مجاني",
+    "searchPlaceholder": "ابحث عن المنتجات...",
+    "postAnnouncement": "نشر إعلان",
+    "userDashboard": "لوحة تحكم المستخدم",
+    "myProfile": "ملفي الشخصي",
+    "dashboard": "لوحة التحكم",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول"
   }
 }

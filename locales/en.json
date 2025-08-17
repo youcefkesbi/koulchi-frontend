@@ -1,6 +1,21 @@
 {
   "welcome": "Welcome",
   "cart": "Your Cart",
+  "cartPage": {
+    "title": "Shopping Cart",
+    "continueShopping": "Continue Shopping",
+    "orderSummary": "Order Summary",
+    "productCount": "Product Count",
+    "subtotal": "Subtotal",
+    "deliveryFee": "Delivery Fee",
+    "total": "Total",
+    "perPiece": "per piece",
+    "checkout": "Proceed to Checkout",
+    "emptyCart": "Your cart is empty",
+    "emptyCartMessage": "Start shopping to add items to your cart",
+    "startShopping": "Start Shopping",
+    "payOnDelivery": "Pay {amount} {currency} when you receive your order"
+  },
   "login": "Login",
   "logout": "Logout",
   "signup": "Sign Up",
@@ -14,6 +29,10 @@
   "loginWithGoogle": "Login with Google",
   "loginWithFacebook": "Login with Facebook",
   "or": "or",
+  "fullNamePlaceholder": "Enter your full name",
+  "emailPlaceholder": "Enter your email",
+  "passwordPlaceholder": "Enter your password",
+  "confirmPasswordPlaceholder": "Confirm your password",
   "postAnnouncement": "Post an Announcement",
   "language": "Language",
   "search": "Search",
@@ -110,7 +129,9 @@
     "cod": "Cash on Delivery",
     "addToCart": "Add to Cart",
     "outOfStock": "Out of Stock",
-    "view": "View"
+    "view": "View",
+    "noImage": "No Image",
+    "currency": "DZD"
   },
   "dashboard": {
     "userDashboard": "User Dashboard",
@@ -157,6 +178,9 @@
     "success": "Announcement posted successfully!",
     "successMessage": "Your product has been listed successfully. Redirecting to dashboard...",
     "error": "Error posting announcement"
+  },
+  "common": {
+    "cancel": "Cancel"
   },
   "seller": {
     "becomeSeller": "Become a Seller",
@@ -234,7 +258,16 @@
     "address": "Algiers, Algeria",
     "acceptedPaymentMethods": "Accepted Payment Methods",
     "allPricesInDZD": "All prices in Algerian Dinar (DZD)",
-    "copyright": "© 2025 Koulchi. All rights reserved"
+    "copyright": "© 2025 Koulchi. All rights reserved",
+    "products": "Products",
+    "contactUs": "Contact Us",
+    "help": "Help",
+    "customerService": "Customer Service",
+    "returnPolicy": "Return Policy",
+    "termsOfUse": "Terms of Use",
+    "faq": "FAQ",
+    "cod": "COD",
+    "cashOnDelivery": "Cash on Delivery"
   },
   "navigation": {
     "home": "Home",
@@ -243,5 +276,15 @@
     "profile": "Profile",
     "orders": "Orders",
     "settings": "Settings"
+  },
+  "header": {
+    "freeShipping": "Free Shipping",
+    "searchPlaceholder": "Search products...",
+    "postAnnouncement": "Post Announcement",
+    "userDashboard": "User Dashboard",
+    "myProfile": "My Profile",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "login": "Login"
   }
 }

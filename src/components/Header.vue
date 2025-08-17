@@ -14,7 +14,7 @@
           </div>
           <div class="flex items-center space-x-4 space-x-reverse">
             <span class="flex items-center hover:text-primary-light transition-colors">
-              <i class="fas fa-truck ml-2"></i>Free Shipping
+              <i class="fas fa-truck ml-2"></i>{{ $t('header.freeShipping') }}
             </span>
             <LanguageSwitcher />
           </div>
@@ -42,7 +42,7 @@
                 v-model="searchQuery"
                 @input="handleSearch"
                 type="text"
-                placeholder="Search products..."
+                :placeholder="$t('header.searchPlaceholder')"
                 class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-primary transition-colors"></i>
@@ -72,7 +72,7 @@
                 class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
               >
                 <i class="fas fa-bullhorn mr-2"></i>
-                Post Announcement
+                {{ $t('header.postAnnouncement') }}
               </button>
 
               <!-- User Dashboard / Login Button -->
@@ -82,7 +82,7 @@
                   class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
                 >
                   <i class="fas fa-chart-line mr-2"></i>
-                  User Dashboard
+                  {{ $t('header.userDashboard') }}
                 </router-link>
                 
                 <router-link
@@ -90,7 +90,7 @@
                   class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
                 >
                   <i class="fas fa-user mr-2"></i>
-                  My Profile
+                  {{ $t('header.myProfile') }}
                 </router-link>
               </div>
 
@@ -116,13 +116,13 @@
                 <!-- User Dropdown Menu -->
                 <div v-if="userMenuOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50">
                   <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-chart-line mr-3"></i>Dashboard
+                    <i class="fas fa-chart-line mr-3"></i>{{ $t('header.dashboard') }}
                   </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-user mr-3"></i>My Profile
+                    <i class="fas fa-user mr-3"></i>{{ $t('header.myProfile') }}
                   </router-link>
                   <button @click="logout" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                    <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                    <i class="fas fa-sign-out-alt mr-3"></i>{{ $t('header.logout') }}
                   </button>
                 </div>
               </div>
@@ -133,7 +133,7 @@
                 @click="handleLoginClick"
                 class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
               >
-                <i class="fas fa-sign-in-alt mr-2"></i>Login
+                <i class="fas fa-sign-in-alt mr-2"></i>{{ $t('header.login') }}
               </button>
             </div>
           </div>
