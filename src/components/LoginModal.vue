@@ -325,10 +325,7 @@
                 </button>
               </div>
 
-              <!-- Success Message -->
-              <div v-if="successMessage" class="mt-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
-                {{ successMessage }}
-              </div>
+
               
 
             </DialogPanel>
@@ -344,7 +341,6 @@ import { ref, reactive, computed } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@/lib/supabase'
 
 export default {
   name: 'LoginModal',
@@ -464,13 +460,7 @@ export default {
       try {
         await authStore.login(loginForm.email, loginForm.password)
         if (!authStore.error) {
-          // Ensure profile exists
-          try {
-            await authStore.createProfileIfNotExists()
-          } catch (profileError) {
-            console.error('Profile creation error:', profileError)
-            // Don't block login if profile creation fails
-          }
+          await authStore.createProfileIfNotExists()
           closeModal()
         }
       } catch (error) {
@@ -480,75 +470,36 @@ export default {
 
     const handleGoogleLogin = async () => {
       try {
-        // Clear any previous errors
         authStore.clearError()
-        
         const result = await authStore.loginWithGoogle()
         
-        // Check if we have a successful result
         if (result && !authStore.error) {
-          // Ensure profile exists with OAuth data
-          try {
-            // Extract OAuth data from the result if available
-            const oauthData = {}
-            if (result?.user?.user_metadata) {
-              oauthData.full_name = result.user.user_metadata.full_name
-              oauthData.avatar_url = result.user.user_metadata.avatar_url
-              oauthData.city = result.user.user_metadata.city
-            }
-            await authStore.createProfileIfNotExists(oauthData)
-          } catch (profileError) {
-            console.error('Profile creation error:', profileError)
-            // Don't block login if profile creation fails
-          }
+          const oauthData = result?.user?.user_metadata || {}
+          await authStore.createProfileIfNotExists(oauthData)
           closeModal()
-        } else if (authStore.error) {
-          // Error is already set in authStore, it will be displayed by the error message component
         }
       } catch (error) {
-        console.error('LoginModal: Google login error:', error)
-        console.error('Error details:', error.message, error.stack)
-        
-        // Set a user-friendly error message if none is set
+        console.error('Google login error:', error)
         if (!authStore.error) {
-          authStore.error = 'Google login failed. Please try again or use email/password login.'
+          authStore.error = 'Google login failed. Please try again.'
         }
       }
     }
 
     const handleFacebookLogin = async () => {
       try {
-        // Clear any previous errors
         authStore.clearError()
-        
         const result = await authStore.loginWithFacebook()
         
-        // Check if we have a successful result
         if (result && !authStore.error) {
-          // Ensure profile exists with OAuth data
-          try {
-            // Extract OAuth data from the result if available
-            const oauthData = {}
-            if (result?.user?.user_metadata) {
-              oauthData.full_name = result.user.user_metadata.full_name
-              oauthData.avatar_url = result.user.user_metadata.avatar_url
-              oauthData.city = result.user.user_metadata.city
-            }
-            await authStore.createProfileIfNotExists(oauthData)
-          } catch (profileError) {
-            console.error('Profile creation error:', profileError)
-            // Don't block login if profile creation fails
-          }
+          const oauthData = result?.user?.user_metadata || {}
+          await authStore.createProfileIfNotExists(oauthData)
           closeModal()
-        } else if (authStore.error) {
-          // Error is already set in authStore, it will be displayed by the error message component
         }
       } catch (error) {
         console.error('Facebook login error:', error)
-        
-        // Set a user-friendly error message if none is set
         if (!authStore.error) {
-          authStore.error = 'Facebook login failed. Please try again or use email/password login.'
+          authStore.error = 'Facebook login failed. Please try again.'
         }
       }
     }
@@ -672,8 +623,6 @@ export default {
         console.error('Resend confirmation error:', error)
       }
     }
-    
-    // Function to test Supabase connection
 
 
     return {
