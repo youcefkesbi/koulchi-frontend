@@ -41,15 +41,17 @@
                 <p class="text-xs text-gray-500 mt-1">{{ $t('profile.emailNote') }}</p>
               </div>
 
-              <!-- Phone Number -->
+              <!-- Phone Number (Managed by Supabase Auth) -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.phone') }}</label>
                 <input
-                  v-model="profileForm.phone"
+                  :value="authStore.user?.phone || ''"
                   type="tel"
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                  :placeholder="$t('profile.phonePlaceholder')"
+                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed"
+                  :placeholder="$t('profile.phoneNote')"
+                  disabled
                 />
+                <p class="text-xs text-gray-500 mt-1">{{ $t('profile.phoneNote') }}</p>
               </div>
 
               <!-- Date of Birth -->
@@ -191,7 +193,6 @@ export default {
     const profileForm = reactive({
       fullName: '',
       email: '',
-      phone: '',
       dateOfBirth: '',
       wilaya: '',
       city: '',
@@ -270,7 +271,6 @@ export default {
           const userData = authStore.user.user_metadata || {}
           profileForm.fullName = userData.full_name || ''
           profileForm.email = authStore.user.email || ''
-          profileForm.phone = userData.phone || ''
           profileForm.dateOfBirth = userData.date_of_birth || ''
           profileForm.wilaya = userData.wilaya || ''
           profileForm.city = userData.city || ''
@@ -293,7 +293,6 @@ export default {
 
         const { error } = await authStore.updateProfile({
           full_name: profileForm.fullName,
-          phone: profileForm.phone,
           date_of_birth: profileForm.dateOfBirth,
           wilaya: profileForm.wilaya,
           city: profileForm.city,

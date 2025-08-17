@@ -85,6 +85,19 @@
                   <div class="flex-1">
                     <h4 class="font-semibold text-green-800 mb-1">{{ $t('success') }}</h4>
                     <p class="text-green-700 text-sm">{{ successMessage }}</p>
+                    
+                    <!-- Resend Confirmation Email Button (only show when email confirmation is required) -->
+                    <div v-if="emailForConfirmation && successMessage.includes('check your email')" class="mt-3">
+                      <button
+                        @click="handleResendConfirmation"
+                        :disabled="authStore.loading"
+                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
+                        <i v-else class="fas fa-envelope mr-2"></i>
+                        {{ $t('resendConfirmation') }}
+                      </button>
+                    </div>
                   </div>
                   <button 
                     @click="successMessage = ''" 
@@ -184,7 +197,7 @@
                     @click="showForgotPassword = true"
                     class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
                   >
-                    {{ $t('forgotPassword') }}
+                    {{ $t('errors.forgotPassword') }}
                   </button>
                 </div>
               </form>
@@ -327,6 +340,7 @@ export default {
     
     const isSignup = ref(false)
     const showForgotPassword = ref(false)
+    const emailForConfirmation = ref('')
     const successMessage = ref('')
     
     const signupForm = reactive({
@@ -386,16 +400,28 @@ export default {
           return
         }
 
-        await authStore.signUp(signupForm.email, signupForm.password, {
+        const result = await authStore.signUp(signupForm.email, signupForm.password, {
           full_name: signupForm.fullName
         })
         
-        successMessage.value = t('errors.accountCreatedSuccess')
-        
-        // Close modal after a delay
-        setTimeout(() => {
-          closeModal()
-        }, 3000)
+        // Check if email confirmation is required
+        if (result?.emailConfirmationRequired) {
+          successMessage.value = result.message || t('errors.emailConfirmationRequired')
+          // Show email confirmation instructions
+          console.log('Email confirmation required for:', signupForm.email)
+          // Store email for potential resend
+          emailForConfirmation.value = signupForm.email
+          // Don't close modal immediately, let user see the message
+        } else if (result?.user && result?.session) {
+          successMessage.value = result.message || t('errors.accountCreatedSuccess')
+          // Close modal after a delay
+          setTimeout(() => {
+            closeModal()
+          }, 3000)
+        } else {
+          // Fallback message
+          successMessage.value = t('errors.accountCreatedSuccess')
+        }
       } catch (error) {
         console.error('Signup error:', error)
       }
@@ -437,7 +463,6 @@ export default {
             if (result?.user?.user_metadata) {
               oauthData.full_name = result.user.user_metadata.full_name
               oauthData.avatar_url = result.user.user_metadata.avatar_url
-              oauthData.phone = result.user.user_metadata.phone
               oauthData.city = result.user.user_metadata.city
             }
             await authStore.createProfileIfNotExists(oauthData)
@@ -477,7 +502,6 @@ export default {
             if (result?.user?.user_metadata) {
               oauthData.full_name = result.user.user_metadata.full_name
               oauthData.avatar_url = result.user.user_metadata.avatar_url
-              oauthData.phone = result.user.user_metadata.phone
               oauthData.city = result.user.user_metadata.city
             }
             await authStore.createProfileIfNotExists(oauthData)
