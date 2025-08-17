@@ -42,8 +42,6 @@
     "oauthTimeout": "La connexion a expiré. Veuillez réessayer.",
     "oauthProviderError": "Erreur du fournisseur d'authentification. Veuillez réessayer plus tard.",
     "oauthNotSupported": "La connexion Google n'est pas disponible pour le moment. Veuillez utiliser la connexion par email/mot de passe.",
-    "connectingToGoogle": "Connexion à Google...",
-    "connectingToFacebook": "Connexion à Facebook...",
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
     "accountCreatedSuccess": "Compte créé avec succès ! Veuillez vérifier votre email pour vérifier votre compte.",
@@ -53,7 +51,6 @@
     "connectingToFacebook": "Connexion à Facebook...",
     "resendConfirmation": "Renvoyer l'Email de Confirmation",
     "resendConfirmationSent": "Email de confirmation envoyé ! Veuillez vérifier votre boîte de réception.",
-    "forgotPassword": "Mot de Passe Oublié ?",
     "resetPassword": "Réinitialiser le Mot de Passe",
     "resetPasswordSent": "Email de réinitialisation envoyé ! Veuillez vérifier votre boîte de réception.",
     "enterEmailForReset": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe."

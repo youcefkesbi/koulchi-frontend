@@ -28,7 +28,7 @@
               <!-- Header -->
               <div class="flex justify-between items-center mb-6">
                 <DialogTitle as="h3" class="text-xl font-bold text-gray-900">
-                  {{ isSignup ? $t('signup') : $t('login') }}
+                  {{ isSignup ? t('signup') : t('login') }}
                 </DialogTitle>
                 <button
                   @click="closeModal"
@@ -44,7 +44,7 @@
                   class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
                   @click="toggleMode"
                 >
-                  {{ isSignup ? $t('haveAccount') : $t('noAccount') }}
+                  {{ isSignup ? t('haveAccount') : t('noAccount') }}
                 </button>
               </div>
 
@@ -53,19 +53,19 @@
                 <div class="flex items-start space-x-3 space-x-reverse">
                   <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 flex-shrink-0"></i>
                   <div class="flex-1">
-                    <h4 class="font-semibold text-red-800 mb-1">{{ $t('error') }}</h4>
+                    <h4 class="font-semibold text-red-800 mb-1">{{ t('error') }}</h4>
                     <p class="text-red-700 text-sm">{{ getErrorMessage(authStore.error) }}</p>
                     
                     <!-- Resend confirmation button for email not confirmed errors -->
                     <div v-if="isEmailNotConfirmedError(authStore.error)" class="mt-3">
                       <button
-                        @click="resendConfirmationEmail"
+                        @click="handleResendConfirmationFromForm"
                         :disabled="authStore.loading"
                         class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
                         <i v-else class="fas fa-envelope mr-2"></i>
-                        {{ $t('resendConfirmation') }}
+                        {{ t('resendConfirmation') }}
                       </button>
                     </div>
                   </div>
@@ -83,7 +83,7 @@
                 <div class="flex items-start space-x-3 space-x-reverse">
                   <i class="fas fa-check-circle text-green-600 mt-0.5 flex-shrink-0"></i>
                   <div class="flex-1">
-                    <h4 class="font-semibold text-green-800 mb-1">{{ $t('success') }}</h4>
+                    <h4 class="font-semibold text-green-800 mb-1">{{ t('success') }}</h4>
                     <p class="text-green-700 text-sm">{{ successMessage }}</p>
                     
                     <!-- Resend Confirmation Email Button (only show when email confirmation is required) -->
@@ -95,7 +95,7 @@
                       >
                         <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
                         <i v-else class="fas fa-envelope mr-2"></i>
-                        {{ $t('resendConfirmation') }}
+                        {{ t('resendConfirmation') }}
                       </button>
                     </div>
                   </div>
@@ -111,44 +111,62 @@
               <!-- Signup Form -->
               <form v-if="isSignup" @submit.prevent="handleSignup" class="space-y-4">
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('fullName') }}</label>
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('fullName') }}</label>
                   <input 
                     v-model="signupForm.fullName" 
                     type="text" 
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('fullNamePlaceholder')"
+                    :placeholder="t('fullNamePlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('email') }}</label>
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('email') }}</label>
                   <input 
                     v-model="signupForm.email" 
                     type="email" 
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('emailPlaceholder')"
+                    :placeholder="t('emailPlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('password') }}</label>
-                  <input 
-                    v-model="signupForm.password" 
-                    type="password" 
-                    required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('passwordPlaceholder')"
-                  />
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('password') }}</label>
+                  <div class="relative">
+                    <input 
+                      v-model="signupForm.password" 
+                      :type="showSignupPassword ? 'text' : 'password'" 
+                      required 
+                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      :placeholder="t('passwordPlaceholder')"
+                    />
+                    <button
+                      type="button"
+                      @click="showSignupPassword = !showSignupPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <i :class="showSignupPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                    </button>
+                  </div>
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('confirmPassword') }}</label>
-                  <input 
-                    v-model="signupForm.confirmPassword" 
-                    type="password" 
-                    required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('confirmPasswordPlaceholder')"
-                  />
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('confirmPassword') }}</label>
+                  <div class="relative">
+                    <input 
+                      v-model="signupForm.confirmPassword" 
+                      :type="showSignupConfirmPassword ? 'text' : 'password'" 
+                      required 
+                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      :placeholder="t('confirmPasswordPlaceholder')"
+                    />
+                    <button
+                      type="button"
+                      @click="showSignupConfirmPassword = !showSignupConfirmPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <i :class="showSignupConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                    </button>
+                  </div>
                 </div>
                 <button 
                   type="submit" 
@@ -156,31 +174,40 @@
                   class="w-full bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
-                  {{ $t('signup') }}
+                  {{ t('signup') }}
                 </button>
               </form>
 
               <!-- Login Form -->
               <form v-else @submit.prevent="handleLogin" class="space-y-4">
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('email') }}</label>
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('email') }}</label>
                   <input 
                     v-model="loginForm.email" 
                     type="email" 
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('emailPlaceholder')"
+                    :placeholder="t('emailPlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('password') }}</label>
-                  <input 
-                    v-model="loginForm.password" 
-                    type="password" 
-                    required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('passwordPlaceholder')"
-                  />
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('password') }}</label>
+                  <div class="relative">
+                    <input 
+                      v-model="loginForm.password" 
+                      :type="showLoginPassword ? 'text' : 'password'" 
+                      required 
+                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      :placeholder="t('passwordPlaceholder')"
+                    />
+                    <button
+                      type="button"
+                      @click="showLoginPassword = !showLoginPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <i :class="showLoginPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                    </button>
+                  </div>
                 </div>
                 <button 
                   type="submit" 
@@ -188,7 +215,7 @@
                   class="w-full bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
-                  {{ $t('login') }}
+                  {{ t('login') }}
                 </button>
 
                 <!-- Forgot Password Link -->
@@ -197,7 +224,7 @@
                     @click="showForgotPassword = true"
                     class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
                   >
-                    {{ $t('errors.forgotPassword') }}
+                    {{ t('errors.forgotPassword') }}
                   </button>
                 </div>
               </form>
@@ -211,18 +238,18 @@
                   >
                     <i class="fas fa-times text-xl"></i>
                   </button>
-                  <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ $t('resetPassword') }}</h4>
-                  <p class="text-sm text-gray-600">{{ $t('enterEmailForReset') }}</p>
+                  <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ t('resetPassword') }}</h4>
+                  <p class="text-sm text-gray-600">{{ t('enterEmailForReset') }}</p>
                 </div>
                 
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('email') }}</label>
+                  <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('email') }}</label>
                   <input 
                     v-model="forgotPasswordForm.email" 
                     type="email" 
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
-                    :placeholder="$t('emailPlaceholder')"
+                    :placeholder="t('emailPlaceholder')"
                   />
                 </div>
 
@@ -232,7 +259,7 @@
                     @click="showForgotPassword = false"
                     class="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 font-medium"
                   >
-                    {{ $t('common.cancel') }}
+                    {{ t('common.cancel') }}
                   </button>
                   <button 
                     type="submit" 
@@ -240,7 +267,7 @@
                     class="flex-1 bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                   >
                     <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
-                    {{ $t('resetPassword') }}
+                    {{ t('resetPassword') }}
                   </button>
                 </div>
 
@@ -250,7 +277,7 @@
                     @click="showForgotPassword = false"
                     class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
                   >
-                    ← {{ $t('login') }}
+                    ← {{ t('login') }}
                   </button>
                 </div>
               </form>
@@ -261,7 +288,7 @@
                   <div class="w-full border-t border-gray-300"></div>
                 </div>
                 <div class="relative flex justify-center text-sm">
-                  <span class="px-2 bg-white text-gray-500">{{ $t('or') }}</span>
+                  <span class="px-2 bg-white text-gray-500">{{ t('or') }}</span>
                 </div>
               </div>
 
@@ -281,7 +308,7 @@
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  {{ authStore.loading ? $t('connectingToGoogle') : $t('loginWithGoogle') }}
+                  {{ authStore.loading ? t('connectingToGoogle') : t('loginWithGoogle') }}
                 </button>
 
                 <!-- Facebook Login -->
@@ -294,7 +321,7 @@
                   <svg v-else class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                   </svg>
-                  {{ authStore.loading ? $t('connectingToFacebook') : $t('loginWithFacebook') }}
+                  {{ authStore.loading ? t('connectingToFacebook') : t('loginWithFacebook') }}
                 </button>
               </div>
 
@@ -302,6 +329,8 @@
               <div v-if="successMessage" class="mt-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
                 {{ successMessage }}
               </div>
+              
+
             </DialogPanel>
           </TransitionChild>
         </div>
@@ -342,6 +371,11 @@ export default {
     const showForgotPassword = ref(false)
     const emailForConfirmation = ref('')
     const successMessage = ref('')
+    
+    // Password visibility states
+    const showLoginPassword = ref(false)
+    const showSignupPassword = ref(false)
+    const showSignupConfirmPassword = ref(false)
     
     const signupForm = reactive({
       fullName: '',
@@ -408,7 +442,6 @@ export default {
         if (result?.emailConfirmationRequired) {
           successMessage.value = result.message || t('errors.emailConfirmationRequired')
           // Show email confirmation instructions
-          console.log('Email confirmation required for:', signupForm.email)
           // Store email for potential resend
           emailForConfirmation.value = signupForm.email
           // Don't close modal immediately, let user see the message
@@ -451,11 +484,9 @@ export default {
         authStore.clearError()
         
         const result = await authStore.loginWithGoogle()
-        console.log('LoginModal: Google OAuth result:', result)
         
         // Check if we have a successful result
         if (result && !authStore.error) {
-          console.log('LoginModal: Google OAuth successful, closing modal')
           // Ensure profile exists with OAuth data
           try {
             // Extract OAuth data from the result if available
@@ -472,7 +503,6 @@ export default {
           }
           closeModal()
         } else if (authStore.error) {
-          console.log('LoginModal: Google OAuth error occurred:', authStore.error)
           // Error is already set in authStore, it will be displayed by the error message component
         }
       } catch (error) {
@@ -511,7 +541,6 @@ export default {
           }
           closeModal()
         } else if (authStore.error) {
-          console.log('LoginModal: Facebook OAuth error occurred:', authStore.error)
           // Error is already set in authStore, it will be displayed by the error message component
         }
       } catch (error) {
@@ -587,7 +616,7 @@ export default {
     }
 
     // Function to resend confirmation email
-    const resendConfirmationEmail = async () => {
+    const handleResendConfirmationFromForm = async () => {
       try {
         const email = isSignup.value ? signupForm.email : loginForm.email
         if (!email) {
@@ -595,7 +624,7 @@ export default {
           return
         }
         
-        await authStore.resendConfirmationEmail(email)
+        await authStore.resendEmailConfirmation(email)
         successMessage.value = t('resendConfirmationSent')
       } catch (error) {
         console.error('Resend confirmation error:', error)
@@ -626,6 +655,27 @@ export default {
       }
     }
 
+    // Function to handle resending confirmation email
+    const handleResendConfirmation = async () => {
+      try {
+        if (!emailForConfirmation.value) {
+          authStore.error = 'No email address found for resending confirmation'
+          return
+        }
+
+        await authStore.resendEmailConfirmation(emailForConfirmation.value)
+        successMessage.value = t('resendConfirmationSent')
+        
+        // Clear the email after successful resend
+        emailForConfirmation.value = ''
+      } catch (error) {
+        console.error('Resend confirmation error:', error)
+      }
+    }
+    
+    // Function to test Supabase connection
+
+
     return {
       authStore,
       isSignup,
@@ -640,12 +690,16 @@ export default {
       handleSignup,
       handleLogin,
       handleForgotPassword,
+      handleResendConfirmation,
       handleGoogleLogin,
       handleFacebookLogin,
       getErrorMessage,
       clearError,
       isEmailNotConfirmedError,
-      resendConfirmationEmail
+      handleResendConfirmationFromForm,
+      showLoginPassword,
+      showSignupPassword,
+      showSignupConfirmPassword
     }
   }
 }

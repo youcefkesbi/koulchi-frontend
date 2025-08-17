@@ -47,8 +47,6 @@
     "oauthTimeout": "Login timed out. Please try again.",
     "oauthProviderError": "Authentication provider error. Please try again later.",
     "oauthNotSupported": "Google login is not available right now. Please use email/password login.",
-    "connectingToGoogle": "Connecting to Google...",
-    "connectingToFacebook": "Connecting to Facebook...",
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 6 characters",
     "accountCreatedSuccess": "Account created successfully! Please check your email to verify your account.",
@@ -58,7 +56,6 @@
     "connectingToFacebook": "Connecting to Facebook...",
     "resendConfirmation": "Resend Confirmation Email",
     "resendConfirmationSent": "Confirmation email sent! Please check your inbox.",
-    "forgotPassword": "Forgot Password?",
     "resetPassword": "Reset Password",
     "resetPasswordSent": "Password reset email sent! Please check your inbox.",
     "enterEmailForReset": "Enter your email address and we'll send you a link to reset your password."
