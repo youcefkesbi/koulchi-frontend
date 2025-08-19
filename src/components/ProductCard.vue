@@ -1,9 +1,9 @@
 <template>
   <div class="card group hover:shadow-lg transition-all duration-300">
     <!-- Product Image -->
-    <div v-if="product.image" class="relative overflow-hidden rounded-lg mb-4">
+    <div v-if="productImage" class="relative overflow-hidden rounded-lg mb-4">
       <img 
-        :src="product.image" 
+        :src="productImage" 
         :alt="product.name"
         class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         @error="handleImageError"
@@ -105,6 +105,7 @@
 </template>
 
 <script>
+import { computed } from 'vue'
 import { useCartStore } from '../stores/cart'
 
 export default {
@@ -117,6 +118,14 @@ export default {
   },
   setup(props) {
     const cartStore = useCartStore()
+
+    const productImage = computed(() => {
+      // Handle both old single image and new image_urls array
+      if (props.product.image_urls && props.product.image_urls.length > 0) {
+        return props.product.image_urls[0] // Use first image as main image
+      }
+      return props.product.image || null // Fallback to old image field
+    })
 
     const formatPrice = (price) => {
       return price.toLocaleString('ar-DZ')
@@ -135,6 +144,7 @@ export default {
 
     return {
       cartStore,
+      productImage,
       formatPrice,
       addToCart,
       handleImageError

@@ -227,13 +227,13 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { useProductsStore } from '../stores/products'
+import { useProductStore } from '../stores/product'
 
 export default {
   name: 'NewAnnouncement',
   setup() {
     const router = useRouter()
-    const productsStore = useProductsStore()
+    const productStore = useProductStore()
     
     const loading = ref(false)
     const error = ref('')
@@ -255,8 +255,8 @@ export default {
     // Fetch categories on component mount
     onMounted(async () => {
       try {
-        await productsStore.fetchCategories()
-        categories.value = productsStore.categories
+              await productStore.fetchCategories()
+      categories.value = productStore.categories
       } catch (err) {
         console.error('Error fetching categories:', err)
       }

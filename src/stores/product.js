@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import api from '@/services/api.service';
+import { ref, computed } from 'vue';
+import { supabase } from '@/lib/supabase';
 
 export const useProductStore = defineStore('product', () => {
   // State
@@ -9,6 +9,8 @@ export const useProductStore = defineStore('product', () => {
   const currentProduct = ref(null);
   const loading = ref(false);
   const error = ref(null);
+  const selectedCategory = ref('all');
+  const searchQuery = ref('');
 
   // Actions
   const fetchProducts = async (params = {}) => {
@@ -16,11 +18,24 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      const response = await api.get('/products', { params });
-      products.value = response.data.data.products;
-      return response.data;
+      let query = supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Apply filters if provided
+      if (params.category_id && params.category_id !== 'all') {
+        query = query.eq('category_id', params.category_id);
+      }
+      
+      const { data, error: supabaseError } = await query;
+      
+      if (supabaseError) throw supabaseError;
+      
+      products.value = data || [];
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to fetch products';
+      error.value = err.message || 'Failed to fetch products';
       throw err;
     } finally {
       loading.value = false;
@@ -32,27 +47,92 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      const response = await api.get(`/products/${id}`);
-      currentProduct.value = response.data.data.product;
-      return response.data.data.product;
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (supabaseError) throw supabaseError;
+      
+      currentProduct.value = data;
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to fetch product';
+      error.value = err.message || 'Failed to fetch product';
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  const createProduct = async (productData) => {
+  const fetchProductById = async (id) => {
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (supabaseError) throw supabaseError;
+      
+      return data;
+    } catch (err) {
+      error.value = err.message || 'Failed to fetch product';
+      throw err;
+    }
+  };
+
+  const createProduct = async (productData, images = []) => {
     loading.value = true;
     error.value = null;
     
     try {
-      const response = await api.post('/products', productData);
-      products.value.unshift(response.data.data.product);
-      return response.data.data.product;
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Upload images to Supabase storage
+      const imageUrls = [];
+      if (images && images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          const fileExt = image.name.split('.').pop();
+          const fileName = `${user.id}/${Date.now()}_${i}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('product-images')
+            .upload(fileName, image);
+          
+          if (uploadError) throw uploadError;
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName);
+          
+          imageUrls.push(publicUrl);
+        }
+      }
+
+      // Create product with image URLs
+      const productWithImages = {
+        ...productData,
+        user_id: user.id,
+        image_urls: imageUrls
+      };
+
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .insert(productWithImages)
+        .select()
+        .single();
+      
+      if (supabaseError) throw supabaseError;
+      
+      products.value.unshift(data);
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to create product';
+      error.value = err.message || 'Failed to create product';
       throw err;
     } finally {
       loading.value = false;
@@ -64,8 +144,16 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      const response = await api.patch(`/products/${id}`, productData);
-      const updatedProduct = response.data.data.product;
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (supabaseError) throw supabaseError;
+      
+      const updatedProduct = data;
       
       const index = products.value.findIndex(p => p.id === id);
       if (index !== -1) {
@@ -78,7 +166,7 @@ export const useProductStore = defineStore('product', () => {
       
       return updatedProduct;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to update product';
+      error.value = err.message || 'Failed to update product';
       throw err;
     } finally {
       loading.value = false;
@@ -90,14 +178,20 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      await api.delete(`/products/${id}`);
+      const { error: supabaseError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (supabaseError) throw supabaseError;
+      
       products.value = products.value.filter(p => p.id !== id);
       
       if (currentProduct.value?.id === id) {
         currentProduct.value = null;
       }
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to delete product';
+      error.value = err.message || 'Failed to delete product';
       throw err;
     } finally {
       loading.value = false;
@@ -106,11 +200,17 @@ export const useProductStore = defineStore('product', () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/categories');
-      categories.value = response.data.data.categories;
-      return response.data.data.categories;
+      const { data, error: supabaseError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      
+      if (supabaseError) throw supabaseError;
+      
+      categories.value = data || [];
+      return data;
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to fetch categories';
+      error.value = err.message || 'Failed to fetch categories';
       throw err;
     }
   };
@@ -120,13 +220,82 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      const response = await api.get('/products/user/my-products');
-      return response.data.data.products;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (supabaseError) throw supabaseError;
+      
+      return data || [];
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to fetch user products';
+      error.value = err.message || 'Failed to fetch user products';
       throw err;
     } finally {
       loading.value = false;
+    }
+  };
+
+  // Filter methods
+  const setCategory = (categoryId) => {
+    selectedCategory.value = categoryId;
+  };
+
+  const setSearchQuery = (query) => {
+    searchQuery.value = query;
+  };
+
+  const clearFilters = () => {
+    selectedCategory.value = 'all';
+    searchQuery.value = '';
+  };
+
+  // Computed filtered products
+  const filteredProducts = computed(() => {
+    let filtered = products.value;
+    
+    // Filter by category
+    if (selectedCategory.value !== 'all') {
+      filtered = filtered.filter(product => product.category_id === selectedCategory.value);
+    }
+    
+    // Filter by search query
+    if (searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase();
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  });
+
+  // Computed new products (latest 8 products)
+  const newProducts = computed(() => {
+    return products.value.slice(0, 8);
+  });
+
+  // Computed sale products (products with discount)
+  const saleProducts = computed(() => {
+    return products.value.filter(product => 
+      product.originalPrice && product.originalPrice > product.price
+    ).slice(0, 8);
+  });
+
+  // Initialize store
+  const initializeStore = async () => {
+    try {
+      await Promise.all([
+        fetchProducts(),
+        fetchCategories()
+      ]);
+    } catch (err) {
+      console.error('Failed to initialize store:', err);
     }
   };
 
@@ -137,14 +306,24 @@ export const useProductStore = defineStore('product', () => {
     currentProduct,
     loading,
     error,
+    selectedCategory,
+    searchQuery,
+    filteredProducts,
+    newProducts,
+    saleProducts,
     
     // Actions
     fetchProducts,
     fetchProduct,
+    fetchProductById,
     createProduct,
     updateProduct,
     deleteProduct,
     fetchCategories,
     getUserProducts,
+    setCategory,
+    setSearchQuery,
+    clearFilters,
+    initializeStore,
   };
 });

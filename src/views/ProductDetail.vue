@@ -13,12 +13,42 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Product Images -->
       <div class="space-y-4">
+        <!-- Main Image -->
         <div class="relative overflow-hidden rounded-lg">
           <img 
-            :src="product.image" 
+            :src="mainImage" 
             :alt="product.name"
             class="w-full h-96 object-cover"
           />
+          
+          <!-- Image Navigation -->
+          <div v-if="product.image_urls && product.image_urls.length > 1" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            <button
+              v-for="(image, index) in product.image_urls"
+              :key="index"
+              @click="currentImageIndex = index"
+              :class="[
+                'w-3 h-3 rounded-full transition-colors',
+                currentImageIndex === index ? 'bg-white' : 'bg-white/50'
+              ]"
+            ></button>
+          </div>
+          
+          <!-- Previous/Next Buttons -->
+          <div v-if="product.image_urls && product.image_urls.length > 1" class="absolute inset-0 flex items-center justify-between p-4">
+            <button
+              @click="previousImage"
+              class="bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+            <button
+              @click="nextImage"
+              class="bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </div>
           
           <!-- Badges -->
           <div class="absolute top-4 right-4 flex flex-col space-y-2">
@@ -183,7 +213,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useProductsStore } from '../stores/products'
+import { useProductStore } from '../stores/product'
 import { useCartStore } from '../stores/cart'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -200,16 +230,25 @@ export default {
   },
   setup(props) {
     const route = useRoute()
-    const productsStore = useProductsStore()
+    const productStore = useProductStore()
     const cartStore = useCartStore()
     const quantity = ref(1)
     const product = ref(null)
     const loading = ref(true)
     const error = ref(null)
+    const currentImageIndex = ref(0)
+
+    const mainImage = computed(() => {
+      if (!product.value) return ''
+      if (product.value.image_urls && product.value.image_urls.length > 0) {
+        return product.value.image_urls[currentImageIndex.value] || product.value.image_urls[0]
+      }
+      return product.value.image || ''
+    })
 
     const relatedProducts = computed(() => {
       if (!product.value) return []
-      return productsStore.products
+      return productStore.products
         .filter(p => p.category === product.value.category && p.id !== product.value.id)
         .slice(0, 4)
     })
@@ -233,6 +272,20 @@ export default {
       }
     }
 
+    const nextImage = () => {
+      if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
+        currentImageIndex.value = (currentImageIndex.value + 1) % product.value.image_urls.length
+      }
+    }
+
+    const previousImage = () => {
+      if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
+        currentImageIndex.value = currentImageIndex.value === 0 
+          ? product.value.image_urls.length - 1 
+          : currentImageIndex.value - 1
+      }
+    }
+
     const addToCart = async () => {
       if (product.value && product.value.inStock) {
         // Add multiple quantities
@@ -249,7 +302,7 @@ export default {
         error.value = null
         
         const productId = parseInt(props.id)
-        const fetchedProduct = await productsStore.fetchProductById(productId)
+        const fetchedProduct = await productStore.fetchProductById(productId)
         
         if (fetchedProduct) {
           product.value = fetchedProduct
@@ -272,6 +325,8 @@ export default {
 
     return {
       product,
+      mainImage,
+      currentImageIndex,
       relatedProducts,
       quantity,
       loading,
@@ -280,6 +335,8 @@ export default {
       formatPrice,
       increaseQuantity,
       decreaseQuantity,
+      nextImage,
+      previousImage,
       addToCart
     }
   }

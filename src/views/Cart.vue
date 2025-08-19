@@ -173,7 +173,7 @@
 <script>
 import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
-import { useProductsStore } from '../stores/products'
+import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
 export default {
@@ -183,12 +183,12 @@ export default {
   },
   setup() {
     const cartStore = useCartStore()
-    const productsStore = useProductsStore()
+    const productStore = useProductStore()
 
     const recommendedProducts = computed(() => {
       // Get products that are not in cart
       const cartProductIds = cartStore.items.map(item => item.id)
-      return productsStore.products
+      return productStore.products
         .filter(product => !cartProductIds.includes(product.id))
         .slice(0, 4)
     })
@@ -214,7 +214,7 @@ export default {
     onMounted(async () => {
       await Promise.all([
         cartStore.fetchCart(),
-        productsStore.fetchProducts()
+        productStore.fetchProducts()
       ])
     })
 

@@ -91,7 +91,7 @@
                         >
                           <option value="">{{ $t('seller.selectCategory') }}</option>
                           <option v-for="category in categories" :key="category.id" :value="category.id">
-                            {{ category.nameAr }}
+                            {{ category.name_ar }}
                           </option>
                         </select>
                       </div>
@@ -181,30 +181,47 @@
                     <!-- Image -->
                     <div class="space-y-4">
                       <h4 class="text-lg font-semibold text-gray-900 border-b pb-2">
-                        {{ $t('seller.productImage') }}
+                        {{ $t('seller.productImages') }}
                       </h4>
                       
                       <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                          {{ $t('seller.imageUrl') }} *
+                          {{ $t('seller.uploadImages') }} *
                         </label>
                         <input
-                          v-model="form.image"
-                          type="url"
-                          required
+                          ref="imageInput"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          @change="handleImageUpload"
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          :placeholder="$t('seller.imageUrlPlaceholder')"
                         />
+                        <p class="text-sm text-gray-500 mt-1">
+                          {{ $t('seller.imageUploadHelp') }}
+                        </p>
                       </div>
 
                       <!-- Image Preview -->
-                      <div v-if="form.image" class="mt-4">
-                        <img
-                          :src="form.image"
-                          :alt="form.name"
-                          class="w-full h-48 object-cover rounded-lg border"
-                          @error="handleImageError"
-                        />
+                      <div v-if="selectedImages.length > 0" class="mt-4">
+                        <div class="grid grid-cols-2 gap-4">
+                          <div
+                            v-for="(image, index) in selectedImages"
+                            :key="index"
+                            class="relative"
+                          >
+                            <img
+                              :src="image.preview"
+                              :alt="`Product image ${index + 1}`"
+                              class="w-full h-32 object-cover rounded-lg border"
+                            />
+                            <button
+                              @click="removeImage(index)"
+                              class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <i class="fas fa-times text-xs"></i>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -277,7 +294,8 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useSellerStore } from '../stores/seller'
-import { supabase } from '@/supabase'
+import { useProductStore } from '../stores/product'
+import { supabase } from '@/lib/supabase'
 
 export default {
   name: 'AddProductModal',
@@ -301,13 +319,15 @@ export default {
   emits: ['close', 'product-saved'],
   setup(props, { emit }) {
     const sellerStore = useSellerStore()
+    const productStore = useProductStore()
+    const imageInput = ref(null)
+    const selectedImages = ref([])
 
     const form = reactive({
       name: '',
       nameAr: '',
       price: 0,
       originalPrice: 0,
-      image: '',
       category: '',
       description: '',
       descriptionAr: '',
@@ -315,9 +335,7 @@ export default {
       isNew: false,
       isOnSale: false
     })
-    const { data: categories, error } = await supabase
-      .from('categories')
-      .select('*')
+    const categories = ref([])
     const isEditing = computed(() => !!props.product)
 
     // Watch for product changes to populate form
@@ -328,7 +346,6 @@ export default {
           nameAr: newProduct.name_ar || '',
           price: newProduct.price || 0,
           originalPrice: newProduct.original_price || 0,
-          image: newProduct.image || '',
           category: newProduct.category || '',
           description: newProduct.description || '',
           descriptionAr: newProduct.description_ar || '',
@@ -343,7 +360,6 @@ export default {
           nameAr: '',
           price: 0,
           originalPrice: 0,
-          image: '',
           category: '',
           description: '',
           descriptionAr: '',
@@ -352,11 +368,50 @@ export default {
           isOnSale: false
         })
       }
+      // Reset selected images
+      selectedImages.value = []
     }, { immediate: true })
+
+    // Fetch categories on mount
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .order('name')
+        if (error) throw error
+        categories.value = data || []
+      } catch (err) {
+        console.error('Error fetching categories:', err)
+      }
+    }
+
+    // Fetch categories when component mounts
+    fetchCategories()
 
     const closeModal = () => {
       emit('close')
       sellerStore.clearError()
+    }
+
+    const handleImageUpload = (event) => {
+      const files = Array.from(event.target.files)
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            selectedImages.value.push({
+              file: file,
+              preview: e.target.result
+            })
+          }
+          reader.readAsDataURL(file)
+        }
+      })
+    }
+
+    const removeImage = (index) => {
+      selectedImages.value.splice(index, 1)
     }
 
     const handleImageError = (event) => {
@@ -365,37 +420,29 @@ export default {
 
     const submitForm = async () => {
       try {
+        const productData = {
+          name: form.name,
+          name_ar: form.nameAr,
+          price: form.price,
+          original_price: form.originalPrice,
+          category_id: form.category,
+          description: form.description,
+          description_ar: form.descriptionAr,
+          stock_quantity: form.inStock ? 100 : 0,
+          is_new: form.isNew,
+          is_on_sale: form.isOnSale
+        }
+
         if (isEditing.value) {
-          await sellerStore.updateProduct(props.product.id, {
-            name: form.name,
-            name_ar: form.nameAr,
-            price: form.price,
-            original_price: form.originalPrice,
-            image: form.image,
-            category: form.category,
-            description: form.description,
-            description_ar: form.descriptionAr,
-            in_stock: form.inStock,
-            is_new: form.isNew,
-            is_on_sale: form.isOnSale
-          })
+          await productStore.updateProduct(props.product.id, productData)
         } else {
-          await sellerStore.createProduct({
-            name: form.name,
-            nameAr: form.nameAr,
-            price: form.price,
-            originalPrice: form.originalPrice,
-            image: form.image,
-            category: form.category,
-            description: form.description,
-            descriptionAr: form.descriptionAr,
-            inStock: form.inStock,
-            isNew: form.isNew,
-            isOnSale: form.isOnSale
-          })
+          // Extract files from selectedImages
+          const imageFiles = selectedImages.value.map(img => img.file)
+          await productStore.createProduct(productData, imageFiles)
         }
         
         emit('product-saved')
+        closeModal()
       } catch (error) {
         // Error is handled by the store
       }
@@ -403,10 +450,15 @@ export default {
 
     return {
       sellerStore,
+      productStore,
       form,
       categories,
       isEditing,
+      imageInput,
+      selectedImages,
       closeModal,
+      handleImageUpload,
+      removeImage,
       handleImageError,
       submitForm
     }

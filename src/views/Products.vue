@@ -6,7 +6,7 @@
         <h1 class="text-3xl font-bold text-dark">المنتجات</h1>
         <p class="text-gray-600 mt-2">
           {{ filteredProducts.length }} منتج متوفر
-          <span v-if="productsStore.selectedCategory !== 'all'">
+          <span v-if="productStore.selectedCategory !== 'all'">
             في فئة {{ getCurrentCategoryName }}
           </span>
         </p>
@@ -37,18 +37,19 @@
 
     <!-- Category Filter -->
     <div class="flex flex-wrap gap-2">
-      <button
-        v-for="category in productsStore.categories"
-        :key="category.id"
-        @click="selectCategory(category.id)"
-        :class="[
-          'px-4 py-2 rounded-lg transition-colors text-sm',
-          productsStore.selectedCategory === category.id
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        ]"
-      >
-        {{ category.nameAr }}
+              <button
+          v-for="category in productStore.categories"
+          :key="category.id"
+          @click="selectCategory(category.id)"
+          :class="[
+            'px-4 py-2 rounded-lg transition-colors text-sm flex items-center gap-2',
+            productStore.selectedCategory === category.id
+              ? 'bg-primary text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ]"
+        >
+        <i :class="category.icon" class="text-sm"></i>
+        {{ category.name_ar }}
       </button>
     </div>
 
@@ -91,7 +92,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { useProductsStore } from '../stores/products'
+import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
 export default {
@@ -100,36 +101,36 @@ export default {
     ProductCard
   },
   setup() {
-    const productsStore = useProductsStore()
+    const productStore = useProductStore()
     const searchQuery = ref('')
 
-    const filteredProducts = computed(() => productsStore.filteredProducts)
+    const filteredProducts = computed(() => productStore.filteredProducts)
 
     const getCurrentCategoryName = computed(() => {
-      const category = productsStore.categories.find(cat => cat.id === productsStore.selectedCategory)
-      return category ? category.nameAr : ''
+      const category = productStore.categories.find(cat => cat.id === productStore.selectedCategory)
+      return category ? category.name_ar : ''
     })
 
     const handleSearch = () => {
-      productsStore.setSearchQuery(searchQuery.value)
+      productStore.setSearchQuery(searchQuery.value)
     }
 
     const selectCategory = (categoryId) => {
-      productsStore.setCategory(categoryId)
+      productStore.setCategory(categoryId)
     }
 
     const clearFilters = () => {
-      productsStore.clearFilters()
+      productStore.clearFilters()
       searchQuery.value = ''
     }
 
-    // Fetch products on component mount
+    // Fetch products and categories on component mount
     onMounted(async () => {
-      await productsStore.fetchProducts()
+      await productStore.initializeStore()
     })
 
     return {
-      productsStore,
+      productStore,
       searchQuery,
       filteredProducts,
       getCurrentCategoryName,

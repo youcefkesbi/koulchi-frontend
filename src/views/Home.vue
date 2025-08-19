@@ -97,7 +97,7 @@
           class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
         >
           <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow">
-            <i :class="getCategoryIcon(category.id)" class="text-white text-2xl"></i>
+            <i :class="category.icon" class="text-white text-2xl"></i>
           </div>
           <h3 class="font-bold text-lg text-dark mb-2">{{ category.name_ar }}</h3>
           <p class="text-gray-600 text-sm">{{ category.name }}</p>
@@ -180,7 +180,7 @@
 <script>
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProductsStore } from '../stores/products'
+import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 export default {
   name: 'Home',
@@ -189,34 +189,21 @@ export default {
   },
   setup() {
     const router = useRouter()
-    const productsStore = useProductsStore()
+    const productStore = useProductStore()
 
-    const newProducts = computed(() => productsStore.newProducts.slice(0, 4))
-    const saleProducts = computed(() => productsStore.saleProducts.slice(0, 4))
-    const categories = computed(() => productsStore.categories.filter(cat => cat.id !== 'all'))
+    const newProducts = computed(() => productStore.newProducts.slice(0, 4))
+    const saleProducts = computed(() => productStore.saleProducts.slice(0, 4))
+    const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
 
     const selectCategory = (categoryId) => {
-      productsStore.setCategory(categoryId)
+      productStore.setCategory(categoryId)
       router.push('/products')
-    }
-
-    const getCategoryIcon = (categoryId) => {
-      const icons = {
-        electronics: 'fas fa-mobile-alt',
-        fashion: 'fas fa-tshirt',
-        home: 'fas fa-home',
-        food: 'fas fa-utensils'
-      }
-      return icons[categoryId] || 'fas fa-box'
     }
 
     // Fetch products and categories on component mount
     onMounted(async () => {
       try {
-        await Promise.all([
-          productsStore.fetchProducts(),
-          productsStore.fetchCategories()
-        ])
+        await productStore.initializeStore()
       } catch (error) {
         console.error('Error loading data:', error)
       }
@@ -226,8 +213,7 @@ export default {
       newProducts,
       saleProducts,
       categories,
-      selectCategory,
-      getCategoryIcon
+      selectCategory
     }
   }
 }
