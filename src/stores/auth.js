@@ -59,75 +59,98 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      console.log('Starting signup process for:', email)
+      console.log('🔄 Starting minimal signup process for:', email)
 
-      // Try to sign up with just email and password - no metadata
-      const { data, error: authError } = await supabase.auth.signUp({
+      // Try the most basic signup possible - no options, no metadata
+      const signupRequest = {
         email: email.trim(),
         password: password
+      }
+
+      console.log('📤 Sending request to Supabase:', signupRequest)
+
+      const { data, error: authError } = await supabase.auth.signUp(signupRequest)
+
+      console.log('📥 Raw Supabase response:', { 
+        data, 
+        error: authError,
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
+        userEmail: data?.user?.email,
+        errorMessage: authError?.message,
+        errorStatus: authError?.status,
+        errorDetails: authError
       })
 
-      console.log('Supabase signup response:', { data, error: authError })
-
       if (authError) {
-        console.error('Supabase auth error:', authError)
+        console.error('❌ Signup failed with error:', {
+          message: authError.message,
+          status: authError.status,
+          details: authError
+        })
         
-        // Handle specific error cases
-        if (authError.message.includes('User already registered')) {
+        // More specific error handling
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
           error.value = 'An account with this email already exists. Please try logging in instead.'
-        } else if (authError.message.includes('Database error saving new user')) {
-          error.value = 'Unable to create account due to server error. Please try again in a few moments.'
         } else if (authError.message.includes('Invalid email')) {
           error.value = 'Please enter a valid email address.'
-        } else if (authError.message.includes('Password')) {
+        } else if (authError.message.includes('Password') && authError.message.includes('short')) {
           error.value = 'Password must be at least 6 characters long.'
+        } else if (authError.message.includes('Database error')) {
+          // This is the problematic error - let's gather more info
+          console.error('🚨 DATABASE ERROR DETAILS:')
+          console.error('- Error message:', authError.message)
+          console.error('- Error status:', authError.status)
+          console.error('- Full error object:', authError)
+          console.error('- Request payload:', signupRequest)
+          error.value = 'Database error during signup. This might be a Supabase configuration issue.'
         } else {
           error.value = `Signup failed: ${authError.message}`
         }
         throw authError
       }
 
-      console.log('Signup successful, user data:', data.user)
+      console.log('✅ Supabase signup successful!')
 
-      // Check if we have a user and session (email confirmation disabled)
-      if (data.user && data.session) {
-        console.log('User authenticated immediately, setting up profile...')
-        
-        // Set the authenticated user
+      // Handle successful signup
+      if (data.user) {
+        console.log('👤 User created:', {
+          id: data.user.id,
+          email: data.user.email,
+          hasSession: !!data.session
+        })
+
+        // Set user immediately
         user.value = data.user
-        
-        // Try to create profile after successful auth
-        try {
-          const profile = await createProfileIfNotExists(userData)
-          console.log('Profile created/loaded:', profile)
-        } catch (profileError) {
-          console.warn('Profile creation failed, but user signup succeeded:', profileError)
-          // Don't fail the entire signup process for profile issues
-        }
-        
-        return { 
-          user: data.user, 
-          session: data.session,
-          success: true,
-          message: 'Account created successfully! You are now logged in.'
-        }
-      } else if (data.user && !data.session) {
-        // Email confirmation is required
-        console.log('User created but email confirmation required')
-        return {
-          user: data.user,
-          success: true,
-          emailConfirmationRequired: true,
-          message: 'Account created! Please check your email to confirm your account.'
+
+        if (data.session) {
+          console.log('🎉 User has immediate session - no email confirmation needed')
+          
+          // Skip profile creation for now to isolate the auth issue
+          console.log('⏭️ Skipping profile creation to test basic auth')
+          
+          return { 
+            user: data.user, 
+            session: data.session,
+            success: true,
+            message: 'Account created successfully! You are now logged in.'
+          }
+        } else {
+          console.log('📧 User created but no session - email confirmation might be required')
+          return {
+            user: data.user,
+            success: true,
+            emailConfirmationRequired: true,
+            message: 'Account created! Please check your email to confirm your account.'
+          }
         }
       } else {
-        // Unexpected response
-        console.error('Unexpected signup response:', data)
-        error.value = 'Signup completed but authentication failed. Please try logging in.'
-        throw new Error('Unexpected signup response')
+        console.error('❌ No user data in response:', data)
+        error.value = 'Failed to create user account.'
+        throw new Error('No user data returned from signup')
       }
     } catch (err) {
-      console.error('Signup process error:', err)
+      console.error('💥 Signup process error:', err)
       if (!error.value) {
         error.value = err.message || 'Failed to create account. Please try again.'
       }
