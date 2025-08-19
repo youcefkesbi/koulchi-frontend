@@ -56,7 +56,7 @@
                       
                       <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                          {{ $t('seller.productName') }} (English) *
+                          {{ $t('seller.productName') }} *
                         </label>
                         <input
                           v-model="form.name"
@@ -64,19 +64,6 @@
                           required
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                           :placeholder="$t('seller.productNamePlaceholder')"
-                        />
-                      </div>
-
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                          {{ $t('seller.productName') }} (Arabic) *
-                        </label>
-                        <input
-                          v-model="form.nameAr"
-                          type="text"
-                          required
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          :placeholder="$t('seller.productNameArPlaceholder')"
                         />
                       </div>
 
@@ -91,7 +78,7 @@
                         >
                           <option value="">{{ $t('seller.selectCategory') }}</option>
                           <option v-for="category in categories" :key="category.id" :value="category.id">
-                            {{ category.name_ar }}
+                            {{ category.name }}
                           </option>
                         </select>
                       </div>
@@ -103,33 +90,18 @@
                         {{ $t('seller.pricing') }}
                       </h4>
                       
-                      <div class="grid grid-cols-2 gap-4">
-                        <div>
-                          <label class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ $t('seller.price') }} (DZD) *
-                          </label>
-                          <input
-                            v-model.number="form.price"
-                            type="number"
-                            required
-                            min="0"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                            :placeholder="$t('seller.pricePlaceholder')"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ $t('seller.originalPrice') }} (DZD)
-                          </label>
-                          <input
-                            v-model.number="form.originalPrice"
-                            type="number"
-                            min="0"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                            :placeholder="$t('seller.originalPricePlaceholder')"
-                          />
-                        </div>
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          {{ $t('seller.price') }} (DZD) *
+                        </label>
+                        <input
+                          v-model.number="form.price"
+                          type="number"
+                          required
+                          min="0"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                          :placeholder="$t('seller.pricePlaceholder')"
+                        />
                       </div>
                     </div>
 
@@ -233,25 +205,13 @@
                       
                       <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                          {{ $t('seller.description') }} (English)
+                          {{ $t('seller.description') }}
                         </label>
                         <textarea
                           v-model="form.description"
                           rows="4"
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                           :placeholder="$t('seller.descriptionPlaceholder')"
-                        ></textarea>
-                      </div>
-
-                      <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                          {{ $t('seller.description') }} (Arabic)
-                        </label>
-                        <textarea
-                          v-model="form.descriptionAr"
-                          rows="4"
-                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          :placeholder="$t('seller.descriptionArPlaceholder')"
                         ></textarea>
                       </div>
                     </div>
@@ -325,15 +285,11 @@ export default {
 
     const form = reactive({
       name: '',
-      nameAr: '',
       price: 0,
-      originalPrice: 0,
       category: '',
       description: '',
-      descriptionAr: '',
       inStock: true,
-      isNew: false,
-      isOnSale: false
+      isNew: true
     })
     const categories = ref([])
     const isEditing = computed(() => !!props.product)
@@ -343,29 +299,21 @@ export default {
       if (newProduct) {
         Object.assign(form, {
           name: newProduct.name || '',
-          nameAr: newProduct.name_ar || '',
           price: newProduct.price || 0,
-          originalPrice: newProduct.original_price || 0,
-          category: newProduct.category || '',
+          category: newProduct.category_id || '',
           description: newProduct.description || '',
-          descriptionAr: newProduct.description_ar || '',
-          inStock: newProduct.in_stock || true,
-          isNew: newProduct.is_new || false,
-          isOnSale: newProduct.is_on_sale || false
+          inStock: newProduct.stock_quantity > 0,
+          isNew: newProduct.is_new || true
         })
       } else {
         // Reset form
         Object.assign(form, {
           name: '',
-          nameAr: '',
           price: 0,
-          originalPrice: 0,
           category: '',
           description: '',
-          descriptionAr: '',
           inStock: true,
-          isNew: false,
-          isOnSale: false
+          isNew: true
         })
       }
       // Reset selected images
@@ -422,15 +370,11 @@ export default {
       try {
         const productData = {
           name: form.name,
-          name_ar: form.nameAr,
           price: form.price,
-          original_price: form.originalPrice,
           category_id: form.category,
           description: form.description,
-          description_ar: form.descriptionAr,
           stock_quantity: form.inStock ? 100 : 0,
-          is_new: form.isNew,
-          is_on_sale: form.isOnSale
+          is_new: form.isNew
         }
 
         if (isEditing.value) {

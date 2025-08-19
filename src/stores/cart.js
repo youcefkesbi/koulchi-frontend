@@ -29,9 +29,8 @@ export const useCartStore = defineStore('cart', () => {
     return {
       id: dbItem.product_id,
       name: productData?.name || 'Unknown Product',
-      nameAr: productData?.name_ar || 'منتج غير معروف',
       price: dbItem.price,
-      image: productData?.image || '',
+      image: productData?.image_urls?.[0] || productData?.image || '',
       quantity: dbItem.quantity
     }
   }

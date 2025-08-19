@@ -96,11 +96,16 @@
           @click="selectCategory(category.id)"
           class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
         >
-          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow">
-            <i :class="category.icon" class="text-white text-2xl"></i>
+          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
+            <img 
+              v-if="category.icon_url" 
+              :src="category.icon_url" 
+              :alt="category.name"
+              class="w-12 h-12 object-contain"
+            />
+            <i v-else class="fas fa-box text-white text-2xl"></i>
           </div>
-          <h3 class="font-bold text-lg text-dark mb-2">{{ category.name_ar }}</h3>
-          <p class="text-gray-600 text-sm">{{ category.name }}</p>
+          <h3 class="font-bold text-lg text-dark mb-2">{{ category.name }}</h3>
         </div>
       </div>
     </section>

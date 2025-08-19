@@ -117,7 +117,7 @@ export const useProductStore = defineStore('product', () => {
       // Create product with image URLs
       const productWithImages = {
         ...productData,
-        user_id: user.id,
+        seller_id: user.id,
         image_urls: imageUrls
       };
 
@@ -203,6 +203,7 @@ export const useProductStore = defineStore('product', () => {
       const { data, error: supabaseError } = await supabase
         .from('categories')
         .select('*')
+        .eq('is_active', true)
         .order('name');
       
       if (supabaseError) throw supabaseError;
@@ -226,7 +227,7 @@ export const useProductStore = defineStore('product', () => {
       const { data, error: supabaseError } = await supabase
         .from('products')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
       
       if (supabaseError) throw supabaseError;
@@ -282,8 +283,9 @@ export const useProductStore = defineStore('product', () => {
 
   // Computed sale products (products with discount)
   const saleProducts = computed(() => {
+    // Since we removed original_price, we'll show new products instead
     return products.value.filter(product => 
-      product.originalPrice && product.originalPrice > product.price
+      product.is_new
     ).slice(0, 8);
   });
 

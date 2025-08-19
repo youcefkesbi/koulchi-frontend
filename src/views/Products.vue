@@ -37,7 +37,7 @@
 
     <!-- Category Filter -->
     <div class="flex flex-wrap gap-2">
-              <button
+                      <button
           v-for="category in productStore.categories"
           :key="category.id"
           @click="selectCategory(category.id)"
@@ -48,9 +48,15 @@
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           ]"
         >
-        <i :class="category.icon" class="text-sm"></i>
-        {{ category.name_ar }}
-      </button>
+          <img 
+            v-if="category.icon_url" 
+            :src="category.icon_url" 
+            :alt="category.name"
+            class="w-4 h-4 object-contain"
+          />
+          <i v-else class="fas fa-box text-sm"></i>
+          {{ category.name }}
+        </button>
     </div>
 
     <!-- Products Grid -->
@@ -108,7 +114,7 @@ export default {
 
     const getCurrentCategoryName = computed(() => {
       const category = productStore.categories.find(cat => cat.id === productStore.selectedCategory)
-      return category ? category.name_ar : ''
+      return category ? category.name : ''
     })
 
     const handleSearch = () => {

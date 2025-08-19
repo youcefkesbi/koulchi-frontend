@@ -72,18 +72,17 @@
 
       <!-- Product Info -->
       <div class="space-y-6">
-        <!-- Title and Rating -->
+        <!-- Title and Stock Status -->
         <div>
-          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.nameAr }}</h1>
-          <p class="text-lg text-gray-600 mb-4">{{ product.name }}</p>
+          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name }}</h1>
           
           <div class="flex items-center space-x-4 space-x-reverse mb-4">
             <div class="flex items-center">
-              <i class="fas fa-star text-yellow-400"></i>
-              <span class="text-gray-700 mr-1">{{ product.rating }}</span>
+              <i class="fas fa-box text-primary"></i>
+              <span class="text-gray-700 mr-1">{{ product.stock_quantity }}</span>
             </div>
-            <span class="text-gray-500">({{ product.reviews }} تقييم)</span>
-            <span v-if="product.inStock" class="text-green-600 font-semibold">
+            <span class="text-gray-500">متوفر</span>
+            <span v-if="product.stock_quantity > 0" class="text-green-600 font-semibold">
               <i class="fas fa-check-circle ml-1"></i>
               متوفر
             </span>
@@ -100,19 +99,13 @@
             <span class="text-3xl font-bold text-primary">
               {{ formatPrice(product.price) }} دج
             </span>
-            <span v-if="product.originalPrice > product.price" class="text-xl text-gray-500 line-through">
-              {{ formatPrice(product.originalPrice) }} دج
-            </span>
           </div>
-          <!-- <p class="text-sm text-gray-600">
-            السعر يشمل الضريبة على القيمة المضافة
-          </p> -->
         </div>
 
         <!-- Description -->
         <div>
           <h3 class="text-lg font-semibold mb-2">الوصف</h3>
-          <p class="text-gray-700 leading-relaxed">{{ product.descriptionAr }}</p>
+          <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
         </div>
 
         <!-- Features -->
@@ -254,8 +247,8 @@ export default {
     })
 
     const getDiscountPercentage = computed(() => {
-      if (!product.value || product.value.originalPrice <= product.value.price) return 0
-      return Math.round(((product.value.originalPrice - product.value.price) / product.value.originalPrice) * 100)
+      // Since we removed original_price, we'll return 0 for now
+      return 0
     })
 
     const formatPrice = (price) => {
@@ -287,7 +280,7 @@ export default {
     }
 
     const addToCart = async () => {
-      if (product.value && product.value.inStock) {
+      if (product.value && product.value.stock_quantity > 0) {
         // Add multiple quantities
         for (let i = 0; i < quantity.value; i++) {
           await cartStore.addToCart(product.value)

@@ -58,28 +58,22 @@
     <div class="space-y-3">
       <!-- Title -->
       <h3 class="font-semibold text-lg text-dark line-clamp-2">
-        {{ product.nameAr }}
-      </h3>
-      <p class="text-sm text-gray-600 line-clamp-1">
         {{ product.name }}
-      </p>
+      </h3>
 
-      <!-- Rating -->
+      <!-- Stock Status -->
       <div class="flex items-center space-x-2 space-x-reverse">
         <div class="flex items-center">
-          <i class="fas fa-star text-yellow-400 text-sm"></i>
-          <span class="text-sm text-gray-600 mr-1">{{ product.rating }}</span>
+          <i class="fas fa-box text-primary text-sm"></i>
+          <span class="text-sm text-gray-600 mr-1">{{ product.stock_quantity }}</span>
         </div>
-        <span class="text-sm text-gray-500">({{ product.reviews }})</span>
+        <span class="text-sm text-gray-500">متوفر</span>
       </div>
 
       <!-- Price -->
       <div class="flex items-center space-x-2 space-x-reverse">
         <span class="text-xl font-bold text-primary">
           {{ formatPrice(product.price) }} {{ $t('product.currency') }}
-        </span>
-        <span v-if="product.originalPrice > product.price" class="text-sm text-gray-500 line-through">
-          {{ formatPrice(product.originalPrice) }} {{ $t('product.currency') }}
         </span>
       </div>
 
@@ -88,10 +82,10 @@
         <button
           @click="addToCart"
           class="flex-1 btn-primary text-sm py-2"
-          :disabled="!product.inStock"
+          :disabled="product.stock_quantity <= 0"
         >
           <i class="fas fa-shopping-cart ml-2"></i>
-          {{ product.inStock ? $t('product.addToCart') : $t('product.outOfStock') }}
+          {{ product.stock_quantity > 0 ? $t('product.addToCart') : $t('product.outOfStock') }}
         </button>
         <router-link
           :to="`/product/${product.id}`"
@@ -132,7 +126,7 @@ export default {
     }
 
     const addToCart = async () => {
-      if (props.product.inStock) {
+      if (props.product.stock_quantity > 0) {
         await cartStore.addToCart(props.product)
       }
     }

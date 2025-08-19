@@ -89,7 +89,7 @@
                 >
                   <option value="">{{ $t('announcement.selectCategory') }}</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name_ar }} ({{ category.name }})
+                    {{ category.name }}
                   </option>
                 </select>
               </div>
