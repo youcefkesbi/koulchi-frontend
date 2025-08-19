@@ -115,6 +115,8 @@
   "go_home": "Go Home",
   "login_successful": "Login Successful",
   "redirecting": "Redirecting you now...",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "passwordTooShort": "Password must be at least 6 characters",
   "hero": {
     "title": "Shop with Confidence with Koulchi",
     "subtitle": "Best products with Cash on Delivery",
@@ -207,7 +209,8 @@
     "error": "Error posting announcement"
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "goHome": "Go Home"
   },
   "seller": {
     "becomeSeller": "Become a Seller",

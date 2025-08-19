@@ -28,9 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (authError) {
         // Handle specific error cases
-        if (authError.message.includes('Email not confirmed')) {
-          error.value = 'Email not confirmed'
-        } else if (authError.message.includes('Invalid login credentials')) {
+        if (authError.message.includes('Invalid login credentials')) {
           error.value = 'Invalid email or password'
         } else {
           error.value = authError.message
@@ -76,7 +74,20 @@ export const useAuthStore = defineStore('auth', () => {
         throw authError
       }
 
-      return await handleSuccessfulSignup(data, userData)
+      // With email confirmation disabled, user should be immediately authenticated
+      if (data.user && data.session) {
+        await loadUserWithProfile(data.user)
+        await createProfileIfNotExists(userData)
+        return { 
+          user: data.user, 
+          session: data.session,
+          success: true,
+          message: 'Account created successfully! You are now logged in.'
+        }
+      } else {
+        // Fallback for older flow
+        return await handleSuccessfulSignup(data, userData)
+      }
     } catch (err) {
       console.error('Signup error:', err)
       if (!error.value) {
@@ -109,26 +120,18 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    // Check if email confirmation is required
-    if (data.user && !data.session) {
-      // Don't set user.value yet since they need to confirm email
-      // But we can still create their profile
-      // Return success with email confirmation status
+    // With email confirmation disabled, user should be immediately authenticated
+    if (data.user && data.session) {
+      await loadUserWithProfile(data.user)
       return {
         ...data,
-        emailConfirmationRequired: true,
-        message: 'Account created successfully! Please check your email and click the confirmation link.'
-      }
-    } else if (data.user && data.session) {
-      user.value = data.user
-      return {
-        ...data,
-        emailConfirmationRequired: false,
-        message: 'Account created and confirmed successfully!'
+        success: true,
+        message: 'Account created successfully! You are now logged in.'
       }
     }
     
-    return data
+    // If no session, something went wrong
+    throw new Error('Account created but login failed. Please try logging in manually.')
   }
 
   const loginWithGoogle = async () => {
@@ -247,30 +250,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
-  const resendEmailConfirmation = async (email) => {
-    try {
-      loading.value = true
-      error.value = null
-
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      })
-
-      if (resendError) {
-        console.error('Error resending confirmation email:', resendError)
-        throw resendError
-      }
-
-      return { success: true, message: 'Confirmation email sent! Please check your inbox.' }
-    } catch (err) {
-      console.error('Failed to resend confirmation email:', err)
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
+  // Email confirmation disabled - function removed
 
 
 
@@ -459,7 +439,6 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     updateProfile,
     clearError,
-    resendEmailConfirmation,
     createProfileIfNotExists,
     resetPasswordForEmail,
     initAuth

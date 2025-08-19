@@ -8,6 +8,7 @@ import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import Profile from '../views/Profile.vue'
+import AuthCallback from '../views/AuthCallback.vue'
 
 
 const routes = [
@@ -64,6 +65,11 @@ const routes = [
     name: 'NewAnnouncement',
     component: () => import('../views/NewAnnouncement.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallback
   },
 
 ]

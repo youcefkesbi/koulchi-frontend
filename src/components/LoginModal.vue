@@ -1,42 +1,27 @@
 <template>
-  <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog as="div" @close="closeModal" class="relative z-50">
-      <TransitionChild
-        as="template"
-        enter="duration-300 ease-out"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="duration-200 ease-in"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div class="fixed inset-0 bg-black bg-opacity-25" />
-      </TransitionChild>
+  <!-- Simple Modal Structure -->
+  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
+    
+    <!-- Modal Content -->
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 relative">
 
-      <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center">
-          <TransitionChild
-            as="template"
-            enter="duration-300 ease-out"
-            enter-from="opacity-0 scale-95"
-            enter-to="opacity-100 scale-100"
-            leave="duration-200 ease-in"
-            leave-from="opacity-100 scale-100"
-            leave-to="opacity-0 scale-95"
+
+        
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-gray-900">
+            {{ isSignup ? t('signup') : t('login') }}
+          </h3>
+          <button
+            @click="closeModal"
+            class="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-              <!-- Header -->
-              <div class="flex justify-between items-center mb-6">
-                <DialogTitle as="h3" class="text-xl font-bold text-gray-900">
-                  {{ isSignup ? t('signup') : t('login') }}
-                </DialogTitle>
-                <button
-                  @click="closeModal"
-                  class="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <i class="fas fa-times text-xl"></i>
-                </button>
-              </div>
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
 
               <!-- Toggle Mode Button -->
               <div class="text-center mb-6">
@@ -56,18 +41,7 @@
                     <h4 class="font-semibold text-red-800 mb-1">{{ t('error') }}</h4>
                     <p class="text-red-700 text-sm">{{ getErrorMessage(authStore.error) }}</p>
                     
-                    <!-- Resend confirmation button for email not confirmed errors -->
-                    <div v-if="isEmailNotConfirmedError(authStore.error)" class="mt-3">
-                      <button
-                        @click="handleResendConfirmationFromForm"
-                        :disabled="authStore.loading"
-                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
-                        <i v-else class="fas fa-envelope mr-2"></i>
-                        {{ t('resendConfirmation') }}
-                      </button>
-                    </div>
+
                   </div>
                   <button 
                     @click="clearError" 
@@ -86,18 +60,7 @@
                     <h4 class="font-semibold text-green-800 mb-1">{{ t('success') }}</h4>
                     <p class="text-green-700 text-sm">{{ successMessage }}</p>
                     
-                    <!-- Resend Confirmation Email Button (only show when email confirmation is required) -->
-                    <div v-if="emailForConfirmation && successMessage.includes('check your email')" class="mt-3">
-                      <button
-                        @click="handleResendConfirmation"
-                        :disabled="authStore.loading"
-                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
-                        <i v-else class="fas fa-envelope mr-2"></i>
-                        {{ t('resendConfirmation') }}
-                      </button>
-                    </div>
+
                   </div>
                   <button 
                     @click="successMessage = ''" 
@@ -326,30 +289,20 @@
               </div>
 
 
-              
-
-            </DialogPanel>
-          </TransitionChild>
         </div>
       </div>
-    </Dialog>
-  </TransitionRoot>
+    </div>
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
-import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
 
 export default {
   name: 'LoginModal',
   components: {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogPanel,
-    DialogTitle
+    // No external components needed
   },
   props: {
     isOpen: {
@@ -363,9 +316,19 @@ export default {
     const authStore = useAuthStore()
     const { t } = useI18n()
     
+    // Watch for prop changes (optional)
+    watch(() => props.isOpen, (newValue, oldValue) => {
+      if (newValue) {
+        // Reset forms when modal opens
+        Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
+        Object.assign(loginForm, { email: '', password: '' })
+        authStore.clearError()
+        successMessage.value = ''
+      }
+    })
+    
     const isSignup = ref(false)
     const showForgotPassword = ref(false)
-    const emailForConfirmation = ref('')
     const successMessage = ref('')
     
     // Password visibility states
@@ -421,12 +384,12 @@ export default {
     const handleSignup = async () => {
       try {
         if (signupForm.password !== signupForm.confirmPassword) {
-          authStore.error = t('errors.passwordsDoNotMatch')
+          authStore.error = t('passwordsDoNotMatch')
           return
         }
         
         if (signupForm.password.length < 6) {
-          authStore.error = t('errors.passwordTooShort')
+          authStore.error = t('passwordTooShort')
           return
         }
 
@@ -434,22 +397,13 @@ export default {
           full_name: signupForm.fullName
         })
         
-        // Check if email confirmation is required
-        if (result?.emailConfirmationRequired) {
-          successMessage.value = result.message || t('errors.emailConfirmationRequired')
-          // Show email confirmation instructions
-          // Store email for potential resend
-          emailForConfirmation.value = signupForm.email
-          // Don't close modal immediately, let user see the message
-        } else if (result?.user && result?.session) {
-          successMessage.value = result.message || t('errors.accountCreatedSuccess')
-          // Close modal after a delay
+        // With email confirmation disabled, user should be immediately logged in
+        if (result?.success) {
+          successMessage.value = result.message || 'Account created successfully! You are now logged in.'
+          // Close modal after a short delay
           setTimeout(() => {
             closeModal()
-          }, 3000)
-        } else {
-          // Fallback message
-          successMessage.value = t('errors.accountCreatedSuccess')
+          }, 1500)
         }
       } catch (error) {
         console.error('Signup error:', error)
@@ -510,10 +464,7 @@ export default {
       
       const errorLower = error.toLowerCase()
       
-      // Handle specific error cases
-      if (errorLower.includes('email not confirmed') || errorLower.includes('email not verified')) {
-        return t('errors.emailNotConfirmed')
-      }
+      // Email confirmation disabled - skip this error type
       if (errorLower.includes('invalid login credentials') || errorLower.includes('invalid email or password')) {
         return t('errors.invalidCredentials')
       }
@@ -559,28 +510,7 @@ export default {
       authStore.clearError()
     }
 
-    // Function to check if error is email not confirmed
-    const isEmailNotConfirmedError = (error) => {
-      if (!error) return false
-      const errorLower = error.toLowerCase()
-      return errorLower.includes('email not confirmed') || errorLower.includes('email not verified')
-    }
-
-    // Function to resend confirmation email
-    const handleResendConfirmationFromForm = async () => {
-      try {
-        const email = isSignup.value ? signupForm.email : loginForm.email
-        if (!email) {
-          authStore.error = t('errors.unknownError')
-          return
-        }
-        
-        await authStore.resendEmailConfirmation(email)
-        successMessage.value = t('resendConfirmationSent')
-      } catch (error) {
-        console.error('Resend confirmation error:', error)
-      }
-    }
+    // Email confirmation functions removed - no longer needed
 
     // Function to handle forgot password
     const handleForgotPassword = async () => {
@@ -606,26 +536,12 @@ export default {
       }
     }
 
-    // Function to handle resending confirmation email
-    const handleResendConfirmation = async () => {
-      try {
-        if (!emailForConfirmation.value) {
-          authStore.error = 'No email address found for resending confirmation'
-          return
-        }
-
-        await authStore.resendEmailConfirmation(emailForConfirmation.value)
-        successMessage.value = t('resendConfirmationSent')
-        
-        // Clear the email after successful resend
-        emailForConfirmation.value = ''
-      } catch (error) {
-        console.error('Resend confirmation error:', error)
-      }
-    }
+    // Resend confirmation function removed - no longer needed
 
 
     return {
+      // Core functions
+      t, // Add the translation function!
       authStore,
       isSignup,
       showForgotPassword,
@@ -639,13 +555,10 @@ export default {
       handleSignup,
       handleLogin,
       handleForgotPassword,
-      handleResendConfirmation,
       handleGoogleLogin,
       handleFacebookLogin,
       getErrorMessage,
       clearError,
-      isEmailNotConfirmedError,
-      handleResendConfirmationFromForm,
       showLoginPassword,
       showSignupPassword,
       showSignupConfirmPassword
