@@ -101,14 +101,10 @@
                   class="flex items-center space-x-3 space-x-reverse p-3 rounded-2xl hover:bg-gray-50 transition-all duration-300 group"
                 >
                   <img
-                    v-if="authStore.userPhotoURL"
                     :src="authStore.userPhotoURL"
                     :alt="authStore.userDisplayName"
-                    class="w-10 h-10 rounded-full border-2 border-primary group-hover:border-secondary transition-colors"
+                    class="w-10 h-10 rounded-full border-2 border-primary group-hover:border-secondary transition-colors object-cover"
                   />
-                  <div v-else class="w-10 h-10 bg-primary rounded-full flex items-center justify-center border-2 border-primary group-hover:border-secondary transition-colors">
-                    <i class="fas fa-user text-white text-sm"></i>
-                  </div>
                   <span class="text-sm font-semibold text-gray-700 group-hover:text-primary transition-colors">{{ authStore.userDisplayName || authStore.userEmail }}</span>
                   <i class="fas fa-chevron-down text-xs text-gray-500 group-hover:text-primary transition-colors"></i>
                 </button>

@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!user.value)
   const userDisplayName = computed(() => user.value?.full_name || user.value?.email || 'User')
   const userEmail = computed(() => user.value?.email || '')
-  const userPhotoURL = computed(() => user.value?.avatar_url || null)
+  const userPhotoURL = computed(() => '/src/assets/user-avatar.png') // Always use default avatar
   const userRole = computed(() => user.value?.role || 'user')
   const isAdmin = computed(() => user.value?.role === 'admin')
 
@@ -95,13 +95,10 @@ export const useAuthStore = defineStore('auth', () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
-            id: data.user.id,
-            full_name: userData.full_name || null,
-            avatar_url: userData.avatar_url || null,
+            user_id: data.user.id,
+            full_name: userData.full_name || 'User',
             role: 'user',
-            city: userData.city || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            city: userData.city || null
           })
 
         if (profileError) {
@@ -224,9 +221,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: updateError } = await supabase
         .from('profiles')
         .upsert({
-          id: user.value.id,
-          ...profileData,
-          updated_at: new Date().toISOString()
+          user_id: user.value.id,
+          ...profileData
         })
         .select()
         .single()
@@ -300,7 +296,7 @@ export const useAuthStore = defineStore('auth', () => {
         const result = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.value.id)
+          .eq('user_id', user.value.id)
           .single()
         
         existingProfile = result.data
@@ -318,13 +314,10 @@ export const useAuthStore = defineStore('auth', () => {
       // If profile doesn't exist, create one
       if (!existingProfile) {
         const profileData = {
-          id: user.value.id,
-          full_name: oauthData.full_name || null,
-          avatar_url: oauthData.avatar_url || null,
+          user_id: user.value.id,
+          full_name: oauthData.full_name || 'User',
           role: 'user',
-          city: oauthData.city || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          city: oauthData.city || null
         }
 
         const { data: newProfile, error: createError } = await supabase
@@ -343,25 +336,22 @@ export const useAuthStore = defineStore('auth', () => {
         return newProfile
       } else {
         // If profile exists but we have OAuth data, update it
-        if (oauthData.full_name || oauthData.avatar_url || oauthData.city) {
+        if (oauthData.full_name || oauthData.city) {
           const updateData = {}
           if (oauthData.full_name && !existingProfile.full_name) {
             updateData.full_name = oauthData.full_name
-          }
-          if (oauthData.avatar_url && !existingProfile.avatar_url) {
-            updateData.avatar_url = oauthData.avatar_url
           }
           if (oauthData.city && !existingProfile.city) {
             updateData.city = oauthData.city
           }
 
           if (Object.keys(updateData).length > 0) {
-            const { data: updatedProfile, error: updateError } = await supabase
-              .from('profiles')
-              .update(updateData)
-              .eq('id', user.value.id)
-              .select()
-              .single()
+                      const { data: updatedProfile, error: updateError } = await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('user_id', user.value.id)
+            .select()
+            .single()
 
             if (updateError) throw updateError
 
@@ -408,7 +398,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', authUser.id)
+        .eq('user_id', authUser.id)
         .single()
 
       user.value = profile 
