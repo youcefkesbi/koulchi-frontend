@@ -58,7 +58,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 npm run dev
 ```
 
-Visit `http://localhost:5173` to see your application.
+Visit `http://localhost:3000` to see your application.
 
 ## Project Structure
 

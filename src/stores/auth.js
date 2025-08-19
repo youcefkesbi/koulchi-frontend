@@ -59,39 +59,77 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
+      console.log('Starting signup process for:', email)
+
+      // Try to sign up with just email and password - no metadata
       const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: userData.full_name ? { data: userData } : undefined
+        email: email.trim(),
+        password: password
       })
 
+      console.log('Supabase signup response:', { data, error: authError })
+
       if (authError) {
+        console.error('Supabase auth error:', authError)
+        
+        // Handle specific error cases
         if (authError.message.includes('User already registered')) {
-          error.value = 'User already registered'
+          error.value = 'An account with this email already exists. Please try logging in instead.'
+        } else if (authError.message.includes('Database error saving new user')) {
+          error.value = 'Unable to create account due to server error. Please try again in a few moments.'
+        } else if (authError.message.includes('Invalid email')) {
+          error.value = 'Please enter a valid email address.'
+        } else if (authError.message.includes('Password')) {
+          error.value = 'Password must be at least 6 characters long.'
         } else {
-          error.value = authError.message
+          error.value = `Signup failed: ${authError.message}`
         }
         throw authError
       }
 
-      // With email confirmation disabled, user should be immediately authenticated
+      console.log('Signup successful, user data:', data.user)
+
+      // Check if we have a user and session (email confirmation disabled)
       if (data.user && data.session) {
-        await loadUserWithProfile(data.user)
-        await createProfileIfNotExists(userData)
+        console.log('User authenticated immediately, setting up profile...')
+        
+        // Set the authenticated user
+        user.value = data.user
+        
+        // Try to create profile after successful auth
+        try {
+          const profile = await createProfileIfNotExists(userData)
+          console.log('Profile created/loaded:', profile)
+        } catch (profileError) {
+          console.warn('Profile creation failed, but user signup succeeded:', profileError)
+          // Don't fail the entire signup process for profile issues
+        }
+        
         return { 
           user: data.user, 
           session: data.session,
           success: true,
           message: 'Account created successfully! You are now logged in.'
         }
+      } else if (data.user && !data.session) {
+        // Email confirmation is required
+        console.log('User created but email confirmation required')
+        return {
+          user: data.user,
+          success: true,
+          emailConfirmationRequired: true,
+          message: 'Account created! Please check your email to confirm your account.'
+        }
       } else {
-        // Fallback for older flow
-        return await handleSuccessfulSignup(data, userData)
+        // Unexpected response
+        console.error('Unexpected signup response:', data)
+        error.value = 'Signup completed but authentication failed. Please try logging in.'
+        throw new Error('Unexpected signup response')
       }
     } catch (err) {
-      console.error('Signup error:', err)
+      console.error('Signup process error:', err)
       if (!error.value) {
-        error.value = err.message
+        error.value = err.message || 'Failed to create account. Please try again.'
       }
       throw err
     } finally {
@@ -262,43 +300,35 @@ export const useAuthStore = defineStore('auth', () => {
 
 
 
-  const createProfileIfNotExists = async (oauthData = {}) => {
+  const createProfileIfNotExists = async (userData = {}) => {
     try {
       if (!user.value?.id) {
-        throw new Error('No authenticated user')
-      }
-
-      // Check if profile already exists
-      let existingProfile = null
-      let checkError = null
-      
-      try {
-        const result = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.value.id)
-          .single()
-        
-        existingProfile = result.data
-        checkError = result.error
-      } catch (tableError) {
-        console.warn('Profiles table not accessible:', tableError.message)
-        console.warn('Profile creation will be skipped until table is available')
+        console.warn('No authenticated user for profile creation')
         return null
       }
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        throw checkError
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.value.id)
+        .maybeSingle() // Use maybeSingle instead of single to avoid errors when no row exists
+
+      if (checkError) {
+        console.error('Error checking existing profile:', checkError)
+        return null
       }
 
       // If profile doesn't exist, create one
       if (!existingProfile) {
         const profileData = {
           user_id: user.value.id,
-          full_name: oauthData.full_name || 'User',
+          full_name: userData.full_name || 'User',
           role: 'user',
-          city: oauthData.city || null
+          city: userData.city || null
         }
+
+        console.log('Creating new profile with data:', profileData)
 
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
@@ -306,49 +336,30 @@ export const useAuthStore = defineStore('auth', () => {
           .select()
           .single()
 
-        if (createError) throw createError
+        if (createError) {
+          console.error('Error creating profile:', createError)
+          throw createError
+        }
 
         // Update local user data
         if (newProfile) {
           user.value = { ...user.value, ...newProfile }
         }
 
+        console.log('Profile created successfully:', newProfile)
         return newProfile
       } else {
-        // If profile exists but we have OAuth data, update it
-        if (oauthData.full_name || oauthData.city) {
-          const updateData = {}
-          if (oauthData.full_name && !existingProfile.full_name) {
-            updateData.full_name = oauthData.full_name
-          }
-          if (oauthData.city && !existingProfile.city) {
-            updateData.city = oauthData.city
-          }
-
-          if (Object.keys(updateData).length > 0) {
-                      const { data: updatedProfile, error: updateError } = await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('user_id', user.value.id)
-            .select()
-            .single()
-
-            if (updateError) throw updateError
-
-            // Update local user data
-            if (updatedProfile) {
-              user.value = { ...user.value, ...updatedProfile }
-            }
-
-            return updatedProfile
-          }
-        }
-
+        console.log('Profile already exists:', existingProfile)
+        
+        // Update local user data with existing profile
+        user.value = { ...user.value, ...existingProfile }
+        
         return existingProfile
       }
     } catch (err) {
-      console.error('Error creating profile:', err)
-      throw err
+      console.error('Error in createProfileIfNotExists:', err)
+      // Don't throw the error, just log it and return null
+      return null
     }
   }
 

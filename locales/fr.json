@@ -19,6 +19,7 @@
   "login": "Connexion",
   "logout": "Déconnexion",
   "signup": "S'inscrire",
+  "fullName": "Nom Complet",
   "email": "Email",
   "password": "Mot de passe",
   "loginWithGoogle": "Se connecter avec Google",

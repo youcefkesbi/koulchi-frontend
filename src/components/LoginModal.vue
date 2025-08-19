@@ -383,6 +383,9 @@ export default {
 
     const handleSignup = async () => {
       try {
+        // Clear any previous errors
+        authStore.clearError()
+        
         if (signupForm.password !== signupForm.confirmPassword) {
           authStore.error = t('passwordsDoNotMatch')
           return
@@ -393,9 +396,17 @@ export default {
           return
         }
 
-        const result = await authStore.signUp(signupForm.email, signupForm.password, {
-          full_name: signupForm.fullName
+        console.log('Attempting signup with:', {
+          email: signupForm.email,
+          fullName: signupForm.fullName,
+          passwordLength: signupForm.password.length
         })
+
+        const userData = {
+          full_name: signupForm.fullName.trim()
+        }
+
+        const result = await authStore.signUp(signupForm.email.trim(), signupForm.password, userData)
         
         // With email confirmation disabled, user should be immediately logged in
         if (result?.success) {
@@ -406,7 +417,8 @@ export default {
           }, 1500)
         }
       } catch (error) {
-        console.error('Signup error:', error)
+        console.error('Signup error in component:', error)
+        // The error should already be set in the auth store
       }
     }
 
