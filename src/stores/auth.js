@@ -125,9 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         if (data.session) {
           console.log('🎉 User has immediate session - no email confirmation needed')
-          
-          // Skip profile creation for now to isolate the auth issue
-          console.log('⏭️ Skipping profile creation to test basic auth')
+          console.log('⏭️ COMPLETELY SKIPPING profile creation - testing basic auth only')
           
           return { 
             user: data.user, 
