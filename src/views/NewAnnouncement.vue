@@ -406,7 +406,7 @@ export default {
         }
 
         // Create product
-        console.log('Creating product with data:', {
+        const productData = {
           name: form.name,
           description: form.description || null,
           price: parseFloat(form.price),
@@ -416,34 +416,36 @@ export default {
           stock_quantity: parseInt(form.stock_quantity),
           is_active: form.is_active,
           is_new: form.is_new
-        })
+        }
+        
+        console.log('Creating product with data:', productData)
 
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database operation timed out')), 30000)
-        })
-
-        const insertPromise = supabase
+        // Try simple insert first without select to see if it works
+        console.log('Attempting product insert...')
+        const { error: insertError } = await supabase
           .from('products')
-          .insert({
-            name: form.name,
-            description: form.description || null,
-            price: parseFloat(form.price),
-            image_urls: imageUrls,
-            category_id: form.category_id,
-            seller_id: user.id,
-            stock_quantity: parseInt(form.stock_quantity),
-            is_active: form.is_active,
-            is_new: form.is_new
-          })
-          .select()
+          .insert(productData)
+
+        if (insertError) {
+          console.error('Insert error:', insertError)
+          throw new Error(`Failed to insert product: ${insertError.message}`)
+        }
+
+        console.log('Product inserted successfully, now fetching...')
+
+        // Now fetch the inserted product
+        const { data, error: fetchError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('seller_id', user.id)
+          .eq('name', form.name)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single()
 
-        const { data, error: createError } = await Promise.race([insertPromise, timeoutPromise])
-
-        if (createError) {
-          console.error('Database error:', createError)
-          throw createError
+        if (fetchError) {
+          console.error('Fetch error:', fetchError)
+          throw new Error(`Failed to fetch created product: ${fetchError.message}`)
         }
 
         console.log('Product created successfully:', data)
