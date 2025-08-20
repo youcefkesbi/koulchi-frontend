@@ -95,7 +95,7 @@
               </div>
 
               <!-- User Menu / Login Button -->
-              <div v-if="authStore.isAuthenticated" class="relative">
+              <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
                 <button
                   @click="userMenuOpen = !userMenuOpen"
                   class="flex items-center space-x-3 space-x-reverse p-3 rounded-2xl hover:bg-gray-50 transition-all duration-300 group"
@@ -110,14 +110,22 @@
                 </button>
 
                 <!-- User Dropdown Menu -->
-                <div v-if="userMenuOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50">
+                <div 
+                  v-if="userMenuOpen" 
+                  @click.stop
+                  class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+                >
                   <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-chart-line mr-3"></i>{{ $t('header.dashboard') }}
                   </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-user mr-3"></i>{{ $t('header.myProfile') }}
                   </router-link>
-                  <button @click="logout" class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                  <button 
+                    type="button"
+                    @click.prevent="logout" 
+                    class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+                  >
                     <i class="fas fa-sign-out-alt mr-3"></i>{{ $t('header.logout') }}
                   </button>
                 </div>
@@ -143,7 +151,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
@@ -164,6 +172,20 @@ export default {
     const searchQuery = ref('')
     const userMenuOpen = ref(false)
     const showLoginModal = ref(false)
+    
+    // Close dropdown when clicking outside
+    const closeDropdown = () => {
+      userMenuOpen.value = false
+    }
+    
+    // Handle click outside dropdown
+    const handleClickOutside = (event) => {
+      // Only close if clicking outside the user dropdown area
+      const dropdown = event.target.closest('.user-dropdown')
+      if (!dropdown && userMenuOpen.value) {
+        userMenuOpen.value = false
+      }
+    }
 
     const handleSearch = () => {
       if (searchQuery.value.trim()) {
@@ -187,14 +209,43 @@ export default {
     }
 
     const logout = async () => {
+      console.log('Logout function called')
+      alert('Logout function called!') // Temporary test
       try {
-        await authStore.logout()
+        // Close the dropdown first
         userMenuOpen.value = false
+        console.log('Dropdown closed')
+        
+        // Small delay to ensure dropdown closes
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        // Perform logout
+        console.log('Starting logout process...')
+        await authStore.logout()
+        console.log('Logout completed')
+        
+        // Clear any cart data
+        cartStore.clearCart()
+        console.log('Cart cleared')
+        
+        // Redirect to home page
         router.push('/')
+        console.log('Redirected to home')
       } catch (error) {
         console.error('Logout error:', error)
+        // Even if logout fails, redirect to home
+        router.push('/')
       }
     }
+
+    // Add click outside listener
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside)
+    })
+    
+    onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
+    })
 
     return {
       searchQuery,
@@ -205,7 +256,8 @@ export default {
       handleSearch,
       handlePostAnnouncement,
       handleLoginClick,
-      logout
+      logout,
+      closeDropdown
     }
   }
 }
