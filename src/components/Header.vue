@@ -210,7 +210,6 @@ export default {
 
     const logout = async () => {
       console.log('Logout function called')
-      alert('Logout function called!') // Temporary test
       try {
         // Close the dropdown first
         userMenuOpen.value = false
