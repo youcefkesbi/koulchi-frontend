@@ -383,7 +383,6 @@ export default {
 
     const handleSignup = async () => {
       try {
-        // Clear any previous errors
         authStore.clearError()
         
         if (signupForm.password !== signupForm.confirmPassword) {
@@ -396,29 +395,20 @@ export default {
           return
         }
 
-        console.log('Attempting signup with:', {
-          email: signupForm.email,
-          fullName: signupForm.fullName,
-          passwordLength: signupForm.password.length
-        })
-
         const userData = {
           full_name: signupForm.fullName.trim()
         }
 
         const result = await authStore.signUp(signupForm.email.trim(), signupForm.password, userData)
         
-        // With email confirmation disabled, user should be immediately logged in
         if (result?.success) {
           successMessage.value = result.message || 'Account created successfully! You are now logged in.'
-          // Close modal after a short delay
           setTimeout(() => {
             closeModal()
           }, 1500)
         }
       } catch (error) {
-        console.error('Signup error in component:', error)
-        // The error should already be set in the auth store
+        // Error is already handled in the auth store
       }
     }
 
