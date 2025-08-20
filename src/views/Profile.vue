@@ -119,7 +119,7 @@ export default {
       city: ''
     })
 
-    // No wilayas needed for simplified schema
+
 
     // Load user profile data
     const loadProfile = async () => {
@@ -174,7 +174,6 @@ export default {
 
     return {
       profileForm,
-      wilayas,
       loading,
       successMessage,
       errorMessage,

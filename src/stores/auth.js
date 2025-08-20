@@ -231,40 +231,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const updateProfile = async (profileData) => {
-    try {
-      loading.value = true
-      error.value = null
 
-      if (!user.value?.id) {
-        throw new Error('No authenticated user')
-      }
-
-      // Update profile in profiles table
-      const { data, error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.value.id,
-          ...profileData
-        })
-        .select()
-        .single()
-
-      if (updateError) throw updateError
-
-      // Update local user data
-      if (data) {
-        user.value = { ...user.value, ...data }
-      }
-
-      return { data, error: null }
-    } catch (err) {
-      error.value = err.message
-      return { data: null, error: err.message }
-    } finally {
-      loading.value = false
-    }
-  }
 
   const clearError = () => {
     error.value = null
@@ -323,6 +290,45 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       console.warn('Profile creation failed:', err)
       return null
+    }
+  }
+
+  const updateProfile = async (profileData) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (!user.value?.id) {
+        throw new Error('No authenticated user')
+      }
+
+      const { data, error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.value.id,
+          full_name: profileData.full_name,
+          city: profileData.city
+        })
+        .select()
+        .single()
+
+      if (updateError) {
+        error.value = updateError.message
+        return { error: updateError.message }
+      }
+
+      // Update local user data
+      if (data) {
+        user.value = { ...user.value, ...data }
+      }
+
+      return { success: true, data }
+    } catch (err) {
+      const errorMessage = err.message || 'Failed to update profile'
+      error.value = errorMessage
+      return { error: errorMessage }
+    } finally {
+      loading.value = false
     }
   }
 
