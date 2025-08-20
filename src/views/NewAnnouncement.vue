@@ -12,10 +12,10 @@
       </div>
 
       <!-- Success Message -->
-      <div v-if="showSuccess" class="mb-8 p-6 bg-success text-white rounded-2xl shadow-soft animate-slide-up">
+      <div v-if="showSuccess" class="mb-8 p-6 bg-green-100 text-green-800 rounded-2xl shadow-soft animate-slide-up">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-            <i class="fas fa-check text-2xl"></i>
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-check text-white text-2xl"></i>
           </div>
           <div>
             <h3 class="text-xl font-bold">{{ $t('announcement.success') }}</h3>
@@ -25,9 +25,9 @@
       </div>
 
       <!-- Error Message -->
-      <div v-if="error" class="mb-8 p-6 bg-error text-white rounded-2xl shadow-soft animate-slide-up">
+      <div v-if="error" class="mb-8 p-6 bg-red-100 text-red-800 rounded-2xl shadow-soft animate-slide-up">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+          <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
             <i class="fas fa-exclamation-triangle text-2xl"></i>
           </div>
           <div>
@@ -38,7 +38,7 @@
       </div>
 
       <!-- Form Card -->
-      <div class="card animate-slide-up">
+      <div class="bg-white rounded-3xl shadow-soft p-8 animate-slide-up">
         <form @submit.prevent="submitForm" class="space-y-8">
           <!-- Product Information Section -->
           <div class="space-y-6">
@@ -49,43 +49,30 @@
               <h2 class="text-2xl font-bold text-dark">{{ $t('announcement.productInfo') }}</h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                  {{ $t('announcement.productName') }} (English) *
-                </label>
-                <input
-                  v-model="form.name"
-                  type="text"
-                  required
-                  class="input-field"
-                  :placeholder="$t('announcement.productNamePlaceholder')"
-                />
-              </div>
-              
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                  {{ $t('announcement.productName') }} (Arabic) *
-                </label>
-                <input
-                  v-model="form.nameAr"
-                  type="text"
-                  required
-                  class="input-field"
-                  :placeholder="$t('announcement.productNameArPlaceholder')"
-                />
-              </div>
+            <!-- Product Name -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                {{ $t('announcement.productName') }} *
+              </label>
+              <input
+                v-model="form.name"
+                type="text"
+                required
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
+                :placeholder="$t('announcement.productNamePlaceholder')"
+              />
             </div>
 
+            <!-- Category and Price -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-3">
                   {{ $t('announcement.category') }} *
                 </label>
                 <select
-                  v-model="form.category"
+                  v-model="form.category_id"
                   required
-                  class="input-field"
+                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
                 >
                   <option value="">{{ $t('announcement.selectCategory') }}</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -105,7 +92,7 @@
                     min="0"
                     step="0.01"
                     required
-                    class="input-field pr-12"
+                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 pr-12"
                     :placeholder="$t('announcement.pricePlaceholder')"
                   />
                   <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
@@ -115,79 +102,106 @@
               </div>
             </div>
 
-            <div class="group">
-              <label class="block text-sm font-semibold text-gray-700 mb-4 group-hover:text-primary transition-colors duration-300">
-                {{ $t('announcement.image') }}
+            <!-- Stock Quantity -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                Stock Quantity *
               </label>
               <input
-                v-model="form.image"
-                type="url"
-                class="input-field"
-                :placeholder="$t('announcement.imageUrlPlaceholder')"
+                v-model="form.stock_quantity"
+                type="number"
+                min="0"
+                required
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
+                placeholder="Enter stock quantity"
               />
+            </div>
+
+            <!-- Product Images -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                Product Images (Max 3, 2MB each)
+              </label>
+              <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary transition-colors duration-300">
+                <input
+                  ref="imageInput"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  @change="handleImageUpload"
+                  class="hidden"
+                />
+                <div @click="$refs.imageInput.click()" class="cursor-pointer">
+                  <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                  <p class="text-gray-600 mb-2">Click to upload images or drag and drop</p>
+                  <p class="text-sm text-gray-500">PNG, JPG, JPEG up to 2MB each</p>
+                </div>
+              </div>
+              
+              <!-- Image Preview -->
+              <div v-if="imageFiles.length > 0" class="mt-4 grid grid-cols-3 gap-4">
+                <div v-for="(file, index) in imageFiles" :key="index" class="relative">
+                  <img :src="file.preview" class="w-full h-24 object-cover rounded-lg" />
+                  <button
+                    @click="removeImage(index)"
+                    type="button"
+                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-sm hover:bg-red-600 transition-colors"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+              
               <p class="text-sm text-gray-500 mt-2">
-                {{ $t('announcement.imageHelp') }}
+                {{ imageFiles.length }}/3 images selected
               </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                  {{ $t('announcement.description') }} (English)
-                </label>
-                <textarea
-                  v-model="form.description"
-                  rows="4"
-                  class="input-field resize-none"
-                  :placeholder="$t('announcement.descriptionPlaceholder')"
-                ></textarea>
-              </div>
-              
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-3">
-                  {{ $t('announcement.description') }} (Arabic)
-                </label>
-                <textarea
-                  v-model="form.descriptionAr"
-                  rows="4"
-                  class="input-field resize-none"
-                  :placeholder="$t('announcement.descriptionArPlaceholder')"
-                ></textarea>
-              </div>
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-3">
+                {{ $t('announcement.description') }}
+              </label>
+              <textarea
+                v-model="form.description"
+                rows="4"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 resize-none"
+                :placeholder="$t('announcement.descriptionPlaceholder')"
+              ></textarea>
             </div>
           </div>
 
-          <!-- Additional Options Section -->
+          <!-- Product Options -->
           <div class="space-y-6">
             <div class="flex items-center space-x-3 space-x-reverse mb-6">
               <div class="w-10 h-10 bg-secondary rounded-2xl flex items-center justify-center shadow-soft">
                 <i class="fas fa-cog text-white text-lg"></i>
               </div>
-              <h2 class="text-2xl font-bold text-dark">{{ $t('announcement.additionalOptions') }}</h2>
+              <h2 class="text-2xl font-bold text-dark">Product Options</h2>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="flex items-center space-x-3 space-x-reverse group">
+              <div class="flex items-center space-x-3 space-x-reverse">
                 <input
-                  v-model="form.isNew"
+                  v-model="form.is_new"
                   type="checkbox"
                   id="isNew"
-                  class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0 group-hover:border-primary/30 group-hover:shadow-glow transition-all duration-300"
+                  class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0"
                 />
-                <label for="isNew" class="text-lg font-medium text-gray-700 group-hover:text-primary transition-colors duration-300">
-                  {{ $t('announcement.markAsNew') }}
+                <label for="isNew" class="text-lg font-medium text-gray-700">
+                  Mark as New Product
                 </label>
               </div>
               
-              <div class="flex items-center space-x-3 space-x-reverse group">
+              <div class="flex items-center space-x-3 space-x-reverse">
                 <input
-                  v-model="form.isOnSale"
+                  v-model="form.is_active"
                   type="checkbox"
-                  id="isOnSale"
-                  class="w-6 h-6 text-secondary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-secondary/20 focus:ring-offset-0 group-hover:border-secondary/30 group-hover:shadow-glow transition-all duration-300"
+                  id="isActive"
+                  class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0"
                 />
-                <label for="isOnSale" class="text-lg font-medium text-gray-700 group-hover:text-secondary transition-colors duration-300">
-                  {{ $t('announcement.markAsSale') }}
+                <label for="isActive" class="text-lg font-medium text-gray-700">
+                  Product Active
                 </label>
               </div>
             </div>
@@ -197,22 +211,22 @@
           <div class="flex flex-col sm:flex-row gap-6 justify-end pt-8 border-t border-gray-200">
             <router-link
               to="/dashboard"
-              class="btn-outline text-center group-hover:bg-gray-100 transition-colors duration-300"
+              class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300 text-center font-semibold"
             >
-              <i class="fas fa-arrow-left mr-3 group-hover:text-primary transition-colors duration-300"></i>
+              <i class="fas fa-arrow-left mr-3"></i>
               {{ $t('common.back') }}
             </router-link>
             <button
               type="submit"
               :disabled="loading"
-              class="btn-primary text-center group-hover:bg-primary/90 transition-colors duration-300"
+              class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="loading">
-                <i class="fas fa-spinner fa-spin mr-3 group-hover:text-white transition-colors duration-300"></i>
+                <i class="fas fa-spinner fa-spin mr-3"></i>
                 {{ $t('announcement.submitting') }}
               </span>
               <span v-else>
-                <i class="fas fa-paper-plane mr-3 group-hover:text-white transition-colors duration-300"></i>
+                <i class="fas fa-paper-plane mr-3"></i>
                 {{ $t('announcement.submit') }}
               </span>
             </button>
@@ -239,28 +253,102 @@ export default {
     const error = ref('')
     const showSuccess = ref(false)
     const categories = ref([])
+    const imageFiles = ref([])
+    const imageInput = ref(null)
     
     const form = reactive({
       name: '',
-      nameAr: '',
-      category: '',
-      price: '',
-      image: '',
       description: '',
-      descriptionAr: '',
-      isNew: true,
-      isOnSale: false
+      price: '',
+      category_id: '',
+      stock_quantity: 0,
+      is_new: true,
+      is_active: true
     })
 
     // Fetch categories on component mount
     onMounted(async () => {
       try {
-              await productStore.fetchCategories()
-      categories.value = productStore.categories
+        await productStore.fetchCategories()
+        categories.value = productStore.categories
       } catch (err) {
         console.error('Error fetching categories:', err)
       }
     })
+
+    // Handle image upload
+    const handleImageUpload = (event) => {
+      const files = Array.from(event.target.files)
+      
+      // Validate file count
+      if (imageFiles.value.length + files.length > 3) {
+        error.value = 'Maximum 3 images allowed'
+        return
+      }
+      
+      // Validate each file
+      files.forEach(file => {
+        // Check file size (2MB = 2 * 1024 * 1024 bytes)
+        if (file.size > 2 * 1024 * 1024) {
+          error.value = `File ${file.name} is too large. Maximum size is 2MB.`
+          return
+        }
+        
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          error.value = `File ${file.name} is not an image.`
+          return
+        }
+        
+        // Create preview URL
+        const preview = URL.createObjectURL(file)
+        imageFiles.value.push({
+          file,
+          preview,
+          name: file.name
+        })
+      })
+      
+      // Clear input
+      event.target.value = ''
+    }
+
+    // Remove image
+    const removeImage = (index) => {
+      URL.revokeObjectURL(imageFiles.value[index].preview)
+      imageFiles.value.splice(index, 1)
+    }
+
+    // Upload images to Supabase Storage
+    const uploadImages = async () => {
+      if (imageFiles.value.length === 0) return []
+      
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not authenticated')
+      
+      const imageUrls = []
+      
+      for (const imageFile of imageFiles.value) {
+        const fileName = `${user.id}/${Date.now()}-${imageFile.name}`
+        
+        const { data, error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, imageFile.file)
+        
+        if (uploadError) {
+          throw new Error(`Failed to upload ${imageFile.name}: ${uploadError.message}`)
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName)
+        
+        imageUrls.push(publicUrl)
+      }
+      
+      return imageUrls
+    }
 
     const submitForm = async () => {
       try {
@@ -270,22 +358,25 @@ export default {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('User not authenticated')
 
+        // Upload images first
+        let imageUrls = []
+        if (imageFiles.value.length > 0) {
+          imageUrls = await uploadImages()
+        }
+
+        // Create product
         const { data, error: createError } = await supabase
           .from('products')
           .insert({
-            seller_id: user.id,
             name: form.name,
-            name_ar: form.nameAr,
-            price: parseFloat(form.price),
-            image: form.image || null,
-            category_id: form.category,
             description: form.description || null,
-            description_ar: form.descriptionAr || null,
-            is_active: true,
-            is_new: form.isNew,
-            is_on_sale: form.isOnSale,
-            rating: 0,
-            reviews: 0
+            price: parseFloat(form.price),
+            image_urls: imageUrls,
+            category_id: form.category_id,
+            seller_id: user.id,
+            stock_quantity: parseInt(form.stock_quantity),
+            is_active: form.is_active,
+            is_new: form.is_new
           })
           .select()
           .single()
@@ -312,7 +403,11 @@ export default {
       error,
       showSuccess,
       categories,
-      submitForm
+      imageFiles,
+      imageInput,
+      submitForm,
+      handleImageUpload,
+      removeImage
     }
   }
 }
