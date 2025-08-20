@@ -9,6 +9,16 @@
         <p class="text-gray-600 mt-2">
           {{ $t('dashboard.welcomeMessage', { name: authStore.userDisplayName }) }}
           <span v-if="authStore.isAdmin" class="text-primary font-semibold">(Admin)</span>
+          <span v-else class="text-gray-500 text-sm">(Role: {{ authStore.userRole }})</span>
+          
+          <!-- Debug button for development -->
+          <button 
+            @click="authStore.debugUserRole()"
+            class="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300"
+            title="Debug user role (dev only)"
+          >
+            Debug Role
+          </button>
         </p>
       </div>
       
@@ -325,9 +335,20 @@ export default {
     onMounted(async () => {
       await sellerStore.fetchSellerProducts()
       
+      // Debug: Log user role and admin status
+      console.log('Dashboard mounted - User role check:', {
+        userId: authStore.user?.id,
+        userRole: authStore.userRole,
+        isAdmin: authStore.isAdmin,
+        user: authStore.user
+      })
+      
       // Fetch admin data if user is admin
       if (authStore.isAdmin) {
+        console.log('User is admin, fetching admin stats...')
         await fetchAdminStats()
+      } else {
+        console.log('User is not admin, showing regular dashboard')
       }
       
       // Here you would also fetch orders, wishlist, and pending shipments data

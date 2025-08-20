@@ -352,19 +352,66 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Debug function to check current user role and profile
+  const debugUserRole = async () => {
+    if (!user.value?.id) {
+      console.log('No authenticated user')
+      return
+    }
+
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.value.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile for debug:', error)
+        return
+      }
+
+      console.log('Debug - Current user profile:', {
+        userId: user.value.id,
+        email: user.value.email,
+        profile: profile,
+        computedRole: userRole.value,
+        computedIsAdmin: isAdmin.value
+      })
+    } catch (err) {
+      console.error('Error in debugUserRole:', err)
+    }
+  }
+
   // Helper function to load user with profile data
   const loadUserWithProfile = async (authUser) => {
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', authUser.id)
         .single()
 
-      user.value = profile 
-        ? { ...authUser, ...profile, email: authUser.email }
-        : authUser
+      if (profileError) {
+        console.warn('Error fetching profile:', profileError)
+        user.value = authUser
+        return
+      }
+
+      if (profile) {
+        user.value = { ...authUser, ...profile, email: authUser.email }
+        console.log('Profile loaded successfully:', {
+          userId: profile.user_id,
+          role: profile.role,
+          fullName: profile.full_name,
+          isAdmin: profile.role === 'admin'
+        })
+      } else {
+        console.log('No profile found for user:', authUser.id)
+        user.value = authUser
+      }
     } catch (err) {
+      console.error('Error in loadUserWithProfile:', err)
       // Profile doesn't exist or error fetching, just use auth user
       user.value = authUser
     }
@@ -421,6 +468,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearError,
     createProfileIfNotExists,
     resetPasswordForEmail,
-    initAuth
+    initAuth,
+    debugUserRole
   }
 })
