@@ -158,25 +158,16 @@
   },
   "announcement": {
     "postAnnouncement": "نشر إعلان",
-    "pageDescription": "إنشاء قائمة منتج جديدة لبدء البيع على كولشي",
+    "description": "إنشاء قائمة منتج جديدة لبدء البيع على كولشي",
     "productInfo": "معلومات المنتج",
     "productName": "اسم المنتج",
-    "productNamePlaceholder": "أدخل اسم المنتج بالإنجليزية",
-    "productNameArPlaceholder": "أدخل اسم المنتج بالعربية",
+    "productNamePlaceholder": "أدخل اسم المنتج",
     "category": "الفئة",
     "selectCategory": "اختر الفئة",
     "price": "السعر",
     "pricePlaceholder": "أدخل السعر بالدينار",
-    "productDescription": "وصف المنتج",
-    "descriptionPlaceholder": "أدخل وصف المنتج بالإنجليزية",
-    "descriptionArPlaceholder": "أدخل وصف المنتج بالعربية",
-    "image": "صورة المنتج",
-    "imageUrl": "رابط الصورة",
-    "imageUrlPlaceholder": "أدخل رابط الصورة",
-    "imageHelp": "أدخل رابط صورة صحيح (اختياري)",
-    "additionalOptions": "خيارات إضافية",
-    "markAsNew": "علامة كمنتج جديد",
-    "markAsSale": "علامة كمنتج مخفض",
+    "description": "الوصف",
+    "descriptionPlaceholder": "أدخل وصف المنتج",
     "submit": "نشر الإعلان",
     "submitting": "جاري النشر...",
     "success": "تم نشر الإعلان بنجاح!",
@@ -184,7 +175,8 @@
     "error": "خطأ في نشر الإعلان"
   },
   "common": {
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "back": "رجوع"
   },
   "seller": {
     "becomeSeller": "كن بائعًا",

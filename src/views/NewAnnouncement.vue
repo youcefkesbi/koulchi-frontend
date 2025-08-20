@@ -320,22 +320,22 @@ export default {
     }
 
     // Upload images to Supabase Storage
-    const uploadImages = async () => {
+    const uploadImages = async (userId) => {
       if (imageFiles.value.length === 0) return []
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
       
       const imageUrls = []
       
       for (const imageFile of imageFiles.value) {
-        const fileName = `${user.id}/${Date.now()}-${imageFile.name}`
+        const fileName = `${userId}/${Date.now()}-${imageFile.name}`
+        
+        console.log('Uploading image:', fileName)
         
         const { data, error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(fileName, imageFile.file)
         
         if (uploadError) {
+          console.error('Upload error:', uploadError)
           throw new Error(`Failed to upload ${imageFile.name}: ${uploadError.message}`)
         }
         
@@ -344,6 +344,7 @@ export default {
           .from('product-images')
           .getPublicUrl(fileName)
         
+        console.log('Image uploaded successfully:', publicUrl)
         imageUrls.push(publicUrl)
       }
       
@@ -352,20 +353,77 @@ export default {
 
     const submitForm = async () => {
       try {
+        // Basic form validation
+        if (!form.name || !form.name.trim()) {
+          error.value = 'Product name is required'
+          return
+        }
+        
+        if (!form.category_id) {
+          error.value = 'Please select a category'
+          return
+        }
+        
+        if (!form.price || parseFloat(form.price) <= 0) {
+          error.value = 'Please enter a valid price'
+          return
+        }
+        
+        if (!form.stock_quantity || parseInt(form.stock_quantity) < 0) {
+          error.value = 'Please enter a valid stock quantity'
+          return
+        }
+
         loading.value = true
         error.value = ''
+        console.log('Starting form submission...')
 
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error('User not authenticated')
+        
+        console.log('User authenticated:', user.id)
+
+        // Test database connection
+        console.log('Testing database connection...')
+        const { data: testData, error: testError } = await supabase
+          .from('products')
+          .select('id')
+          .limit(1)
+        
+        if (testError) {
+          console.error('Database connection test failed:', testError)
+          throw new Error(`Database connection failed: ${testError.message}`)
+        }
+        
+        console.log('Database connection successful')
 
         // Upload images first
         let imageUrls = []
         if (imageFiles.value.length > 0) {
-          imageUrls = await uploadImages()
+          console.log('Uploading images...')
+          imageUrls = await uploadImages(user.id)
+          console.log('Images uploaded:', imageUrls)
         }
 
         // Create product
-        const { data, error: createError } = await supabase
+        console.log('Creating product with data:', {
+          name: form.name,
+          description: form.description || null,
+          price: parseFloat(form.price),
+          image_urls: imageUrls,
+          category_id: form.category_id,
+          seller_id: user.id,
+          stock_quantity: parseInt(form.stock_quantity),
+          is_active: form.is_active,
+          is_new: form.is_new
+        })
+
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database operation timed out')), 30000)
+        })
+
+        const insertPromise = supabase
           .from('products')
           .insert({
             name: form.name,
@@ -381,8 +439,14 @@ export default {
           .select()
           .single()
 
-        if (createError) throw createError
+        const { data, error: createError } = await Promise.race([insertPromise, timeoutPromise])
 
+        if (createError) {
+          console.error('Database error:', createError)
+          throw createError
+        }
+
+        console.log('Product created successfully:', data)
         showSuccess.value = true
         
         // Redirect to dashboard after 2 seconds
@@ -390,10 +454,11 @@ export default {
           router.push('/dashboard')
         }, 2000)
       } catch (err) {
+        console.error('Form submission error:', err)
         error.value = err.message || 'Error creating product'
-        console.error('Error creating product:', err)
       } finally {
         loading.value = false
+        console.log('Form submission completed, loading set to false')
       }
     }
 
@@ -412,3 +477,61 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.shadow-soft {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom file upload styling */
+input[type="file"] {
+  display: none;
+}
+
+/* Image preview grid */
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

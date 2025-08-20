@@ -129,25 +129,16 @@
   },
   "announcement": {
     "postAnnouncement": "Publier une Annonce",
-    "pageDescription": "Créer une nouvelle liste de produit pour commencer à vendre sur Koulchi",
+    "description": "Créer une nouvelle liste de produit pour commencer à vendre sur Koulchi",
     "productInfo": "Informations sur le Produit",
     "productName": "Nom du Produit",
-    "productNamePlaceholder": "Entrez le nom du produit en anglais",
-    "productNameArPlaceholder": "Entrez le nom du produit en arabe",
+    "productNamePlaceholder": "Entrez le nom du produit",
     "category": "Catégorie",
     "selectCategory": "Sélectionnez une catégorie",
     "price": "Prix",
     "pricePlaceholder": "Entrez le prix en DZD",
-    "productDescription": "Description du Produit",
-    "descriptionPlaceholder": "Entrez la description du produit en anglais",
-    "descriptionArPlaceholder": "Entrez la description du produit en arabe",
-    "image": "Image du Produit",
-    "imageUrl": "URL de l'Image",
-    "imageUrlPlaceholder": "Entrez l'URL de l'image",
-    "imageHelp": "Entrez une URL d'image valide (optionnel)",
-    "additionalOptions": "Options Supplémentaires",
-    "markAsNew": "Marquer comme Nouveau Produit",
-    "markAsSale": "Marquer comme en Promotion",
+    "description": "Description",
+    "descriptionPlaceholder": "Entrez la description du produit",
     "submit": "Publier l'Annonce",
     "submitting": "Publication...",
     "success": "Annonce publiée avec succès !",
@@ -155,7 +146,8 @@
     "error": "Erreur lors de la publication de l'annonce"
   },
   "common": {
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "back": "Retour"
   },
   "seller": {
     "becomeSeller": "Devenir Vendeur",
