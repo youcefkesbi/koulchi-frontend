@@ -246,17 +246,9 @@
   },
   "dashboard": {
     "userDashboard": "Tableau de Bord Utilisateur",
-    "adminDashboard": "Tableau de Bord Administrateur",
+
     "welcomeMessage": "Bon retour, {name} !",
-    "totalUsers": "Total des Utilisateurs",
-    "totalProducts": "Total des Produits",
-    "totalOrders": "Total des Commandes",
-    "quickActions": "Actions Rapides",
-    "manageUsers": "Gérer les Utilisateurs",
-    "manageProducts": "Gérer les Produits",
-    "manageOrders": "Gérer les Commandes",
-    "recentActivity": "Activité Récente",
-    "noRecentActivity": "Aucune activité récente",
+    
     "buyingSection": "Section Achat",
     "sellingSection": "Section Vente",
     "activeOrders": "Commandes Actives",

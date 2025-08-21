@@ -67,20 +67,29 @@ export const useProductStore = defineStore('product', () => {
 
   const fetchProductById = async (id) => {
     try {
+      if (!id) {
+        throw new Error('Product ID is required')
+      }
+      
       const { data, error: supabaseError } = await supabase
         .from('products')
         .select('*')
         .eq('id', id)
-        .single();
+        .single()
       
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        if (supabaseError.code === 'PGRST116') {
+          throw new Error('Product not found')
+        }
+        throw supabaseError
+      }
       
-      return data;
+      return data
     } catch (err) {
-      error.value = err.message || 'Failed to fetch product';
-      throw err;
+      error.value = err.message || 'Failed to fetch product'
+      throw err
     }
-  };
+  }
 
   const createProduct = async (productData, images = []) => {
     loading.value = true;

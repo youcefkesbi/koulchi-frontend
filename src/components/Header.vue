@@ -209,29 +209,22 @@ export default {
     }
 
     const logout = async () => {
-      console.log('Logout function called')
       try {
         // Close the dropdown first
         userMenuOpen.value = false
-        console.log('Dropdown closed')
         
         // Small delay to ensure dropdown closes
         await new Promise(resolve => setTimeout(resolve, 100))
         
         // Perform logout
-        console.log('Starting logout process...')
         await authStore.logout()
-        console.log('Logout completed')
         
         // Clear any cart data
         cartStore.clearCart()
-        console.log('Cart cleared')
         
         // Redirect to home page
         router.push('/')
-        console.log('Redirected to home')
       } catch (error) {
-        console.error('Logout error:', error)
         // Even if logout fails, redirect to home
         router.push('/')
       }

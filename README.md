@@ -7,7 +7,7 @@ A modern, multi-language e-commerce platform built with Vue 3, Supabase, and Tai
 - 🛒 **E-commerce Platform**: Buy and sell products with a user-friendly interface
 - 🌍 **Multi-language Support**: Arabic, English, and French
 - 🔐 **Supabase Authentication**: Secure user authentication and authorization
-- 👥 **Dual Role System**: Users can buy and sell products, admins have full control
+- 👥 **User System**: Users can buy and sell products with full control over their listings
 - 📱 **Responsive Design**: Mobile-first design with Tailwind CSS
 - 🚀 **Modern Tech Stack**: Vue 3, Pinia, Vue Router, Vite
 
@@ -86,22 +86,16 @@ src/
 ### Key Features
 
 - **Row Level Security (RLS)**: Secure data access
-- **Role-based Access**: Users vs Admin permissions
+- **User Permissions**: Users can manage their own profiles and listings
 - **Automatic User Creation**: Trigger-based profile creation
 
-## User Roles
+## User Features
 
-### User (Default)
 - Can buy and sell products
 - Manage their own profile
 - View and manage orders
 - Maintain wishlist
-
-### Admin
-- Full system access
-- Manage categories
-- Monitor all activities
-- Can only be set from Supabase dashboard
+- Full control over their listings
 
 ## API Endpoints
 

@@ -6,7 +6,7 @@
       <span class="mx-2">/</span>
       <router-link to="/products" class="hover:text-primary">المنتجات</router-link>
       <span class="mx-2">/</span>
-      <span class="text-dark">{{ product.nameAr }}</span>
+      <span class="text-dark">{{ product.name || product.nameAr }}</span>
     </nav>
 
     <!-- Product Details -->
@@ -17,7 +17,7 @@
         <div class="relative overflow-hidden rounded-lg">
           <img 
             :src="mainImage" 
-            :alt="product.name"
+            :alt="product.name || product.nameAr"
             class="w-full h-96 object-cover"
           />
           
@@ -74,15 +74,15 @@
       <div class="space-y-6">
         <!-- Title and Stock Status -->
         <div>
-          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name }}</h1>
+          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name || product.nameAr }}</h1>
           
           <div class="flex items-center space-x-4 space-x-reverse mb-4">
             <div class="flex items-center">
               <i class="fas fa-box text-primary"></i>
-              <span class="text-gray-700 mr-1">{{ product.stock_quantity }}</span>
+              <span class="text-gray-700 mr-1">{{ product.stock_quantity || 0 }}</span>
             </div>
             <span class="text-gray-500">متوفر</span>
-            <span v-if="product.stock_quantity > 0" class="text-green-600 font-semibold">
+            <span v-if="(product.stock_quantity || 0) > 0" class="text-green-600 font-semibold">
               <i class="fas fa-check-circle ml-1"></i>
               متوفر
             </span>
@@ -105,7 +105,7 @@
         <!-- Description -->
         <div>
           <h3 class="text-lg font-semibold mb-2">الوصف</h3>
-          <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+          <p class="text-gray-700 leading-relaxed">{{ product.description || 'لا يوجد وصف متاح' }}</p>
         </div>
 
         <!-- Features -->
@@ -157,10 +157,10 @@
             <button
               @click="addToCart"
               class="flex-1 btn-primary text-lg py-4"
-              :disabled="!product.inStock"
+              :disabled="(product.stock_quantity || 0) <= 0"
             >
               <i class="fas fa-shopping-cart ml-2"></i>
-              {{ product.inStock ? 'أضف للسلة' : 'غير متوفر' }}
+              {{ (product.stock_quantity || 0) > 0 ? 'أضف للسلة' : 'غير متوفر' }}
             </button>
             <button class="btn-outline text-lg py-4 px-6">
               <i class="fas fa-heart"></i>
@@ -197,14 +197,25 @@
   </div>
 
   <!-- Loading State -->
-  <div v-else class="text-center py-12">
+  <div v-else-if="loading" class="text-center py-12">
     <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
     <p class="text-gray-600">جاري تحميل المنتج...</p>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="error" class="text-center py-12">
+    <div class="text-red-600 mb-4">
+      <i class="fas fa-exclamation-triangle text-4xl"></i>
+    </div>
+    <p class="text-gray-600 mb-4">{{ error }}</p>
+    <router-link to="/products" class="btn-primary">
+      العودة للمنتجات
+    </router-link>
   </div>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductStore } from '../stores/product'
 import { useCartStore } from '../stores/cart'
@@ -215,13 +226,7 @@ export default {
   components: {
     ProductCard
   },
-  props: {
-    id: {
-      type: [String, Number],
-      required: true
-    }
-  },
-  setup(props) {
+  setup() {
     const route = useRoute()
     const productStore = useProductStore()
     const cartStore = useCartStore()
@@ -242,7 +247,7 @@ export default {
     const relatedProducts = computed(() => {
       if (!product.value) return []
       return productStore.products
-        .filter(p => p.category === product.value.category && p.id !== product.value.id)
+        .filter(p => p.category_id === product.value.category_id && p.id !== product.value.id)
         .slice(0, 4)
     })
 
@@ -280,7 +285,7 @@ export default {
     }
 
     const addToCart = async () => {
-      if (product.value && product.value.stock_quantity > 0) {
+      if (product.value && (product.value.stock_quantity || 0) > 0) {
         // Add multiple quantities
         for (let i = 0; i < quantity.value; i++) {
           await cartStore.addToCart(product.value)
@@ -294,23 +299,36 @@ export default {
         loading.value = true
         error.value = null
         
-        const productId = parseInt(props.id)
+        const productId = parseInt(route.params.id)
+        
+        if (!productId || isNaN(productId)) {
+          error.value = 'Invalid product ID'
+          loading.value = false
+          return
+        }
+        
         const fetchedProduct = await productStore.fetchProductById(productId)
         
         if (fetchedProduct) {
           product.value = fetchedProduct
           // Update page title
-          document.title = `${fetchedProduct.nameAr} - كولشي`
+          document.title = `${fetchedProduct.name || fetchedProduct.nameAr} - كولشي`
         } else {
           error.value = 'Product not found'
         }
       } catch (err) {
-        error.value = err.message
-        console.error('Error fetching product:', err)
+        error.value = err.message || 'Failed to fetch product'
       } finally {
         loading.value = false
       }
     }
+
+    // Watch for route changes to reload product when navigating between products
+    watch(() => route.params.id, (newId) => {
+      if (newId) {
+        fetchProduct()
+      }
+    })
 
     onMounted(async () => {
       await fetchProduct()
