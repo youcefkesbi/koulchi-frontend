@@ -3,7 +3,7 @@
     <!-- Category Header -->
     <div class="text-center mb-12">
       <div class="flex items-center justify-center space-x-4 space-x-reverse mb-6">
-        <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300">
+        <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
           <i :class="getCategoryIcon(categoryId)" class="text-white text-2xl"></i>
         </div>
         <h1 class="text-4xl font-bold text-dark bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
@@ -225,5 +225,31 @@ export default {
 <style scoped>
 .categories-dropdown {
   position: relative;
+}
+
+/* Animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects for category icon */
+.category-icon {
+  transition: all 0.3s ease;
+}
+
+.category-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 </style>

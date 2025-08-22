@@ -12,13 +12,13 @@
         </p>
       </div>
       
-      <button
-        @click="showPostAnnouncementModal = true"
-        class="btn-primary"
+      <router-link
+        to="/myannouncements/new"
+        class="btn-primary inline-flex items-center no-underline"
       >
         <i class="fas fa-plus ml-2"></i>
         {{ $t('announcement.postAnnouncement') }}
-      </button>
+      </router-link>
     </div>
 
     <!-- Dashboard Sections -->
@@ -94,12 +94,12 @@
             <i class="fas fa-box text-3xl mb-3"></i>
             <p>{{ $t('dashboard.noListings') }}</p>
             <p class="text-sm">{{ $t('dashboard.noListingsMessage') }}</p>
-            <button
-              @click="showPostAnnouncementModal = true"
-              class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+            <router-link
+              to="/myannouncements/new"
+              class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block text-center"
             >
               {{ $t('dashboard.postFirstAnnouncement') }}
-            </button>
+            </router-link>
           </div>
         </div>
 
@@ -133,12 +133,7 @@
       </div>
     </div>
 
-    <!-- Post Announcement Modal -->
-    <PostAnnouncement
-      :is-open="showPostAnnouncementModal"
-      @close="showPostAnnouncementModal = false"
-      @announcement-posted="onAnnouncementPosted"
-    />
+
   </div>
 </template>
 
@@ -146,17 +141,12 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useSellerStore } from '../stores/seller'
-import PostAnnouncement from '../components/PostAnnouncement.vue'
 
 export default {
   name: 'UserDashboard',
-  components: {
-    PostAnnouncement
-  },
   setup() {
     const authStore = useAuthStore()
     const sellerStore = useSellerStore()
-    const showPostAnnouncementModal = ref(false)
     
     // Mock data for now - these would come from actual Supabase calls
     const orders = ref([])
@@ -165,11 +155,6 @@ export default {
 
     const formatPrice = (price) => {
       return price.toLocaleString('ar-DZ')
-    }
-
-    const onAnnouncementPosted = () => {
-      // Refresh the seller products
-      sellerStore.fetchSellerProducts()
     }
 
     onMounted(async () => {
@@ -181,12 +166,10 @@ export default {
     return {
       authStore,
       sellerStore,
-      showPostAnnouncementModal,
       orders,
       wishlist,
       pendingShipments,
-      formatPrice,
-      onAnnouncementPosted
+      formatPrice
     }
   }
 }
