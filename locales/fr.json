@@ -74,7 +74,8 @@
     "myProfile": "Mon Profil",
     "logout": "Déconnexion",
     "login": "Connexion",
-    "tagline": "Trouvez-le. Aimez-le. Obtenez-le."
+    "tagline": "Trouvez-le. Aimez-le. Obtenez-le.",
+    "categories": "Catégories"
   },
   "home": "Accueil",
   "products": "Produits",

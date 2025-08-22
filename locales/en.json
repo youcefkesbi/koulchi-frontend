@@ -80,7 +80,8 @@
     "myProfile": "My Profile",
     "logout": "Logout",
     "login": "Login",
-    "tagline": "Find It. Love It. Get It."
+    "tagline": "Find It. Love It. Get It.",
+    "categories": "Categories"
   },
   "home": "Home",
   "products": "Products",

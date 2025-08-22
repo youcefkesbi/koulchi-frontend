@@ -31,6 +31,47 @@
       </div>
     </section>
 
+    <!-- New Products Section -->
+    <section class="animate-slide-up">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-dark">{{ $t('sections.newProducts') }}</h2>
+        <router-link to="/products" class="text-primary hover:text-primary-dark text-base font-semibold hover:underline transition-colors">
+          {{ $t('sections.viewAll') }} <i class="fas fa-arrow-left mr-2"></i>
+        </router-link>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <ProductCard
+          v-for="product in newProducts"
+          :key="product.id"
+          :product="product"
+        />
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="animate-slide-up">
+      <h2 class="text-3xl font-bold text-dark mb-8 text-center">{{ $t('sections.browseByCategory') }}</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div
+          v-for="category in categories"
+          :key="category.id"
+          @click="selectCategory(category.id)"
+          class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
+        >
+          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
+            <img 
+              v-if="category.icon_url" 
+              :src="category.icon_url" 
+              :alt="category.name"
+              class="w-12 h-12 object-contain"
+            />
+            <i v-else class="fas fa-box text-white text-2xl"></i>
+          </div>
+          <h3 class="font-bold text-lg text-dark mb-2">{{ category.name }}</h3>
+        </div>
+      </div>
+    </section>
+
     <!-- Features Section -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
       <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
@@ -55,40 +96,6 @@
         </div>
         <h3 class="text-xl font-bold mb-3 text-dark">{{ $t('features.qualityGuarantee') }}</h3>
         <p class="text-gray-600 leading-relaxed text-sm">{{ $t('features.qualityGuaranteeDesc') }}</p>
-      </div>
-    </section>
-
-    <!-- New Products Section -->
-    <section class="animate-slide-up">
-      <div class="flex justify-between items-center mb-8">
-        <h2 class="text-3xl font-bold text-dark">{{ $t('sections.newProducts') }}</h2>
-        <router-link to="/products" class="text-primary hover:text-primary-dark text-base font-semibold hover:underline transition-colors">
-          {{ $t('sections.viewAll') }} <i class="fas fa-arrow-left mr-2"></i>
-        </router-link>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <ProductCard
-          v-for="product in newProducts"
-          :key="product.id"
-          :product="product"
-        />
-      </div>
-    </section>
-
-    <!-- Sale Products Section -->
-    <section class="animate-slide-up">
-      <div class="flex justify-between items-center mb-8">
-        <h2 class="text-3xl font-bold text-dark">{{ $t('sections.saleProducts') }}</h2>
-        <router-link to="/products" class="text-secondary hover:text-secondary-dark text-base font-semibold hover:underline transition-colors">
-          {{ $t('sections.viewAll') }} <i class="fas fa-arrow-left mr-2"></i>
-        </router-link>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <ProductCard
-          v-for="product in saleProducts"
-          :key="product.id"
-          :product="product"
-        />
       </div>
     </section>
 
