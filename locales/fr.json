@@ -273,5 +273,17 @@
     "dashboard": "Tableau de Bord",
     "logout": "Déconnexion",
     "login": "Connexion"
+  },
+  "wishlist": {
+    "title": "Liste de Souhaits",
+    "totalItems": "articles dans la liste de souhaits",
+    "empty": "Votre liste de souhaits est vide",
+    "emptyMessage": "Commencez à ajouter des produits à votre liste de souhaits",
+    "addToWishlist": "Ajouter à la Liste de Souhaits",
+    "removeFromWishlist": "Retirer de la Liste de Souhaits",
+    "clearWishlist": "Vider la Liste de Souhaits",
+    "clearConfirm": "Êtes-vous sûr de vouloir vider votre liste de souhaits ?",
+    "continueShopping": "Continuer les Achats",
+    "browseProducts": "Parcourir les Produits"
   }
 }

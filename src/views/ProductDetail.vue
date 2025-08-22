@@ -162,8 +162,13 @@
               <i class="fas fa-shopping-cart ml-2"></i>
               {{ (product.stock_quantity || 0) > 0 ? 'أضف للسلة' : 'غير متوفر' }}
             </button>
-            <button class="btn-outline text-lg py-4 px-6">
-              <i class="fas fa-heart"></i>
+            <button 
+              @click="toggleWishlist"
+              class="btn-outline text-lg py-4 px-6"
+              :class="{ 'text-red-500 border-red-300': isInWishlist }"
+              :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
+            >
+              <i class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
             </button>
           </div>
         </div>
@@ -219,6 +224,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductStore } from '../stores/product'
 import { useCartStore } from '../stores/cart'
+import { useWishlistStore } from '../stores/wishlist'
 import ProductCard from '../components/ProductCard.vue'
 
 export default {
@@ -230,6 +236,7 @@ export default {
     const route = useRoute()
     const productStore = useProductStore()
     const cartStore = useCartStore()
+    const wishlistStore = useWishlistStore()
     const quantity = ref(1)
     const product = ref(null)
     const loading = ref(true)
@@ -294,6 +301,25 @@ export default {
       }
     }
 
+    const isInWishlist = computed(() => {
+      if (!product.value) return false
+      return wishlistStore.isInWishlist(product.value.id)
+    })
+
+    const toggleWishlist = async () => {
+      if (!product.value) return
+      
+      try {
+        if (isInWishlist.value) {
+          await wishlistStore.removeProductFromWishlist(product.value.id)
+        } else {
+          await wishlistStore.addToWishlist(product.value.id)
+        }
+      } catch (error) {
+        console.error('Failed to toggle wishlist:', error)
+      }
+    }
+
     const fetchProduct = async () => {
       try {
         loading.value = true
@@ -339,6 +365,15 @@ export default {
 
     onMounted(async () => {
       await fetchProduct()
+      
+      // Fetch wishlist if user is authenticated
+      if (wishlistStore.wishlistItems.length === 0) {
+        try {
+          await wishlistStore.fetchWishlist()
+        } catch (error) {
+          // User might not be authenticated, which is fine
+        }
+      }
     })
 
     return {
@@ -355,7 +390,9 @@ export default {
       decreaseQuantity,
       nextImage,
       previousImage,
-      addToCart
+      addToCart,
+      isInWishlist,
+      toggleWishlist
     }
   }
 }

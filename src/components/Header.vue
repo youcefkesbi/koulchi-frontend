@@ -56,6 +56,12 @@
               <router-link to="/products" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Products">
                 <i class="fas fa-th-large text-xl"></i>
               </router-link>
+              <router-link to="/wishlist" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
+                <i class="fas fa-heart text-xl"></i>
+                <span v-if="wishlistStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
+                  {{ wishlistStore.totalItems }}
+                </span>
+              </router-link>
               <router-link to="/cart" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
                 <i class="fas fa-shopping-cart text-xl"></i>
                 <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
@@ -118,6 +124,9 @@
                   <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-chart-line mr-3"></i>{{ $t('header.dashboard') }}
                   </router-link>
+                  <router-link to="/wishlist" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                    <i class="fas fa-heart mr-3"></i>قائمة الأمنيات
+                  </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-user mr-3"></i>{{ $t('header.myProfile') }}
                   </router-link>
@@ -155,6 +164,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
+import { useWishlistStore } from '../stores/wishlist'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 
@@ -168,6 +178,7 @@ export default {
     const router = useRouter()
     const authStore = useAuthStore()
     const cartStore = useCartStore()
+    const wishlistStore = useWishlistStore()
     
     const searchQuery = ref('')
     const userMenuOpen = ref(false)
@@ -245,6 +256,7 @@ export default {
       showLoginModal,
       authStore,
       cartStore,
+      wishlistStore,
       handleSearch,
       handlePostAnnouncement,
       handleLoginClick,

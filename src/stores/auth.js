@@ -29,6 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
         // Handle specific error cases
         if (authError.message.includes('Invalid login credentials')) {
           error.value = 'Invalid email or password'
+        } else if (authError.message.includes('Email not confirmed')) {
+          error.value = 'Please check your email and click the confirmation link to verify your account before logging in.'
         } else {
           error.value = authError.message
         }
@@ -51,14 +53,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const signUp = async (email, password, userData = {}) => {
+    const signUp = async (email, password, userData = {}) => {
     try {
       loading.value = true
       error.value = null
 
       const { data, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
-        password: password
+        password: password,
+        options: {
+          data: userData // Pass user data to be stored in user_metadata
+        }
       })
 
       if (authError) {
@@ -75,18 +80,13 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       if (data.user) {
-        user.value = data.user
+        // Don't set user.value yet - wait for email confirmation
+        // user.value = data.user
 
         if (data.session) {
-          // Try to create profile if userData provided
-          if (userData.full_name) {
-            try {
-              await createProfileIfNotExists(userData)
-            } catch (profileError) {
-              // Don't fail signup if profile creation fails
-            }
-          }
-          
+          // This shouldn't happen with email confirmation enabled
+          // But handle it just in case
+          await loadUserWithProfile(data.user)
           return { 
             user: data.user, 
             session: data.session,
@@ -94,11 +94,12 @@ export const useAuthStore = defineStore('auth', () => {
             message: 'Account created successfully! You are now logged in.'
           }
         } else {
+          // Email confirmation required
           return {
             user: data.user,
             success: true,
             emailConfirmationRequired: true,
-            message: 'Account created! Please check your email to confirm your account.'
+            message: 'Account created! Please check your email to confirm your account before logging in.'
           }
         }
       } else {
@@ -332,6 +333,27 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const resendEmailConfirmation = async (email) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { error: authError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      })
+
+      if (authError) throw authError
+
+      return { success: true }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Helper function to load user with profile data
   const loadUserWithProfile = async (authUser) => {
     try {
@@ -407,6 +429,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearError,
     createProfileIfNotExists,
     resetPasswordForEmail,
+    resendEmailConfirmation,
     initAuth
   }
 })

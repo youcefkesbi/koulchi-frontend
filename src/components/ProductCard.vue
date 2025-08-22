@@ -87,6 +87,14 @@
           <i class="fas fa-shopping-cart ml-2"></i>
           {{ product.stock_quantity > 0 ? $t('product.addToCart') : $t('product.outOfStock') }}
         </button>
+        <button
+          @click="toggleWishlist"
+          class="btn-outline text-sm py-2 px-4"
+          :class="{ 'text-red-500 border-red-300': isInWishlist }"
+          :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
+        >
+          <i class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+        </button>
         <router-link
           :to="`/product/${product.id}`"
           class="btn-outline text-sm py-2 px-4"
@@ -99,8 +107,9 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
+import { useWishlistStore } from '../stores/wishlist'
 
 export default {
   name: 'ProductCard',
@@ -112,6 +121,7 @@ export default {
   },
   setup(props) {
     const cartStore = useCartStore()
+    const wishlistStore = useWishlistStore()
 
     const productImage = computed(() => {
       // Handle both old single image and new image_urls array
@@ -125,9 +135,25 @@ export default {
       return price.toLocaleString('ar-DZ')
     }
 
+    const isInWishlist = computed(() => {
+      return wishlistStore.isInWishlist(props.product.id)
+    })
+
     const addToCart = async () => {
       if (props.product.stock_quantity > 0) {
         await cartStore.addToCart(props.product)
+      }
+    }
+
+    const toggleWishlist = async () => {
+      try {
+        if (isInWishlist.value) {
+          await wishlistStore.removeProductFromWishlist(props.product.id)
+        } else {
+          await wishlistStore.addToWishlist(props.product.id)
+        }
+      } catch (error) {
+        console.error('Failed to toggle wishlist:', error)
       }
     }
 
@@ -136,11 +162,25 @@ export default {
       event.target.style.display = 'none'
     }
 
+    onMounted(async () => {
+      // Fetch wishlist if user is authenticated
+      if (wishlistStore.wishlistItems.length === 0) {
+        try {
+          await wishlistStore.fetchWishlist()
+        } catch (error) {
+          // User might not be authenticated, which is fine
+        }
+      }
+    })
+
     return {
       cartStore,
+      wishlistStore,
       productImage,
       formatPrice,
+      isInWishlist,
       addToCart,
+      toggleWishlist,
       handleImageError
     }
   }

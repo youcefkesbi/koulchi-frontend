@@ -9,6 +9,7 @@ import OrderConfirmation from '../views/OrderConfirmation.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import Profile from '../views/Profile.vue'
 import AuthCallback from '../views/AuthCallback.vue'
+import Wishlist from '../views/Wishlist.vue'
 
 
 const routes = [
@@ -58,6 +59,12 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/wishlist',
+    name: 'Wishlist',
+    component: Wishlist,
     meta: { requiresAuth: true }
   },
   {

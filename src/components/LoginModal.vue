@@ -60,7 +60,29 @@
                     <h4 class="font-semibold text-green-800 mb-1">{{ t('success') }}</h4>
                     <p class="text-green-700 text-sm">{{ successMessage }}</p>
                     
-
+                    <!-- Email Confirmation Actions -->
+                    <div v-if="emailConfirmationRequired" class="mt-3 space-y-2">
+                      <p class="text-sm text-green-600">
+                        <i class="fas fa-envelope mr-2"></i>
+                        {{ t('errors.emailConfirmationRequired') }}
+                      </p>
+                      <div class="flex space-x-2 space-x-reverse">
+                        <button
+                          @click="resendConfirmation"
+                          :disabled="authStore.loading"
+                          class="text-sm bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                        >
+                          <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-1"></i>
+                          {{ t('errors.resendConfirmation') }}
+                        </button>
+                        <button
+                          @click="closeModal"
+                          class="text-sm bg-gray-600 text-white px-3 py-1 rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                          {{ t('close') }}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     @click="successMessage = ''" 
@@ -324,12 +346,14 @@ export default {
         Object.assign(loginForm, { email: '', password: '' })
         authStore.clearError()
         successMessage.value = ''
+        emailConfirmationRequired.value = false
       }
     })
     
     const isSignup = ref(false)
     const showForgotPassword = ref(false)
     const successMessage = ref('')
+    const emailConfirmationRequired = ref(false)
     
     // Password visibility states
     const showLoginPassword = ref(false)
@@ -371,6 +395,7 @@ export default {
       Object.assign(forgotPasswordForm, { email: '' })
       successMessage.value = ''
       showForgotPassword.value = false
+      emailConfirmationRequired.value = false
       authStore.clearError()
     }
 
@@ -379,6 +404,7 @@ export default {
       showForgotPassword.value = false
       authStore.clearError()
       successMessage.value = ''
+      emailConfirmationRequired.value = false
     }
 
     const handleSignup = async () => {
@@ -403,9 +429,17 @@ export default {
         
         if (result?.success) {
           successMessage.value = result.message || 'Account created successfully! You are now logged in.'
-          setTimeout(() => {
-            closeModal()
-          }, 1500)
+          
+          // Check if email confirmation is required
+          if (result.emailConfirmationRequired) {
+            emailConfirmationRequired.value = true
+            // Don't close modal automatically - user needs to confirm email
+          } else {
+            // User is logged in immediately (shouldn't happen with email confirmation enabled)
+            setTimeout(() => {
+              closeModal()
+            }, 1500)
+          }
         }
       } catch (error) {
         // Error is already handled in the auth store
@@ -466,7 +500,10 @@ export default {
       
       const errorLower = error.toLowerCase()
       
-      // Email confirmation disabled - skip this error type
+      // Handle email confirmation errors
+      if (errorLower.includes('email not confirmed')) {
+        return t('errors.emailNotConfirmed')
+      }
       if (errorLower.includes('invalid login credentials') || errorLower.includes('invalid email or password')) {
         return t('errors.invalidCredentials')
       }
@@ -493,17 +530,6 @@ export default {
       if (errorLower.includes('oauth cancelled')) {
         return t('errors.oauthCancelled')
       }
-      if (errorLower.includes('oauth timeout')) {
-        return t('errors.oauthTimeout')
-      }
-      if (errorLower.includes('oauth provider error')) {
-        return t('errors.oauthProviderError')
-      }
-      if (errorLower.includes('oauth') || errorLower.includes('google')) {
-        return t('errors.oauthNotSupported')
-      }
-      
-      // Default case
       return error || t('errors.unknownError')
     }
 
@@ -538,6 +564,17 @@ export default {
       }
     }
 
+    // Function to resend email confirmation
+    const resendConfirmation = async () => {
+      try {
+        authStore.clearError()
+        await authStore.resendEmailConfirmation(signupForm.email.trim())
+        successMessage.value = t('errors.resendConfirmationSent')
+      } catch (error) {
+        console.error('Resend confirmation error:', error)
+      }
+    }
+
     // Resend confirmation function removed - no longer needed
 
 
@@ -551,6 +588,7 @@ export default {
       loginForm,
       forgotPasswordForm,
       successMessage,
+      emailConfirmationRequired,
       isFormValid,
       closeModal,
       toggleMode,
@@ -561,6 +599,7 @@ export default {
       handleFacebookLogin,
       getErrorMessage,
       clearError,
+      resendConfirmation,
       showLoginPassword,
       showSignupPassword,
       showSignupConfirmPassword

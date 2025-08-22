@@ -1,0 +1,237 @@
+<template>
+  <div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+      <div>
+        <h1 class="text-3xl font-bold text-dark">{{ $t('wishlist.title') }}</h1>
+        <p class="text-gray-600 mt-2">
+          {{ wishlistStore.totalItems }} {{ $t('wishlist.totalItems', { count: wishlistStore.totalItems }) }}
+        </p>
+      </div>
+      
+      <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+        <button
+          v-if="wishlistStore.totalItems > 0"
+          @click="clearWishlist"
+          class="btn-outline text-red-600 border-red-300 hover:bg-red-50"
+          :disabled="wishlistStore.loading"
+        >
+          <i class="fas fa-trash ml-2"></i>
+          {{ $t('wishlist.clearWishlist') }}
+        </button>
+        
+        <router-link to="/products" class="btn-primary">
+          <i class="fas fa-shopping-bag ml-2"></i>
+          {{ $t('wishlist.continueShopping') }}
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Wishlist Items -->
+    <div v-if="wishlistStore.loading" class="text-center py-12">
+      <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-gray-600">{{ $t('loading') }}</p>
+    </div>
+
+    <div v-else-if="wishlistStore.totalItems > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div
+        v-for="item in wishlistStore.wishlistItems"
+        :key="item.id"
+        class="card group hover:shadow-lg transition-all duration-300"
+      >
+        <!-- Product Image -->
+        <div class="relative overflow-hidden rounded-lg mb-4">
+          <img 
+            :src="getProductImage(item.products)" 
+            :alt="item.products.name || item.products.name_ar"
+            class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+            @error="handleImageError"
+          />
+          
+          <!-- Badges -->
+          <div class="absolute top-2 right-2 flex flex-col space-y-1">
+            <span v-if="item.products.is_new" class="badge badge-new">
+              جديد
+            </span>
+            <span v-if="item.products.is_on_sale" class="badge badge-sale">
+              تخفيض
+            </span>
+          </div>
+          
+          <!-- Remove from Wishlist Button -->
+          <button
+            @click="removeFromWishlist(item.id)"
+            class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+            title="إزالة من قائمة الأمنيات"
+          >
+            <i class="fas fa-times text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Product Info -->
+        <div class="space-y-3">
+          <!-- Title -->
+          <h3 class="font-semibold text-lg text-dark line-clamp-2">
+            {{ item.products.name || item.products.name_ar }}
+          </h3>
+
+          <!-- Stock Status -->
+          <div class="flex items-center space-x-2 space-x-reverse">
+            <div class="flex items-center">
+              <i class="fas fa-box text-primary text-sm"></i>
+              <span class="text-sm text-gray-600 mr-1">{{ item.products.stock_quantity || 0 }}</span>
+            </div>
+            <span class="text-sm text-gray-500">متوفر</span>
+          </div>
+
+          <!-- Price -->
+          <div class="flex items-center space-x-2 space-x-reverse">
+            <span class="text-xl font-bold text-primary">
+              {{ formatPrice(item.products.price) }} دج
+            </span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex space-x-2 space-x-reverse">
+            <button
+              @click="addToCart(item.products)"
+              class="flex-1 btn-primary text-sm py-2"
+              :disabled="(item.products.stock_quantity || 0) <= 0"
+            >
+              <i class="fas fa-shopping-cart ml-2"></i>
+              {{ (item.products.stock_quantity || 0) > 0 ? 'أضف للسلة' : 'غير متوفر' }}
+            </button>
+            <router-link
+              :to="`/product/${item.products.id}`"
+              class="btn-outline text-sm py-2 px-4"
+            >
+              <i class="fas fa-eye"></i>
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Wishlist -->
+    <div v-else class="text-center py-12">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-heart text-gray-400 text-3xl"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">{{ $t('wishlist.empty') }}</h3>
+      <p class="text-gray-500 mb-6">
+        {{ $t('wishlist.emptyMessage') }}
+      </p>
+      <router-link to="/products" class="btn-primary">
+        <i class="fas fa-shopping-bag ml-2"></i>
+        {{ $t('wishlist.browseProducts') }}
+      </router-link>
+    </div>
+  </div>
+</template>
+
+<script>
+import { onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWishlistStore } from '../stores/wishlist'
+import { useCartStore } from '../stores/cart'
+
+export default {
+  name: 'Wishlist',
+  setup() {
+    const { t } = useI18n()
+    const wishlistStore = useWishlistStore()
+    const cartStore = useCartStore()
+
+    const getProductImage = (product) => {
+      if (product.image_urls && product.image_urls.length > 0) {
+        return product.image_urls[0]
+      }
+      return product.image || null
+    }
+
+    const formatPrice = (price) => {
+      return price.toLocaleString('ar-DZ')
+    }
+
+    const handleImageError = (event) => {
+      event.target.style.display = 'none'
+    }
+
+    const addToCart = async (product) => {
+      if (product.stock_quantity > 0) {
+        await cartStore.addToCart(product)
+      }
+    }
+
+    const removeFromWishlist = async (wishlistItemId) => {
+      try {
+        await wishlistStore.removeFromWishlist(wishlistItemId)
+      } catch (error) {
+        console.error('Failed to remove from wishlist:', error)
+      }
+    }
+
+    const clearWishlist = async () => {
+      if (confirm(t('wishlist.clearConfirm'))) {
+        try {
+          await wishlistStore.clearWishlist()
+        } catch (error) {
+          console.error('Failed to clear wishlist:', error)
+        }
+      }
+    }
+
+    onMounted(async () => {
+      try {
+        await wishlistStore.fetchWishlist()
+      } catch (error) {
+        console.error('Failed to fetch wishlist:', error)
+      }
+    })
+
+    return {
+      wishlistStore,
+      getProductImage,
+      formatPrice,
+      handleImageError,
+      addToCart,
+      removeFromWishlist,
+      clearWishlist
+    }
+  }
+}
+</script>
+
+<style scoped>
+.card {
+  @apply bg-white rounded-lg shadow-md p-4;
+}
+
+.btn-primary {
+  @apply px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors;
+}
+
+.btn-outline {
+  @apply px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors;
+}
+
+.badge {
+  @apply px-2 py-1 text-xs font-semibold rounded-full text-white;
+}
+
+.badge-new {
+  @apply bg-green-500;
+}
+
+.badge-sale {
+  @apply bg-red-500;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
