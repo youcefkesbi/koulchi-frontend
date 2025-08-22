@@ -57,8 +57,14 @@ export default {
 
 
 
+    // Convert languages object to array for iteration
+    const languagesArray = Object.keys(languages).map(code => ({
+      code,
+      ...languages[code]
+    }))
+
     const currentLanguage = computed(() => {
-      return languages.find(lang => lang.code === locale.value) || languages[0]
+      return languagesArray.find(lang => lang.code === locale.value) || languagesArray[0]
     })
 
     const selectLanguage = (code) => {
@@ -78,7 +84,7 @@ export default {
     onMounted(() => {
       // Load saved language preference
       const savedLocale = localStorage.getItem('locale')
-      if (savedLocale && languages.some(lang => lang.code === savedLocale)) {
+      if (savedLocale && languagesArray.some(lang => lang.code === savedLocale)) {
         locale.value = savedLocale
       }
       
@@ -91,7 +97,7 @@ export default {
 
     return {
       isOpen,
-      languages,
+      languages: languagesArray,
       currentLanguage,
       selectLanguage
     }
