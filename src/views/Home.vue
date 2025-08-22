@@ -3,21 +3,27 @@
 
 
     <!-- Hero Section -->
-    <section class="relative bg-gradient-to-br from-primary to-secondary text-white rounded-3xl overflow-hidden shadow-soft">
-      <div class="absolute inset-0 bg-black/20"></div>
-      <div class="relative z-10 px-6 py-16 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-6 animate-slide-up">
+    <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft">
+      <!-- Background Pattern -->
+      <div class="absolute inset-0 bg-gradient-to-br from-green-600/20 via-green-500/20 to-green-400/20"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+      <div class="relative z-10 px-6 py-12 text-center">
+        <!-- Decorative Elements -->
+        <div class="absolute top-6 left-6 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
+        <div class="absolute bottom-6 right-6 w-24 h-24 bg-green-400/20 rounded-full blur-xl"></div>
+        
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 animate-slide-up bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
           {{ $t('hero.title') }}
         </h1>
-        <p class="text-lg md:text-xl mb-8 opacity-95 animate-slide-up" style="animation-delay: 0.1s">
+        <p class="text-lg md:text-xl mb-8 text-green-50 animate-slide-up" style="animation-delay: 0.1s">
           {{ $t('hero.subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style="animation-delay: 0.2s">
-          <router-link to="/products" class="btn-secondary text-base px-8 py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300">
+          <router-link to="/products" class="bg-white text-slate-800 font-semibold text-base px-8 py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
             <i class="fas fa-shopping-bag ml-2"></i>
             {{ $t('hero.shopNow') }}
           </router-link>
-          <button class="btn-outline border-2 border-white text-white hover:bg-white hover:text-primary text-base px-8 py-4 rounded-2xl transform hover:scale-105 transition-all duration-300">
+          <button class="border-2 border-white/30 text-white font-semibold text-base px-8 py-4 rounded-2xl bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:border-white/50 transform hover:scale-105 transition-all duration-300">
             <i class="fas fa-info-circle ml-2"></i>
             {{ $t('hero.learnMore') }}
           </button>
