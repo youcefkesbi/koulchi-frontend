@@ -2,7 +2,7 @@
   <div class="max-w-4xl mx-auto">
     <!-- Success Message -->
     <div class="text-center mb-8">
-      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-check text-green-600 text-3xl"></i>
       </div>
       <h1 class="text-3xl font-bold text-dark mb-2">تم تأكيد طلبك بنجاح!</h1>

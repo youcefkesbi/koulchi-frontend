@@ -12,11 +12,11 @@
       </div>
 
       <!-- Success Message -->
-      <div v-if="showSuccess" class="mb-8 p-6 bg-green-100 text-green-800 rounded-2xl shadow-soft animate-slide-up">
-        <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-            <i class="fas fa-check text-white text-2xl"></i>
-          </div>
+                      <div v-if="showSuccess" class="mb-8 p-6 bg-green-100 text-green-800 rounded-2xl shadow-soft animate-slide-up">
+          <div class="flex items-center space-x-3 space-x-reverse">
+                       <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+              <i class="fas fa-check text-white text-2xl"></i>
+            </div>
           <div>
             <h3 class="text-xl font-bold">{{ $t('announcement.success') }}</h3>
             <p>{{ $t('announcement.successMessage') }}</p>

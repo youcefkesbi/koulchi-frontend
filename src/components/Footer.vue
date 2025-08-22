@@ -66,25 +66,25 @@
           <ul class="space-y-3">
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
-                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
+                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.returnPolicy') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
-                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
+                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.termsOfUse') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
-                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
+                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.privacyPolicy') }}
               </a>
             </li>
             <li>
               <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
-                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-orange-400 transition-colors"></i>
+                <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.faq') }}
               </a>
             </li>
