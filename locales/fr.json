@@ -129,7 +129,6 @@
   },
   "announcement": {
     "postAnnouncement": "Publier une Annonce",
-    "description": "Créer une nouvelle liste de produit pour commencer à vendre sur Koulchi",
     "productInfo": "Informations sur le Produit",
     "productName": "Nom du Produit",
     "productNamePlaceholder": "Entrez le nom du produit",

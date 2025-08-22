@@ -71,6 +71,12 @@ export const useProductStore = defineStore('product', () => {
         throw new Error('Product ID is required')
       }
       
+      // Validate that the ID is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(id)) {
+        throw new Error(`Invalid product ID format: ${id}. Expected UUID format.`)
+      }
+      
       const { data, error: supabaseError } = await supabase
         .from('products')
         .select('*')

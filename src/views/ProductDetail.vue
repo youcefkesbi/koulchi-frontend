@@ -299,10 +299,17 @@ export default {
         loading.value = true
         error.value = null
         
-        const productId = parseInt(route.params.id)
+        const productId = route.params.id
         
-        if (!productId || isNaN(productId)) {
+        if (!productId) {
           error.value = 'Invalid product ID'
+          loading.value = false
+          return
+        }
+        
+        // Basic validation that the ID looks like a UUID
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) {
+          error.value = `Invalid product ID format: ${productId}. Please check the URL.`
           loading.value = false
           return
         }

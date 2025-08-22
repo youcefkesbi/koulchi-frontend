@@ -183,7 +183,6 @@
   },
   "announcement": {
     "postAnnouncement": "Post an Announcement",
-    "description": "Create a new product listing to start selling on Koulchi",
     "productInfo": "Product Information",
     "productName": "Product Name",
     "productNamePlaceholder": "Enter product name",
