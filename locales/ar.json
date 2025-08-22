@@ -197,7 +197,11 @@
   },
   "common": {
     "cancel": "إلغاء",
-    "back": "رجوع"
+    "back": "رجوع",
+    "goHome": "العودة للرئيسية",
+    "saving": "جاري الحفظ...",
+    "update": "تحديث",
+    "save": "حفظ"
   },
   "seller": {
     "becomeSeller": "كن بائعًا",

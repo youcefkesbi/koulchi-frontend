@@ -66,6 +66,15 @@
   "freeShipping": "Livraison gratuite pour les commandes de plus de 5000 DZD",
   "phone": "Téléphone",
   "contact": "Contact",
+  "header": {
+    "freeShipping": "Livraison gratuite pour les commandes de plus de 5000 DZD",
+    "searchPlaceholder": "Rechercher des produits...",
+    "postAnnouncement": "Publier une Annonce",
+    "dashboard": "Tableau de Bord",
+    "myProfile": "Mon Profil",
+    "logout": "Déconnexion",
+    "login": "Connexion"
+  },
   "home": "Accueil",
   "products": "Produits",
   "profile": "Profil",
@@ -157,7 +166,11 @@
   },
   "common": {
     "cancel": "Annuler",
-    "back": "Retour"
+    "back": "Retour",
+    "goHome": "Retour à l'Accueil",
+    "saving": "Enregistrement...",
+    "update": "Mettre à jour",
+    "save": "Enregistrer"
   },
   "seller": {
     "becomeSeller": "Devenir Vendeur",

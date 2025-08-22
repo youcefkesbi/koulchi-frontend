@@ -233,7 +233,11 @@
   },
   "common": {
     "cancel": "Cancel",
-    "goHome": "Go Home"
+    "goHome": "Go Home",
+    "back": "Back",
+    "saving": "Saving...",
+    "update": "Update",
+    "save": "Save"
   },
   "seller": {
     "becomeSeller": "Become a Seller",
