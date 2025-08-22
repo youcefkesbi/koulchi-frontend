@@ -77,6 +77,19 @@
     "tagline": "Trouvez-le. Aimez-le. Obtenez-le.",
     "categories": "Catégories"
   },
+  "categoryPage": {
+    "resultsCount": "Affichage de {count} sur {total} produits",
+    "sortBy": "Trier par",
+    "sortNewest": "Plus récent d'abord",
+    "sortOldest": "Plus ancien d'abord",
+    "sortPriceLow": "Prix: Croissant",
+    "sortPriceHigh": "Prix: Décroissant",
+    "sortName": "Nom: A à Z",
+    "noProducts": "Aucun produit trouvé",
+    "noProductsMessage": "Aucun produit n'est disponible dans cette catégorie pour le moment.",
+    "browseAllProducts": "Parcourir Tous les Produits",
+    "backToCategories": "Retour aux Catégories"
+  },
   "home": "Accueil",
   "products": "Produits",
   "profile": "Profil",

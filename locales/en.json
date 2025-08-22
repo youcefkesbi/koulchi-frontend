@@ -83,6 +83,19 @@
     "tagline": "Find It. Love It. Get It.",
     "categories": "Categories"
   },
+  "categoryPage": {
+    "resultsCount": "Showing {count} of {total} products",
+    "sortBy": "Sort by",
+    "sortNewest": "Newest first",
+    "sortOldest": "Oldest first",
+    "sortPriceLow": "Price: Low to High",
+    "sortPriceHigh": "Price: High to Low",
+    "sortName": "Name: A to Z",
+    "noProducts": "No products found",
+    "noProductsMessage": "There are no products available in this category at the moment.",
+    "browseAllProducts": "Browse All Products",
+    "backToCategories": "Back to Categories"
+  },
   "home": "Home",
   "products": "Products",
   "profile": "Profile",

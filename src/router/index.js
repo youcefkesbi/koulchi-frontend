@@ -11,6 +11,7 @@ import Profile from '../views/Profile.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import CategoryPage from '../views/CategoryPage.vue'
 
 
 const routes = [
@@ -83,6 +84,12 @@ const routes = [
     path: '/reset-password',
     name: 'ResetPassword',
     component: ResetPassword
+  },
+  {
+    path: '/category/:categoryId',
+    name: 'CategoryPage',
+    component: CategoryPage,
+    props: true
   },
 
 ]

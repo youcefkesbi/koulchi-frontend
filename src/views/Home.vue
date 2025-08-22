@@ -1,7 +1,5 @@
 <template>
   <div class="space-y-20 animate-fade-in px-4">
-
-
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft">
       <!-- Background Pattern -->
@@ -52,10 +50,10 @@
     <section class="animate-slide-up">
       <h2 class="text-3xl font-bold text-dark mb-8 text-center">{{ $t('sections.browseByCategory') }}</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div
+        <router-link
           v-for="category in categories"
           :key="category.id"
-          @click="selectCategory(category.id)"
+          :to="`/category/${category.id}`"
           class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
         >
           <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
@@ -68,7 +66,7 @@
             <i v-else class="fas fa-box text-white text-2xl"></i>
           </div>
           <h3 class="font-bold text-lg text-dark mb-2">{{ category.name }}</h3>
-        </div>
+        </router-link>
       </div>
     </section>
 
@@ -96,30 +94,6 @@
         </div>
         <h3 class="text-xl font-bold mb-3 text-dark">{{ $t('features.qualityGuarantee') }}</h3>
         <p class="text-gray-600 leading-relaxed text-sm">{{ $t('features.qualityGuaranteeDesc') }}</p>
-      </div>
-    </section>
-
-    <!-- Categories Section -->
-    <section class="animate-slide-up">
-      <h2 class="text-3xl font-bold text-dark mb-8 text-center">{{ $t('sections.browseByCategory') }}</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          @click="selectCategory(category.id)"
-          class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
-        >
-          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
-            <img 
-              v-if="category.icon_url" 
-              :src="category.icon_url" 
-              :alt="category.name"
-              class="w-12 h-12 object-contain"
-            />
-            <i v-else class="fas fa-box text-white text-2xl"></i>
-          </div>
-          <h3 class="font-bold text-lg text-dark mb-2">{{ category.name }}</h3>
-        </div>
       </div>
     </section>
 
@@ -197,42 +171,38 @@
 
 <script>
 import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
+
 export default {
   name: 'Home',
   components: {
     ProductCard
   },
   setup() {
-    const router = useRouter()
     const productStore = useProductStore()
 
-    const newProducts = computed(() => productStore.newProducts.slice(0, 4))
-    const saleProducts = computed(() => productStore.saleProducts.slice(0, 4))
-    const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
+    const newProducts = computed(() => {
+      return productStore.products.slice(0, 8)
+    })
 
-    const selectCategory = (categoryId) => {
-      productStore.setCategory(categoryId)
-      router.push('/products')
-    }
+    const categories = computed(() => {
+      return productStore.categories.filter(cat => cat.id !== 'all')
+    })
 
-    // Fetch products and categories on component mount
     onMounted(async () => {
-      try {
-        await productStore.initializeStore()
-      } catch (error) {
-        console.error('Error loading data:', error)
+      if (productStore.products.length === 0) {
+        await productStore.fetchProducts()
+      }
+      if (productStore.categories.length === 0) {
+        await productStore.fetchCategories()
       }
     })
 
     return {
       newProducts,
-      saleProducts,
-      categories,
-      selectCategory
+      categories
     }
   }
 }
-</script> 
+</script>

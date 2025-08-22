@@ -69,7 +69,7 @@
                 <router-link
                   v-for="category in categories"
                   :key="category.id"
-                  :to="`/products?category=${category.id}`"
+                  :to="`/category/${category.id}`"
                   @click="categoriesMenuOpen = false"
                   class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-gray-50 transition-all duration-300 group"
                 >

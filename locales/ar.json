@@ -81,6 +81,19 @@
     "tagline": "اكتشفه. أحبه. احصل عليه.",
     "categories": "الفئات"
   },
+  "categoryPage": {
+    "resultsCount": "عرض {count} من {total} منتج",
+    "sortBy": "ترتيب حسب",
+    "sortNewest": "الأحدث أولاً",
+    "sortOldest": "الأقدم أولاً",
+    "sortPriceLow": "السعر: من الأقل إلى الأعلى",
+    "sortPriceHigh": "السعر: من الأعلى إلى الأقل",
+    "sortName": "الاسم: من أ إلى ي",
+    "noProducts": "لم يتم العثور على منتجات",
+    "noProductsMessage": "لا توجد منتجات متاحة في هذه الفئة في الوقت الحالي.",
+    "browseAllProducts": "تصفح جميع المنتجات",
+    "backToCategories": "العودة إلى الفئات"
+  },
   "home": "الرئيسية",
   "products": "المنتجات",
   "profile": "الملف الشخصي",
