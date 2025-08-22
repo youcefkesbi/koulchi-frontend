@@ -94,7 +94,8 @@
     "noProducts": "No products found",
     "noProductsMessage": "There are no products available in this category at the moment.",
     "browseAllProducts": "Browse All Products",
-    "backToCategories": "Back to Categories"
+    "backToCategories": "Back to Categories",
+    "loading": "Loading products..."
   },
   "home": "Home",
   "products": "Products",

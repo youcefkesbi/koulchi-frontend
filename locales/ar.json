@@ -92,7 +92,8 @@
     "noProducts": "لم يتم العثور على منتجات",
     "noProductsMessage": "لا توجد منتجات متاحة في هذه الفئة في الوقت الحالي.",
     "browseAllProducts": "تصفح جميع المنتجات",
-    "backToCategories": "العودة إلى الفئات"
+    "backToCategories": "العودة إلى الفئات",
+    "loading": "جاري تحميل المنتجات..."
   },
   "home": "الرئيسية",
   "products": "المنتجات",

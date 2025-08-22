@@ -1,14 +1,16 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
     <!-- Category Header -->
     <div class="text-center mb-12">
       <div class="flex items-center justify-center space-x-4 space-x-reverse mb-6">
-        <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-soft">
+        <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300">
           <i :class="getCategoryIcon(categoryId)" class="text-white text-2xl"></i>
         </div>
-        <h1 class="text-4xl font-bold text-dark">{{ getCategoryName(categoryId) }}</h1>
+        <h1 class="text-4xl font-bold text-dark bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+          {{ getCategoryName(categoryId) }}
+        </h1>
       </div>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
         {{ getCategoryDescription(categoryId) }}
       </p>
     </div>
@@ -36,8 +38,14 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-16">
+      <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-gray-600">{{ $t('categoryPage.loading') }}</p>
+    </div>
+
     <!-- Products Grid -->
-    <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div v-else-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <ProductCard
         v-for="product in filteredProducts"
         :key="product.id"
@@ -85,6 +93,7 @@ export default {
     const productStore = useProductStore()
     
     const sortBy = ref('newest')
+    const loading = ref(false)
     const categoryId = computed(() => route.params.categoryId)
 
     // Get products for this category
@@ -92,7 +101,7 @@ export default {
       if (categoryId.value === 'all') {
         return productStore.products
       }
-      return productStore.products.filter(product => product.category === categoryId.value)
+      return productStore.products.filter(product => product.category_id === categoryId.value)
     })
 
     // Sort and filter products
@@ -165,22 +174,38 @@ export default {
     }
 
     // Watch for route changes
-    watch(() => route.params.categoryId, () => {
-      validateCategory()
+    watch(() => route.params.categoryId, async (newCategoryId) => {
+      loading.value = true
+      try {
+        validateCategory()
+        // Refetch products for the new category
+        if (newCategoryId && newCategoryId !== 'all') {
+          await productStore.fetchProducts({ category_id: newCategoryId })
+        }
+      } catch (error) {
+        console.error('Error loading new category:', error)
+      } finally {
+        loading.value = false
+      }
     })
 
     onMounted(async () => {
-      // Fetch products if not already loaded
-      if (productStore.products.length === 0) {
-        await productStore.fetchProducts()
+      loading.value = true
+      try {
+        // Fetch categories if not already loaded
+        if (productStore.categories.length === 0) {
+          await productStore.fetchCategories()
+        }
+        
+        // Fetch products for this specific category
+        await productStore.fetchProducts({ category_id: categoryId.value })
+        
+        validateCategory()
+      } catch (error) {
+        console.error('Error loading category page:', error)
+      } finally {
+        loading.value = false
       }
-      
-      // Fetch categories if not already loaded
-      if (productStore.categories.length === 0) {
-        await productStore.fetchCategories()
-      }
-      
-      validateCategory()
     })
 
     return {
@@ -188,6 +213,7 @@ export default {
       products,
       filteredProducts,
       sortBy,
+      loading,
       getCategoryIcon,
       getCategoryName,
       getCategoryDescription

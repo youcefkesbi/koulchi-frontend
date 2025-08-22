@@ -55,7 +55,7 @@
               @click="categoriesMenuOpen = !categoriesMenuOpen"
               class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50"
             >
-              <i class="fas fa-th-large text-lg"></i>
+              <i class="fas fa-layer-group text-lg"></i>
               <span class="font-medium">{{ $t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
@@ -89,7 +89,7 @@
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-6 space-x-reverse">
               <router-link to="/products" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Products">
-                <i class="fas fa-th-large text-xl"></i>
+                <i class="fas fa-shopping-bag text-xl"></i>
               </router-link>
               <router-link to="/wishlist" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
                 <i class="fas fa-heart text-xl"></i>

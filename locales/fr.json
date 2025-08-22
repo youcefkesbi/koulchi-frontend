@@ -88,7 +88,8 @@
     "noProducts": "Aucun produit trouvé",
     "noProductsMessage": "Aucun produit n'est disponible dans cette catégorie pour le moment.",
     "browseAllProducts": "Parcourir Tous les Produits",
-    "backToCategories": "Retour aux Catégories"
+    "backToCategories": "Retour aux Catégories",
+    "loading": "Chargement des produits..."
   },
   "home": "Accueil",
   "products": "Produits",
