@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable Row Level Security --
+-- Enable Row Level Security
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for secure access
