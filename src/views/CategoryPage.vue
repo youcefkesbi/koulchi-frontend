@@ -27,7 +27,7 @@
         <label class="text-sm font-medium text-gray-700">{{ $t('categoryPage.sortBy') }}:</label>
         <select
           v-model="sortBy"
-          class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-300"
+          class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
         >
           <option value="newest">{{ $t('categoryPage.sortNewest') }}</option>
           <option value="oldest">{{ $t('categoryPage.sortOldest') }}</option>
@@ -68,7 +68,7 @@
 
     <!-- Back to Categories -->
     <div class="text-center mt-12">
-      <router-link to="/" class="text-primary hover:text-primary-dark font-medium transition-colors">
+      <router-link to="/" class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-medium rounded-2xl transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105">
         <i class="fas fa-arrow-left mr-2"></i>
         {{ $t('categoryPage.backToCategories') }}
       </router-link>
