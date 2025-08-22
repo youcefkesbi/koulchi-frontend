@@ -81,25 +81,6 @@
                 {{ $t('header.postAnnouncement') }}
               </button>
 
-              <!-- User Dashboard / Login Button -->
-              <div v-if="authStore.isAuthenticated" class="flex items-center space-x-4 space-x-reverse">
-                <router-link
-                  to="/dashboard"
-                  class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
-                >
-                  <i class="fas fa-chart-line mr-2"></i>
-                  {{ $t('header.userDashboard') }}
-                </router-link>
-                
-                <router-link
-                  to="/profile"
-                  class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
-                >
-                  <i class="fas fa-user mr-2"></i>
-                  {{ $t('header.myProfile') }}
-                </router-link>
-              </div>
-
               <!-- User Menu / Login Button -->
               <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
                 <button
@@ -123,9 +104,6 @@
                 >
                   <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-chart-line mr-3"></i>{{ $t('header.dashboard') }}
-                  </router-link>
-                  <router-link to="/wishlist" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-heart mr-3"></i>قائمة الأمنيات
                   </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-user mr-3"></i>{{ $t('header.myProfile') }}
@@ -233,11 +211,19 @@ export default {
         // Clear any cart data
         cartStore.clearCart()
         
-        // Redirect to home page
+        // Clear wishlist data
+        if (wishlistStore.wishlistItems.length > 0) {
+          wishlistStore.wishlistItems = []
+        }
+        
+        // Redirect to home page and show login modal
         router.push('/')
+        showLoginModal.value = true
       } catch (error) {
-        // Even if logout fails, redirect to home
+        console.error('Logout error:', error)
+        // Even if logout fails, redirect to home and show login modal
         router.push('/')
+        showLoginModal.value = true
       }
     }
 

@@ -224,10 +224,19 @@
                     <i class="fas fa-times text-xl"></i>
                   </button>
                   <h4 class="text-lg font-semibold text-gray-900 mb-2">{{ t('resetPassword') }}</h4>
-                  <p class="text-sm text-gray-600">{{ t('enterEmailForReset') }}</p>
+                  
+                  <!-- Different content based on authentication status -->
+                  <div v-if="authStore.isAuthenticated">
+                    <p class="text-sm text-gray-600 mb-4">{{ t('resetPasswordForLoggedInUser') }}</p>
+                    <p class="text-sm text-gray-500">{{ authStore.userEmail }}</p>
+                  </div>
+                  <div v-else>
+                    <p class="text-sm text-gray-600">{{ t('enterEmailForReset') }}</p>
+                  </div>
                 </div>
                 
-                <div>
+                <!-- Email input only shown for non-authenticated users -->
+                <div v-if="!authStore.isAuthenticated">
                   <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('email') }}</label>
                   <input 
                     v-model="forgotPasswordForm.email" 
@@ -248,7 +257,7 @@
                   </button>
                   <button 
                     type="submit" 
-                    :disabled="authStore.loading || !forgotPasswordForm.email" 
+                    :disabled="authStore.loading || (!authStore.isAuthenticated && !forgotPasswordForm.email)" 
                     class="flex-1 bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                   >
                     <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
@@ -543,22 +552,37 @@ export default {
     // Function to handle forgot password
     const handleForgotPassword = async () => {
       try {
-        if (!forgotPasswordForm.email) {
-          authStore.error = t('errors.unknownError')
-          return
+        if (authStore.isAuthenticated) {
+          // For logged-in users, send reset email to their registered email
+          await authStore.resetPasswordForCurrentUser()
+          successMessage.value = t('resetPasswordSent')
+          
+          // Hide forgot password section
+          showForgotPassword.value = false
+          
+          // Close modal after a delay
+          setTimeout(() => {
+            closeModal()
+          }, 3000)
+        } else {
+          // For non-authenticated users, require email input
+          if (!forgotPasswordForm.email) {
+            authStore.error = t('errors.unknownError')
+            return
+          }
+          
+          await authStore.resetPasswordForEmail(forgotPasswordForm.email)
+          successMessage.value = t('resetPasswordSent')
+          
+          // Reset form and hide forgot password section
+          forgotPasswordForm.email = ''
+          showForgotPassword.value = false
+          
+          // Close modal after a delay
+          setTimeout(() => {
+            closeModal()
+          }, 3000)
         }
-        
-        await authStore.resetPasswordForEmail(forgotPasswordForm.email)
-        successMessage.value = t('resetPasswordSent')
-        
-        // Reset form and hide forgot password section
-        forgotPasswordForm.email = ''
-        showForgotPassword.value = false
-        
-        // Close modal after a delay
-        setTimeout(() => {
-          closeModal()
-        }, 3000)
       } catch (error) {
         console.error('Forgot password error:', error)
       }

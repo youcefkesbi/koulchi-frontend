@@ -10,6 +10,7 @@ import UserDashboard from '../views/UserDashboard.vue'
 import Profile from '../views/Profile.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
+import ResetPassword from '../views/ResetPassword.vue'
 
 
 const routes = [
@@ -77,6 +78,11 @@ const routes = [
     path: '/auth/callback',
     name: 'AuthCallback',
     component: AuthCallback
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword
   },
 
 ]

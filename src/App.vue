@@ -1,5 +1,10 @@
 <template>
-  <div id="app" class="min-h-screen bg-gradient-to-br from-light-gray to-white">
+  <div 
+    id="app" 
+    :dir="currentDir"
+    :lang="currentLocale"
+    class="min-h-screen bg-gradient-to-br from-light-gray to-white"
+  >
     <Header />
     <main class="flex-1">
       <router-view />
@@ -9,7 +14,7 @@
 </template>
 
 <script>
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from './stores/auth'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
@@ -25,6 +30,10 @@ export default {
     
     onMounted(() => {
       authStore.initAuth()
+    })
+    
+    onUnmounted(() => {
+      authStore.cleanup()
     })
   }
 }

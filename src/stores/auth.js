@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  const authSubscription = ref(null)
 
   // Getters
   const isAuthenticated = computed(() => !!user.value)
@@ -13,6 +14,43 @@ export const useAuthStore = defineStore('auth', () => {
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/src/assets/user-avatar.png') // Always use default avatar
   const userRole = computed(() => user.value?.role || 'user')
+
+  // Check if user is actually authenticated with Supabase
+  const checkAuthStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        // No valid session, clear local user state
+        user.value = null
+        return false
+      }
+      return true
+    } catch (err) {
+      console.error('Error checking auth status:', err)
+      user.value = null
+      return false
+    }
+  }
+
+  const refreshAuth = async () => {
+    try {
+      // Force refresh the session
+      const { data, error } = await supabase.auth.refreshSession()
+      if (error) throw error
+      
+      if (data.session?.user) {
+        await loadUserWithProfile(data.session.user)
+        return true
+      } else {
+        user.value = null
+        return false
+      }
+    } catch (err) {
+      console.error('Error refreshing auth:', err)
+      user.value = null
+      return false
+    }
+  }
 
   // Actions
   const login = async (email, password) => {
@@ -215,15 +253,34 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
+      // Clear the auth subscription
+      if (authSubscription.value) {
+        authSubscription.value.unsubscribe()
+        authSubscription.value = null
+      }
+
+      // Sign out from Supabase
       const { error: authError } = await supabase.auth.signOut()
       if (authError) throw authError
 
+      // Clear local user state
       user.value = null
+      
+      console.log('User logged out successfully')
     } catch (err) {
+      console.error('Logout error:', err)
       error.value = err.message
       throw err
     } finally {
       loading.value = false
+    }
+  }
+
+  const cleanup = () => {
+    // Clean up auth subscription when store is destroyed
+    if (authSubscription.value) {
+      authSubscription.value.unsubscribe()
+      authSubscription.value = null
     }
   }
 
@@ -333,6 +390,50 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const resetPasswordForCurrentUser = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (!user.value?.email) {
+        throw new Error('No authenticated user email found')
+      }
+
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(user.value.email, {
+        redirectTo: 'http://localhost:3000/reset-password'
+      })
+
+      if (authError) throw authError
+
+      return { success: true }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updatePassword = async (newPassword) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { error: authError } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (authError) throw authError
+
+      return { success: true }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const resendEmailConfirmation = async (email) => {
     try {
       loading.value = true
@@ -387,11 +488,15 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (session?.user) {
         await loadUserWithProfile(session.user)
+      } else {
+        // No valid session, ensure user state is cleared
+        user.value = null
       }
 
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log('Auth state change:', event, session?.user?.email)
           if (session?.user) {
             await loadUserWithProfile(session.user)
           } else {
@@ -400,9 +505,14 @@ export const useAuthStore = defineStore('auth', () => {
         }
       )
 
+      // Store the subscription for cleanup
+      authSubscription.value = subscription
+
       return subscription
     } catch (err) {
-      // Auth initialization failed
+      console.error('Auth initialization failed:', err)
+      // Ensure user state is cleared on error
+      user.value = null
     }
   }
 
@@ -429,7 +539,12 @@ export const useAuthStore = defineStore('auth', () => {
     clearError,
     createProfileIfNotExists,
     resetPasswordForEmail,
+    resetPasswordForCurrentUser,
+    updatePassword,
     resendEmailConfirmation,
-    initAuth
+    initAuth,
+    cleanup,
+    checkAuthStatus,
+    refreshAuth
   }
 })
