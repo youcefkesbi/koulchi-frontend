@@ -77,7 +77,8 @@
     "dashboard": "لوحة التحكم",
     "myProfile": "ملفي الشخصي",
     "logout": "تسجيل الخروج",
-    "login": "تسجيل الدخول"
+    "login": "تسجيل الدخول",
+    "tagline": "اكتشفه. أحبه. احصل عليه."
   },
   "home": "الرئيسية",
   "products": "المنتجات",
@@ -113,8 +114,8 @@
   "login_successful": "تم تسجيل الدخول بنجاح",
   "redirecting": "جاري التوجيه الآن...",
   "hero": {
-    "title": "تسوق بثقة مع كولشي",
-    "subtitle": "أفضل المنتجات مع الدفع عند الاستلام",
+    "title": "كل ما تحتاجه في مكان واحد",
+    "subtitle": "اكتشفه. أحبه. احصل عليه.",
     "shopNow": "تسوق الآن",
     "learnMore": "تعرف علينا"
   },
@@ -123,8 +124,8 @@
     "fastDeliveryDesc": "توصيل مجاني للطلبات أكثر من 5000 دج",
     "cod": "دفع عند الاستلام",
     "codDesc": "ادفع عند استلام طلبك بأمان تام",
-    "qualityGuarantee": "ضمان الجودة",
-    "qualityGuaranteeDesc": "منتجات أصلية مع ضمان الجودة"
+    "qualityGuarantee": "اكتشف المزيد، ادفع أقل",
+    "qualityGuaranteeDesc": "عروض ستحبها، أسعار تثق بها"
   },
   "sections": {
     "newProducts": "المنتجات الجديدة",
@@ -138,8 +139,8 @@
     "securePaymentDesc": "ادفع فقط عند استلام طلبك وفحصه",
     "fastDeliveryAlgeria": "توصيل سريع في جميع أنحاء الجزائر",
     "fastDeliveryAlgeriaDesc": "نوصل إلى جميع الولايات الجزائرية",
-    "originalProducts": "منتجات أصلية مضمونة",
-    "originalProductsDesc": "جميع منتجاتنا أصلية مع ضمان الجودة",
+    "originalProducts": "اكتشف المزيد، ادفع أقل",
+    "originalProductsDesc": "عروض ستحبها، أسعار تثق بها",
     "competitivePrices": "أسعار تنافسية",
     "competitivePricesDesc": "أفضل الأسعار في السوق الجزائري",
     "customerService": "خدمة عملاء 24/7",
@@ -271,7 +272,7 @@
     "isOnSale": "علامة كمنتج مخفض"
   },
   "footer": {
-    "description": "منصة تسوق إلكتروني رائدة في الجزائر، نقدم أفضل المنتجات مع خدمة الدفع عند الاستلام",
+    "description": "منصة تسوق إلكتروني رائدة في الجزائر - كل ما تحتاجه في مكان واحد. اكتشفه. أحبه. احصل عليه.",
     "quickLinks": "روابط سريعة",
     "aboutUs": "من نحن",
     "privacyPolicy": "سياسة الخصوصية",

@@ -73,7 +73,8 @@
     "dashboard": "Tableau de Bord",
     "myProfile": "Mon Profil",
     "logout": "Déconnexion",
-    "login": "Connexion"
+    "login": "Connexion",
+    "tagline": "Trouvez-le. Aimez-le. Obtenez-le."
   },
   "home": "Accueil",
   "products": "Produits",
@@ -103,8 +104,8 @@
   "error": "Erreur",
   "success": "Succès",
   "hero": {
-    "title": "Achetez en toute confiance avec Koulchi",
-    "subtitle": "Meilleurs produits avec paiement à la livraison",
+    "title": "Tout ce dont vous avez besoin, en un seul endroit",
+    "subtitle": "Trouvez-le. Aimez-le. Obtenez-le.",
     "shopNow": "Acheter maintenant",
     "learnMore": "En savoir plus"
   },
@@ -113,8 +114,8 @@
     "fastDeliveryDesc": "Livraison gratuite pour les commandes de plus de 5000 DZD",
     "cod": "Paiement à la livraison",
     "codDesc": "Payez en toute sécurité à la réception de votre commande",
-    "qualityGuarantee": "Garantie qualité",
-    "qualityGuaranteeDesc": "Produits originaux avec garantie qualité"
+    "qualityGuarantee": "Découvrez Plus, Payez Moins",
+    "qualityGuaranteeDesc": "Des Offres que Vous Aimerez, des Prix auxquels Vous Ferez Confiance"
   },
   "sections": {
     "newProducts": "Nouveaux produits",
@@ -128,8 +129,8 @@
     "securePaymentDesc": "Payez seulement à la réception et inspection de votre commande",
     "fastDeliveryAlgeria": "Livraison rapide dans toute l'Algérie",
     "fastDeliveryAlgeriaDesc": "Nous livrons dans toutes les provinces algériennes",
-    "originalProducts": "Produits originaux garantis",
-    "originalProductsDesc": "Tous nos produits sont originaux avec garantie qualité",
+    "originalProducts": "Découvrez Plus, Payez Moins",
+    "originalProductsDesc": "Des Offres que Vous Aimerez, des Prix auxquels Vous Ferez Confiance",
     "competitivePrices": "Prix compétitifs",
     "competitivePricesDesc": "Meilleurs prix du marché algérien",
     "customerService": "Service client 24/7",
@@ -240,7 +241,7 @@
     "isOnSale": "Marquer comme en promotion"
   },
   "footer": {
-    "description": "Plateforme e-commerce leader en Algérie, offrant les meilleurs produits avec service de paiement à la livraison",
+    "description": "Plateforme e-commerce leader en Algérie - Tout ce dont vous avez besoin, en un seul endroit. Trouvez-le. Aimez-le. Obtenez-le.",
     "quickLinks": "Liens rapides",
     "aboutUs": "À propos de nous",
     "privacyPolicy": "Politique de confidentialité",

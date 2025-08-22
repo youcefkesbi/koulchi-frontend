@@ -122,7 +122,7 @@
             </li>
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>
-              <span>ضمان الجودة والأصلية</span>
+              <span>اكتشف المزيد، ادفع أقل</span>
             </li>
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>

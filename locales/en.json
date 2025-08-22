@@ -79,7 +79,8 @@
     "dashboard": "Dashboard",
     "myProfile": "My Profile",
     "logout": "Logout",
-    "login": "Login"
+    "login": "Login",
+    "tagline": "Find It. Love It. Get It."
   },
   "home": "Home",
   "products": "Products",
@@ -151,8 +152,8 @@
   "passwordsDoNotMatch": "Passwords do not match",
   "passwordTooShort": "Password must be at least 6 characters",
   "hero": {
-    "title": "Shop with Confidence with Koulchi",
-    "subtitle": "Best products with Cash on Delivery",
+    "title": "Everything You Need, All in One Place",
+    "subtitle": "Find It. Love It. Get It.",
     "shopNow": "Shop Now",
     "learnMore": "Learn More"
   },
@@ -161,8 +162,8 @@
     "fastDeliveryDesc": "Free shipping for orders over 5000 DZD",
     "cod": "Cash on Delivery",
     "codDesc": "Pay safely when you receive your order",
-    "qualityGuarantee": "Quality Guarantee",
-    "qualityGuaranteeDesc": "Original products with quality guarantee"
+    "qualityGuarantee": "Discover More, Pay Less",
+    "qualityGuaranteeDesc": "Deals You'll Love, Prices You'll Trust"
   },
   "sections": {
     "newProducts": "New Products",
@@ -176,8 +177,8 @@
     "securePaymentDesc": "Pay only when you receive and inspect your order",
     "fastDeliveryAlgeria": "Fast Delivery Across Algeria",
     "fastDeliveryAlgeriaDesc": "We deliver to all Algerian provinces",
-    "originalProducts": "Original Guaranteed Products",
-    "originalProductsDesc": "All our products are original with quality guarantee",
+    "originalProducts": "Discover More, Pay Less",
+    "originalProductsDesc": "Deals You'll Love, Prices You'll Trust",
     "competitivePrices": "Competitive Prices",
     "competitivePricesDesc": "Best prices in the Algerian market",
     "customerService": "24/7 Customer Service",
@@ -307,7 +308,7 @@
     "isOnSale": "Mark as On Sale"
   },
   "footer": {
-    "description": "Leading e-commerce platform in Algeria, offering the best products with Cash on Delivery service",
+    "description": "Leading e-commerce platform in Algeria - Everything You Need, All in One Place. Find It. Love It. Get It.",
     "quickLinks": "Quick Links",
     "aboutUs": "About Us",
     "privacyPolicy": "Privacy Policy",
