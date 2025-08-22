@@ -70,6 +70,15 @@
   "freeShipping": "توصيل مجاني للطلبات أكثر من 5000 دج",
   "phone": "الهاتف",
   "contact": "اتصل بنا",
+  "header": {
+    "freeShipping": "توصيل مجاني للطلبات أكثر من 5000 دج",
+    "searchPlaceholder": "ابحث عن المنتجات...",
+    "postAnnouncement": "نشر إعلان",
+    "dashboard": "لوحة التحكم",
+    "myProfile": "ملفي الشخصي",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول"
+  },
   "home": "الرئيسية",
   "products": "المنتجات",
   "profile": "الملف الشخصي",

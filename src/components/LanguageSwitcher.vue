@@ -47,6 +47,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { languages } from '../i18n'
 
 export default {
   name: 'LanguageSwitcher',
@@ -54,23 +55,7 @@ export default {
     const { locale } = useI18n()
     const isOpen = ref(false)
 
-    const languages = [
-      {
-        code: 'ar',
-        name: 'العربية',
-        flag: 'https://flagcdn.com/w40/dz.png'
-      },
-      {
-        code: 'en',
-        name: 'English',
-        flag: 'https://flagcdn.com/w40/gb.png'
-      },
-      {
-        code: 'fr',
-        name: 'Français',
-        flag: 'https://flagcdn.com/w40/fr.png'
-      }
-    ]
+
 
     const currentLanguage = computed(() => {
       return languages.find(lang => lang.code === locale.value) || languages[0]

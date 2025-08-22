@@ -72,6 +72,15 @@
   "freeShipping": "Free shipping for orders over 5000 DZD",
   "phone": "Phone",
   "contact": "Contact",
+  "header": {
+    "freeShipping": "Free shipping for orders over 5000 DZD",
+    "searchPlaceholder": "Search for products...",
+    "postAnnouncement": "Post an Announcement",
+    "dashboard": "Dashboard",
+    "myProfile": "My Profile",
+    "logout": "Logout",
+    "login": "Login"
+  },
   "home": "Home",
   "products": "Products",
   "profile": "Profile",
