@@ -17,13 +17,13 @@
             {{ $t('footer.description') }}
           </p>
           <div class="flex space-x-4 space-x-reverse">
-            <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
               <i class="fab fa-facebook-f text-white"></i>
             </a>
-            <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
               <i class="fab fa-instagram text-white"></i>
             </a>
-            <a href="#" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
               <i class="fab fa-twitter text-white"></i>
             </a>
           </div>
@@ -40,19 +40,19 @@
               </router-link>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="mailto:info@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.aboutUs') }}
               </a>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="mailto:info@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.contactUs') }}
               </a>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.help') }}
               </a>
@@ -65,25 +65,25 @@
           <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
-              <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.returnPolicy') }}
               </a>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a href="mailto:legal@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.termsOfUse') }}
               </a>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a href="mailto:legal@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.privacyPolicy') }}
               </a>
             </li>
             <li>
-              <a href="#" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.faq') }}
               </a>
