@@ -104,6 +104,12 @@ const routes = [
     component: StoreDetail,
     props: true
   },
+  {
+    path: '/dashboard/store/create',
+    name: 'CreateStore',
+    component: () => import('../views/CreateStore.vue'),
+    meta: { requiresAuth: true }
+  },
 
 ]
 

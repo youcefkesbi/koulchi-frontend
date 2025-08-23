@@ -136,7 +136,15 @@
     "bannerPreview": "Banner Preview",
     "products": "Products",
     "logo": "Logo",
-    "banner": "Banner"
+    "banner": "Banner",
+    "totalStores": "Total Stores",
+    "createStoreDescription": "Set up your store to start selling products",
+    "basicInfo": "Basic Information",
+    "images": "Images",
+    "review": "Review & Create",
+    "descriptionHelp": "Describe what your store offers and what makes it unique",
+    "logoHelp": "Upload a square logo image (recommended: 512x512px)",
+    "bannerHelp": "Upload a wide banner image (recommended: 1200x400px)"
   },
   "common": {
     "cancel": "Cancel",
@@ -260,8 +268,10 @@
   "dashboard": {
     "userDashboard": "User Dashboard",
     "welcomeMessage": "Welcome back, {name}!",
-    "buyingSection": "Buying Section",
-    "sellingSection": "Selling Section",
+    "buyingSection": "Buying",
+    "sellingSection": "Selling",
+    "buyingDescription": "Track your orders, manage your wishlist, and view your purchase history",
+    "sellingDescription": "Manage your products, stores, and track your sales performance",
     "activeOrders": "Active Orders",
     "wishlist": "Wishlist",
     "currentListings": "Current Listings",
@@ -274,7 +284,8 @@
     "noWishlistMessage": "Add products to your wishlist to see them here",
     "noListings": "No listings yet",
     "noListingsMessage": "Start selling by posting your first announcement",
-    "postFirstAnnouncement": "Post Your First Announcement"
+    "postFirstAnnouncement": "Post Your First Announcement",
+    "salesStatistics": "Sales Statistics"
   },
   "announcement": {
     "postAnnouncement": "Post an Announcement",
@@ -299,7 +310,11 @@
     "back": "Back",
     "saving": "Saving...",
     "update": "Update",
-    "save": "Save"
+    "save": "Save",
+    "next": "Next"
+  },
+  "sections": {
+    "viewAll": "View All"
   },
   "seller": {
     "becomeSeller": "Become a Seller",

@@ -9,5 +9,5 @@ create table public.stores (
   updated_at timestamp with time zone default now()
 );
 
--- Index to quickly find all stores owned by a user --
+-- Index to quickly find all stores owned by a user
 create index idx_stores_owner_id on public.stores (owner_id);
