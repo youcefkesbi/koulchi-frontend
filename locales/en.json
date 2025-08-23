@@ -82,10 +82,7 @@
     "login": "Login",
     "tagline": "Find It. Love It. Get It.",
     "categories": "Categories",
-    "brandName": "Koulchi",
-    "brandNameAr": "كولشي",
-    "contactPhone": "+213 123 456 789",
-    "contactEmail": "info@koulchi.dz"
+    "brandName": "Koulchi"
   },
   "categoryPage": {
     "resultsCount": "Showing {count} of {total} products",
@@ -415,12 +412,7 @@
     "faq": "FAQ",
     "cod": "COD",
     "cashOnDelivery": "Cash on Delivery",
-    "brandName": "Koulchi",
-    "brandNameAr": "كولشي",
-    "contactEmail": "info@koulchi.dz",
-    "supportEmail": "support@koulchi.dz",
-    "legalEmail": "legal@koulchi.dz",
-    "phoneNumber": "+213 123 456 789"
+    "brandName": "Koulchi"
   },
   "navigation": {
     "home": "Home",

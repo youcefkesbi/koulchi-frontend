@@ -6,15 +6,12 @@
         <div class="flex justify-between items-center">
           <div class="flex items-center space-x-4 space-x-reverse">
             <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-phone ml-2"></i>{{ $t('header.contactPhone') }}
-            </span>
-            <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-envelope ml-2"></i>{{ $t('header.contactEmail') }}
+              <i class="fas fa-envelope ml-2"></i>contact@koulchi.site
             </span>
           </div>
           <div class="flex items-center space-x-4 space-x-reverse">
             <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-truck ml-2"></i>{{ $t('header.freeShipping') }}
+              <i class="fas fa-truck ml-2"></i>{{ t('header.freeShipping') }}
             </span>
             <LanguageSwitcher />
           </div>
@@ -30,8 +27,7 @@
               <i class="fas fa-shopping-bag text-white text-xl"></i>
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-primary">{{ $t('header.brandNameAr') }}</h1>
-              <p class="text-sm text-gray-600 font-medium">{{ $t('header.brandName') }}</p>
+              <h1 class="text-2xl font-bold text-primary">{{ t('header.brandName') }}</h1>
             </div>
           </router-link>
 
@@ -42,7 +38,7 @@
                 v-model="searchQuery"
                 @input="handleSearch"
                 type="text"
-                :placeholder="$t('header.searchPlaceholder')"
+                :placeholder="t('header.searchPlaceholder')"
                 class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-primary transition-colors"></i>
@@ -56,7 +52,7 @@
               class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50"
             >
               <i class="fas fa-layer-group text-lg"></i>
-              <span class="font-medium">{{ $t('header.categories') }}</span>
+              <span class="font-medium">{{ t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
 
@@ -88,12 +84,6 @@
           <div class="flex items-center space-x-6 space-x-reverse">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-6 space-x-reverse">
-              <router-link to="/stores" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Stores">
-                <i class="fas fa-store text-xl"></i>
-              </router-link>
-              <router-link to="/products" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Products">
-                <i class="fas fa-shopping-bag text-xl"></i>
-              </router-link>
               <router-link to="/wishlist" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
                 <i class="fas fa-heart text-xl"></i>
                 <span v-if="wishlistStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
@@ -116,7 +106,7 @@
                 class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
               >
                 <i class="fas fa-bullhorn mr-2"></i>
-                {{ $t('header.postAnnouncement') }}
+                {{ t('header.postAnnouncement') }}
               </button>
 
               <!-- User Menu / Login Button -->
@@ -141,17 +131,17 @@
                   class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
                 >
                   <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-chart-line mr-3"></i>{{ $t('header.dashboard') }}
+                    <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                   </router-link>
                   <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-user mr-3"></i>{{ $t('header.myProfile') }}
+                    <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                   </router-link>
                   <button 
                     type="button"
                     @click.prevent="logout" 
                     class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
                   >
-                    <i class="fas fa-sign-out-alt mr-3"></i>{{ $t('header.logout') }}
+                    <i class="fas fa-sign-out-alt mr-3"></i>{{ t('header.logout') }}
                   </button>
                 </div>
               </div>
@@ -162,7 +152,7 @@
                 @click="handleLoginClick"
                 class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
               >
-                <i class="fas fa-sign-in-alt mr-2"></i>{{ $t('header.login') }}
+                <i class="fas fa-sign-in-alt mr-2"></i>{{ t('header.login') }}
               </button>
             </div>
           </div>
@@ -176,8 +166,10 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
 import { useWishlistStore } from '../stores/wishlist'
@@ -192,6 +184,8 @@ export default {
     LoginModal
   },
   setup() {
+    const { t } = useI18n()
+
     const router = useRouter()
     const authStore = useAuthStore()
     const cartStore = useCartStore()
@@ -302,6 +296,7 @@ export default {
     })
 
     return {
+      t,
       searchQuery,
       userMenuOpen,
       categoriesMenuOpen,

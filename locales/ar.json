@@ -80,10 +80,7 @@
     "login": "تسجيل الدخول",
     "tagline": "اكتشفه. أحبه. احصل عليه.",
     "categories": "الفئات",
-    "brandName": "كولشي",
-    "brandNameAr": "كولشي",
-    "contactPhone": "+213 123 456 789",
-    "contactEmail": "info@koulchi.dz"
+    "brandName": "كولشي"
   },
   "categoryPage": {
     "resultsCount": "عرض {count} من {total} منتج",
@@ -371,12 +368,7 @@
     "faq": "الأسئلة الشائعة",
     "cod": "دفع عند الاستلام",
     "cashOnDelivery": "دفع عند الاستلام",
-    "brandName": "كولشي",
-    "brandNameAr": "كولشي",
-    "contactEmail": "info@koulchi.dz",
-    "supportEmail": "support@koulchi.dz",
-    "legalEmail": "legal@koulchi.dz",
-    "phoneNumber": "+213 123 456 789"
+    "brandName": "كولشي"
   },
   "navigation": {
     "home": "الرئيسية",
