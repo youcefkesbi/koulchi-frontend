@@ -72,6 +72,8 @@ export default {
 </script>
 
 <style>
+@import './assets/rtl.css';
+
 /* Custom scrollbar with green theme */
 ::-webkit-scrollbar {
   width: 8px;

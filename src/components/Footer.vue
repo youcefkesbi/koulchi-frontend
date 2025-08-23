@@ -9,8 +9,8 @@
               <i class="fas fa-shopping-bag text-white text-lg"></i>
             </div>
             <div>
-              <h3 class="text-xl font-bold text-primary">كولشي</h3>
-              <p class="text-sm text-gray-300">Koulchi</p>
+                          <h3 class="text-xl font-bold text-primary">{{ $t('footer.brandNameAr') }}</h3>
+            <p class="text-sm text-gray-300">{{ $t('footer.brandName') }}</p>
             </div>
           </div>
           <p class="text-gray-300 leading-relaxed text-sm">
@@ -40,19 +40,19 @@
               </router-link>
             </li>
             <li>
-              <a href="mailto:info@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.contactEmail')}`" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.aboutUs') }}
               </a>
             </li>
             <li>
-              <a href="mailto:info@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.contactEmail')}`" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.contactUs') }}
               </a>
             </li>
             <li>
-              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.supportEmail')}`" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ $t('footer.help') }}
               </a>
@@ -65,25 +65,25 @@
           <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
-              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.supportEmail')}`" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.returnPolicy') }}
               </a>
             </li>
             <li>
-              <a href="mailto:legal@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.legalEmail')}`" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.termsOfUse') }}
               </a>
             </li>
             <li>
-              <a href="mailto:legal@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.legalEmail')}`" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.privacyPolicy') }}
               </a>
             </li>
             <li>
-              <a href="mailto:support@koulchi.dz" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <a :href="`mailto:${$t('footer.supportEmail')}`" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ $t('footer.faq') }}
               </a>
@@ -99,13 +99,13 @@
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-phone text-white text-sm"></i>
               </div>
-              <span class="text-sm">+213 123 456 789</span>
+              <span class="text-sm">{{ $t('footer.phoneNumber') }}</span>
             </div>
             <div class="flex items-center space-x-3 space-x-reverse text-gray-300">
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-envelope text-white text-sm"></i>
               </div>
-              <span class="text-sm">info@koulchi.dz</span>
+              <span class="text-sm">{{ $t('footer.contactEmail') }}</span>
             </div>
             <div class="flex items-center space-x-3 space-x-reverse text-gray-300">
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">

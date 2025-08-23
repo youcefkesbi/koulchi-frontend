@@ -79,7 +79,11 @@
     "logout": "تسجيل الخروج",
     "login": "تسجيل الدخول",
     "tagline": "اكتشفه. أحبه. احصل عليه.",
-    "categories": "الفئات"
+    "categories": "الفئات",
+    "brandName": "كولشي",
+    "brandNameAr": "كولشي",
+    "contactPhone": "+213 123 456 789",
+    "contactEmail": "info@koulchi.dz"
   },
   "categoryPage": {
     "resultsCount": "عرض {count} من {total} منتج",
@@ -223,11 +227,11 @@
   },
   "dashboard": {
     "userDashboard": "لوحة تحكم المستخدم",
-
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
-    
-    "buyingSection": "قسم الشراء",
-    "sellingSection": "قسم البيع",
+    "buyingSection": "الشراء",
+    "sellingSection": "البيع",
+    "buyingDescription": "تتبع طلباتك، وأدر قائمة أمنياتك، واعرض سجل مشترياتك",
+    "sellingDescription": "أدر منتجاتك ومتاجرك وتتبع أداء مبيعاتك",
     "activeOrders": "الطلبات النشطة",
     "wishlist": "قائمة الأمنيات",
     "currentListings": "الإعلانات الحالية",
@@ -240,7 +244,8 @@
     "noWishlistMessage": "أضف منتجات إلى قائمة أمنياتك لرؤيتها هنا",
     "noListings": "لا توجد إعلانات بعد",
     "noListingsMessage": "ابدأ البيع بنشر أول إعلان لك",
-    "postFirstAnnouncement": "انشر أول إعلان لك"
+    "postFirstAnnouncement": "انشر أول إعلان لك",
+    "salesStatistics": "إحصائيات المبيعات"
   },
   "announcement": {
     "postAnnouncement": "نشر إعلان",
@@ -265,7 +270,11 @@
     "goHome": "العودة للرئيسية",
     "saving": "جاري الحفظ...",
     "update": "تحديث",
-    "save": "حفظ"
+    "save": "حفظ",
+    "next": "التالي"
+  },
+  "sections": {
+    "viewAll": "عرض الكل"
   },
   "seller": {
     "becomeSeller": "كن بائعًا",
@@ -320,6 +329,15 @@
     "productName": "اسم المنتج",
     "productNamePlaceholder": "أدخل اسم المنتج بالإنجليزية",
     "productNameArPlaceholder": "أدخل اسم المنتج بالعربية",
+    "store": "المتجر",
+    "selectStore": "اختر متجرًا (اختياري)",
+    "storeSelectionHelp": "اختر متجرًا لربط هذا المنتج به. اتركه فارغًا للمنتجات الشخصية.",
+    "productImages": "صور المنتج",
+    "uploadImages": "رفع الصور",
+    "imageUploadHelp": "يمكنك رفع صور متعددة. الصورة الأولى ستكون الصورة الرئيسية.",
+    "description": "الوصف",
+    "descriptionPlaceholder": "أدخل وصف المنتج بالإنجليزية",
+    "descriptionArPlaceholder": "أدخل وصف المنتج بالعربية",
     "selectCategory": "اختر الفئة",
     "pricing": "التسعير",
     "originalPrice": "السعر الأصلي",
@@ -352,7 +370,13 @@
     "termsOfUse": "شروط الاستخدام",
     "faq": "الأسئلة الشائعة",
     "cod": "دفع عند الاستلام",
-    "cashOnDelivery": "دفع عند الاستلام"
+    "cashOnDelivery": "دفع عند الاستلام",
+    "brandName": "كولشي",
+    "brandNameAr": "كولشي",
+    "contactEmail": "info@koulchi.dz",
+    "supportEmail": "support@koulchi.dz",
+    "legalEmail": "legal@koulchi.dz",
+    "phoneNumber": "+213 123 456 789"
   },
   "navigation": {
     "home": "الرئيسية",

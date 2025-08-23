@@ -6,10 +6,10 @@
         <div class="flex justify-between items-center">
           <div class="flex items-center space-x-4 space-x-reverse">
             <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-phone ml-2"></i>+213 123 456 789
+              <i class="fas fa-phone ml-2"></i>{{ $t('header.contactPhone') }}
             </span>
             <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-envelope ml-2"></i>info@koulchi.dz
+              <i class="fas fa-envelope ml-2"></i>{{ $t('header.contactEmail') }}
             </span>
           </div>
           <div class="flex items-center space-x-4 space-x-reverse">
@@ -30,8 +30,8 @@
               <i class="fas fa-shopping-bag text-white text-xl"></i>
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-primary">كولشي</h1>
-              <p class="text-sm text-gray-600 font-medium">Koulchi</p>
+              <h1 class="text-2xl font-bold text-primary">{{ $t('header.brandNameAr') }}</h1>
+              <p class="text-sm text-gray-600 font-medium">{{ $t('header.brandName') }}</p>
             </div>
           </router-link>
 
