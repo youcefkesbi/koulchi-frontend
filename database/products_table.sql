@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     stock_quantity INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     is_new BOOLEAN DEFAULT true,
+    store_id uuid references public.stores (id) on delete cascade,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -45,3 +46,4 @@ CREATE INDEX IF NOT EXISTS products_category_id_idx ON public.products(category_
 CREATE INDEX IF NOT EXISTS products_seller_id_idx ON public.products(seller_id);
 CREATE INDEX IF NOT EXISTS products_is_active_idx ON public.products(is_active);
 CREATE INDEX IF NOT EXISTS products_created_at_idx ON public.products(created_at);
+CREATE INDEX IF NOT EXISTS products_store_id_idx ON public.products(store_id);
