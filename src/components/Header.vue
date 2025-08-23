@@ -73,7 +73,7 @@
                     <i :class="getCategoryIcon(category.id)" class="text-white text-sm"></i>
                   </div>
                   <span class="text-sm font-medium text-gray-700 group-hover:text-primary transition-colors">
-                    {{ category.name }}
+                    {{ getCategoryName(category.id) }}
                   </span>
                 </router-link>
               </div>
@@ -165,10 +165,11 @@
   </header>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
@@ -177,141 +178,131 @@ import { useProductStore } from '../stores/product'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 
-export default {
-  name: 'Header',
-  components: {
-    LanguageSwitcher,
-    LoginModal
-  },
-  setup() {
-    const { t } = useI18n()
+const { t } = useI18n()
 
-    const router = useRouter()
-    const authStore = useAuthStore()
-    const cartStore = useCartStore()
-    const wishlistStore = useWishlistStore()
-    const productStore = useProductStore()
-    
-    const searchQuery = ref('')
-    const userMenuOpen = ref(false)
-    const categoriesMenuOpen = ref(false)
-    const showLoginModal = ref(false)
-    
-    // Close dropdown when clicking outside
-    const closeDropdown = () => {
-      userMenuOpen.value = false
-    }
-    
-    // Handle click outside dropdown
-    const handleClickOutside = (event) => {
-      // Close user dropdown if clicking outside
-      const userDropdown = event.target.closest('.user-dropdown')
-      if (!userDropdown && userMenuOpen.value) {
-        userMenuOpen.value = false
-      }
-      
-      // Close categories dropdown if clicking outside
-      const categoriesDropdown = event.target.closest('.categories-dropdown')
-      if (!categoriesDropdown && categoriesMenuOpen.value) {
-        categoriesMenuOpen.value = false
-      }
-    }
+const router = useRouter()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+const productStore = useProductStore()
 
-    // Get categories from product store
-    const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
+const searchQuery = ref('')
+const userMenuOpen = ref(false)
+const categoriesMenuOpen = ref(false)
+const showLoginModal = ref(false)
 
-    // Get category icon based on category ID
-    const getCategoryIcon = (categoryId) => {
-      const iconMap = {
-        'cars': 'fas fa-car',
-        'realestate': 'fas fa-home',
-        'electronics': 'fas fa-laptop',
-        'fashion': 'fas fa-tshirt',
-        'home': 'fas fa-couch',
-        'beauty': 'fas fa-spa',
-        'kids': 'fas fa-baby',
-        'food': 'fas fa-utensils'
-      }
-      return iconMap[categoryId] || 'fas fa-tag'
-    }
+// Close dropdown when clicking outside
+const closeDropdown = () => {
+  userMenuOpen.value = false
+}
 
-    const handleSearch = () => {
-      if (searchQuery.value.trim()) {
-        router.push({
-          path: '/products',
-          query: { search: searchQuery.value.trim() }
-        })
-      }
-    }
-
-    const handlePostAnnouncement = () => {
-      if (authStore.isAuthenticated) {
-        router.push('/myannouncements/new')
-      } else {
-        showLoginModal.value = true
-      }
-    }
-
-    const handleLoginClick = () => {
-      showLoginModal.value = true
-    }
-
-    const logout = async () => {
-      try {
-        // Close the dropdown first
-        userMenuOpen.value = false
-        
-        // Small delay to ensure dropdown closes
-        await new Promise(resolve => setTimeout(resolve, 100))
-        
-        // Perform logout
-        await authStore.logout()
-        
-        // Clear any cart data
-        cartStore.clearCart()
-        
-        // Clear wishlist data
-        if (wishlistStore.wishlistItems.length > 0) {
-          wishlistStore.wishlistItems = []
-        }
-        
-        // Redirect to home page and show login modal
-        router.push('/')
-        showLoginModal.value = true
-      } catch (error) {
-        console.error('Logout error:', error)
-        // Even if logout fails, redirect to home and show login modal
-        router.push('/')
-        showLoginModal.value = true
-      }
-    }
-
-    // Add click outside listener
-    onMounted(() => {
-      document.addEventListener('click', handleClickOutside)
-    })
-    
-    onUnmounted(() => {
-      document.removeEventListener('click', handleClickOutside)
-    })
-
-    return {
-      t,
-      searchQuery,
-      userMenuOpen,
-      categoriesMenuOpen,
-      categories,
-      showLoginModal,
-      authStore,
-      cartStore,
-      wishlistStore,
-      handleSearch,
-      handlePostAnnouncement,
-      handleLoginClick,
-      logout,
-      closeDropdown,
-      getCategoryIcon
-    }
+// Handle click outside dropdown
+const handleClickOutside = (event) => {
+  // Close user dropdown if clicking outside
+  const userDropdown = event.target.closest('.user-dropdown')
+  if (!userDropdown && userMenuOpen.value) {
+    userMenuOpen.value = false
+  }
+  
+  // Close categories dropdown if clicking outside
+  const categoriesDropdown = event.target.closest('.categories-dropdown')
+  if (!categoriesDropdown && categoriesMenuOpen.value) {
+    categoriesMenuOpen.value = false
   }
 }
+
+// Get categories from product store
+const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
+
+// Get category icon based on category ID
+const getCategoryIcon = (categoryId) => {
+  const iconMap = {
+    'cars': 'fas fa-car',
+    'realestate': 'fas fa-home',
+    'electronics': 'fas fa-laptop',
+    'fashion': 'fas fa-tshirt',
+    'home': 'fas fa-couch',
+    'beauty': 'fas fa-spa',
+    'kids': 'fas fa-baby',
+    'food': 'fas fa-utensils'
+  }
+  return iconMap[categoryId] || 'fas fa-tag'
+}
+
+// Get category name from database
+const getCategoryName = (categoryId) => {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
+    
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
+    }
+    
+    // Fall back to the main name field
+    return category.name
+  }
+  return categoryId
+}
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push({
+      path: '/products',
+      query: { search: searchQuery.value.trim() }
+    })
+  }
+}
+
+const handlePostAnnouncement = () => {
+  if (authStore.isAuthenticated) {
+    router.push('/myannouncements/new')
+  } else {
+    showLoginModal.value = true
+  }
+}
+
+const handleLoginClick = () => {
+  showLoginModal.value = true
+}
+
+const logout = async () => {
+  try {
+    // Close the dropdown first
+    userMenuOpen.value = false
+    
+    // Small delay to ensure dropdown closes
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Perform logout
+    await authStore.logout()
+    
+    // Clear any cart data
+    cartStore.clearCart()
+    
+    // Clear wishlist data
+    if (wishlistStore.wishlistItems.length > 0) {
+      wishlistStore.wishlistItems = []
+    }
+    
+    // Redirect to home page and show login modal
+    router.push('/')
+    showLoginModal.value = true
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Even if logout fails, redirect to home and show login modal
+    router.push('/')
+    showLoginModal.value = true
+  }
+}
+
+// Add click outside listener
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script> 

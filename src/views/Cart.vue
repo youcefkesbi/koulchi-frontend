@@ -170,62 +170,45 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'Cart',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const cartStore = useCartStore()
-    const productStore = useProductStore()
+const cartStore = useCartStore()
+const productStore = useProductStore()
 
-    const recommendedProducts = computed(() => {
-      // Get products that are not in cart
-      const cartProductIds = cartStore.items.map(item => item.id)
-      return productStore.products
-        .filter(product => !cartProductIds.includes(product.id))
-        .slice(0, 4)
-    })
+const recommendedProducts = computed(() => {
+  // Get products that are not in cart
+  const cartProductIds = cartStore.items.map(item => item.id)
+  return productStore.products
+    .filter(product => !cartProductIds.includes(product.id))
+    .slice(0, 4)
+})
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
-
-    const updateQuantity = async (productId, quantity) => {
-      await cartStore.updateQuantity(productId, quantity)
-    }
-
-    const removeItem = async (productId) => {
-      await cartStore.removeFromCart(productId)
-    }
-
-    const handleImageError = (event) => {
-      // Hide the image if it fails to load
-      event.target.style.display = 'none'
-    }
-
-    // Fetch cart and products on component mount
-    onMounted(async () => {
-      await Promise.all([
-        cartStore.fetchCart(),
-        productStore.fetchProducts()
-      ])
-    })
-
-    return {
-      cartStore,
-      recommendedProducts,
-      formatPrice,
-      updateQuantity,
-      removeItem,
-      handleImageError
-    }
-  }
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
 }
+
+const updateQuantity = async (productId, quantity) => {
+  await cartStore.updateQuantity(productId, quantity)
+}
+
+const removeItem = async (productId) => {
+  await cartStore.removeFromCart(productId)
+}
+
+const handleImageError = (event) => {
+  // Hide the image if it fails to load
+  event.target.style.display = 'none'
+}
+
+// Fetch cart and products on component mount
+onMounted(async () => {
+  await Promise.all([
+    cartStore.fetchCart(),
+    productStore.fetchProducts()
+  ])
+})
 </script> 

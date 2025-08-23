@@ -241,6 +241,16 @@
   "sections": {
     "viewAll": "Voir Tout"
   },
+  "categories": {
+    "cars": "Voitures",
+    "realestate": "Immobilier",
+    "electronics": "Électronique",
+    "fashion": "Mode",
+    "home": "Maison & Cuisine",
+    "beauty": "Beauté & Soins Personnels",
+    "kids": "Enfants",
+    "food": "Alimentation & Boissons"
+  },
   "seller": {
     "becomeSeller": "Devenir Vendeur",
     "dashboard": "Tableau de Bord Vendeur",

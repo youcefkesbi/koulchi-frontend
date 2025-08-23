@@ -271,7 +271,21 @@
     "next": "التالي"
   },
   "sections": {
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "newProducts": "المنتجات الجديدة",
+    "saleProducts": "المنتجات المخفضة",
+    "browseByCategory": "تصفح حسب الفئة",
+    "whyChooseUs": "لماذا تختار كولشي؟"
+  },
+  "categories": {
+    "cars": "السيارات",
+    "realestate": "العقارات",
+    "electronics": "الإلكترونيات",
+    "fashion": "الموضة",
+    "home": "المنزل والمطبخ",
+    "beauty": "الجمال والرعاية الشخصية",
+    "kids": "الأطفال",
+    "food": "الطعام والمشروبات"
   },
   "seller": {
     "becomeSeller": "كن بائعًا",

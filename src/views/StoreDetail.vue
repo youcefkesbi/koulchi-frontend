@@ -112,7 +112,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStoreStore } from '../stores/store'
@@ -120,63 +120,48 @@ import { useProductStore } from '../stores/product'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'StoreDetail',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const route = useRoute()
-    const storeStore = useStoreStore()
-    const productStore = useProductStore()
-    
-    const productsLoading = ref(false)
-    const storeProducts = ref([])
+const route = useRoute()
+const storeStore = useStoreStore()
+const productStore = useProductStore()
 
-    const fetchStoreProducts = async () => {
-      try {
-        productsLoading.value = true
-        const { data, error } = await supabase
-          .from('products')
-          .select('*, categories(name, name_ar)')
-          .eq('store_id', route.params.id)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
+const productsLoading = ref(false)
+const storeProducts = ref([])
 
-        if (error) throw error
-        storeProducts.value = data || []
-      } catch (err) {
-        console.error('Error fetching store products:', err)
-      } finally {
-        productsLoading.value = false
-      }
-    }
+const fetchStoreProducts = async () => {
+  try {
+    productsLoading.value = true
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, categories(name, name_ar)')
+      .eq('store_id', route.params.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
 
-    const retryFetch = async () => {
-      storeStore.clearError()
-      await Promise.all([
-        storeStore.fetchStoreById(route.params.id),
-        fetchStoreProducts()
-      ])
-    }
-
-    onMounted(async () => {
-      await Promise.all([
-        storeStore.fetchStoreById(route.params.id),
-        fetchStoreProducts()
-      ])
-    })
-
-    onUnmounted(() => {
-      storeStore.clearCurrentStore()
-    })
-
-    return {
-      storeStore,
-      productsLoading,
-      storeProducts,
-      retryFetch
-    }
+    if (error) throw error
+    storeProducts.value = data || []
+  } catch (err) {
+    console.error('Error fetching store products:', err)
+  } finally {
+    productsLoading.value = false
   }
 }
+
+const retryFetch = async () => {
+  storeStore.clearError()
+  await Promise.all([
+    storeStore.fetchStoreById(route.params.id),
+    fetchStoreProducts()
+  ])
+}
+
+onMounted(async () => {
+  await Promise.all([
+    storeStore.fetchStoreById(route.params.id),
+    fetchStoreProducts()
+  ])
+})
+
+onUnmounted(() => {
+  storeStore.clearCurrentStore()
+})
 </script>

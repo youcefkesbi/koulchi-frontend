@@ -193,104 +193,85 @@
   </TransitionRoot>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { supabase } from '../lib/supabase'
 
-export default {
-  name: 'PostAnnouncement',
-  components: {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogPanel,
-    DialogTitle
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false
-    }
-  },
-  emits: ['close', 'announcement-posted'],
-  setup(props, { emit }) {
-    const loading = ref(false)
-    const error = ref('')
-    const showSuccess = ref(false)
-    
-    const form = reactive({
-      name: '',
-      nameAr: '',
-      category: '',
-      price: '',
-      image: '',
-      description: '',
-      descriptionAr: ''
-    })
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  }
+})
 
-    const closeModal = () => {
-      error.value = ''
-      showSuccess.value = false
-      // Reset form
-      Object.keys(form).forEach(key => {
-        form[key] = ''
+const emit = defineEmits(['close', 'announcement-posted'])
+
+const loading = ref(false)
+const error = ref('')
+const showSuccess = ref(false)
+
+const form = reactive({
+  name: '',
+  nameAr: '',
+  category: '',
+  price: '',
+  image: '',
+  description: '',
+  descriptionAr: ''
+})
+
+const closeModal = () => {
+  error.value = ''
+  showSuccess.value = false
+  // Reset form
+  Object.keys(form).forEach(key => {
+    form[key] = ''
+  })
+  emit('close')
+}
+
+const submitForm = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    const { data, error: createError } = await supabase
+      .from('products')
+      .insert({
+        seller_id: user.id,
+        name: form.name,
+        name_ar: form.nameAr,
+        price: parseFloat(form.price),
+        image: form.image || null,
+        category_id: form.category,
+        description: form.description || null,
+        description_ar: form.descriptionAr || null,
+        in_stock: true,
+        is_new: true,
+        is_on_sale: false,
+        is_active: true,
+        rating: 0,
+        reviews: 0
       })
-      emit('close')
-    }
+      .select()
+      .single()
 
-    const submitForm = async () => {
-      try {
-        loading.value = true
-        error.value = ''
+    if (createError) throw createError
 
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error('User not authenticated')
-
-        const { data, error: createError } = await supabase
-          .from('products')
-          .insert({
-            seller_id: user.id,
-            name: form.name,
-            name_ar: form.nameAr,
-            price: parseFloat(form.price),
-            image: form.image || null,
-            category_id: form.category,
-            description: form.description || null,
-            description_ar: form.descriptionAr || null,
-            in_stock: true,
-            is_new: true,
-            is_on_sale: false,
-            is_active: true,
-            rating: 0,
-            reviews: 0
-          })
-          .select()
-          .single()
-
-        if (createError) throw createError
-
-        showSuccess.value = true
-        emit('announcement-posted')
-        setTimeout(() => {
-          closeModal()
-        }, 2000)
-      } catch (err) {
-        error.value = err.message || $t('announcement.error')
-        console.error('Error creating product:', err)
-      } finally {
-        loading.value = false
-      }
-    }
-
-    return {
-      form,
-      loading,
-      error,
-      showSuccess,
-      closeModal,
-      submitForm
-    }
+    showSuccess.value = true
+    emit('announcement-posted')
+    setTimeout(() => {
+      closeModal()
+    }, 2000)
+  } catch (err) {
+    error.value = err.message || 'Error creating announcement'
+    console.error('Error creating product:', err)
+  } finally {
+    loading.value = false
   }
 }
 </script> 

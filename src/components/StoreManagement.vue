@@ -264,171 +264,147 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useStoreStore } from '../stores/store'
 import { useProductStore } from '../stores/product'
 
-export default {
-  name: 'StoreManagement',
-  setup() {
-    const storeStore = useStoreStore()
-    const productStore = useProductStore()
-    
-    const showCreateModal = ref(false)
-    const editingStore = ref(null)
-    const logoPreview = ref('')
-    const bannerPreview = ref('')
-    
-    const formData = reactive({
-      name: '',
-      description: '',
-      logo_url: '',
-      banner_url: ''
-    })
+const storeStore = useStoreStore()
+const productStore = useProductStore()
 
-    const getStoreProductCount = (storeId) => {
-      return productStore.products.filter(p => p.store_id === storeId).length
+const showCreateModal = ref(false)
+const editingStore = ref(null)
+const logoPreview = ref('')
+const bannerPreview = ref('')
+
+const formData = reactive({
+  name: '',
+  description: '',
+  logo_url: '',
+  banner_url: ''
+})
+
+const getStoreProductCount = (storeId) => {
+  return productStore.products.filter(p => p.store_id === storeId).length
+}
+
+const handleLogoChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    logoPreview.value = URL.createObjectURL(file)
+    formData.logo_url = file
+  }
+}
+
+const handleBannerChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    bannerPreview.value = URL.createObjectURL(file)
+    formData.banner_url = file
+  }
+}
+
+const removeLogo = () => {
+  logoPreview.value = ''
+  formData.logo_url = ''
+  if (editingStore.value?.logo_url) {
+    formData.logo_url = editingStore.value.logo_url
+  }
+}
+
+const removeBanner = () => {
+  bannerPreview.value = ''
+  formData.banner_url = ''
+  if (editingStore.value?.banner_url) {
+    formData.banner_url = editingStore.value.banner_url
+  }
+}
+
+const editStore = (store) => {
+  editingStore.value = store
+  formData.name = store.name
+  formData.description = store.description || ''
+  formData.logo_url = store.logo_url || ''
+  formData.banner_url = store.banner_url || ''
+  logoPreview.value = store.logo_url || ''
+  bannerPreview.value = store.banner_url || ''
+  showCreateModal.value = true
+}
+
+const closeModal = () => {
+  showCreateModal.value = false
+  editingStore.value = null
+  resetForm()
+}
+
+const resetForm = () => {
+  formData.name = ''
+  formData.description = ''
+  formData.logo_url = ''
+  formData.banner_url = ''
+  logoPreview.value = ''
+  bannerPreview.value = ''
+}
+
+const handleSubmit = async () => {
+  try {
+    let logoUrl = formData.logo_url
+    let bannerUrl = formData.banner_url
+
+    // Upload new images if they're files
+    if (formData.logo_url instanceof File) {
+      const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
+      logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
     }
 
-    const handleLogoChange = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        logoPreview.value = URL.createObjectURL(file)
-        formData.logo_url = file
-      }
+    if (formData.banner_url instanceof File) {
+      const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
+      bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
     }
 
-    const handleBannerChange = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        bannerPreview.value = URL.createObjectURL(file)
-        formData.banner_url = file
-      }
-    }
-
-    const removeLogo = () => {
-      logoPreview.value = ''
-      formData.logo_url = ''
-      if (editingStore.value?.logo_url) {
-        formData.logo_url = editingStore.value.logo_url
-      }
-    }
-
-    const removeBanner = () => {
-      bannerPreview.value = ''
-      formData.banner_url = ''
-      if (editingStore.value?.banner_url) {
-        formData.banner_url = editingStore.value.banner_url
-      }
-    }
-
-    const editStore = (store) => {
-      editingStore.value = store
-      formData.name = store.name
-      formData.description = store.description || ''
-      formData.logo_url = store.logo_url || ''
-      formData.banner_url = store.banner_url || ''
-      logoPreview.value = store.logo_url || ''
-      bannerPreview.value = store.banner_url || ''
-      showCreateModal.value = true
-    }
-
-    const closeModal = () => {
-      showCreateModal.value = false
-      editingStore.value = null
-      resetForm()
-    }
-
-    const resetForm = () => {
-      formData.name = ''
-      formData.description = ''
-      formData.logo_url = ''
-      formData.banner_url = ''
-      logoPreview.value = ''
-      bannerPreview.value = ''
-    }
-
-    const handleSubmit = async () => {
-      try {
-        let logoUrl = formData.logo_url
-        let bannerUrl = formData.banner_url
-
-        // Upload new images if they're files
-        if (formData.logo_url instanceof File) {
-          const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
-          logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
-        }
-
-        if (formData.banner_url instanceof File) {
-          const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
-          bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
-        }
-
-        if (editingStore.value) {
-          await storeStore.updateStore(editingStore.value.id, {
-            name: formData.name,
-            description: formData.description,
-            logo_url: logoUrl,
-            banner_url: bannerUrl
-          })
-        } else {
-          await storeStore.createStore({
-            name: formData.name,
-            description: formData.description,
-            logo_url: logoUrl,
-            banner_url: bannerUrl
-          })
-        }
-
-        closeModal()
-      } catch (error) {
-        console.error('Error saving store:', error)
-      }
-    }
-
-    const deleteStore = async (storeId) => {
-      if (confirm('Are you sure you want to delete this store? This action cannot be undone.')) {
-        try {
-          await storeStore.deleteStore(storeId)
-        } catch (error) {
-          console.error('Error deleting store:', error)
-        }
-      }
-    }
-
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    if (editingStore.value) {
+      await storeStore.updateStore(editingStore.value.id, {
+        name: formData.name,
+        description: formData.description,
+        logo_url: logoUrl,
+        banner_url: bannerUrl
+      })
+    } else {
+      await storeStore.createStore({
+        name: formData.name,
+        description: formData.description,
+        logo_url: logoUrl,
+        banner_url: bannerUrl
       })
     }
 
-    onMounted(async () => {
-      await storeStore.fetchUserStores()
-    })
+    closeModal()
+  } catch (error) {
+    console.error('Error saving store:', error)
+  }
+}
 
-    return {
-      storeStore,
-      showCreateModal,
-      editingStore,
-      logoPreview,
-      bannerPreview,
-      formData,
-      getStoreProductCount,
-      handleLogoChange,
-      handleBannerChange,
-      removeLogo,
-      removeBanner,
-      editStore,
-      closeModal,
-      handleSubmit,
-      deleteStore,
-      formatDate
+const deleteStore = async (storeId) => {
+  if (confirm('Are you sure you want to delete this store? This action cannot be undone.')) {
+    try {
+      await storeStore.deleteStore(storeId)
+    } catch (error) {
+      console.error('Error deleting store:', error)
     }
   }
 }
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+onMounted(async () => {
+  await storeStore.fetchUserStores()
+})
 </script>
 
 <style scoped>

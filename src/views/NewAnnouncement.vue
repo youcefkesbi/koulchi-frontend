@@ -76,7 +76,7 @@
                 >
                   <option value="">{{ $t('announcement.selectCategory') }}</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
+                    {{ getCategoryName(category.id) }}
                   </option>
                 </select>
               </div>
@@ -237,275 +237,275 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { useProductStore } from '../stores/product'
 
-export default {
-  name: 'NewAnnouncement',
-  setup() {
-    const router = useRouter()
-    const productStore = useProductStore()
-    
-    const loading = ref(false)
-    const error = ref('')
-    const showSuccess = ref(false)
-    const categories = ref([])
-    const imageFiles = ref([])
-    const imageInput = ref(null)
-    const uploadProgress = ref('')
-    
-    const form = reactive({
-      name: '',
-      description: '',
-      price: '',
-      category_id: '',
-      stock_quantity: 0,
-      is_new: true,
-      is_active: true
-    })
+const { t } = useI18n()
+const router = useRouter()
+const productStore = useProductStore()
 
-    // Fetch categories on component mount
-    onMounted(async () => {
-      try {
-        await productStore.fetchCategories()
-        categories.value = productStore.categories
-      } catch (err) {
-        // Categories failed to load
-      }
-    })
+const loading = ref(false)
+const error = ref('')
+const showSuccess = ref(false)
+const categories = ref([])
+const imageFiles = ref([])
+const imageInput = ref(null)
+const uploadProgress = ref('')
 
-    // Handle image upload
-    const handleImageUpload = (event) => {
-      const files = Array.from(event.target.files)
+const getCategoryName = (categoryId) => {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
+    
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
+    }
+    
+    // Fall back to the main name field
+    return category.name
+  }
+  return categoryId
+}
+
+const form = reactive({
+  name: '',
+  description: '',
+  price: '',
+  category_id: '',
+  stock_quantity: 0,
+  is_new: true,
+  is_active: true
+})
+
+// Fetch categories on component mount
+onMounted(async () => {
+  try {
+    await productStore.fetchCategories()
+    categories.value = productStore.categories
+  } catch (err) {
+    // Categories failed to load
+  }
+})
+
+// Handle image upload
+const handleImageUpload = (event) => {
+  const files = Array.from(event.target.files)
+  
+  // Validate file count
+  if (imageFiles.value.length + files.length > 3) {
+    error.value = 'Maximum 3 images allowed'
+    return
+  }
+  
+  // Validate each file
+  files.forEach(file => {
+    // Check file size (2MB = 2 * 1024 * 1024 bytes)
+    if (file.size > 2 * 1024 * 1024) {
+      error.value = `File ${file.name} is too large. Maximum size is 2MB.`
+      return
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      error.value = `File ${file.name} is not an image.`
+      return
+    }
+    
+    // Create preview URL
+    const preview = URL.createObjectURL(file)
+    imageFiles.value.push({
+      file,
+      preview,
+      name: file.name
+    })
+  })
+  
+  // Clear input
+  event.target.value = ''
+}
+
+// Remove image
+const removeImage = (index) => {
+  URL.revokeObjectURL(imageFiles.value[index].preview)
+  imageFiles.value.splice(index, 1)
+}
+
+// Upload images to Supabase Storage
+const uploadImages = async (userId) => {
+  if (imageFiles.value.length === 0) return []
+  
+  const imageUrls = []
+  
+  try {
+    for (let i = 0; i < imageFiles.value.length; i++) {
+      const imageFile = imageFiles.value[i]
+      const fileName = `${userId}/${Date.now()}-${i}-${imageFile.name}`
       
-      // Validate file count
-      if (imageFiles.value.length + files.length > 3) {
-        error.value = 'Maximum 3 images allowed'
-        return
-      }
+      uploadProgress.value = `Uploading image ${i + 1}/${imageFiles.value.length}...`
       
-      // Validate each file
-      files.forEach(file => {
-        // Check file size (2MB = 2 * 1024 * 1024 bytes)
-        if (file.size > 2 * 1024 * 1024) {
-          error.value = `File ${file.name} is too large. Maximum size is 2MB.`
-          return
-        }
-        
-        // Check file type
-        if (!file.type.startsWith('image/')) {
-          error.value = `File ${file.name} is not an image.`
-          return
-        }
-        
-        // Create preview URL
-        const preview = URL.createObjectURL(file)
-        imageFiles.value.push({
-          file,
-          preview,
-          name: file.name
-        })
+      // Add timeout for each upload
+      const uploadPromise = supabase.storage
+        .from('product-images')
+        .upload(fileName, imageFile.file)
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`Upload timeout for ${imageFile.name}`)), 30000)
       })
       
-      // Clear input
-      event.target.value = ''
+      const { data, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise])
+      
+      if (uploadError) {
+        throw new Error(`Failed to upload ${imageFile.name}: ${uploadError.message}`)
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName)
+      
+      imageUrls.push(publicUrl)
+    }
+    
+    uploadProgress.value = ''
+    return imageUrls
+    
+  } catch (error) {
+    throw error
+  }
+}
+
+const submitForm = async () => {
+  // Clear any previous errors
+  error.value = ''
+  uploadProgress.value = ''
+  
+  try {
+    // Basic form validation
+    if (!form.name || !form.name.trim()) {
+      error.value = 'Product name is required'
+      return
+    }
+    
+    if (!form.category_id) {
+      error.value = 'Please select a category'
+      return
+    }
+    
+    if (!form.price || parseFloat(form.price) <= 0) {
+      error.value = 'Please enter a valid price'
+      return
+    }
+    
+    if (!form.stock_quantity || parseInt(form.stock_quantity) < 0) {
+      error.value = 'Please enter a valid stock quantity'
+      return
     }
 
-    // Remove image
-    const removeImage = (index) => {
-      URL.revokeObjectURL(imageFiles.value[index].preview)
-      imageFiles.value.splice(index, 1)
-    }
+    loading.value = true
 
-    // Upload images to Supabase Storage
-    const uploadImages = async (userId) => {
-      if (imageFiles.value.length === 0) return []
-      
-      const imageUrls = []
-      
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('User not authenticated')
+
+    // Test storage bucket access
+    if (imageFiles.value.length > 0) {
+
       try {
-        for (let i = 0; i < imageFiles.value.length; i++) {
-          const imageFile = imageFiles.value[i]
-          const fileName = `${userId}/${Date.now()}-${i}-${imageFile.name}`
-          
-          uploadProgress.value = `Uploading image ${i + 1}/${imageFiles.value.length}...`
-          
-          // Add timeout for each upload
-          const uploadPromise = supabase.storage
-            .from('product-images')
-            .upload(fileName, imageFile.file)
-          
-          const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error(`Upload timeout for ${imageFile.name}`)), 30000)
-          })
-          
-          const { data, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise])
-          
-          if (uploadError) {
-            throw new Error(`Failed to upload ${imageFile.name}: ${uploadError.message}`)
+        const { data: bucketData, error: bucketError } = await supabase.storage
+          .from('product-images')
+          .list('', { limit: 1 })
+        
+        if (bucketError) {
+          if (bucketError.message.includes('does not exist')) {
+            error.value = 'Warning: Storage bucket "product-images" does not exist. Product will be created without images.'
+          } else if (bucketError.message.includes('permission denied')) {
+            error.value = 'Warning: No permission to access storage bucket. Product will be created without images.'
+          } else {
+            error.value = 'Warning: Storage bucket access failed. Product will be created without images.'
           }
-          
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(fileName)
-          
-          imageUrls.push(publicUrl)
-        }
-        
-        uploadProgress.value = ''
-        return imageUrls
-        
-      } catch (error) {
-        throw error
+          imageFiles.value = [] // Clear images to prevent upload attempt
+                      }
+      } catch (bucketTestError) {
+        error.value = 'Warning: Storage bucket not accessible. Product will be created without images.'
+        imageFiles.value = [] // Clear images to prevent upload attempt
       }
     }
 
-    const submitForm = async () => {
-      // Clear any previous errors
-      error.value = ''
-      uploadProgress.value = ''
-      
+    // Upload images first
+    let imageUrls = []
+    if (imageFiles.value.length > 0) {
       try {
-        // Basic form validation
-        if (!form.name || !form.name.trim()) {
-          error.value = 'Product name is required'
-          return
-        }
+        // Add overall timeout for image uploads
+        const uploadTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Image upload process timed out')), 60000) // 1 minute total
+        })
         
-        if (!form.category_id) {
-          error.value = 'Please select a category'
-          return
-        }
-        
-        if (!form.price || parseFloat(form.price) <= 0) {
-          error.value = 'Please enter a valid price'
-          return
-        }
-        
-        if (!form.stock_quantity || parseInt(form.stock_quantity) < 0) {
-          error.value = 'Please enter a valid stock quantity'
-          return
-        }
-
-        loading.value = true
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error('User not authenticated')
-
-        // Test storage bucket access
-        if (imageFiles.value.length > 0) {
-
-          try {
-            const { data: bucketData, error: bucketError } = await supabase.storage
-              .from('product-images')
-              .list('', { limit: 1 })
-            
-            if (bucketError) {
-              if (bucketError.message.includes('does not exist')) {
-                error.value = 'Warning: Storage bucket "product-images" does not exist. Product will be created without images.'
-              } else if (bucketError.message.includes('permission denied')) {
-                error.value = 'Warning: No permission to access storage bucket. Product will be created without images.'
-              } else {
-                error.value = 'Warning: Storage bucket access failed. Product will be created without images.'
-              }
-              imageFiles.value = [] // Clear images to prevent upload attempt
-                          }
-          } catch (bucketTestError) {
-            error.value = 'Warning: Storage bucket not accessible. Product will be created without images.'
-            imageFiles.value = [] // Clear images to prevent upload attempt
-          }
-        }
-
-        // Upload images first
-        let imageUrls = []
-        if (imageFiles.value.length > 0) {
-          try {
-            // Add overall timeout for image uploads
-            const uploadTimeout = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Image upload process timed out')), 60000) // 1 minute total
-            })
-            
-            const uploadPromise = uploadImages(user.id)
-            imageUrls = await Promise.race([uploadPromise, uploadTimeout])
-          } catch (uploadError) {
-            error.value = 'Warning: Images failed to upload. Product will be created without images.'
-            // Continue without images rather than failing completely
-            imageUrls = []
-          }
-        }
-
-        // Create product
-        const productData = {
-          name: form.name,
-          description: form.description || null,
-          price: parseFloat(form.price),
-          image_urls: imageUrls,
-          category_id: form.category_id,
-          seller_id: user.id,
-          stock_quantity: parseInt(form.stock_quantity),
-          is_active: form.is_active,
-          is_new: form.is_new
-        }
-
-        // Insert product
-        const { error: insertError } = await supabase
-          .from('products')
-          .insert(productData)
-
-        if (insertError) {
-          throw new Error(`Failed to insert product: ${insertError.message}`)
-        }
-
-        // Fetch the inserted product
-        const { data, error: fetchError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('seller_id', user.id)
-          .eq('name', form.name)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single()
-
-        if (fetchError) {
-          throw new Error(`Failed to fetch created product: ${fetchError.message}`)
-        }
-
-        showSuccess.value = true
-        
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 2000)
-      } catch (err) {
-        error.value = err.message || 'Error creating product'
-        // Ensure loading is reset on error
-        loading.value = false
-        uploadProgress.value = ''
-      } finally {
-        // Always ensure loading is reset
-        if (loading.value) {
-          loading.value = false
-        }
+        const uploadPromise = uploadImages(user.id)
+        imageUrls = await Promise.race([uploadPromise, uploadTimeout])
+      } catch (uploadError) {
+        error.value = 'Warning: Images failed to upload. Product will be created without images.'
+        // Continue without images rather than failing completely
+        imageUrls = []
       }
     }
 
-            return {
-          form,
-          loading,
-          error,
-          showSuccess,
-          categories,
-          imageFiles,
-          imageInput,
-          uploadProgress,
-          submitForm,
-          handleImageUpload,
-          removeImage
-        }
+    // Create product
+    const productData = {
+      name: form.name,
+      description: form.description || null,
+      price: parseFloat(form.price),
+      image_urls: imageUrls,
+      category_id: form.category_id,
+      seller_id: user.id,
+      stock_quantity: parseInt(form.stock_quantity),
+      is_active: form.is_active,
+      is_new: form.is_new
+    }
+
+    // Insert product
+    const { error: insertError } = await supabase
+      .from('products')
+      .insert(productData)
+
+    if (insertError) {
+      throw new Error(`Failed to insert product: ${insertError.message}`)
+    }
+
+    // Fetch the inserted product
+    const { data, error: fetchError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('seller_id', user.id)
+      .eq('name', form.name)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch created product: ${fetchError.message}`)
+    }
+
+    showSuccess.value = true
+    
+    // Redirect to dashboard after 2 seconds
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 2000)
+  } catch (err) {
+    error.value = err.message || 'Error creating product'
+    // Ensure loading is reset on error
+    loading.value = false
+    uploadProgress.value = ''
+  } finally {
+    // Always ensure loading is reset
+    if (loading.value) {
+      loading.value = false
+    }
   }
 }
 </script>

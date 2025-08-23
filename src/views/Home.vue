@@ -65,7 +65,7 @@
             />
             <i v-else class="fas fa-box text-white text-2xl"></i>
           </div>
-          <h3 class="font-bold text-lg text-dark mb-2">{{ category.name }}</h3>
+          <h3 class="font-bold text-lg text-dark mb-2">{{ getCategoryName(category.id) }}</h3>
         </router-link>
       </div>
     </section>
@@ -169,40 +169,50 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'Home',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const productStore = useProductStore()
+const { t } = useI18n()
+const productStore = useProductStore()
 
-    const newProducts = computed(() => {
-      return productStore.products.slice(0, 8)
-    })
+const newProducts = computed(() => {
+  return productStore.products.slice(0, 8)
+})
 
-    const categories = computed(() => {
-      return productStore.categories.filter(cat => cat.id !== 'all')
-    })
+const categories = computed(() => {
+  return productStore.categories.filter(cat => cat.id !== 'all')
+})
 
-    onMounted(async () => {
-      if (productStore.products.length === 0) {
-        await productStore.fetchProducts()
-      }
-      if (productStore.categories.length === 0) {
-        await productStore.fetchCategories()
-      }
-    })
-
-    return {
-      newProducts,
-      categories
+const getCategoryName = (categoryId) => {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
+    
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
     }
+    
+    if (currentLocale === 'fr' && category.name_fr) {
+      return category.name_fr
+    }
+    
+    // Fall back to the main name field (English)
+    return category.name
   }
+  return categoryId
 }
+
+onMounted(async () => {
+  if (productStore.products.length === 0) {
+    await productStore.fetchProducts()
+  }
+  if (productStore.categories.length === 0) {
+    await productStore.fetchCategories()
+  }
+})
 </script>

@@ -95,94 +95,78 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'ResetPassword',
-  setup() {
-    const router = useRouter()
-    const authStore = useAuthStore()
-    const { t } = useI18n()
-    
-    const loading = ref(false)
-    const error = ref('')
-    const successMessage = ref('')
-    const showNewPassword = ref(false)
-    const showConfirmPassword = ref(false)
-    
-    const form = reactive({
-      newPassword: '',
-      confirmPassword: ''
-    })
+const router = useRouter()
+const authStore = useAuthStore()
+const { t } = useI18n()
 
-    // Form validation
-    const isFormValid = computed(() => {
-      return form.newPassword && 
-             form.confirmPassword && 
-             form.newPassword === form.confirmPassword &&
-             form.newPassword.length >= 6
-    })
+const loading = ref(false)
+const error = ref('')
+const successMessage = ref('')
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 
-    const handleResetPassword = async () => {
-      try {
-        loading.value = true
-        error.value = ''
-        successMessage.value = ''
+const form = reactive({
+  newPassword: '',
+  confirmPassword: ''
+})
 
-        // Validate passwords match
-        if (form.newPassword !== form.confirmPassword) {
-          error.value = t('passwordsDoNotMatch')
-          return
-        }
+// Form validation
+const isFormValid = computed(() => {
+  return form.newPassword && 
+         form.confirmPassword && 
+         form.newPassword === form.confirmPassword &&
+         form.newPassword.length >= 6
+})
 
-        // Validate password length
-        if (form.newPassword.length < 6) {
-          error.value = t('passwordTooShort')
-          return
-        }
+const handleResetPassword = async () => {
+  try {
+    loading.value = true
+    error.value = ''
+    successMessage.value = ''
 
-        // Update password
-        const result = await authStore.updatePassword(form.newPassword)
-        
-        if (result?.success) {
-          successMessage.value = t('passwordUpdatedSuccessfully')
-          
-          // Redirect to login after a delay
-          setTimeout(() => {
-            router.push('/')
-          }, 2000)
-        }
-      } catch (err) {
-        error.value = err.message || t('passwordUpdateFailed')
-      } finally {
-        loading.value = false
-      }
+    // Validate passwords match
+    if (form.newPassword !== form.confirmPassword) {
+      error.value = t('passwordsDoNotMatch')
+      return
     }
 
-    onMounted(() => {
-      // Check if user is authenticated (should be after password reset)
-      if (!authStore.isAuthenticated) {
-        // If not authenticated, this might be a fresh password reset
-        // The user should be able to set their password
-      }
-    })
-
-    return {
-      form,
-      loading,
-      error,
-      successMessage,
-      showNewPassword,
-      showConfirmPassword,
-      isFormValid,
-      handleResetPassword
+    // Validate password length
+    if (form.newPassword.length < 6) {
+      error.value = t('passwordTooShort')
+      return
     }
+
+    // Update password
+    const result = await authStore.updatePassword(form.newPassword)
+    
+    if (result?.success) {
+      successMessage.value = t('passwordUpdatedSuccessfully')
+      
+      // Redirect to login after a delay
+      setTimeout(() => {
+        router.push('/')
+      }, 2000)
+    }
+  } catch (err) {
+    error.value = err.message || t('passwordUpdateFailed')
+  } finally {
+    loading.value = false
   }
 }
+
+onMounted(() => {
+  // Check if user is authenticated (should be after password reset)
+  if (!authStore.isAuthenticated) {
+    // If not authenticated, this might be a fresh password reset
+    // The user should be able to set their password
+  }
+})
 </script>
 
 <style scoped>

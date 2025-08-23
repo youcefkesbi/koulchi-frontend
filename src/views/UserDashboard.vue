@@ -207,62 +207,43 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useSellerStore } from '../stores/seller'
 import { useStoreStore } from '../stores/store'
 import StoreManagement from '../components/StoreManagement.vue'
 
-export default {
-  name: 'UserDashboard',
-  components: {
-    StoreManagement
-  },
-  setup() {
-    const authStore = useAuthStore()
-    const sellerStore = useSellerStore()
-    const storeStore = useStoreStore()
-    
-    const activeTab = ref('buying')
-    
-    // Mock data for now - these would come from actual Supabase calls
-    const orders = ref([
-      { id: 'ORD001', status: 'Processing', date: '2025-01-15', total: '2,500' },
-      { id: 'ORD002', status: 'Shipped', date: '2025-01-14', total: '1,800' }
-    ])
-    const wishlist = ref([
-      { id: 1, name: 'Smartphone', price: 45000, store: 'Tech Store', addedDate: '2025-01-10' },
-      { id: 2, name: 'Laptop', price: 120000, store: 'Electronics Hub', addedDate: '2025-01-08' }
-    ])
-    const pendingShipments = ref([
-      { id: 1, product_name: 'Gaming Mouse', customer: 'Ahmed B.', status: 'Ready to Ship', date: '2025-01-16' },
-      { id: 2, product_name: 'Wireless Headphones', customer: 'Fatima K.', status: 'Packaging', date: '2025-01-15' }
-    ])
+const authStore = useAuthStore()
+const sellerStore = useSellerStore()
+const storeStore = useStoreStore()
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
+const activeTab = ref('buying')
 
-    onMounted(async () => {
-      await Promise.all([
-        sellerStore.fetchSellerProducts(),
-        storeStore.fetchUserStores()
-      ])
-    })
+// Mock data for now - these would come from actual Supabase calls
+const orders = ref([
+  { id: 'ORD001', status: 'Processing', date: '2025-01-15', total: '2,500' },
+  { id: 'ORD002', status: 'Shipped', date: '2025-01-14', total: '1,800' }
+])
+const wishlist = ref([
+  { id: 1, name: 'Smartphone', price: 45000, store: 'Tech Store', addedDate: '2025-01-10' },
+  { id: 2, name: 'Laptop', price: 120000, store: 'Electronics Hub', addedDate: '2025-01-08' }
+])
+const pendingShipments = ref([
+  { id: 1, product_name: 'Gaming Mouse', customer: 'Ahmed B.', status: 'Ready to Ship', date: '2025-01-16' },
+  { id: 2, product_name: 'Wireless Headphones', customer: 'Fatima K.', status: 'Packaging', date: '2025-01-15' }
+])
 
-    return {
-      authStore,
-      sellerStore,
-      storeStore,
-      activeTab,
-      orders,
-      wishlist,
-      pendingShipments,
-      formatPrice
-    }
-  }
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
 }
+
+onMounted(async () => {
+  await Promise.all([
+    sellerStore.fetchSellerProducts(),
+    storeStore.fetchUserStores()
+  ])
+})
 </script>
 
 <style scoped>

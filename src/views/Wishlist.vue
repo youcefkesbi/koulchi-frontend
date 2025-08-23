@@ -129,77 +129,62 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWishlistStore } from '../stores/wishlist'
 import { useCartStore } from '../stores/cart'
 
-export default {
-  name: 'Wishlist',
-  setup() {
-    const { t } = useI18n()
-    const wishlistStore = useWishlistStore()
-    const cartStore = useCartStore()
+const { t } = useI18n()
+const wishlistStore = useWishlistStore()
+const cartStore = useCartStore()
 
-    const getProductImage = (product) => {
-      if (product.image_urls && product.image_urls.length > 0) {
-        return product.image_urls[0]
-      }
-      return product.image || null
-    }
+const getProductImage = (product) => {
+  if (product.image_urls && product.image_urls.length > 0) {
+    return product.image_urls[0]
+  }
+  return product.image || null
+}
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
 
-    const handleImageError = (event) => {
-      event.target.style.display = 'none'
-    }
+const handleImageError = (event) => {
+  event.target.style.display = 'none'
+}
 
-    const addToCart = async (product) => {
-      if (product.stock_quantity > 0) {
-        await cartStore.addToCart(product)
-      }
-    }
+const addToCart = async (product) => {
+  if (product.stock_quantity > 0) {
+    await cartStore.addToCart(product)
+  }
+}
 
-    const removeFromWishlist = async (wishlistItemId) => {
-      try {
-        await wishlistStore.removeFromWishlist(wishlistItemId)
-      } catch (error) {
-        console.error('Failed to remove from wishlist:', error)
-      }
-    }
+const removeFromWishlist = async (wishlistItemId) => {
+  try {
+    await wishlistStore.removeFromWishlist(wishlistItemId)
+  } catch (error) {
+    console.error('Failed to remove from wishlist:', error)
+  }
+}
 
-    const clearWishlist = async () => {
-      if (confirm(t('wishlist.clearConfirm'))) {
-        try {
-          await wishlistStore.clearWishlist()
-        } catch (error) {
-          console.error('Failed to clear wishlist:', error)
-        }
-      }
-    }
-
-    onMounted(async () => {
-      try {
-        await wishlistStore.fetchWishlist()
-      } catch (error) {
-        console.error('Failed to fetch wishlist:', error)
-      }
-    })
-
-    return {
-      wishlistStore,
-      getProductImage,
-      formatPrice,
-      handleImageError,
-      addToCart,
-      removeFromWishlist,
-      clearWishlist
+const clearWishlist = async () => {
+  if (confirm(t('wishlist.clearConfirm'))) {
+    try {
+      await wishlistStore.clearWishlist()
+    } catch (error) {
+      console.error('Failed to clear wishlist:', error)
     }
   }
 }
+
+onMounted(async () => {
+  try {
+    await wishlistStore.fetchWishlist()
+  } catch (error) {
+    console.error('Failed to fetch wishlist:', error)
+  }
+})
 </script>
 
 <style scoped>

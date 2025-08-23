@@ -78,7 +78,7 @@
                         >
                           <option value="">{{ $t('seller.selectCategory') }}</option>
                           <option v-for="category in categories" :key="category.id" :value="category.id">
-                            {{ category.name }}
+                            {{ getCategoryName(category.id) }}
                           </option>
                         </select>
                       </div>
@@ -268,40 +268,62 @@
   </TransitionRoot>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useSellerStore } from '../stores/seller'
 import { useProductStore } from '../stores/product'
 import { supabase } from '../lib/supabase'
 
-export default {
-  name: 'AddProductModal',
-  components: {
-    TransitionRoot,
-    TransitionChild,
-    Dialog,
-    DialogPanel,
-    DialogTitle
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
   },
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false
-    },
-    product: {
-      type: Object,
-      default: null
-    }
-  },
-  emits: ['close', 'product-saved'],
-  setup(props, { emit }) {
-    const sellerStore = useSellerStore()
-    const productStore = useProductStore()
-    const imageInput = ref(null)
-    const selectedImages = ref([])
+  product: {
+    type: Object,
+    default: null
+  }
+})
 
-    const form = reactive({
+const emit = defineEmits(['close', 'product-saved'])
+
+const { t } = useI18n()
+const sellerStore = useSellerStore()
+const productStore = useProductStore()
+const imageInput = ref(null)
+const selectedImages = ref([])
+
+const form = reactive({
+  name: '',
+  price: 0,
+  category: '',
+  description: '',
+  inStock: true,
+  isNew: true,
+  store: ''
+})
+const categories = ref([])
+const userStores = ref([])
+const isEditing = computed(() => !!props.product)
+
+// Watch for product changes to populate form
+watch(() => props.product, (newProduct) => {
+  if (newProduct) {
+    Object.assign(form, {
+      name: newProduct.name || '',
+      price: newProduct.price || 0,
+      category: newProduct.category_id || '',
+      description: newProduct.description || '',
+      inStock: newProduct.stock_quantity > 0,
+      isNew: newProduct.is_new || true,
+      store: newProduct.store_id || ''
+    })
+  } else {
+    // Reset form
+    Object.assign(form, {
       name: '',
       price: 0,
       category: '',
@@ -310,145 +332,114 @@ export default {
       isNew: true,
       store: ''
     })
-    const categories = ref([])
-    const userStores = ref([])
-    const isEditing = computed(() => !!props.product)
+  }
+  // Reset selected images
+  selectedImages.value = []
+}, { immediate: true })
 
-    // Watch for product changes to populate form
-    watch(() => props.product, (newProduct) => {
-      if (newProduct) {
-        Object.assign(form, {
-          name: newProduct.name || '',
-          price: newProduct.price || 0,
-          category: newProduct.category_id || '',
-          description: newProduct.description || '',
-          inStock: newProduct.stock_quantity > 0,
-          isNew: newProduct.is_new || true,
-          store: newProduct.store_id || ''
+// Fetch categories on mount
+const fetchCategories = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name')
+    if (error) throw error
+    categories.value = data || []
+  } catch (err) {
+    console.error('Error fetching categories:', err)
+  }
+}
+
+// Fetch user stores on mount
+const fetchUserStores = async () => {
+  try {
+    const { data: { user } } = await supabase
+      .from('stores')
+      .select('*')
+      .eq('owner_id', user.id)
+      .order('name')
+    if (error) throw error
+    userStores.value = data || []
+  } catch (err) {
+    console.error('Error fetching user stores:', err)
+  }
+}
+
+// Get category name from database
+const getCategoryName = (categoryId) => {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
+    
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
+    }
+    
+    // Fall back to the main name field
+    return category.name
+  }
+  return categoryId
+}
+
+// Fetch data when component mounts
+fetchCategories()
+fetchUserStores()
+
+const closeModal = () => {
+  emit('close')
+  sellerStore.clearError()
+}
+
+const handleImageUpload = (event) => {
+  const files = Array.from(event.target.files)
+  files.forEach(file => {
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        selectedImages.value.push({
+          file: file,
+          preview: e.target.result
         })
-      } else {
-        // Reset form
-        Object.assign(form, {
-          name: '',
-          price: 0,
-          category: '',
-          description: '',
-          inStock: true,
-          isNew: true,
-          store: ''
-        })
       }
-      // Reset selected images
-      selectedImages.value = []
-    }, { immediate: true })
+      reader.readAsDataURL(file)
+    }
+  })
+}
 
-    // Fetch categories on mount
-    const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*')
-          .order('name')
-        if (error) throw error
-        categories.value = data || []
-      } catch (err) {
-        console.error('Error fetching categories:', err)
-      }
+const removeImage = (index) => {
+  selectedImages.value.splice(index, 1)
+}
+
+const handleImageError = (event) => {
+  event.target.src = 'https://picsum.photos/400/400?random=error'
+}
+
+const submitForm = async () => {
+  try {
+    const productData = {
+      name: form.name,
+      price: form.price,
+      category_id: form.category,
+      description: form.description,
+      stock_quantity: form.inStock ? 100 : 0,
+      is_new: form.isNew,
+      store_id: form.store || null
     }
 
-    // Fetch user stores on mount
-    const fetchUserStores = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data, error } = await supabase
-            .from('stores')
-            .select('*')
-            .eq('owner_id', user.id)
-            .order('name')
-          if (error) throw error
-          userStores.value = data || []
-        }
-      } catch (err) {
-        console.error('Error fetching user stores:', err)
-      }
+    if (isEditing.value) {
+      await productStore.updateProduct(props.product.id, productData)
+    } else {
+      // Extract files from selectedImages
+      const imageFiles = selectedImages.value.map(img => img.file)
+      await productStore.createProduct(productData, imageFiles)
     }
-
-    // Fetch data when component mounts
-    fetchCategories()
-    fetchUserStores()
-
-    const closeModal = () => {
-      emit('close')
-      sellerStore.clearError()
-    }
-
-    const handleImageUpload = (event) => {
-      const files = Array.from(event.target.files)
-      files.forEach(file => {
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            selectedImages.value.push({
-              file: file,
-              preview: e.target.result
-            })
-          }
-          reader.readAsDataURL(file)
-        }
-      })
-    }
-
-    const removeImage = (index) => {
-      selectedImages.value.splice(index, 1)
-    }
-
-    const handleImageError = (event) => {
-      event.target.src = 'https://picsum.photos/400/400?random=error'
-    }
-
-    const submitForm = async () => {
-      try {
-        const productData = {
-          name: form.name,
-          price: form.price,
-          category_id: form.category,
-          description: form.description,
-          stock_quantity: form.inStock ? 100 : 0,
-          is_new: form.isNew,
-          store_id: form.store || null
-        }
-
-        if (isEditing.value) {
-          await productStore.updateProduct(props.product.id, productData)
-        } else {
-          // Extract files from selectedImages
-          const imageFiles = selectedImages.value.map(img => img.file)
-          await productStore.createProduct(productData, imageFiles)
-        }
-        
-        emit('product-saved')
-        closeModal()
-      } catch (error) {
-        // Error is handled by the store
-      }
-    }
-
-    return {
-      sellerStore,
-      productStore,
-      form,
-      categories,
-      userStores,
-      isEditing,
-      imageInput,
-      selectedImages,
-      closeModal,
-      handleImageUpload,
-      removeImage,
-      handleImageError,
-      submitForm
-    }
+    
+    emit('product-saved')
+    closeModal()
+  } catch (error) {
+    // Error is handled by the store
   }
 }
 </script> 

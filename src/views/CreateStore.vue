@@ -234,118 +234,97 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStoreStore } from '../stores/store'
 
-export default {
-  name: 'CreateStore',
-  setup() {
-    const router = useRouter()
-    const storeStore = useStoreStore()
-    
-    const currentStep = ref(1)
-    const logoPreview = ref('')
-    const bannerPreview = ref('')
-    
-    const formData = reactive({
-      name: '',
-      description: '',
-      logo_url: '',
-      banner_url: ''
+const router = useRouter()
+const storeStore = useStoreStore()
+
+const currentStep = ref(1)
+const logoPreview = ref('')
+const bannerPreview = ref('')
+
+const formData = reactive({
+  name: '',
+  description: '',
+  logo_url: '',
+  banner_url: ''
+})
+
+const canProceed = computed(() => {
+  if (currentStep.value === 1) {
+    return formData.name.trim().length > 0
+  }
+  return true
+})
+
+const handleLogoChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    logoPreview.value = URL.createObjectURL(file)
+    formData.logo_url = file
+  }
+}
+
+const handleBannerChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    bannerPreview.value = URL.createObjectURL(file)
+    formData.banner_url = file
+  }
+}
+
+const removeLogo = () => {
+  logoPreview.value = ''
+  formData.logo_url = ''
+}
+
+const removeBanner = () => {
+  bannerPreview.value = ''
+  formData.banner_url = ''
+}
+
+const nextStep = () => {
+  if (currentStep.value < 3) {
+    currentStep.value++
+  }
+}
+
+const previousStep = () => {
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
+}
+
+const handleSubmit = async () => {
+  try {
+    let logoUrl = formData.logo_url
+    let bannerUrl = formData.banner_url
+
+    // Upload new images if they're files
+    if (formData.logo_url instanceof File) {
+      const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
+      logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
+    }
+
+    if (formData.banner_url instanceof File) {
+      const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
+      bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
+    }
+
+    await storeStore.createStore({
+      name: formData.name,
+      description: formData.description,
+      logo_url: logoUrl,
+      banner_url: bannerUrl
     })
 
-    const canProceed = computed(() => {
-      if (currentStep.value === 1) {
-        return formData.name.trim().length > 0
-      }
-      return true
-    })
-
-    const handleLogoChange = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        logoPreview.value = URL.createObjectURL(file)
-        formData.logo_url = file
-      }
-    }
-
-    const handleBannerChange = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        bannerPreview.value = URL.createObjectURL(file)
-        formData.banner_url = file
-      }
-    }
-
-    const removeLogo = () => {
-      logoPreview.value = ''
-      formData.logo_url = ''
-    }
-
-    const removeBanner = () => {
-      bannerPreview.value = ''
-      formData.banner_url = ''
-    }
-
-    const nextStep = () => {
-      if (currentStep.value < 3) {
-        currentStep.value++
-      }
-    }
-
-    const previousStep = () => {
-      if (currentStep.value > 1) {
-        currentStep.value--
-      }
-    }
-
-    const handleSubmit = async () => {
-      try {
-        let logoUrl = formData.logo_url
-        let bannerUrl = formData.banner_url
-
-        // Upload new images if they're files
-        if (formData.logo_url instanceof File) {
-          const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
-          logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
-        }
-
-        if (formData.banner_url instanceof File) {
-          const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
-          bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
-        }
-
-        await storeStore.createStore({
-          name: formData.name,
-          description: formData.description,
-          logo_url: logoUrl,
-          banner_url: bannerUrl
-        })
-
-        // Redirect to dashboard
-        router.push('/dashboard')
-      } catch (error) {
-        console.error('Error creating store:', error)
-      }
-    }
-
-    return {
-      currentStep,
-      logoPreview,
-      bannerPreview,
-      formData,
-      canProceed,
-      storeStore,
-      handleLogoChange,
-      handleBannerChange,
-      removeLogo,
-      removeBanner,
-      nextStep,
-      previousStep,
-      handleSubmit
-    }
+    // Redirect to dashboard
+    router.push('/dashboard')
+  } catch (error) {
+    console.error('Error creating store:', error)
   }
 }
 </script>

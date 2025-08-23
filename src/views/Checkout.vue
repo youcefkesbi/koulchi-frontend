@@ -250,82 +250,66 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
 
-export default {
-  name: 'Checkout',
-  setup() {
-    const router = useRouter()
-    const cartStore = useCartStore()
-    const paymentMethod = ref('cod')
+const router = useRouter()
+const cartStore = useCartStore()
+const paymentMethod = ref('cod')
 
-    const customerInfo = reactive({
-      firstName: '',
-      lastName: '',
-      phone: '',
-      email: ''
-    })
+const customerInfo = reactive({
+  firstName: '',
+  lastName: '',
+  phone: '',
+  email: ''
+})
 
-    const deliveryAddress = reactive({
-      wilaya: '',
-      commune: '',
-      street: '',
-      postalCode: '',
-      floor: '',
-      notes: ''
-    })
+const deliveryAddress = reactive({
+  wilaya: '',
+  commune: '',
+  street: '',
+  postalCode: '',
+  floor: '',
+  notes: ''
+})
 
-    // Algerian Wilayas (provinces)
-    const algerianWilayas = [
-      { id: '16', name: 'Alger', nameAr: 'الجزائر' },
-      { id: '31', name: 'Oran', nameAr: 'وهران' },
-      { id: '21', name: 'Skikda', nameAr: 'سكيكدة' },
-      { id: '25', name: 'Constantine', nameAr: 'قسنطينة' },
-      { id: '19', name: 'Sétif', nameAr: 'سطيف' },
-      { id: '27', name: 'Mostaganem', nameAr: 'مستغانم' },
-      { id: '24', name: 'Guelma', nameAr: 'قالمة' },
-      { id: '23', name: 'Annaba', nameAr: 'عنابة' },
-      { id: '26', name: 'Médéa', nameAr: 'المدية' },
-      { id: '20', name: 'Saïda', nameAr: 'سعيدة' }
-    ]
+// Algerian Wilayas (provinces)
+const algerianWilayas = [
+  { id: '16', name: 'Alger', nameAr: 'الجزائر' },
+  { id: '31', name: 'Oran', nameAr: 'وهران' },
+  { id: '21', name: 'Skikda', nameAr: 'سكيكدة' },
+  { id: '25', name: 'Constantine', nameAr: 'قسنطينة' },
+  { id: '19', name: 'Sétif', nameAr: 'سطيف' },
+  { id: '27', name: 'Mostaganem', nameAr: 'مستغانم' },
+  { id: '24', name: 'Guelma', nameAr: 'قالمة' },
+  { id: '23', name: 'Annaba', nameAr: 'عنابة' },
+  { id: '26', name: 'Médéa', nameAr: 'المدية' },
+  { id: '20', name: 'Saïda', nameAr: 'سعيدة' }
+]
 
-    const isFormValid = computed(() => {
-      return customerInfo.firstName && 
-             customerInfo.lastName && 
-             customerInfo.phone && 
-             deliveryAddress.wilaya && 
-             deliveryAddress.commune && 
-             deliveryAddress.street
-    })
+const isFormValid = computed(() => {
+  return customerInfo.firstName && 
+         customerInfo.lastName && 
+         customerInfo.phone && 
+         deliveryAddress.wilaya && 
+         deliveryAddress.commune && 
+         deliveryAddress.street
+})
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
 
-    const placeOrder = () => {
-      if (isFormValid.value) {
-        // Save customer info and delivery address to store
-        cartStore.setCustomerInfo(customerInfo)
-        cartStore.setDeliveryAddress(deliveryAddress)
-        
-        // Navigate to order confirmation
-        router.push('/order-confirmation')
-      }
-    }
-
-    return {
-      cartStore,
-      customerInfo,
-      deliveryAddress,
-      paymentMethod,
-      algerianWilayas,
-      isFormValid,
-      formatPrice,
-      placeOrder
-    }
+const placeOrder = () => {
+  if (isFormValid.value) {
+    // Save customer info and delivery address to store
+    cartStore.setCustomerInfo(customerInfo)
+    cartStore.setDeliveryAddress(deliveryAddress)
+    
+    // Navigate to order confirmation
+    router.push('/order-confirmation')
   }
 }
 </script> 

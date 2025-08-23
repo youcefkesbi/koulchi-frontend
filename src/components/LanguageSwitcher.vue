@@ -44,63 +44,49 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { languages } from '../i18n'
 
-export default {
-  name: 'LanguageSwitcher',
-  setup() {
-    const { locale } = useI18n()
-    const isOpen = ref(false)
+const { locale } = useI18n()
+const isOpen = ref(false)
 
+// Convert languages object to array for iteration
+const languagesArray = Object.keys(languages).map(code => ({
+  code,
+  ...languages[code]
+}))
 
+const currentLanguage = computed(() => {
+  return languagesArray.find(lang => lang.code === locale.value) || languagesArray[0]
+})
 
-    // Convert languages object to array for iteration
-    const languagesArray = Object.keys(languages).map(code => ({
-      code,
-      ...languages[code]
-    }))
+const selectLanguage = (code) => {
+  locale.value = code
+  isOpen.value = false
+  // Save to localStorage
+  localStorage.setItem('locale', code)
+}
 
-    const currentLanguage = computed(() => {
-      return languagesArray.find(lang => lang.code === locale.value) || languagesArray[0]
-    })
-
-    const selectLanguage = (code) => {
-      locale.value = code
-      isOpen.value = false
-      // Save to localStorage
-      localStorage.setItem('locale', code)
-    }
-
-    // Close dropdown when clicking outside
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.relative')) {
-        isOpen.value = false
-      }
-    }
-
-    onMounted(() => {
-      // Load saved language preference
-      const savedLocale = localStorage.getItem('locale')
-      if (savedLocale && languagesArray.some(lang => lang.code === savedLocale)) {
-        locale.value = savedLocale
-      }
-      
-      document.addEventListener('click', handleClickOutside)
-    })
-
-    onUnmounted(() => {
-      document.removeEventListener('click', handleClickOutside)
-    })
-
-    return {
-      isOpen,
-      languages: languagesArray,
-      currentLanguage,
-      selectLanguage
-    }
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (!event.target.closest('.relative')) {
+    isOpen.value = false
   }
 }
+
+onMounted(() => {
+  // Load saved language preference
+  const savedLocale = localStorage.getItem('locale')
+  if (savedLocale && languagesArray.some(lang => lang.code === savedLocale)) {
+    locale.value = savedLocale
+  }
+  
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script> 

@@ -76,150 +76,149 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'CategoryPage',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const productStore = useProductStore()
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const productStore = useProductStore()
+
+const sortBy = ref('newest')
+const loading = ref(false)
+const categoryId = computed(() => route.params.categoryId)
+
+// Get products for this category
+const products = computed(() => {
+  if (categoryId.value === 'all') {
+    return productStore.products
+  }
+  return productStore.products.filter(product => product.category_id === categoryId.value)
+})
+
+// Sort and filter products
+const filteredProducts = computed(() => {
+  let sorted = [...products.value]
+  
+  switch (sortBy.value) {
+    case 'newest':
+      sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      break
+    case 'oldest':
+      sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      break
+    case 'price-low':
+      sorted.sort((a, b) => a.price - b.price)
+      break
+    case 'price-high':
+      sorted.sort((a, b) => b.price - a.price)
+      break
+    case 'name':
+      sorted.sort((a, b) => a.name.localeCompare(b.name))
+      break
+  }
+  
+  return sorted
+})
+
+// Get category icon
+const getCategoryIcon = (categoryId) => {
+  const iconMap = {
+    'cars': 'fas fa-car',
+    'realestate': 'fas fa-home',
+    'electronics': 'fas fa-laptop',
+    'fashion': 'fas fa-tshirt',
+    'home': 'fas fa-couch',
+    'beauty': 'fas fa-spa',
+    'kids': 'fas fa-baby',
+    'food': 'fas fa-utensils'
+  }
+  return iconMap[categoryId] || 'fas fa-tag'
+}
+
+// Get category name
+const getCategoryName = (categoryId) => {
+  const category = productStore.categories.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
     
-    const sortBy = ref('newest')
-    const loading = ref(false)
-    const categoryId = computed(() => route.params.categoryId)
-
-    // Get products for this category
-    const products = computed(() => {
-      if (categoryId.value === 'all') {
-        return productStore.products
-      }
-      return productStore.products.filter(product => product.category_id === categoryId.value)
-    })
-
-    // Sort and filter products
-    const filteredProducts = computed(() => {
-      let sorted = [...products.value]
-      
-      switch (sortBy.value) {
-        case 'newest':
-          sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-          break
-        case 'oldest':
-          sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-          break
-        case 'price-low':
-          sorted.sort((a, b) => a.price - b.price)
-          break
-        case 'price-high':
-          sorted.sort((a, b) => b.price - a.price)
-          break
-        case 'name':
-          sorted.sort((a, b) => a.name.localeCompare(b.name))
-          break
-      }
-      
-      return sorted
-    })
-
-    // Get category icon
-    const getCategoryIcon = (categoryId) => {
-      const iconMap = {
-        'cars': 'fas fa-car',
-        'realestate': 'fas fa-home',
-        'electronics': 'fas fa-laptop',
-        'fashion': 'fas fa-tshirt',
-        'home': 'fas fa-couch',
-        'beauty': 'fas fa-spa',
-        'kids': 'fas fa-baby',
-        'food': 'fas fa-utensils'
-      }
-      return iconMap[categoryId] || 'fas fa-tag'
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
     }
-
-    // Get category name
-    const getCategoryName = (categoryId) => {
-      const category = productStore.categories.find(cat => cat.id === categoryId)
-      return category ? category.name : categoryId
+    
+    if (currentLocale === 'fr' && category.name_fr) {
+      return category.name_fr
     }
+    
+    // Fall back to the main name field (English)
+    return category.name
+  }
+  return categoryId
+}
 
-    // Get category description
-    const getCategoryDescription = (categoryId) => {
-      const descriptions = {
-        'cars': 'Discover a wide selection of vehicles, from compact cars to luxury models',
-        'realestate': 'Find your perfect home with our comprehensive real estate listings',
-        'electronics': 'Latest gadgets and electronic devices for tech enthusiasts',
-        'fashion': 'Trendy clothing and accessories for every style and occasion',
-        'home': 'Everything you need to make your home beautiful and comfortable',
-        'beauty': 'Premium beauty and personal care products for your daily routine',
-        'kids': 'Quality products for children of all ages',
-        'food': 'Fresh and delicious food products from trusted suppliers'
-      }
-      return descriptions[categoryId] || 'Explore our amazing products in this category'
-    }
+// Get category description
+const getCategoryDescription = (categoryId) => {
+  const descriptions = {
+    'cars': 'Discover a wide selection of vehicles, from compact cars to luxury models',
+    'realestate': 'Find your perfect home with our comprehensive real estate listings',
+    'electronics': 'Latest gadgets and electronic devices for tech enthusiasts',
+    'fashion': 'Trendy clothing and accessories for every style and occasion',
+    'home': 'Everything you need to make your home beautiful and comfortable',
+    'beauty': 'Premium beauty and personal care products for your daily routine',
+    'kids': 'Quality products for children of all ages',
+    'food': 'Fresh and delicious food products from trusted suppliers'
+  }
+  return descriptions[categoryId] || 'Explore our amazing products in this category'
+}
 
-    // Validate category ID
-    const validateCategory = () => {
-      const validCategories = productStore.categories.map(cat => cat.id)
-      if (!validCategories.includes(categoryId.value)) {
-        router.push('/404')
-      }
-    }
-
-    // Watch for route changes
-    watch(() => route.params.categoryId, async (newCategoryId) => {
-      loading.value = true
-      try {
-        validateCategory()
-        // Refetch products for the new category
-        if (newCategoryId && newCategoryId !== 'all') {
-          await productStore.fetchProducts({ category_id: newCategoryId })
-        }
-      } catch (error) {
-        console.error('Error loading new category:', error)
-      } finally {
-        loading.value = false
-      }
-    })
-
-    onMounted(async () => {
-      loading.value = true
-      try {
-        // Fetch categories if not already loaded
-        if (productStore.categories.length === 0) {
-          await productStore.fetchCategories()
-        }
-        
-        // Fetch products for this specific category
-        await productStore.fetchProducts({ category_id: categoryId.value })
-        
-        validateCategory()
-      } catch (error) {
-        console.error('Error loading category page:', error)
-      } finally {
-        loading.value = false
-      }
-    })
-
-    return {
-      categoryId,
-      products,
-      filteredProducts,
-      sortBy,
-      loading,
-      getCategoryIcon,
-      getCategoryName,
-      getCategoryDescription
-    }
+// Validate category ID
+const validateCategory = () => {
+  const validCategories = productStore.categories.map(cat => cat.id)
+  if (!validCategories.includes(categoryId.value)) {
+    router.push('/404')
   }
 }
+
+// Watch for route changes
+watch(() => route.params.categoryId, async (newCategoryId) => {
+  loading.value = true
+  try {
+    validateCategory()
+    // Refetch products for the new category
+    if (newCategoryId && newCategoryId !== 'all') {
+      await productStore.fetchProducts({ category_id: newCategoryId })
+    }
+  } catch (error) {
+    console.error('Error loading new category:', error)
+  } finally {
+    loading.value = false
+  }
+})
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // Fetch categories if not already loaded
+    if (productStore.categories.length === 0) {
+      await productStore.fetchCategories()
+    }
+    
+    // Fetch products for this specific category
+    await productStore.fetchProducts({ category_id: categoryId.value })
+    
+    validateCategory()
+  } catch (error) {
+    console.error('Error loading category page:', error)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>

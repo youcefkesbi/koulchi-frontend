@@ -110,46 +110,34 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStoreStore } from '../stores/store'
 
-export default {
-  name: 'Stores',
-  setup() {
-    const router = useRouter()
-    const storeStore = useStoreStore()
+const router = useRouter()
+const storeStore = useStoreStore()
 
-    const navigateToStore = (storeId) => {
-      router.push(`/stores/${storeId}`)
-    }
-
-    const retryFetch = async () => {
-      storeStore.clearError()
-      await storeStore.fetchAllStores()
-    }
-
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    }
-
-    onMounted(async () => {
-      await storeStore.fetchAllStores()
-    })
-
-    return {
-      storeStore,
-      navigateToStore,
-      retryFetch,
-      formatDate
-    }
-  }
+const navigateToStore = (storeId) => {
+  router.push(`/stores/${storeId}`)
 }
+
+const retryFetch = async () => {
+  storeStore.clearError()
+  await storeStore.fetchAllStores()
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+onMounted(async () => {
+  await storeStore.fetchAllStores()
+})
 </script>
 
 <style scoped>

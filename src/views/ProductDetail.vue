@@ -219,7 +219,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductStore } from '../stores/product'
@@ -227,173 +227,146 @@ import { useCartStore } from '../stores/cart'
 import { useWishlistStore } from '../stores/wishlist'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'ProductDetail',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const route = useRoute()
-    const productStore = useProductStore()
-    const cartStore = useCartStore()
-    const wishlistStore = useWishlistStore()
-    const quantity = ref(1)
-    const product = ref(null)
-    const loading = ref(true)
-    const error = ref(null)
-    const currentImageIndex = ref(0)
+const route = useRoute()
+const productStore = useProductStore()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
+const quantity = ref(1)
+const product = ref(null)
+const loading = ref(true)
+const error = ref(null)
+const currentImageIndex = ref(0)
 
-    const mainImage = computed(() => {
-      if (!product.value) return ''
-      if (product.value.image_urls && product.value.image_urls.length > 0) {
-        return product.value.image_urls[currentImageIndex.value] || product.value.image_urls[0]
-      }
-      return product.value.image || ''
-    })
+const mainImage = computed(() => {
+  if (!product.value) return ''
+  if (product.value.image_urls && product.value.image_urls.length > 0) {
+    return product.value.image_urls[currentImageIndex.value] || product.value.image_urls[0]
+  }
+  return product.value.image || ''
+})
 
-    const relatedProducts = computed(() => {
-      if (!product.value) return []
-      return productStore.products
-        .filter(p => p.category_id === product.value.category_id && p.id !== product.value.id)
-        .slice(0, 4)
-    })
+const relatedProducts = computed(() => {
+  if (!product.value) return []
+  return productStore.products
+    .filter(p => p.category_id === product.value.category_id && p.id !== product.value.id)
+    .slice(0, 4)
+})
 
-    const getDiscountPercentage = computed(() => {
-      // Since we removed original_price, we'll return 0 for now
-      return 0
-    })
+const getDiscountPercentage = computed(() => {
+  // Since we removed original_price, we'll return 0 for now
+  return 0
+})
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
 
-    const increaseQuantity = () => {
-      quantity.value++
-    }
+const increaseQuantity = () => {
+  quantity.value++
+}
 
-    const decreaseQuantity = () => {
-      if (quantity.value > 1) {
-        quantity.value--
-      }
-    }
-
-    const nextImage = () => {
-      if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
-        currentImageIndex.value = (currentImageIndex.value + 1) % product.value.image_urls.length
-      }
-    }
-
-    const previousImage = () => {
-      if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
-        currentImageIndex.value = currentImageIndex.value === 0 
-          ? product.value.image_urls.length - 1 
-          : currentImageIndex.value - 1
-      }
-    }
-
-    const addToCart = async () => {
-      if (product.value && (product.value.stock_quantity || 0) > 0) {
-        // Add multiple quantities
-        for (let i = 0; i < quantity.value; i++) {
-          await cartStore.addToCart(product.value)
-        }
-        quantity.value = 1
-      }
-    }
-
-    const isInWishlist = computed(() => {
-      if (!product.value) return false
-      return wishlistStore.isInWishlist(product.value.id)
-    })
-
-    const toggleWishlist = async () => {
-      if (!product.value) return
-      
-      try {
-        if (isInWishlist.value) {
-          await wishlistStore.removeProductFromWishlist(product.value.id)
-        } else {
-          await wishlistStore.addToWishlist(product.value.id)
-        }
-      } catch (error) {
-        console.error('Failed to toggle wishlist:', error)
-      }
-    }
-
-    const fetchProduct = async () => {
-      try {
-        loading.value = true
-        error.value = null
-        
-        const productId = route.params.id
-        
-        if (!productId) {
-          error.value = 'Invalid product ID'
-          loading.value = false
-          return
-        }
-        
-        // Basic validation that the ID looks like a UUID
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) {
-          error.value = `Invalid product ID format: ${productId}. Please check the URL.`
-          loading.value = false
-          return
-        }
-        
-        const fetchedProduct = await productStore.fetchProductById(productId)
-        
-        if (fetchedProduct) {
-          product.value = fetchedProduct
-          // Update page title
-          document.title = `${fetchedProduct.name || fetchedProduct.nameAr} - كولشي`
-        } else {
-          error.value = 'Product not found'
-        }
-      } catch (err) {
-        error.value = err.message || 'Failed to fetch product'
-      } finally {
-        loading.value = false
-      }
-    }
-
-    // Watch for route changes to reload product when navigating between products
-    watch(() => route.params.id, (newId) => {
-      if (newId) {
-        fetchProduct()
-      }
-    })
-
-    onMounted(async () => {
-      await fetchProduct()
-      
-      // Fetch wishlist if user is authenticated
-      if (wishlistStore.wishlistItems.length === 0) {
-        try {
-          await wishlistStore.fetchWishlist()
-        } catch (error) {
-          // User might not be authenticated, which is fine
-        }
-      }
-    })
-
-    return {
-      product,
-      mainImage,
-      currentImageIndex,
-      relatedProducts,
-      quantity,
-      loading,
-      error,
-      getDiscountPercentage,
-      formatPrice,
-      increaseQuantity,
-      decreaseQuantity,
-      nextImage,
-      previousImage,
-      addToCart,
-      isInWishlist,
-      toggleWishlist
-    }
+const decreaseQuantity = () => {
+  if (quantity.value > 1) {
+    quantity.value--
   }
 }
+
+const nextImage = () => {
+  if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
+    currentImageIndex.value = (currentImageIndex.value + 1) % product.value.image_urls.length
+  }
+}
+
+const previousImage = () => {
+  if (product.value && product.value.image_urls && product.value.image_urls.length > 1) {
+    currentImageIndex.value = currentImageIndex.value === 0 
+      ? product.value.image_urls.length - 1 
+      : currentImageIndex.value - 1
+  }
+}
+
+const addToCart = async () => {
+  if (product.value && (product.value.stock_quantity || 0) > 0) {
+    // Add multiple quantities
+    for (let i = 0; i < quantity.value; i++) {
+      await cartStore.addToCart(product.value)
+    }
+    quantity.value = 1
+  }
+}
+
+const isInWishlist = computed(() => {
+  if (!product.value) return false
+  return wishlistStore.isInWishlist(product.value.id)
+})
+
+const toggleWishlist = async () => {
+  if (!product.value) return
+  
+  try {
+    if (isInWishlist.value) {
+      await wishlistStore.removeProductFromWishlist(product.value.id)
+    } else {
+      await wishlistStore.addToWishlist(product.value.id)
+    }
+  } catch (error) {
+    console.error('Failed to toggle wishlist:', error)
+  }
+}
+
+const fetchProduct = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    
+    const productId = route.params.id
+    
+    if (!productId) {
+      error.value = 'Invalid product ID'
+      loading.value = false
+      return
+    }
+    
+    // Basic validation that the ID looks like a UUID
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) {
+      error.value = `Invalid product ID format: ${productId}. Please check the URL.`
+      loading.value = false
+      return
+    }
+    
+    const fetchedProduct = await productStore.fetchProductById(productId)
+    
+    if (fetchedProduct) {
+      product.value = fetchedProduct
+      // Update page title
+      document.title = `${fetchedProduct.name || fetchedProduct.nameAr} - كولشي`
+    } else {
+      error.value = 'Product not found'
+    }
+  } catch (err) {
+    error.value = err.message || 'Failed to fetch product'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Watch for route changes to reload product when navigating between products
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchProduct()
+  }
+})
+
+onMounted(async () => {
+  await fetchProduct()
+  
+  // Fetch wishlist if user is authenticated
+  if (wishlistStore.wishlistItems.length === 0) {
+    try {
+      await wishlistStore.fetchWishlist()
+    } catch (error) {
+      // User might not be authenticated, which is fine
+    }
+  }
+})
 </script> 

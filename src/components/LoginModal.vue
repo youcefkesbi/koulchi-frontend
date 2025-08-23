@@ -325,309 +325,270 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useI18n } from 'vue-i18n'
 
-export default {
-  name: 'LoginModal',
-  components: {
-    // No external components needed
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['close'])
+
+const authStore = useAuthStore()
+const { t } = useI18n()
+
+// Watch for prop changes (optional)
+watch(() => props.isOpen, (newValue, oldValue) => {
+  if (newValue) {
+    // Reset forms when modal opens
+    Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
+    Object.assign(loginForm, { email: '', password: '' })
+    authStore.clearError()
+    successMessage.value = ''
+    emailConfirmationRequired.value = false
+  }
+})
+
+const isSignup = ref(false)
+const showForgotPassword = ref(false)
+const successMessage = ref('')
+const emailConfirmationRequired = ref(false)
+
+// Password visibility states
+const showLoginPassword = ref(false)
+const showSignupPassword = ref(false)
+const showSignupConfirmPassword = ref(false)
+
+const signupForm = reactive({
+  fullName: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
+const loginForm = reactive({
+  email: '',
+  password: ''
+})
+
+const forgotPasswordForm = reactive({
+  email: ''
+})
+
+// Form validation
+const isFormValid = computed(() => {
+  if (!isSignup.value) return true
+  return signupForm.fullName && 
+         signupForm.email && 
+         signupForm.password && 
+         signupForm.confirmPassword &&
+         signupForm.password === signupForm.confirmPassword &&
+         signupForm.password.length >= 6
+})
+
+const closeModal = () => {
+  emit('close')
+  // Reset forms and messages
+  Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
+  Object.assign(loginForm, { email: '', password: '' })
+  Object.assign(forgotPasswordForm, { email: '' })
+  successMessage.value = ''
+  showForgotPassword.value = false
+  emailConfirmationRequired.value = false
+  authStore.clearError()
+}
+
+const toggleMode = () => {
+  isSignup.value = !isSignup.value
+  showForgotPassword.value = false
+  authStore.clearError()
+  successMessage.value = ''
+  emailConfirmationRequired.value = false
+}
+
+const handleSignup = async () => {
+  try {
+    authStore.clearError()
+    
+    if (signupForm.password !== signupForm.confirmPassword) {
+      authStore.error = t('passwordsDoNotMatch')
+      return
     }
-  },
-  emits: ['close'],  
-
-  setup(props, { emit }) {
-    const authStore = useAuthStore()
-    const { t } = useI18n()
     
-    // Watch for prop changes (optional)
-    watch(() => props.isOpen, (newValue, oldValue) => {
-      if (newValue) {
-        // Reset forms when modal opens
-        Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
-        Object.assign(loginForm, { email: '', password: '' })
-        authStore.clearError()
-        successMessage.value = ''
-        emailConfirmationRequired.value = false
+    if (signupForm.password.length < 6) {
+      authStore.error = t('passwordTooShort')
+      return
+    }
+
+    const userData = {
+      full_name: signupForm.fullName.trim()
+    }
+
+    const result = await authStore.signUp(signupForm.email.trim(), signupForm.password, userData)
+    
+    if (result?.success) {
+      successMessage.value = result.message || 'Account created successfully! You are now logged in.'
+      
+      // Check if email confirmation is required
+      if (result.emailConfirmationRequired) {
+        emailConfirmationRequired.value = true
+        // Don't close modal automatically - user needs to confirm email
+      } else {
+        // User is logged in immediately (shouldn't happen with email confirmation enabled)
+        setTimeout(() => {
+          closeModal()
+        }, 1500)
       }
-    })
-    
-    const isSignup = ref(false)
-    const showForgotPassword = ref(false)
-    const successMessage = ref('')
-    const emailConfirmationRequired = ref(false)
-    
-    // Password visibility states
-    const showLoginPassword = ref(false)
-    const showSignupPassword = ref(false)
-    const showSignupConfirmPassword = ref(false)
-    
-    const signupForm = reactive({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    })
-    
-    const loginForm = reactive({
-      email: '',
-      password: ''
-    })
+    }
+  } catch (error) {
+    // Error is already handled in the auth store
+  }
+}
 
-    const forgotPasswordForm = reactive({
-      email: ''
-    })
+const handleLogin = async () => {
+  try {
+    await authStore.login(loginForm.email, loginForm.password)
+    if (!authStore.error) {
+      await authStore.createProfileIfNotExists()
+      closeModal()
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+  }
+}
 
-    // Form validation
-    const isFormValid = computed(() => {
-      if (!isSignup.value) return true
-      return signupForm.fullName && 
-             signupForm.email && 
-             signupForm.password && 
-             signupForm.confirmPassword &&
-             signupForm.password === signupForm.confirmPassword &&
-             signupForm.password.length >= 6
-    })
+const handleGoogleLogin = async () => {
+  try {
+    authStore.clearError()
+    const result = await authStore.loginWithGoogle()
+    
+    if (result && !authStore.error) {
+      const oauthData = result?.user?.user_metadata || {}
+      await authStore.createProfileIfNotExists(oauthData)
+      closeModal()
+    }
+  } catch (error) {
+    console.error('Google login error:', error)
+    if (!authStore.error) {
+      authStore.error = 'Google login failed. Please try again.'
+    }
+  }
+}
 
-    const closeModal = () => {
-      emit('close')
-      // Reset forms and messages
-      Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
-      Object.assign(loginForm, { email: '', password: '' })
-      Object.assign(forgotPasswordForm, { email: '' })
-      successMessage.value = ''
+const handleFacebookLogin = async () => {
+  try {
+    authStore.clearError()
+    const result = await authStore.loginWithFacebook()
+    
+    if (result && !authStore.error) {
+      const oauthData = result?.user?.user_metadata || {}
+      await authStore.createProfileIfNotExists(oauthData)
+      closeModal()
+    }
+  } catch (error) {
+    console.error('Facebook login error:', error)
+    if (!authStore.error) {
+      authStore.error = 'Facebook login failed. Please try again.'
+    }
+  }
+}
+
+// Function to get user-friendly error messages
+const getErrorMessage = (error) => {
+  if (!error) return ''
+  
+  const errorLower = error.toLowerCase()
+  
+  // Handle email confirmation errors
+  if (errorLower.includes('email not confirmed')) {
+    return t('errors.emailNotConfirmed')
+  }
+  if (errorLower.includes('invalid login credentials') || errorLower.includes('invalid email or password')) {
+    return t('errors.invalidCredentials')
+  }
+  if (errorLower.includes('user not found')) {
+    return t('errors.userNotFound')
+  }
+  if (errorLower.includes('weak password') || errorLower.includes('password is too weak')) {
+    return t('errors.weakPassword')
+  }
+  if (errorLower.includes('email already in use') || errorLower.includes('user already registered')) {
+    return t('errors.emailAlreadyInUse')
+  }
+  if (errorLower.includes('too many requests') || errorLower.includes('rate limit')) {
+    return t('errors.tooManyRequests')
+  }
+  if (errorLower.includes('network') || errorLower.includes('fetch') || errorLower.includes('connection')) {
+    return t('errors.networkError')
+  }
+  
+  // Handle OAuth specific errors
+  if (errorLower.includes('oauth error occurred') || errorLower.includes('google oauth failed')) {
+    return t('errors.googleOAuthError')
+  }
+  if (errorLower.includes('oauth cancelled')) {
+    return t('errors.oauthCancelled')
+  }
+  return error || t('errors.unknownError')
+}
+
+// Function to clear error
+const clearError = () => {
+  authStore.clearError()
+}
+
+// Function to handle forgot password
+const handleForgotPassword = async () => {
+  try {
+    if (authStore.isAuthenticated) {
+      // For logged-in users, send reset email to their registered email
+      await authStore.resetPasswordForCurrentUser()
+      successMessage.value = t('resetPasswordSent')
+      
+      // Hide forgot password section
       showForgotPassword.value = false
-      emailConfirmationRequired.value = false
-      authStore.clearError()
-    }
-
-    const toggleMode = () => {
-      isSignup.value = !isSignup.value
+      
+      // Close modal after a delay
+      setTimeout(() => {
+        closeModal()
+      }, 3000)
+    } else {
+      // For non-authenticated users, require email input
+      if (!forgotPasswordForm.email) {
+        authStore.error = t('errors.unknownError')
+        return
+      }
+      
+      await authStore.resetPasswordForEmail(forgotPasswordForm.email)
+      successMessage.value = t('resetPasswordSent')
+      
+      // Reset form and hide forgot password section
+      forgotPasswordForm.email = ''
       showForgotPassword.value = false
-      authStore.clearError()
-      successMessage.value = ''
-      emailConfirmationRequired.value = false
-    }
-
-    const handleSignup = async () => {
-      try {
-        authStore.clearError()
-        
-        if (signupForm.password !== signupForm.confirmPassword) {
-          authStore.error = t('passwordsDoNotMatch')
-          return
-        }
-        
-        if (signupForm.password.length < 6) {
-          authStore.error = t('passwordTooShort')
-          return
-        }
-
-        const userData = {
-          full_name: signupForm.fullName.trim()
-        }
-
-        const result = await authStore.signUp(signupForm.email.trim(), signupForm.password, userData)
-        
-        if (result?.success) {
-          successMessage.value = result.message || 'Account created successfully! You are now logged in.'
-          
-          // Check if email confirmation is required
-          if (result.emailConfirmationRequired) {
-            emailConfirmationRequired.value = true
-            // Don't close modal automatically - user needs to confirm email
-          } else {
-            // User is logged in immediately (shouldn't happen with email confirmation enabled)
-            setTimeout(() => {
-              closeModal()
-            }, 1500)
-          }
-        }
-      } catch (error) {
-        // Error is already handled in the auth store
-      }
-    }
-
-    const handleLogin = async () => {
-      try {
-        await authStore.login(loginForm.email, loginForm.password)
-        if (!authStore.error) {
-          await authStore.createProfileIfNotExists()
-          closeModal()
-        }
-      } catch (error) {
-        console.error('Login error:', error)
-      }
-    }
-
-    const handleGoogleLogin = async () => {
-      try {
-        authStore.clearError()
-        const result = await authStore.loginWithGoogle()
-        
-        if (result && !authStore.error) {
-          const oauthData = result?.user?.user_metadata || {}
-          await authStore.createProfileIfNotExists(oauthData)
-          closeModal()
-        }
-      } catch (error) {
-        console.error('Google login error:', error)
-        if (!authStore.error) {
-          authStore.error = 'Google login failed. Please try again.'
-        }
-      }
-    }
-
-    const handleFacebookLogin = async () => {
-      try {
-        authStore.clearError()
-        const result = await authStore.loginWithFacebook()
-        
-        if (result && !authStore.error) {
-          const oauthData = result?.user?.user_metadata || {}
-          await authStore.createProfileIfNotExists(oauthData)
-          closeModal()
-        }
-      } catch (error) {
-        console.error('Facebook login error:', error)
-        if (!authStore.error) {
-          authStore.error = 'Facebook login failed. Please try again.'
-        }
-      }
-    }
-
-    // Function to get user-friendly error messages
-    const getErrorMessage = (error) => {
-      if (!error) return ''
       
-      const errorLower = error.toLowerCase()
-      
-      // Handle email confirmation errors
-      if (errorLower.includes('email not confirmed')) {
-        return t('errors.emailNotConfirmed')
-      }
-      if (errorLower.includes('invalid login credentials') || errorLower.includes('invalid email or password')) {
-        return t('errors.invalidCredentials')
-      }
-      if (errorLower.includes('user not found')) {
-        return t('errors.userNotFound')
-      }
-      if (errorLower.includes('weak password') || errorLower.includes('password is too weak')) {
-        return t('errors.weakPassword')
-      }
-      if (errorLower.includes('email already in use') || errorLower.includes('user already registered')) {
-        return t('errors.emailAlreadyInUse')
-      }
-      if (errorLower.includes('too many requests') || errorLower.includes('rate limit')) {
-        return t('errors.tooManyRequests')
-      }
-      if (errorLower.includes('network') || errorLower.includes('fetch') || errorLower.includes('connection')) {
-        return t('errors.networkError')
-      }
-      
-      // Handle OAuth specific errors
-      if (errorLower.includes('oauth error occurred') || errorLower.includes('google oauth failed')) {
-        return t('errors.googleOAuthError')
-      }
-      if (errorLower.includes('oauth cancelled')) {
-        return t('errors.oauthCancelled')
-      }
-      return error || t('errors.unknownError')
+      // Close modal after a delay
+      setTimeout(() => {
+        closeModal()
+      }, 3000)
     }
+  } catch (error) {
+    console.error('Forgot password error:', error)
+  }
+}
 
-    // Function to clear error
-    const clearError = () => {
-      authStore.clearError()
-    }
-
-    // Email confirmation functions removed - no longer needed
-
-    // Function to handle forgot password
-    const handleForgotPassword = async () => {
-      try {
-        if (authStore.isAuthenticated) {
-          // For logged-in users, send reset email to their registered email
-          await authStore.resetPasswordForCurrentUser()
-          successMessage.value = t('resetPasswordSent')
-          
-          // Hide forgot password section
-          showForgotPassword.value = false
-          
-          // Close modal after a delay
-          setTimeout(() => {
-            closeModal()
-          }, 3000)
-        } else {
-          // For non-authenticated users, require email input
-          if (!forgotPasswordForm.email) {
-            authStore.error = t('errors.unknownError')
-            return
-          }
-          
-          await authStore.resetPasswordForEmail(forgotPasswordForm.email)
-          successMessage.value = t('resetPasswordSent')
-          
-          // Reset form and hide forgot password section
-          forgotPasswordForm.email = ''
-          showForgotPassword.value = false
-          
-          // Close modal after a delay
-          setTimeout(() => {
-            closeModal()
-          }, 3000)
-        }
-      } catch (error) {
-        console.error('Forgot password error:', error)
-      }
-    }
-
-    // Function to resend email confirmation
-    const resendConfirmation = async () => {
-      try {
-        authStore.clearError()
-        await authStore.resendEmailConfirmation(signupForm.email.trim())
-        successMessage.value = t('errors.resendConfirmationSent')
-      } catch (error) {
-        console.error('Resend confirmation error:', error)
-      }
-    }
-
-    // Resend confirmation function removed - no longer needed
-
-
-    return {
-      // Core functions
-      t, // Add the translation function!
-      authStore,
-      isSignup,
-      showForgotPassword,
-      signupForm,
-      loginForm,
-      forgotPasswordForm,
-      successMessage,
-      emailConfirmationRequired,
-      isFormValid,
-      closeModal,
-      toggleMode,
-      handleSignup,
-      handleLogin,
-      handleForgotPassword,
-      handleGoogleLogin,
-      handleFacebookLogin,
-      getErrorMessage,
-      clearError,
-      resendConfirmation,
-      showLoginPassword,
-      showSignupPassword,
-      showSignupConfirmPassword
-    }
+// Function to resend email confirmation
+const resendConfirmation = async () => {
+  try {
+    authStore.clearError()
+    await authStore.resendEmailConfirmation(signupForm.email.trim())
+    successMessage.value = t('errors.resendConfirmationSent')
+  } catch (error) {
+    console.error('Resend confirmation error:', error)
   }
 }
 </script> 

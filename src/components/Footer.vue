@@ -35,25 +35,25 @@
             <li>
               <router-link to="/products" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                {{ $t('footer.products') }}
+                {{ t('footer.products') }}
               </router-link>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                {{ $t('footer.aboutUs') }}
+                {{ t('footer.aboutUs') }}
               </a>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                {{ $t('footer.contactUs') }}
+                {{ t('footer.contactUs') }}
               </a>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
-                {{ $t('footer.help') }}
+                {{ t('footer.help') }}
               </a>
             </li>
           </ul>
@@ -61,30 +61,30 @@
 
         <!-- Customer Service -->
         <div class="space-y-4">
-          <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.customerService') }}</h4>
+          <h4 class="text-lg font-bold text-white mb-4">{{ t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
-                {{ $t('footer.returnPolicy') }}
+                {{ t('footer.returnPolicy') }}
               </a>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
-                {{ $t('footer.termsOfUse') }}
+                {{ t('footer.termsOfUse') }}
               </a>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
-                {{ $t('footer.privacyPolicy') }}
+                {{ t('footer.privacyPolicy') }}
               </a>
             </li>
             <li>
               <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
-                {{ $t('footer.faq') }}
+                {{ t('footer.faq') }}
               </a>
             </li>
           </ul>
@@ -92,7 +92,7 @@
 
         <!-- Contact Info -->
         <div class="space-y-4">
-          <h4 class="text-lg font-bold text-white mb-4">{{ $t('footer.contactInfo') }}</h4>
+          <h4 class="text-lg font-bold text-white mb-4">{{ t('footer.contactInfo') }}</h4>
           <div class="space-y-3">
             <div class="flex items-center space-x-3 space-x-reverse text-gray-300">
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
@@ -104,7 +104,7 @@
               <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0">
                 <i class="fas fa-map-marker-alt text-white text-sm"></i>
               </div>
-              <span class="text-sm">{{ $t('footer.address') }}</span>
+              <span class="text-sm">{{ t('footer.address') }}</span>
             </div>
           </div>
         </div>
@@ -114,12 +114,12 @@
       <div class="border-t border-gray-700 mt-8 pt-6">
         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p class="text-gray-400 text-sm">
-            {{ $t('footer.copyright') }}
+            {{ t('footer.copyright') }}
           </p>
           <div class="flex items-center space-x-6 space-x-reverse">
             <div class="bg-primary text-white rounded-lg px-4 py-2 shadow-soft">
-              <span class="font-bold text-sm">{{ $t('footer.cod') }}</span>
-              <span class="text-xs opacity-90 block">{{ $t('footer.cashOnDelivery') }}</span>
+              <span class="font-bold text-sm">{{ t('footer.cod') }}</span>
+              <span class="text-xs opacity-90 block">{{ t('footer.cashOnDelivery') }}</span>
             </div>
           </div>
         </div>
@@ -128,8 +128,8 @@
   </footer>
 </template>
 
-<script>
-export default {
-  name: 'Footer'
-}
+<script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script> 

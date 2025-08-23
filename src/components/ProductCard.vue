@@ -106,85 +106,70 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useWishlistStore } from '../stores/wishlist'
 
-export default {
-  name: 'ProductCard',
-  props: {
-    product: {
-      type: Object,
-      required: true
-    }
-  },
-  setup(props) {
-    const cartStore = useCartStore()
-    const wishlistStore = useWishlistStore()
+const props = defineProps({
+  product: {
+    type: Object,
+    required: true
+  }
+})
 
-    const productImage = computed(() => {
-      // Handle both old single image and new image_urls array
-      if (props.product.image_urls && props.product.image_urls.length > 0) {
-        return props.product.image_urls[0] // Use first image as main image
-      }
-      return props.product.image || null // Fallback to old image field
-    })
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
+const productImage = computed(() => {
+  // Handle both old single image and new image_urls array
+  if (props.product.image_urls && props.product.image_urls.length > 0) {
+    return props.product.image_urls[0] // Use first image as main image
+  }
+  return props.product.image || null // Fallback to old image field
+})
 
-    const isInWishlist = computed(() => {
-      return wishlistStore.isInWishlist(props.product.id)
-    })
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
 
-    const addToCart = async () => {
-      if (props.product.stock_quantity > 0) {
-        await cartStore.addToCart(props.product)
-      }
-    }
+const isInWishlist = computed(() => {
+  return wishlistStore.isInWishlist(props.product.id)
+})
 
-    const toggleWishlist = async () => {
-      try {
-        if (isInWishlist.value) {
-          await wishlistStore.removeProductFromWishlist(props.product.id)
-        } else {
-          await wishlistStore.addToWishlist(props.product.id)
-        }
-      } catch (error) {
-        console.error('Failed to toggle wishlist:', error)
-      }
-    }
-
-    const handleImageError = (event) => {
-      // Hide the image if it fails to load
-      event.target.style.display = 'none'
-    }
-
-    onMounted(async () => {
-      // Fetch wishlist if user is authenticated
-      if (wishlistStore.wishlistItems.length === 0) {
-        try {
-          await wishlistStore.fetchWishlist()
-        } catch (error) {
-          // User might not be authenticated, which is fine
-        }
-      }
-    })
-
-    return {
-      cartStore,
-      wishlistStore,
-      productImage,
-      formatPrice,
-      isInWishlist,
-      addToCart,
-      toggleWishlist,
-      handleImageError
-    }
+const addToCart = async () => {
+  if (props.product.stock_quantity > 0) {
+    await cartStore.addToCart(props.product)
   }
 }
+
+const toggleWishlist = async () => {
+  try {
+    if (isInWishlist.value) {
+      await wishlistStore.removeProductFromWishlist(props.product.id)
+    } else {
+      await wishlistStore.addToWishlist(props.product.id)
+    }
+  } catch (error) {
+    console.error('Failed to toggle wishlist:', error)
+  }
+}
+
+const handleImageError = (event) => {
+  // Hide the image if it fails to load
+  event.target.style.display = 'none'
+}
+
+onMounted(async () => {
+  // Fetch wishlist if user is authenticated
+  if (wishlistStore.wishlistItems.length === 0) {
+    try {
+      await wishlistStore.fetchWishlist()
+    } catch (error) {
+      // User might not be authenticated, which is fine
+    }
+  }
+})
 </script>
 
 <style scoped>

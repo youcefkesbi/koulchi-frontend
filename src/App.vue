@@ -13,62 +13,49 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { onMounted, onUnmounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from './stores/auth'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
-export default {
-  name: 'App',
-  components: {
-    Header,
-    Footer
-  },
-  setup() {
-    const authStore = useAuthStore()
-    const { locale } = useI18n()
-    
-    // Computed properties for language direction and locale
-    const currentDir = computed(() => {
-      return locale.value === 'ar' ? 'rtl' : 'ltr'
-    })
-    
-    const currentLocale = computed(() => {
-      return locale.value === 'ar' ? 'ar-DZ' : locale.value === 'fr' ? 'fr-FR' : 'en-US'
-    })
-    
-    // Watch for locale changes and update document direction
-    watch(locale, (newLocale) => {
-      const dir = newLocale === 'ar' ? 'rtl' : 'ltr'
-      document.documentElement.dir = dir
-      document.documentElement.lang = newLocale
-      
-      // Save to localStorage
-      localStorage.setItem('locale', newLocale)
-    }, { immediate: true })
-    
-    onMounted(() => {
-      authStore.initAuth()
-      
-      // Set initial document direction and language
-      const savedLocale = localStorage.getItem('locale') || 'ar'
-      const dir = savedLocale === 'ar' ? 'rtl' : 'ltr'
-      document.documentElement.dir = dir
-      document.documentElement.lang = savedLocale
-    })
-    
-    onUnmounted(() => {
-      authStore.cleanup()
-    })
-    
-    return {
-      currentDir,
-      currentLocale
-    }
-  }
-}
+// Components are automatically imported in <script setup>
+const authStore = useAuthStore()
+const { locale } = useI18n()
+
+// Computed properties for language direction and locale
+const currentDir = computed(() => {
+  return locale.value === 'ar' ? 'rtl' : 'ltr'
+})
+
+const currentLocale = computed(() => {
+  return locale.value === 'ar' ? 'ar-DZ' : locale.value === 'fr' ? 'fr-FR' : 'en-US'
+})
+
+// Watch for locale changes and update document direction
+watch(locale, (newLocale) => {
+  const dir = newLocale === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.dir = dir
+  document.documentElement.lang = newLocale
+  
+  // Save to localStorage
+  localStorage.setItem('locale', newLocale)
+}, { immediate: true })
+
+onMounted(() => {
+  authStore.initAuth()
+  
+  // Set initial document direction and language
+  const savedLocale = localStorage.getItem('locale') || 'ar'
+  const dir = savedLocale === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.dir = dir
+  document.documentElement.lang = savedLocale
+})
+
+onUnmounted(() => {
+  authStore.cleanup()
+})
 </script>
 
 <style>

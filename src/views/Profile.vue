@@ -98,87 +98,72 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 
-export default {
-  name: 'Profile',
-  setup() {
-    const authStore = useAuthStore()
-    const router = useRouter()
-    
-    const loading = ref(false)
-    const successMessage = ref('')
-    const errorMessage = ref('')
-    
-    const profileForm = reactive({
-      fullName: '',
-      email: '',
-      city: ''
-    })
+const authStore = useAuthStore()
+const router = useRouter()
 
+const loading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
 
+const profileForm = reactive({
+  fullName: '',
+  email: '',
+  city: ''
+})
 
-    // Load user profile data
-    const loadProfile = async () => {
-      try {
-        if (authStore.user) {
-          profileForm.fullName = authStore.user.full_name || ''
-          profileForm.email = authStore.user.email || ''
-          profileForm.city = authStore.user.city || ''
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error)
-        errorMessage.value = 'Error loading profile data'
-      }
+// Load user profile data
+const loadProfile = async () => {
+  try {
+    if (authStore.user) {
+      profileForm.fullName = authStore.user.full_name || ''
+      profileForm.email = authStore.user.email || ''
+      profileForm.city = authStore.user.city || ''
     }
-
-    // Update profile
-    const handleUpdateProfile = async () => {
-      try {
-        loading.value = true
-        errorMessage.value = ''
-        successMessage.value = ''
-
-        const { error } = await authStore.updateProfile({
-          full_name: profileForm.fullName,
-          city: profileForm.city
-        })
-
-        if (error) {
-          errorMessage.value = error
-        } else {
-          successMessage.value = 'Profile updated successfully!'
-          // Clear success message after 3 seconds
-          setTimeout(() => {
-            successMessage.value = ''
-          }, 3000)
-        }
-      } catch (error) {
-        console.error('Error updating profile:', error)
-        errorMessage.value = 'Error updating profile'
-      } finally {
-        loading.value = false
-      }
-    }
-
-    onMounted(() => {
-      if (!authStore.isAuthenticated) {
-        router.push('/')
-        return
-      }
-      loadProfile()
-    })
-
-    return {
-      profileForm,
-      loading,
-      successMessage,
-      errorMessage,
-      handleUpdateProfile
-    }
+  } catch (error) {
+    console.error('Error loading profile:', error)
+    errorMessage.value = 'Error loading profile data'
   }
 }
+
+// Update profile
+const handleUpdateProfile = async () => {
+  try {
+    loading.value = true
+    errorMessage.value = ''
+    successMessage.value = ''
+
+    const { error } = await authStore.updateProfile({
+      full_name: profileForm.fullName,
+      city: profileForm.city
+    })
+
+    if (error) {
+      errorMessage.value = error
+    } else {
+      successMessage.value = 'Profile updated successfully!'
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        successMessage.value = ''
+      }, 3000)
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error)
+    errorMessage.value = 'Error updating profile'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  if (!authStore.isAuthenticated) {
+    router.push('/')
+    return
+  }
+  loadProfile()
+})
 </script>

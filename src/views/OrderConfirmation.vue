@@ -199,97 +199,79 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted } from 'vue'
 import { useCartStore } from '../stores/cart'
 
-export default {
-  name: 'OrderConfirmation',
-  setup() {
-    const cartStore = useCartStore()
+const cartStore = useCartStore()
 
-    // Generate order number
-    const orderNumber = computed(() => {
-      const timestamp = Date.now()
-      return `KOUL${timestamp.toString().slice(-8)}`
-    })
+// Generate order number
+const orderNumber = computed(() => {
+  const timestamp = Date.now()
+  return `KOUL${timestamp.toString().slice(-8)}`
+})
 
-    // Get current date
-    const orderDate = computed(() => {
-      return new Date().toLocaleDateString('ar-DZ', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    })
+// Get current date
+const orderDate = computed(() => {
+  return new Date().toLocaleDateString('ar-DZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+})
 
-    // Customer info
-    const customerName = computed(() => {
-      if (cartStore.customerInfo) {
-        return `${cartStore.customerInfo.firstName} ${cartStore.customerInfo.lastName}`
-      }
-      return ''
-    })
-
-    const customerPhone = computed(() => {
-      return cartStore.customerInfo?.phone || ''
-    })
-
-    const customerEmail = computed(() => {
-      return cartStore.customerInfo?.email || ''
-    })
-
-    const deliveryAddress = computed(() => {
-      return cartStore.deliveryAddress || {}
-    })
-
-    // Algerian Wilayas mapping
-    const wilayasMap = {
-      '16': 'الجزائر - Alger',
-      '31': 'وهران - Oran',
-      '21': 'سكيكدة - Skikda',
-      '25': 'قسنطينة - Constantine',
-      '19': 'سطيف - Sétif',
-      '27': 'مستغانم - Mostaganem',
-      '24': 'قالمة - Guelma',
-      '23': 'عنابة - Annaba',
-      '26': 'المدية - Médéa',
-      '20': 'سعيدة - Saïda'
-    }
-
-    const getWilayaName = (wilayaId) => {
-      return wilayasMap[wilayaId] || wilayaId
-    }
-
-    const formatPrice = (price) => {
-      return price.toLocaleString('ar-DZ')
-    }
-
-    const printOrder = () => {
-      window.print()
-    }
-
-    onMounted(() => {
-      // Clear cart after successful order
-      setTimeout(() => {
-        cartStore.clearCart()
-      }, 5000)
-    })
-
-    return {
-      cartStore,
-      orderNumber,
-      orderDate,
-      customerName,
-      customerPhone,
-      customerEmail,
-      deliveryAddress,
-      getWilayaName,
-      formatPrice,
-      printOrder
-    }
+// Customer info
+const customerName = computed(() => {
+  if (cartStore.customerInfo) {
+    return `${cartStore.customerInfo.firstName} ${cartStore.customerInfo.lastName}`
   }
+  return ''
+})
+
+const customerPhone = computed(() => {
+  return cartStore.customerInfo?.phone || ''
+})
+
+const customerEmail = computed(() => {
+  return cartStore.customerInfo?.email || ''
+})
+
+const deliveryAddress = computed(() => {
+  return cartStore.deliveryAddress || {}
+})
+
+// Algerian Wilayas mapping
+const wilayasMap = {
+  '16': 'الجزائر - Alger',
+  '31': 'وهران - Oran',
+  '21': 'سكيكدة - Skikda',
+  '25': 'قسنطينة - Constantine',
+  '19': 'سطيف - Sétif',
+  '27': 'مستغانم - Mostaganem',
+  '24': 'قالمة - Guelma',
+  '23': 'عنابة - Annaba',
+  '26': 'المدية - Médéa',
+  '20': 'سعيدة - Saïda'
 }
+
+const getWilayaName = (wilayaId) => {
+  return wilayasMap[wilayaId] || wilayaId
+}
+
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
+
+const printOrder = () => {
+  window.print()
+}
+
+onMounted(() => {
+  // Clear cart after successful order
+  setTimeout(() => {
+    cartStore.clearCart()
+  }, 5000)
+})
 </script>
 
 <style scoped>

@@ -55,7 +55,7 @@
             class="w-4 h-4 object-contain"
           />
           <i v-else class="fas fa-box text-sm"></i>
-          {{ category.name }}
+          {{ getCategoryName(category.id) }}
         </button>
     </div>
 
@@ -96,54 +96,55 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import i18n from '../i18n'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
-export default {
-  name: 'Products',
-  components: {
-    ProductCard
-  },
-  setup() {
-    const productStore = useProductStore()
-    const searchQuery = ref('')
+const { t } = useI18n()
+const productStore = useProductStore()
+const searchQuery = ref('')
 
-    const filteredProducts = computed(() => productStore.filteredProducts)
+const filteredProducts = computed(() => productStore.filteredProducts)
 
-    const getCurrentCategoryName = computed(() => {
-      const category = productStore.categories.find(cat => cat.id === productStore.selectedCategory)
-      return category ? category.name : ''
-    })
+const getCurrentCategoryName = computed(() => {
+  const category = productStore.categories.find(cat => cat.id === productStore.selectedCategory)
+  return category ? getCategoryName(category.id) : ''
+})
 
-    const handleSearch = () => {
-      productStore.setSearchQuery(searchQuery.value)
+const getCategoryName = (categoryId) => {
+  const category = productStore.categories.find(cat => cat.id === categoryId)
+  if (category) {
+    // Check if we have a localized name for the current language
+    const currentLocale = i18n.global.locale.value
+    
+    if (currentLocale === 'ar' && category.name_ar) {
+      return category.name_ar
     }
-
-    const selectCategory = (categoryId) => {
-      productStore.setCategory(categoryId)
-    }
-
-    const clearFilters = () => {
-      productStore.clearFilters()
-      searchQuery.value = ''
-    }
-
-    // Fetch products and categories on component mount
-    onMounted(async () => {
-      await productStore.initializeStore()
-    })
-
-    return {
-      productStore,
-      searchQuery,
-      filteredProducts,
-      getCurrentCategoryName,
-      handleSearch,
-      selectCategory,
-      clearFilters
-    }
+    
+    // Fall back to the main name field
+    return category.name
   }
+  return categoryId
 }
+
+const handleSearch = () => {
+  productStore.setSearchQuery(searchQuery.value)
+}
+
+const selectCategory = (categoryId) => {
+  productStore.setCategory(categoryId)
+}
+
+const clearFilters = () => {
+  productStore.clearFilters()
+  searchQuery.value = ''
+}
+
+// Fetch products and categories on component mount
+onMounted(async () => {
+  await productStore.initializeStore()
+})
 </script> 

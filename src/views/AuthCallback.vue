@@ -40,56 +40,46 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
 
-export default {
-  name: 'AuthCallback',
-  setup() {
-    const router = useRouter()
-    const authStore = useAuthStore()
-    const loading = ref(true)
-    const error = ref(null)
+const router = useRouter()
+const authStore = useAuthStore()
+const loading = ref(true)
+const error = ref(null)
 
-    onMounted(async () => {
-      try {
-        // Get the current session after OAuth redirect
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          throw sessionError
-        }
-
-        if (session?.user) {
-          // User is authenticated, the auth store will handle loading profile data automatically
-          
-          // Create profile if it doesn't exist (for new OAuth users)
-          const oauthData = session.user.user_metadata || {}
-          await authStore.createProfileIfNotExists(oauthData)
-          
-          loading.value = false
-          
-          // Redirect to home page after successful authentication
-          setTimeout(() => {
-            router.push('/')
-          }, 1500)
-        } else {
-          throw new Error('No session found after OAuth callback')
-        }
-      } catch (err) {
-        console.error('OAuth callback error:', err)
-        error.value = err.message || 'Authentication failed'
-        loading.value = false
-      }
-    })
-
-    return {
-      loading,
-      error
+onMounted(async () => {
+  try {
+    // Get the current session after OAuth redirect
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      throw sessionError
     }
+
+    if (session?.user) {
+      // User is authenticated, the auth store will handle loading profile data automatically
+      
+      // Create profile if it doesn't exist (for new OAuth users)
+      const oauthData = session.user.user_metadata || {}
+      await authStore.createProfileIfNotExists(oauthData)
+      
+      loading.value = false
+      
+      // Redirect to home page after successful authentication
+      setTimeout(() => {
+        router.push('/')
+      }, 1500)
+    } else {
+      throw new Error('No session found after OAuth callback')
+    }
+  } catch (err) {
+    console.error('OAuth callback error:', err)
+    error.value = err.message || 'Authentication failed'
+    loading.value = false
   }
-}
+})
 </script>
