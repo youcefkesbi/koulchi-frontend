@@ -23,101 +23,101 @@
 
     <!-- Dashboard Sections -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <!-- Buying Section -->
-      <div class="card">
-        <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
-          <i class="fas fa-shopping-cart mr-3 text-primary"></i>
-          {{ $t('dashboard.buyingSection') }}
-        </h2>
-        
-        <!-- Active Orders -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.activeOrders') }}</h3>
-          <div v-if="orders.length > 0" class="space-y-3">
-            <div v-for="order in orders" :key="order.id" class="p-3 bg-gray-50 rounded-lg">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium">Order #{{ order.id }}</span>
-                <span class="text-xs text-gray-500">{{ order.status }}</span>
+        <!-- Buying Section -->
+        <div class="card">
+          <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
+            <i class="fas fa-shopping-cart mr-3 text-primary"></i>
+            {{ $t('dashboard.buyingSection') }}
+          </h2>
+          
+          <!-- Active Orders -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.activeOrders') }}</h3>
+            <div v-if="orders.length > 0" class="space-y-3">
+              <div v-for="order in orders" :key="order.id" class="p-3 bg-gray-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium">Order #{{ order.id }}</span>
+                  <span class="text-xs text-gray-500">{{ order.status }}</span>
+                </div>
               </div>
             </div>
+            <div v-else class="text-center py-8 text-gray-500">
+              <i class="fas fa-shopping-bag text-3xl mb-3"></i>
+              <p>{{ $t('dashboard.noOrders') }}</p>
+              <p class="text-sm">{{ $t('dashboard.noOrdersMessage') }}</p>
+            </div>
           </div>
-          <div v-else class="text-center py-8 text-gray-500">
-            <i class="fas fa-shopping-bag text-3xl mb-3"></i>
-            <p>{{ $t('dashboard.noOrders') }}</p>
-            <p class="text-sm">{{ $t('dashboard.noOrdersMessage') }}</p>
+
+          <!-- Wishlist -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.wishlist') }}</h3>
+            <div v-if="wishlist.length > 0" class="space-y-3">
+              <div v-for="item in wishlist" :key="item.id" class="p-3 bg-gray-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium">{{ item.name }}</span>
+                  <span class="text-xs text-gray-500">{{ formatPrice(item.price) }} دج</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-8 text-gray-500">
+              <i class="fas fa-heart text-3xl mb-3"></i>
+              <p>{{ $t('dashboard.noWishlist') }}</p>
+              <p class="text-sm">{{ $t('dashboard.noWishlistMessage') }}</p>
+            </div>
           </div>
         </div>
 
-        <!-- Wishlist -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.wishlist') }}</h3>
-          <div v-if="wishlist.length > 0" class="space-y-3">
-            <div v-for="item in wishlist" :key="item.id" class="p-3 bg-gray-50 rounded-lg">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium">{{ item.name }}</span>
-                <span class="text-xs text-gray-500">{{ formatPrice(item.price) }} دج</span>
+        <!-- Selling Section -->
+        <div class="card">
+          <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
+            <i class="fas fa-store mr-3 text-primary"></i>
+            {{ $t('dashboard.sellingSection') }}
+          </h2>
+          
+          <!-- Current Listings -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.currentListings') }}</h3>
+            <div v-if="sellerStore.products.length > 0" class="space-y-3">
+              <div v-for="product in sellerStore.products.slice(0, 3)" :key="product.id" class="p-3 bg-gray-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium">{{ product.name_ar || product.name }}</span>
+                  <span class="text-xs text-gray-500">{{ formatPrice(product.price) }} دج</span>
+                </div>
+              </div>
+              <div v-if="sellerStore.products.length > 3" class="text-center">
+                <router-link to="/dashboard/listings" class="text-primary text-sm hover:underline">
+                  {{ $t('sections.viewAll') }}
+                </router-link>
               </div>
             </div>
-          </div>
-          <div v-else class="text-center py-8 text-gray-500">
-            <i class="fas fa-heart text-3xl mb-3"></i>
-            <p>{{ $t('dashboard.noWishlist') }}</p>
-            <p class="text-sm">{{ $t('dashboard.noWishlistMessage') }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Selling Section -->
-      <div class="card">
-        <h2 class="text-xl font-bold text-dark mb-6 flex items-center">
-          <i class="fas fa-store mr-3 text-primary"></i>
-          {{ $t('dashboard.sellingSection') }}
-        </h2>
-        
-        <!-- Current Listings -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.currentListings') }}</h3>
-          <div v-if="sellerStore.products.length > 0" class="space-y-3">
-            <div v-for="product in sellerStore.products.slice(0, 3)" :key="product.id" class="p-3 bg-gray-50 rounded-lg">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium">{{ product.name_ar || product.name }}</span>
-                <span class="text-xs text-gray-500">{{ formatPrice(product.price) }} دج</span>
-              </div>
-            </div>
-            <div v-if="sellerStore.products.length > 3" class="text-center">
-              <router-link to="/dashboard/listings" class="text-primary text-sm hover:underline">
-                {{ $t('sections.viewAll') }}
+            <div v-else class="text-center py-8 text-gray-500">
+              <i class="fas fa-box text-3xl mb-3"></i>
+              <p>{{ $t('dashboard.noListings') }}</p>
+              <p class="text-sm">{{ $t('dashboard.noListingsMessage') }}</p>
+              <router-link
+                to="/myannouncements/new"
+                class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block text-center"
+              >
+                {{ $t('dashboard.postFirstAnnouncement') }}
               </router-link>
             </div>
           </div>
-          <div v-else class="text-center py-8 text-gray-500">
-            <i class="fas fa-box text-3xl mb-3"></i>
-            <p>{{ $t('dashboard.noListings') }}</p>
-            <p class="text-sm">{{ $t('dashboard.noListingsMessage') }}</p>
-            <router-link
-              to="/myannouncements/new"
-              class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block text-center"
-            >
-              {{ $t('dashboard.postFirstAnnouncement') }}
-            </router-link>
-          </div>
-        </div>
 
-        <!-- Pending Shipments -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.pendingShipments') }}</h3>
-          <div v-if="pendingShipments.length > 0" class="space-y-3">
-            <div v-for="shipment in pendingShipments" :key="shipment.id" class="p-3 bg-yellow-50 rounded-lg">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium">{{ shipment.product_name }}</span>
-                <span class="text-xs text-yellow-600">{{ shipment.status }}</span>
+          <!-- Pending Shipments -->
+          <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('dashboard.pendingShipments') }}</h3>
+            <div v-if="pendingShipments.length > 0" class="space-y-3">
+              <div v-for="shipment in pendingShipments" :key="shipment.id" class="p-3 bg-yellow-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium">{{ shipment.product_name }}</span>
+                  <span class="text-xs text-yellow-600">{{ shipment.status }}</span>
+                </div>
               </div>
             </div>
+            <div v-else class="text-center py-4 text-gray-500">
+              <p class="text-sm">{{ $t('dashboard.noPendingShipments') }}</p>
+            </div>
           </div>
-          <div v-else class="text-center py-4 text-gray-500">
-            <p class="text-sm">{{ $t('dashboard.noPendingShipments') }}</p>
-          </div>
-        </div>
 
         <!-- Simple Stats -->
         <div class="grid grid-cols-2 gap-4">
@@ -130,6 +130,11 @@
             <div class="text-xs text-green-600">{{ $t('seller.activeProducts') }}</div>
           </div>
         </div>
+
+        <!-- Store Management Section -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <StoreManagement />
+        </div>
       </div>
     </div>
 
@@ -141,9 +146,13 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useSellerStore } from '../stores/seller'
+import StoreManagement from '../components/StoreManagement.vue'
 
 export default {
   name: 'UserDashboard',
+  components: {
+    StoreManagement
+  },
   setup() {
     const authStore = useAuthStore()
     const sellerStore = useSellerStore()

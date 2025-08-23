@@ -82,6 +82,24 @@
                           </option>
                         </select>
                       </div>
+
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          {{ $t('seller.store') }}
+                        </label>
+                        <select
+                          v-model="form.store"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        >
+                          <option value="">{{ $t('seller.selectStore') }}</option>
+                          <option v-for="store in userStores" :key="store.id" :value="store.id">
+                            {{ store.name }}
+                          </option>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-1">
+                          {{ $t('seller.storeSelectionHelp') }}
+                        </p>
+                      </div>
                     </div>
 
                     <!-- Pricing -->
@@ -255,7 +273,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useSellerStore } from '../stores/seller'
 import { useProductStore } from '../stores/product'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
 
 export default {
   name: 'AddProductModal',
@@ -289,9 +307,11 @@ export default {
       category: '',
       description: '',
       inStock: true,
-      isNew: true
+      isNew: true,
+      store: ''
     })
     const categories = ref([])
+    const userStores = ref([])
     const isEditing = computed(() => !!props.product)
 
     // Watch for product changes to populate form
@@ -303,7 +323,8 @@ export default {
           category: newProduct.category_id || '',
           description: newProduct.description || '',
           inStock: newProduct.stock_quantity > 0,
-          isNew: newProduct.is_new || true
+          isNew: newProduct.is_new || true,
+          store: newProduct.store_id || ''
         })
       } else {
         // Reset form
@@ -313,7 +334,8 @@ export default {
           category: '',
           description: '',
           inStock: true,
-          isNew: true
+          isNew: true,
+          store: ''
         })
       }
       // Reset selected images
@@ -334,8 +356,27 @@ export default {
       }
     }
 
-    // Fetch categories when component mounts
+    // Fetch user stores on mount
+    const fetchUserStores = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data, error } = await supabase
+            .from('stores')
+            .select('*')
+            .eq('owner_id', user.id)
+            .order('name')
+          if (error) throw error
+          userStores.value = data || []
+        }
+      } catch (err) {
+        console.error('Error fetching user stores:', err)
+      }
+    }
+
+    // Fetch data when component mounts
     fetchCategories()
+    fetchUserStores()
 
     const closeModal = () => {
       emit('close')
@@ -374,7 +415,8 @@ export default {
           category_id: form.category,
           description: form.description,
           stock_quantity: form.inStock ? 100 : 0,
-          is_new: form.isNew
+          is_new: form.isNew,
+          store_id: form.store || null
         }
 
         if (isEditing.value) {
@@ -397,6 +439,7 @@ export default {
       productStore,
       form,
       categories,
+      userStores,
       isEditing,
       imageInput,
       selectedImages,

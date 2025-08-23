@@ -12,6 +12,8 @@ import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
+import Stores from '../views/Stores.vue'
+import StoreDetail from '../views/StoreDetail.vue'
 
 
 const routes = [
@@ -89,6 +91,17 @@ const routes = [
     path: '/category/:categoryId',
     name: 'CategoryPage',
     component: CategoryPage,
+    props: true
+  },
+  {
+    path: '/stores',
+    name: 'Stores',
+    component: Stores
+  },
+  {
+    path: '/stores/:id',
+    name: 'StoreDetail',
+    component: StoreDetail,
     props: true
   },
 

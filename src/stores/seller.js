@@ -51,19 +51,13 @@ export const useSellerStore = defineStore('seller', () => {
         .insert({
           seller_id: user.id,
           name: productData.name,
-          name_ar: productData.nameAr,
           price: productData.price,
-          original_price: productData.originalPrice,
-          image: productData.image,
-          category_id: productData.categoryId,
+          category_id: productData.category_id,
           description: productData.description,
-          description_ar: productData.descriptionAr,
-          in_stock: productData.inStock,
-          is_new: productData.isNew,
-          is_on_sale: productData.isOnSale,
-          is_active: true,
-          rating: 0,
-          reviews: 0
+          stock_quantity: productData.stock_quantity,
+          is_new: productData.is_new,
+          store_id: productData.store_id,
+          is_active: true
         })
         .select()
         .single()

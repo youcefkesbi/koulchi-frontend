@@ -88,6 +88,9 @@
           <div class="flex items-center space-x-6 space-x-reverse">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-6 space-x-reverse">
+              <router-link to="/stores" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Stores">
+                <i class="fas fa-store text-xl"></i>
+              </router-link>
               <router-link to="/products" class="text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Products">
                 <i class="fas fa-shopping-bag text-xl"></i>
               </router-link>
