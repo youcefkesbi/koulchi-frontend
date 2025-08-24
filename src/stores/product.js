@@ -215,14 +215,12 @@ export const useProductStore = defineStore('product', () => {
 
   const fetchCategories = async () => {
     try {
-      // Try to fetch categories with multilingual names if they exist
-      let query = supabase
+      // Fetch categories with multilingual names
+      const { data, error: supabaseError } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
         .eq('is_active', true)
-        .order('name');
-      
-      const { data, error: supabaseError } = await query;
+        .order('name_en');
       
       if (supabaseError) throw supabaseError;
       

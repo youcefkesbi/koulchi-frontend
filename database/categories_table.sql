@@ -26,18 +26,6 @@ GRANT SELECT ON public.categories TO anon;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS categories_is_active_idx ON public.categories(is_active);
-CREATE INDEX IF NOT EXISTS categories_name_idx ON public.categories(name);
+CREATE INDEX IF NOT EXISTS categories_name_en_idx ON public.categories(name_en);
 CREATE INDEX IF NOT EXISTS categories_name_ar_idx ON public.categories(name_ar);
 CREATE INDEX IF NOT EXISTS categories_name_fr_idx ON public.categories(name_fr);
-
--- Insert some sample categories with multilingual names
-INSERT INTO public.categories (name, name_ar, name_fr, description, icon_url) VALUES
-    ('Cars', 'السيارات', 'Voitures', 'Automobiles and vehicles', 'fas fa-car'),
-    ('Real Estate', 'العقارات', 'Immobilier', 'Houses, apartments, and properties', 'fas fa-home'),
-    ('Electronics', 'الإلكترونيات', 'Électronique', 'Electronic devices and gadgets', 'fas fa-laptop'),
-    ('Fashion', 'الموضة', 'Mode', 'Clothing and accessories', 'fas fa-tshirt'),
-    ('Home & Kitchen', 'المنزل والمطبخ', 'Maison & Cuisine', 'Home goods and kitchen items', 'fas fa-couch'),
-    ('Beauty & Personal Care', 'الجمال والرعاية الشخصية', 'Beauté & Soins Personnels', 'Beauty products and personal care', 'fas fa-spa'),
-    ('Kids', 'الأطفال', 'Enfants', 'Products for children', 'fas fa-baby'),
-    ('Food & Beverages', 'الطعام والمشروبات', 'Alimentation & Boissons', 'Food and drink products', 'fas fa-utensils')
-ON CONFLICT (name) DO NOTHING;

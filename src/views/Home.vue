@@ -60,7 +60,7 @@
             <img 
               v-if="category.icon_url" 
               :src="category.icon_url" 
-              :alt="category.name"
+              :alt="getCategoryName(category.id)"
               class="w-12 h-12 object-contain"
             />
             <i v-else class="fas fa-box text-white text-2xl"></i>
@@ -201,8 +201,8 @@ const getCategoryName = (categoryId) => {
       return category.name_fr
     }
     
-    // Fall back to the main name field (English)
-    return category.name
+    // Fall back to the English name field
+    return category.name_en
   }
   return categoryId
 }

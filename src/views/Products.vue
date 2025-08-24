@@ -51,7 +51,7 @@
           <img 
             v-if="category.icon_url" 
             :src="category.icon_url" 
-            :alt="category.name"
+            :alt="getCategoryName(category.id)"
             class="w-4 h-4 object-contain"
           />
           <i v-else class="fas fa-box text-sm"></i>
@@ -124,8 +124,12 @@ const getCategoryName = (categoryId) => {
       return category.name_ar
     }
     
-    // Fall back to the main name field
-    return category.name
+    if (currentLocale === 'fr' && category.name_fr) {
+      return category.name_fr
+    }
+    
+    // Fall back to the English name field
+    return category.name_en
   }
   return categoryId
 }

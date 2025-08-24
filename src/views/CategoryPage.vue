@@ -119,7 +119,15 @@ const filteredProducts = computed(() => {
       sorted.sort((a, b) => b.price - a.price)
       break
     case 'name':
-      sorted.sort((a, b) => a.name.localeCompare(b.name))
+      // Sort by the appropriate localized name field
+      const currentLocale = i18n.global.locale.value
+      sorted.sort((a, b) => {
+        const nameA = currentLocale === 'ar' && a.name_ar ? a.name_ar : 
+                     currentLocale === 'fr' && a.name_fr ? a.name_fr : a.name_en
+        const nameB = currentLocale === 'ar' && b.name_ar ? b.name_ar : 
+                     currentLocale === 'fr' && b.name_fr ? b.name_fr : b.name_en
+        return nameA.localeCompare(nameB)
+      })
       break
   }
   
@@ -156,8 +164,8 @@ const getCategoryName = (categoryId) => {
       return category.name_fr
     }
     
-    // Fall back to the main name field (English)
-    return category.name
+    // Fall back to the English name field
+    return category.name_en
   }
   return categoryId
 }

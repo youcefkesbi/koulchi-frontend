@@ -342,8 +342,9 @@ const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('*')
-      .order('name')
+      .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
+      .eq('is_active', true)
+      .order('name_en')
     if (error) throw error
     categories.value = data || []
   } catch (err) {
@@ -377,8 +378,12 @@ const getCategoryName = (categoryId) => {
       return category.name_ar
     }
     
-    // Fall back to the main name field
-    return category.name
+    if (currentLocale === 'fr' && category.name_fr) {
+      return category.name_fr
+    }
+    
+    // Fall back to the English name field
+    return category.name_en
   }
   return categoryId
 }

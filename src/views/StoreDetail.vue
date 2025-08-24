@@ -130,12 +130,12 @@ const storeProducts = ref([])
 const fetchStoreProducts = async () => {
   try {
     productsLoading.value = true
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, categories(name, name_ar)')
-      .eq('store_id', route.params.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+            const { data, error } = await supabase
+          .from('products')
+          .select('*, categories(id, name_en, name_ar, name_fr, description, icon_url, is_active)')
+          .eq('store_id', route.params.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
 
     if (error) throw error
     storeProducts.value = data || []
