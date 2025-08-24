@@ -1,4 +1,4 @@
--- Categories table structure for Supabase with multilingual support
+-- Categories table structure for Supabase with multilingual support -
 
 CREATE TABLE IF NOT EXISTS public.categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
