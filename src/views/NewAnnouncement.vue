@@ -105,7 +105,7 @@
             <!-- Stock Quantity -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-3">
-                Stock Quantity *
+                {{ $t('announcement.stockQuantity') }} *
               </label>
               <input
                 v-model="form.stock_quantity"
@@ -113,14 +113,14 @@
                 min="0"
                 required
                 class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                placeholder="Enter stock quantity"
+                :placeholder="$t('announcement.stockQuantityPlaceholder')"
               />
             </div>
 
             <!-- Product Images -->
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-3">
-                Product Images (Max 3, 2MB each)
+                {{ $t('announcement.productImages') }}
               </label>
               <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary transition-colors duration-300">
                 <input
@@ -133,8 +133,8 @@
                 />
                 <div @click="$refs.imageInput.click()" class="cursor-pointer">
                   <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                  <p class="text-gray-600 mb-2">Click to upload images or drag and drop</p>
-                  <p class="text-sm text-gray-500">PNG, JPG, JPEG up to 2MB each</p>
+                  <p class="text-gray-600 mb-2">{{ $t('announcement.clickToUpload') }}</p>
+                  <p class="text-sm text-gray-500">{{ $t('announcement.imageFormats') }}</p>
                 </div>
               </div>
               
@@ -153,7 +153,7 @@
               </div>
               
               <p class="text-sm text-gray-500 mt-2">
-                {{ imageFiles.length }}/3 images selected
+                {{ $t('announcement.imagesSelected', { count: imageFiles.length }) }}
               </p>
             </div>
 
@@ -177,7 +177,7 @@
               <div class="w-10 h-10 bg-secondary rounded-2xl flex items-center justify-center shadow-soft">
                 <i class="fas fa-cog text-white text-lg"></i>
               </div>
-              <h2 class="text-2xl font-bold text-dark">Product Options</h2>
+              <h2 class="text-2xl font-bold text-dark">{{ $t('announcement.productOptions') }}</h2>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -189,7 +189,7 @@
                   class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0"
                 />
                 <label for="isNew" class="text-lg font-medium text-gray-700">
-                  Mark as New Product
+                  {{ $t('announcement.markAsNew') }}
                 </label>
               </div>
               
@@ -201,7 +201,7 @@
                   class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0"
                 />
                 <label for="isActive" class="text-lg font-medium text-gray-700">
-                  Product Active
+                  {{ $t('announcement.markAsActive') }}
                 </label>
               </div>
             </div>
@@ -301,23 +301,23 @@ onMounted(async () => {
 const handleImageUpload = (event) => {
   const files = Array.from(event.target.files)
   
-  // Validate file count
-  if (imageFiles.value.length + files.length > 3) {
-    error.value = 'Maximum 3 images allowed'
-    return
-  }
+      // Validate file count
+    if (imageFiles.value.length + files.length > 3) {
+      error.value = $t('announcement.maxImagesAllowed')
+      return
+    }
   
   // Validate each file
   files.forEach(file => {
     // Check file size (2MB = 2 * 1024 * 1024 bytes)
     if (file.size > 2 * 1024 * 1024) {
-      error.value = `File ${file.name} is too large. Maximum size is 2MB.`
+      error.value = $t('announcement.fileTooLarge', { fileName: file.name })
       return
     }
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      error.value = `File ${file.name} is not an image.`
+      error.value = $t('announcement.fileNotImage', { fileName: file.name })
       return
     }
     
@@ -351,7 +351,7 @@ const uploadImages = async (userId) => {
       const imageFile = imageFiles.value[i]
       const fileName = `${userId}/${Date.now()}-${i}-${imageFile.name}`
       
-      uploadProgress.value = `Uploading image ${i + 1}/${imageFiles.value.length}...`
+      uploadProgress.value = $t('announcement.uploadingImage', { current: i + 1, total: imageFiles.value.length })
       
       // Add timeout for each upload
       const uploadPromise = supabase.storage
@@ -359,13 +359,13 @@ const uploadImages = async (userId) => {
         .upload(fileName, imageFile.file)
       
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Upload timeout for ${imageFile.name}`)), 30000)
+        setTimeout(() => reject(new Error($t('announcement.validation.uploadTimeoutForFile', { fileName: imageFile.name }))), 30000)
       })
       
       const { data, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise])
       
       if (uploadError) {
-        throw new Error(`Failed to upload ${imageFile.name}: ${uploadError.message}`)
+        throw new Error($t('announcement.validation.failedToUploadFile', { fileName: imageFile.name, error: uploadError.message }))
       }
       
       // Get public URL
@@ -392,7 +392,7 @@ const submitForm = async () => {
   try {
     // Basic form validation
     if (!form.name || !form.name.trim()) {
-      error.value = 'Product name is required'
+      error.value = $t('announcement.validation.productNameRequired')
       return
     }
     
@@ -402,19 +402,19 @@ const submitForm = async () => {
     }
     
     if (!form.price || parseFloat(form.price) <= 0) {
-      error.value = 'Please enter a valid price'
+      error.value = $t('announcement.validation.validPrice')
       return
     }
     
     if (!form.stock_quantity || parseInt(form.stock_quantity) < 0) {
-      error.value = 'Please enter a valid stock quantity'
+      error.value = $t('announcement.validation.validStockQuantity')
       return
     }
 
     loading.value = true
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
+    if (!user) throw new Error($t('errors.userNotAuthenticated'))
 
     // Test storage bucket access
     if (imageFiles.value.length > 0) {
@@ -426,16 +426,16 @@ const submitForm = async () => {
         
         if (bucketError) {
           if (bucketError.message.includes('does not exist')) {
-            error.value = 'Warning: Storage bucket "product-images" does not exist. Product will be created without images.'
+            error.value = $t('announcement.validation.storageBucketNotExist')
           } else if (bucketError.message.includes('permission denied')) {
-            error.value = 'Warning: No permission to access storage bucket. Product will be created without images.'
+            error.value = $t('announcement.validation.storageBucketNoPermission')
           } else {
-            error.value = 'Warning: Storage bucket access failed. Product will be created without images.'
+            error.value = $t('announcement.validation.storageBucketAccessFailed')
           }
           imageFiles.value = [] // Clear images to prevent upload attempt
                       }
       } catch (bucketTestError) {
-        error.value = 'Warning: Storage bucket not accessible. Product will be created without images.'
+        error.value = $t('announcement.validation.storageBucketNotAccessible')
         imageFiles.value = [] // Clear images to prevent upload attempt
       }
     }
@@ -446,13 +446,13 @@ const submitForm = async () => {
       try {
         // Add overall timeout for image uploads
         const uploadTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Image upload process timed out')), 60000) // 1 minute total
+          setTimeout(() => reject(new Error($t('announcement.validation.imageUploadTimeout'))), 60000) // 1 minute total
         })
         
         const uploadPromise = uploadImages(user.id)
         imageUrls = await Promise.race([uploadPromise, uploadTimeout])
       } catch (uploadError) {
-        error.value = 'Warning: Images failed to upload. Product will be created without images.'
+        error.value = $t('announcement.validation.imagesFailedUpload')
         // Continue without images rather than failing completely
         imageUrls = []
       }
@@ -477,7 +477,7 @@ const submitForm = async () => {
       .insert(productData)
 
     if (insertError) {
-      throw new Error(`Failed to insert product: ${insertError.message}`)
+      throw new Error($t('announcement.validation.failedToInsertProduct', { error: insertError.message }))
     }
 
     // Fetch the inserted product
@@ -491,7 +491,7 @@ const submitForm = async () => {
       .single()
 
     if (fetchError) {
-      throw new Error(`Failed to fetch created product: ${fetchError.message}`)
+      throw new Error($t('announcement.validation.failedToFetchProduct', { error: fetchError.message }))
     }
 
     showSuccess.value = true
@@ -501,7 +501,7 @@ const submitForm = async () => {
       router.push('/dashboard')
     }, 2000)
   } catch (err) {
-    error.value = err.message || 'Error creating product'
+    error.value = err.message || $t('announcement.validation.errorCreatingProduct')
     // Ensure loading is reset on error
     loading.value = false
     uploadProgress.value = ''

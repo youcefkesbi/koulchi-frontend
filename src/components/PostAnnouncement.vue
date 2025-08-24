@@ -237,7 +237,7 @@ const submitForm = async () => {
     error.value = ''
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('User not authenticated')
+    if (!user) throw new Error(t('errors.userNotAuthenticated'))
 
     const { data, error: createError } = await supabase
       .from('products')
@@ -268,7 +268,7 @@ const submitForm = async () => {
       closeModal()
     }, 2000)
   } catch (err) {
-    error.value = err.message || 'Error creating announcement'
+    error.value = err.message || t('announcement.errorCreating')
     console.error('Error creating product:', err)
   } finally {
     loading.value = false

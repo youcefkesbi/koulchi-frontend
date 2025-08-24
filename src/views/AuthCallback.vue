@@ -74,11 +74,11 @@ onMounted(async () => {
         router.push('/')
       }, 1500)
     } else {
-      throw new Error('No session found after OAuth callback')
+      throw new Error(t('errors.noSessionFound'))
     }
   } catch (err) {
     console.error('OAuth callback error:', err)
-    error.value = err.message || 'Authentication failed'
+    error.value = err.message || t('errors.authenticationFailed')
     loading.value = false
   }
 })
