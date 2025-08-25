@@ -2,8 +2,8 @@
   <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-dark mb-2">{{ $t('dashboard.userDashboard') }}</h1>
-      <p class="text-gray-600">{{ $t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
+      <h1 class="text-3xl font-bold text-dark mb-2">{{ t('dashboard.userDashboard') }}</h1>
+      <p class="text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
     </div>
 
     <!-- Dashboard Grid -->
@@ -11,12 +11,12 @@
       <!-- Buying Section -->
       <div class="space-y-6">
         <div class="card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ $t('dashboard.buyingSection') }}</h2>
-          <p class="text-gray-600 mb-6">{{ $t('dashboard.buyingDescription') }}</p>
+          <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.buyingSection') }}</h2>
+          <p class="text-gray-600 mb-6">{{ t('dashboard.buyingDescription') }}</p>
           
           <!-- Active Orders -->
           <div class="mb-6">
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ $t('dashboard.activeOrders') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.activeOrders') }}</h3>
             <div v-if="ordersStore.loading" class="text-center py-4">
               <i class="fas fa-spinner fa-spin text-primary text-xl"></i>
             </div>
@@ -34,37 +34,37 @@
                   />
                   <div>
                     <h4 class="font-semibold text-dark">{{ order.product?.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ $t('dashboard.quantity') }}: {{ order.quantity }}</p>
+                    <p class="text-sm text-gray-600">{{ t('dashboard.quantity') }}: {{ order.quantity }}</p>
                   </div>
                 </div>
                 <span class="badge" :class="getStatusBadgeClass(order.status)">
-                  {{ $t(`orderStatus.${order.status}`) }}
+                  {{ t(`orderStatus.${order.status}`) }}
                 </span>
               </div>
               <router-link :to="getLocalizedRoute('/dashboard/orders')" class="btn-outline w-full text-center">
-                {{ $t('dashboard.viewAllOrders') }}
+                {{ t('dashboard.viewAllOrders') }}
               </router-link>
             </div>
             <div v-else class="text-center py-6">
               <i class="fas fa-shopping-bag text-gray-400 text-3xl mb-3"></i>
-              <p class="text-gray-600">{{ $t('dashboard.noOrders') }}</p>
-              <p class="text-sm text-gray-500">{{ $t('dashboard.noOrdersMessage') }}</p>
+              <p class="text-gray-600">{{ t('dashboard.noOrders') }}</p>
+              <p class="text-sm text-gray-500">{{ t('dashboard.noOrdersMessage') }}</p>
             </div>
           </div>
 
           <!-- Wishlist -->
           <div>
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ $t('wishlist.title') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('wishlist.title') }}</h3>
             <div v-if="wishlistStore.totalItems > 0" class="text-center py-4">
-              <p class="text-gray-600 mb-3">{{ $t('wishlist.totalItems', { count: wishlistStore.totalItems }) }}</p>
+              <p class="text-gray-600 mb-3">{{ t('wishlist.totalItems', { count: wishlistStore.totalItems }) }}</p>
               <router-link :to="getLocalizedRoute('/wishlist')" class="btn-outline">
-                {{ $t('wishlist.browseProducts') }}
+                {{ t('wishlist.browseProducts') }}
               </router-link>
             </div>
             <div v-else class="text-center py-6">
               <i class="fas fa-heart text-gray-400 text-3xl mb-3"></i>
-              <p class="text-gray-600">{{ $t('wishlist.empty') }}</p>
-              <p class="text-sm text-gray-500">{{ $t('wishlist.emptyMessage') }}</p>
+              <p class="text-gray-600">{{ t('wishlist.empty') }}</p>
+              <p class="text-sm text-gray-500">{{ t('wishlist.emptyMessage') }}</p>
             </div>
           </div>
         </div>
@@ -73,12 +73,12 @@
       <!-- Selling Section -->
       <div class="space-y-6">
         <div class="card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ $t('dashboard.sellingSection') }}</h2>
-          <p class="text-gray-600 mb-6">{{ $t('dashboard.sellingDescription') }}</p>
+          <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.sellingSection') }}</h2>
+          <p class="text-gray-600 mb-6">{{ t('dashboard.sellingDescription') }}</p>
           
           <!-- Pending Orders -->
           <div class="mb-6">
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ $t('dashboard.pendingShipments') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.pendingShipments') }}</h3>
             <div v-if="ordersStore.loading" class="text-center py-4">
               <i class="fas fa-spinner fa-spin text-primary text-xl"></i>
             </div>
@@ -96,7 +96,7 @@
                   />
                   <div>
                     <h4 class="font-semibold text-dark">{{ order.product?.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ $t('dashboard.quantity') }}: {{ order.quantity }}</p>
+                    <p class="text-sm text-gray-600">{{ t('dashboard.quantity') }}: {{ order.quantity }}</p>
                   </div>
                 </div>
                 <button 
@@ -104,35 +104,35 @@
                   class="btn-primary text-sm px-3 py-1"
                   :disabled="ordersStore.loading"
                 >
-                  {{ $t('dashboard.confirmOrder') }}
+                  {{ t('dashboard.confirmOrder') }}
                 </button>
               </div>
               <router-link :to="getLocalizedRoute('/dashboard/orders')" class="btn-outline w-full text-center">
-                {{ $t('dashboard.viewAllOrders') }}
+                {{ t('dashboard.viewAllOrders') }}
               </router-link>
             </div>
             <div v-else class="text-center py-6">
               <i class="fas fa-box text-gray-400 text-3xl mb-3"></i>
-              <p class="text-gray-600">{{ $t('dashboard.noPendingOrders') }}</p>
-              <p class="text-sm text-gray-500">{{ $t('dashboard.noPendingOrdersMessage') }}</p>
+              <p class="text-gray-600">{{ t('dashboard.noPendingOrders') }}</p>
+              <p class="text-sm text-gray-500">{{ t('dashboard.noPendingOrdersMessage') }}</p>
             </div>
           </div>
 
           <!-- Current Listings -->
           <div>
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ $t('dashboard.currentListings') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.currentListings') }}</h3>
             <div v-if="productStore.userProducts.length > 0" class="text-center py-4">
-              <p class="text-gray-600 mb-3">{{ $t('dashboard.totalProducts', { count: productStore.userProducts.length }) }}</p>
+              <p class="text-gray-600 mb-3">{{ t('dashboard.totalProducts', { count: productStore.userProducts.length }) }}</p>
               <router-link :to="getLocalizedRoute('/dashboard/products')" class="btn-outline">
-                {{ $t('dashboard.manageProducts') }}
+                {{ t('dashboard.manageProducts') }}
               </router-link>
             </div>
             <div v-else class="text-center py-6">
               <i class="fas fa-tag text-gray-400 text-3xl mb-3"></i>
-              <p class="text-gray-600">{{ $t('dashboard.noListings') }}</p>
-              <p class="text-sm text-gray-500">{{ $t('dashboard.noListingsMessage') }}</p>
+              <p class="text-gray-600">{{ t('dashboard.noListings') }}</p>
+              <p class="text-sm text-gray-500">{{ t('dashboard.noListingsMessage') }}</p>
               <router-link :to="getLocalizedRoute('/myannouncements/new')" class="btn-primary mt-3">
-                {{ $t('dashboard.postFirstAnnouncement') }}
+                {{ t('dashboard.postFirstAnnouncement') }}
               </router-link>
             </div>
           </div>
@@ -143,19 +143,19 @@
     <!-- Quick Actions -->
     <div class="mt-8">
       <div class="card">
-        <h2 class="text-xl font-bold text-dark mb-4">{{ $t('dashboard.quickActions') }}</h2>
+        <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.quickActions') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <router-link :to="getLocalizedRoute('/myannouncements/new')" class="btn-primary text-center">
             <i class="fas fa-plus ml-2"></i>
-            {{ $t('dashboard.postAnnouncement') }}
+            {{ t('dashboard.postAnnouncement') }}
           </router-link>
           <router-link :to="getLocalizedRoute('/products')" class="btn-outline text-center">
             <i class="fas fa-shopping-bag ml-2"></i>
-            {{ $t('dashboard.browseProducts') }}
+            {{ t('dashboard.browseProducts') }}
           </router-link>
           <router-link :to="getLocalizedRoute('/profile')" class="btn-outline text-center">
             <i class="fas fa-user ml-2"></i>
-            {{ $t('dashboard.editProfile') }}
+            {{ t('dashboard.editProfile') }}
           </router-link>
         </div>
       </div>
@@ -166,12 +166,14 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { useProductStore } from '../stores/product'
 import { useWishlistStore } from '../stores/wishlist'
 import { useOrdersStore } from '../stores/orders'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
+const { t } = useI18n()
 const route = useRoute()
 const authStore = useAuthStore()
 const productStore = useProductStore()
