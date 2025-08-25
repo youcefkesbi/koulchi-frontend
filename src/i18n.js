@@ -3,36 +3,52 @@ import en from '../locales/en.json'
 import fr from '../locales/fr.json'
 import ar from '../locales/ar.json'
 
-// Language configuration with RTL support
+// Language configuration without flags
 const languages = {
-  ar: {
-    name: 'العربية',
-    flag: 'https://flagcdn.com/w40/dz.png',
-    dir: 'rtl',
-    locale: 'ar-DZ'
+  fr: {
+    name: 'Français',
+    dir: 'ltr',
+    locale: 'fr-FR'
   },
   en: {
     name: 'English',
-    flag: 'https://flagcdn.com/w40/gb.png',
     dir: 'ltr',
     locale: 'en-US'
   },
-  fr: {
-    name: 'Français',
-    flag: 'https://flagcdn.com/w40/fr.png',
-    dir: 'ltr',
-    locale: 'fr-FR'
+  ar: {
+    name: 'العربية',
+    dir: 'rtl',
+    locale: 'ar-DZ'
   }
 }
 
-// Get saved locale or default to Arabic
-const savedLocale = localStorage.getItem('locale') || 'ar'
-const defaultLocale = languages[savedLocale] ? savedLocale : 'ar'
+// Language detection logic
+const detectLanguage = () => {
+  // Check localStorage first
+  const savedLocale = localStorage.getItem('locale')
+  if (savedLocale && languages[savedLocale]) {
+    return savedLocale
+  }
+  
+  // Check browser language
+  const browserLang = navigator.language || navigator.userLanguage
+  if (browserLang) {
+    const langCode = browserLang.split('-')[0]
+    if (languages[langCode]) {
+      return langCode
+    }
+  }
+  
+  // Default to French
+  return 'fr'
+}
+
+const defaultLocale = detectLanguage()
 
 const i18n = createI18n({
   legacy: false,
   locale: defaultLocale,
-  fallbackLocale: 'en',
+  fallbackLocale: 'fr',
   messages: {
     en,
     fr,
