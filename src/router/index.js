@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { getBestLocale, setLocale, getSupportedLocales } from '../lib/i18n-utils'
+import { setLocale, getSupportedLocales } from '../lib/i18n-utils'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
@@ -18,7 +18,7 @@ import StoreDetail from '../views/StoreDetail.vue'
 
 // Language detection and routing
 const supportedLocales = getSupportedLocales()
-const defaultLocale = 'fr'
+const defaultLocale = 'en'
 
 // Create routes with language prefixes
 const createLocalizedRoutes = () => {
@@ -132,18 +132,15 @@ const createLocalizedRoutes = () => {
     })
   })
   
-  // Add root redirect
+  // Add root redirect - will be handled in beforeEach
   routes.push({
     path: '/',
-    redirect: `/${getBestLocale()}`
+    name: 'RootRedirect',
+    component: Home,
+    meta: { isRoot: true }
   })
   
-  // Add catch-all redirect for unsupported locales
-  routes.push({
-    path: '/:locale(.*)',
-    redirect: `/${defaultLocale}`
-  })
-  
+  console.log('Created routes:', routes)
   return routes
 }
 
@@ -165,20 +162,65 @@ async function getUser(next) {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      next('/')
+      // Instead of redirecting to '/', redirect to the current locale
+      const currentPath = router.currentRoute.value.path
+      const localeMatch = currentPath.match(/^\/(fr|en|ar)/)
+      if (localeMatch) {
+        next(`/${localeMatch[1]}/login`)
+      } else {
+        next('/en/login')
+      }
     } else {
       next()
     }
   } catch (error) {
     console.error('Auth error:', error)
-    next('/')
+    // Default to English login page
+    next('/en/login')
+  }
+}
+
+// Helper function to get best locale
+const getBestLocaleForRedirect = () => {
+  try {
+    // Check localStorage first
+    const savedLocale = localStorage.getItem('locale')
+    if (savedLocale && supportedLocales.includes(savedLocale)) {
+      return savedLocale
+    }
+    
+    // Check browser language
+    const browserLang = navigator.language || navigator.userLanguage
+    if (browserLang) {
+      const langCode = browserLang.split('-')[0]
+      if (supportedLocales.includes(langCode)) {
+        return langCode
+      }
+    }
+    
+    // Default to English
+    return 'en'
+  } catch (error) {
+    console.warn('Error detecting language, defaulting to English:', error)
+    return 'en'
   }
 }
 
 // Auth requirements and language handling
 router.beforeEach(async (to, from, next) => {
+  console.log('Router beforeEach - to:', to.path, 'from:', from.path, 'meta:', to.meta)
+  
+  // Handle root redirect
+  if (to.meta.isRoot) {
+    const bestLocale = getBestLocaleForRedirect()
+    console.log('Root redirect to:', bestLocale)
+    next(`/${bestLocale}`)
+    return
+  }
+  
   // Handle language routing
   if (to.meta.locale) {
+    console.log('Setting locale to:', to.meta.locale)
     // Set the locale using utility function
     setLocale(to.meta.locale)
     

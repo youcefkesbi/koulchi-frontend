@@ -7,6 +7,12 @@
   >
     <Header />
     <main class="flex-1">
+      <!-- Debug info -->
+      <div v-if="debug" class="bg-yellow-100 p-4 text-sm">
+        <p>Current locale: {{ locale }}</p>
+        <p>Current route: {{ $route.path }}</p>
+        <p>Current route meta: {{ $route.meta }}</p>
+      </div>
       <router-view />
     </main>
     <Footer />
@@ -14,15 +20,18 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { onMounted, onUnmounted, computed, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from './stores/auth'
+import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
 // Components are automatically imported in <script setup>
 const authStore = useAuthStore()
 const { locale } = useI18n()
+const route = useRoute()
+const debug = ref(true) // Set to false in production
 
 // Computed properties for language direction and locale
 const currentDir = computed(() => {
@@ -46,11 +55,13 @@ watch(locale, (newLocale) => {
 onMounted(() => {
   authStore.initAuth()
   
-  // Set initial document direction and language
-  const savedLocale = localStorage.getItem('locale') || 'ar'
-  const dir = savedLocale === 'ar' ? 'rtl' : 'ltr'
+  // Set initial document direction and language based on current i18n locale
+  const currentLocale = locale.value
+  const dir = currentLocale === 'ar' ? 'rtl' : 'ltr'
   document.documentElement.dir = dir
-  document.documentElement.lang = savedLocale
+  document.documentElement.lang = currentLocale
+  
+  console.log('App mounted, locale:', locale.value, 'route:', route.path)
 })
 
 onUnmounted(() => {

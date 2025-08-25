@@ -1,9 +1,9 @@
 import { languages } from '../i18n'
 
-// Get current locale from localStorage or default to French
+// Get current locale from localStorage or default to English
 export const getCurrentLocale = () => {
   const savedLocale = localStorage.getItem('locale')
-  return savedLocale && languages[savedLocale] ? savedLocale : 'fr'
+  return savedLocale && languages[savedLocale] ? savedLocale : 'en'
 }
 
 // Get supported locales
@@ -30,7 +30,7 @@ export const detectBrowserLanguage = () => {
       return langCode
     }
   }
-  return 'fr' // Default to French
+  return 'en' // Default to English
 }
 
 // Get the best locale to use (localStorage > browser > default)
@@ -45,7 +45,7 @@ export const getBestLocale = () => {
     return browserLocale
   }
   
-  return 'fr'
+  return 'en'
 }
 
 // Set locale and persist to localStorage

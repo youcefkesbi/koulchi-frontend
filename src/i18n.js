@@ -39,8 +39,8 @@ const detectLanguage = () => {
     }
   }
   
-  // Default to French
-  return 'fr'
+  // Default to English if browser language is not supported
+  return 'en'
 }
 
 const defaultLocale = detectLanguage()
@@ -48,7 +48,7 @@ const defaultLocale = detectLanguage()
 const i18n = createI18n({
   legacy: false,
   locale: defaultLocale,
-  fallbackLocale: 'fr',
+  fallbackLocale: 'en',
   messages: {
     en,
     fr,
