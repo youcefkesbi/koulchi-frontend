@@ -15,103 +15,157 @@ import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 
+// Language detection and routing
+const supportedLocales = ['fr', 'en', 'ar']
+const defaultLocale = 'fr'
 
-const routes = [
-  {
+const detectLanguage = () => {
+  // Check localStorage first
+  const savedLocale = localStorage.getItem('locale')
+  if (savedLocale && supportedLocales.includes(savedLocale)) {
+    return savedLocale
+  }
+  
+  // Check browser language
+  const browserLang = navigator.language || navigator.userLanguage
+  if (browserLang) {
+    const langCode = browserLang.split('-')[0]
+    if (supportedLocales.includes(langCode)) {
+      return langCode
+    }
+  }
+  
+  return defaultLocale
+}
+
+// Create routes with language prefixes
+const createLocalizedRoutes = () => {
+  const baseRoutes = [
+    {
+      path: '/',
+      name: 'Home',
+      component: Home
+    },
+    {
+      path: '/login',
+      name: 'LoginModal',
+      component: Home
+    },
+    {
+      path: '/products',
+      name: 'Products',
+      component: Products
+    },
+    {
+      path: '/product/:id',
+      name: 'ProductDetail',
+      component: ProductDetail,
+      props: true
+    },
+    {
+      path: '/cart',
+      name: 'Cart',
+      component: Cart
+    },
+    {
+      path: '/checkout',
+      name: 'Checkout',
+      component: Checkout
+    },
+    {
+      path: '/order-confirmation',
+      name: 'OrderConfirmation',
+      component: OrderConfirmation
+    },
+    {
+      path: '/dashboard',
+      name: 'UserDashboard',
+      component: UserDashboard,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile',
+      name: 'Profile',
+      component: Profile,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/wishlist',
+      name: 'Wishlist',
+      component: Wishlist,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/myannouncements/new',
+      name: 'NewAnnouncement',
+      component: () => import('../views/NewAnnouncement.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/auth/callback',
+      name: 'AuthCallback',
+      component: AuthCallback
+    },
+    {
+      path: '/reset-password',
+      name: 'ResetPassword',
+      component: ResetPassword
+    },
+    {
+      path: '/category/:categoryId',
+      name: 'CategoryPage',
+      component: CategoryPage,
+      props: true
+    },
+    {
+      path: '/stores',
+      name: 'Stores',
+      component: Stores
+    },
+    {
+      path: '/stores/:id',
+      name: 'StoreDetail',
+      component: StoreDetail,
+      props: true
+    },
+    {
+      path: '/dashboard/store/create',
+      name: 'CreateStore',
+      component: () => import('../views/CreateStore.vue'),
+      meta: { requiresAuth: true }
+    }
+  ]
+
+  const routes = []
+  
+  // Add localized routes
+  supportedLocales.forEach(locale => {
+    baseRoutes.forEach(route => {
+      routes.push({
+        ...route,
+        path: `/${locale}${route.path === '/' ? '' : route.path}`,
+        name: `${route.name}_${locale}`,
+        meta: { ...route.meta, locale }
+      })
+    })
+  })
+  
+  // Add root redirect
+  routes.push({
     path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/login',
-    name: 'LoginModal',
-    component: Home
-  },
-  {
-    path: '/products',
-    name: 'Products',
-    component: Products
-  },
-  {
-    path: '/product/:id',
-    name: 'ProductDetail',
-    component: ProductDetail,
-    props: true
-  },
-  {
-    path: '/cart',
-    name: 'Cart',
-    component: Cart
-  },
-  {
-    path: '/checkout',
-    name: 'Checkout',
-    component: Checkout
-  },
-  {
-    path: '/order-confirmation',
-    name: 'OrderConfirmation',
-    component: OrderConfirmation
-  },
-  {
-    path: '/dashboard',
-    name: 'UserDashboard',
-    component: UserDashboard,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: Profile,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/wishlist',
-    name: 'Wishlist',
-    component: Wishlist,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/myannouncements/new',
-    name: 'NewAnnouncement',
-    component: () => import('../views/NewAnnouncement.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/auth/callback',
-    name: 'AuthCallback',
-    component: AuthCallback
-  },
-  {
-    path: '/reset-password',
-    name: 'ResetPassword',
-    component: ResetPassword
-  },
-  {
-    path: '/category/:categoryId',
-    name: 'CategoryPage',
-    component: CategoryPage,
-    props: true
-  },
-  {
-    path: '/stores',
-    name: 'Stores',
-    component: Stores
-  },
-  {
-    path: '/stores/:id',
-    name: 'StoreDetail',
-    component: StoreDetail,
-    props: true
-  },
-  {
-    path: '/dashboard/store/create',
-    name: 'CreateStore',
-    component: () => import('../views/CreateStore.vue'),
-    meta: { requiresAuth: true }
-  },
+    redirect: `/${detectLanguage()}`
+  })
+  
+  // Add catch-all redirect for unsupported locales
+  routes.push({
+    path: '/:locale(.*)',
+    redirect: `/${defaultLocale}`
+  })
+  
+  return routes
+}
 
-]
+const routes = createLocalizedRoutes()
 
 const router = createRouter({
   history: createWebHistory(),
@@ -139,8 +193,25 @@ async function getUser(next) {
   }
 }
 
-// Auth requirements
+// Auth requirements and language handling
 router.beforeEach(async (to, from, next) => {
+  // Handle language routing
+  if (to.meta.locale) {
+    // Set the locale in i18n
+    const { locale } = await import('../i18n')
+    locale.value = to.meta.locale
+    localStorage.setItem('locale', to.meta.locale)
+    
+    // Set document direction for RTL languages
+    if (to.meta.locale === 'ar') {
+      document.documentElement.dir = 'rtl'
+      document.documentElement.lang = 'ar'
+    } else {
+      document.documentElement.dir = 'ltr'
+      document.documentElement.lang = to.meta.locale
+    }
+  }
+  
   if (to.meta.requiresAuth) {
     await getUser(next)
   } else {
