@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
+import { getBestLocale, setLocale, getSupportedLocales } from '../lib/i18n-utils'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
@@ -16,27 +17,8 @@ import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 
 // Language detection and routing
-const supportedLocales = ['fr', 'en', 'ar']
+const supportedLocales = getSupportedLocales()
 const defaultLocale = 'fr'
-
-const detectLanguage = () => {
-  // Check localStorage first
-  const savedLocale = localStorage.getItem('locale')
-  if (savedLocale && supportedLocales.includes(savedLocale)) {
-    return savedLocale
-  }
-  
-  // Check browser language
-  const browserLang = navigator.language || navigator.userLanguage
-  if (browserLang) {
-    const langCode = browserLang.split('-')[0]
-    if (supportedLocales.includes(langCode)) {
-      return langCode
-    }
-  }
-  
-  return defaultLocale
-}
 
 // Create routes with language prefixes
 const createLocalizedRoutes = () => {
@@ -153,7 +135,7 @@ const createLocalizedRoutes = () => {
   // Add root redirect
   routes.push({
     path: '/',
-    redirect: `/${detectLanguage()}`
+    redirect: `/${getBestLocale()}`
   })
   
   // Add catch-all redirect for unsupported locales
@@ -197,19 +179,12 @@ async function getUser(next) {
 router.beforeEach(async (to, from, next) => {
   // Handle language routing
   if (to.meta.locale) {
-    // Set the locale in i18n
+    // Set the locale using utility function
+    setLocale(to.meta.locale)
+    
+    // Update i18n locale
     const { locale } = await import('../i18n')
     locale.value = to.meta.locale
-    localStorage.setItem('locale', to.meta.locale)
-    
-    // Set document direction for RTL languages
-    if (to.meta.locale === 'ar') {
-      document.documentElement.dir = 'rtl'
-      document.documentElement.lang = 'ar'
-    } else {
-      document.documentElement.dir = 'ltr'
-      document.documentElement.lang = to.meta.locale
-    }
   }
   
   if (to.meta.requiresAuth) {

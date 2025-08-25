@@ -35,13 +35,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
 import { languages } from '../i18n'
+import { useLocalizedI18n } from '../composables/useI18n'
 
-const { locale } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const { locale, currentLanguage, changeLanguage } = useLocalizedI18n()
 const isOpen = ref(false)
 
 // Convert languages object to array for iteration
@@ -50,36 +47,9 @@ const languagesArray = Object.keys(languages).map(code => ({
   ...languages[code]
 }))
 
-const currentLanguage = computed(() => {
-  return languagesArray.find(lang => lang.code === locale.value) || languagesArray[0]
-})
-
 const selectLanguage = async (code) => {
-  // Update i18n locale
-  locale.value = code
+  await changeLanguage(code)
   isOpen.value = false
-  
-  // Save to localStorage
-  localStorage.setItem('locale', code)
-  
-  // Update document direction for RTL languages
-  if (code === 'ar') {
-    document.documentElement.dir = 'rtl'
-    document.documentElement.lang = 'ar'
-  } else {
-    document.documentElement.dir = 'ltr'
-    document.documentElement.lang = code
-  }
-  
-  // Navigate to the same page in the new language
-  const currentPath = route.path
-  const currentLocale = route.meta.locale
-  
-  if (currentLocale && currentLocale !== code) {
-    // Replace the locale in the current path
-    const newPath = currentPath.replace(`/${currentLocale}`, `/${code}`)
-    await router.push(newPath)
-  }
 }
 
 // Close dropdown when clicking outside
@@ -90,21 +60,6 @@ const handleClickOutside = (event) => {
 }
 
 onMounted(() => {
-  // Load saved language preference
-  const savedLocale = localStorage.getItem('locale')
-  if (savedLocale && languagesArray.some(lang => lang.code === savedLocale)) {
-    locale.value = savedLocale
-  }
-  
-  // Set initial document direction
-  if (locale.value === 'ar') {
-    document.documentElement.dir = 'rtl'
-    document.documentElement.lang = 'ar'
-  } else {
-    document.documentElement.dir = 'ltr'
-    document.documentElement.lang = locale.value
-  }
-  
   document.addEventListener('click', handleClickOutside)
 })
 
