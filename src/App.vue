@@ -16,6 +16,7 @@
 <script setup>
 import { onMounted, onUnmounted, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
@@ -23,6 +24,7 @@ import Footer from './components/Footer.vue'
 // Components are automatically imported in <script setup>
 const authStore = useAuthStore()
 const { locale } = useI18n()
+const route = useRoute()
 
 // Computed properties for language direction and locale
 const currentDir = computed(() => {
@@ -32,6 +34,13 @@ const currentDir = computed(() => {
 const currentLocale = computed(() => {
   return locale.value === 'ar' ? 'ar-DZ' : locale.value === 'fr' ? 'fr-FR' : 'en-US'
 })
+
+// Watch for route changes and update i18n locale
+watch(() => route.meta.locale, (newLocale) => {
+  if (newLocale && newLocale !== locale.value) {
+    locale.value = newLocale
+  }
+}, { immediate: true })
 
 // Watch for locale changes and update document direction
 watch(locale, (newLocale) => {

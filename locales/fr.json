@@ -219,7 +219,6 @@
   "newPassword": "Nouveau Mot de Passe",
   "newPasswordPlaceholder": "Entrez votre nouveau mot de passe",
   "confirmPassword": "Confirmer le Mot de Passe",
-  "confirmPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
   "enterNewPassword": "Entrez votre nouveau mot de passe",
   "updatePassword": "Mettre à Jour le Mot de Passe",
   "updating": "Mise à jour...",
@@ -340,9 +339,6 @@
     "save": "Enregistrer",
     "next": "Suivant"
   },
-  "sections": {
-    "viewAll": "Voir Tout"
-  },
   "categories": {
     "cars": "Voitures",
     "realestate": "Immobilier",
@@ -424,8 +420,6 @@
     "imageUrl": "URL de l'image",
     "imageUrlPlaceholder": "Entrez l'URL de l'image",
     "productDescription": "Description du Produit",
-    "descriptionPlaceholder": "Entrez la description du produit en anglais",
-    "descriptionArPlaceholder": "Entrez la description du produit en arabe",
     "isNew": "Marquer comme nouveau",
     "isOnSale": "Marquer comme en promotion"
   },
@@ -490,19 +484,6 @@
     "postAnnouncement": "Publier une Annonce",
     "browseProducts": "Parcourir les Produits",
     "editProfile": "Modifier le Profil"
-  },
-  "header": {
-    "freeShipping": "Livraison Gratuite",
-    "searchPlaceholder": "Rechercher des produits...",
-    "postAnnouncement": "Publier une Annonce",
-    "userDashboard": "Tableau de Bord Utilisateur",
-    "myProfile": "Mon Profil",
-    "dashboard": "Tableau de Bord",
-    "logout": "Déconnexion",
-    "login": "Connexion",
-    "tagline": "Trouvez-le. Aimez-le. Obtenez-le.",
-    "categories": "Catégories",
-    "brandName": "Koulchi"
   },
   "wishlist": {
     "title": "Liste de Souhaits",

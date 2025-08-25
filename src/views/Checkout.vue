@@ -2,11 +2,11 @@
   <div class="space-y-8">
     <!-- Page Header -->
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-dark">{{ t('checkout.title') }}</h1>
-      <router-link :to="getLocalizedRoute('/cart')" class="btn-outline">
-        <i class="fas fa-arrow-left ml-2"></i>
-        {{ t('checkout.backToCart') }}
-      </router-link>
+              <h1 class="text-3xl font-bold text-dark">{{ t('checkout.title') }}</h1>
+        <router-link :to="getLocalizedRoute('/cart')" class="btn-outline">
+          <i class="fas fa-arrow-left ml-2"></i>
+          {{ t('checkout.backToCart') }}
+        </router-link>
     </div>
 
     <div v-if="cartStore.hasItems" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -60,71 +60,71 @@
 
         <!-- Delivery Address -->
         <div class="card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ t('checkout.deliveryAddress') }}</h2>
-          <div class="space-y-4">
+                  <h2 class="text-xl font-bold text-dark mb-4">{{ t('checkout.deliveryAddress') }}</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.wilaya') }} *</label>
+            <select v-model="deliveryAddress.wilaya" class="input-field" required>
+              <option value="">{{ t('checkout.selectWilaya') }}</option>
+              <option v-for="wilaya in algerianWilayas" :key="wilaya.id" :value="wilaya.id">
+                {{ wilaya.nameAr }} - {{ wilaya.name }}
+              </option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.commune') }} *</label>
+            <input
+              v-model="deliveryAddress.commune"
+              type="text"
+              class="input-field"
+              :placeholder="t('checkout.commune')"
+              required
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.street') }} *</label>
+            <input
+              v-model="deliveryAddress.street"
+              type="text"
+              class="input-field"
+              :placeholder="t('checkout.streetPlaceholder')"
+              required
+            />
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.wilaya') }} *</label>
-              <select v-model="deliveryAddress.wilaya" class="input-field" required>
-                <option value="">{{ t('checkout.selectWilaya') }}</option>
-                <option v-for="wilaya in algerianWilayas" :key="wilaya.id" :value="wilaya.id">
-                  {{ wilaya.nameAr }} - {{ wilaya.name }}
-                </option>
-              </select>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.commune') }} *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.postalCode') }}</label>
               <input
-                v-model="deliveryAddress.commune"
+                v-model="deliveryAddress.postalCode"
                 type="text"
                 class="input-field"
-                :placeholder="t('checkout.commune')"
-                required
+                :placeholder="t('checkout.postalCode')"
               />
             </div>
-            
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.street') }} *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.floor') }}</label>
               <input
-                v-model="deliveryAddress.street"
+                v-model="deliveryAddress.floor"
                 type="text"
                 class="input-field"
-                :placeholder="t('checkout.streetPlaceholder')"
-                required
+                :placeholder="t('checkout.floor')"
               />
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.postalCode') }}</label>
-                <input
-                  v-model="deliveryAddress.postalCode"
-                  type="text"
-                  class="input-field"
-                  :placeholder="t('checkout.postalCode')"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.floor') }}</label>
-                <input
-                  v-model="deliveryAddress.floor"
-                  type="text"
-                  class="input-field"
-                  :placeholder="t('checkout.floor')"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.notes') }}</label>
-              <textarea
-                v-model="deliveryAddress.notes"
-                class="input-field"
-                rows="3"
-                :placeholder="t('checkout.notesPlaceholder')"
-              ></textarea>
             </div>
           </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.notes') }}</label>
+            <textarea
+              v-model="deliveryAddress.notes"
+              class="input-field"
+              rows="3"
+              :placeholder="t('checkout.notesPlaceholder')"
+            ></textarea>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -226,12 +226,12 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { getLocalizedPath } from '../lib/i18n-utils'
 import { useCartStore } from '../stores/cart'
 import { useOrdersStore } from '../stores/orders'
-import { getLocalizedPath } from '../lib/i18n-utils'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -239,44 +239,59 @@ const route = useRoute()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 
-const customerInfo = reactive({
+const customerInfo = ref({
   firstName: '',
   lastName: '',
+  email: '',
   phone: '',
-  email: ''
+  address: '',
+  city: '',
+  postalCode: '',
+  country: 'Algeria'
 })
 
-const deliveryAddress = reactive({
+const deliveryAddress = ref({
   wilaya: '',
   commune: '',
   street: '',
   postalCode: '',
-  floor: '',
-  notes: ''
+  additionalInfo: ''
 })
 
-// Algerian Wilayas (provinces)
-const algerianWilayas = [
+const paymentMethod = ref('cod')
+const termsAccepted = ref(false)
+const loading = ref(false)
+const error = ref('')
+
+// Algerian wilayas data
+const algerianWilayas = ref([
   { id: '16', name: 'Alger', nameAr: 'الجزائر' },
   { id: '31', name: 'Oran', nameAr: 'وهران' },
-  { id: '21', name: 'Skikda', nameAr: 'سكيكدة' },
-  { id: '25', name: 'Constantine', nameAr: 'قسنطينة' },
-  { id: '19', name: 'Sétif', nameAr: 'سطيف' },
-  { id: '27', name: 'Mostaganem', nameAr: 'مستغانم' },
-  { id: '24', name: 'Guelma', nameAr: 'قالمة' },
-  { id: '23', name: 'Annaba', nameAr: 'عنابة' },
-  { id: '26', name: 'Médéa', nameAr: 'المدية' },
-  { id: '20', name: 'Saïda', nameAr: 'سعيدة' }
-]
+  { id: '21', name: 'Constantine', nameAr: 'قسنطينة' },
+  { id: '48', name: 'Annaba', nameAr: 'عنابة' },
+  { id: '19', name: 'Setif', nameAr: 'سطيف' },
+  { id: '46', name: 'Batna', nameAr: 'باتنة' },
+  { id: '25', name: 'Blida', nameAr: 'البليدة' },
+  { id: '15', name: 'Tizi Ouzou', nameAr: 'تيزي وزو' },
+  { id: '35', name: 'Boumerdes', nameAr: 'بومرداس' },
+  { id: '27', name: 'Mostaganem', nameAr: 'مستغانم' }
+])
 
+// Form validation
 const isFormValid = computed(() => {
-  return customerInfo.firstName && 
-         customerInfo.lastName && 
-         customerInfo.phone && 
-         deliveryAddress.wilaya && 
-         deliveryAddress.commune && 
-         deliveryAddress.street
+  return customerInfo.value.firstName && 
+         customerInfo.value.lastName && 
+         customerInfo.value.phone && 
+         deliveryAddress.value.wilaya && 
+         deliveryAddress.value.commune && 
+         deliveryAddress.value.street &&
+         termsAccepted.value
 })
+
+// Format price helper
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
+}
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -284,48 +299,70 @@ const getLocalizedRoute = (path) => {
   return getLocalizedPath(path, currentLocale)
 }
 
-const formatPrice = (price) => {
-  return price.toLocaleString('ar-DZ')
-}
-
 const placeOrder = async () => {
-  if (!isFormValid.value) return
+  if (!termsAccepted.value) {
+    error.value = t('checkout.termsRequired')
+    return
+  }
+
+  if (!customerInfo.value.firstName || !customerInfo.value.lastName || !customerInfo.value.email || !customerInfo.value.phone || !deliveryAddress.value.wilaya || !deliveryAddress.value.commune || !deliveryAddress.value.street) {
+    error.value = t('checkout.fillAllFields')
+    return
+  }
+
+  loading.value = true
+  error.value = ''
 
   try {
-    // Create orders for each cart item
-    const orderPromises = cartStore.items.map(async (item) => {
+    const orderIds = []
+    
+    // Create an order for each cart item
+    for (const item of cartStore.items) {
       const orderData = {
-        seller_id: item.seller_id || '00000000-0000-0000-0000-000000000000', // Default seller ID
-        product_id: item.id,
+        buyer_id: cartStore.customerInfo?.id || null,
+        seller_id: item.seller_id,
+        product_id: item.product.id,
         quantity: item.quantity,
-        total_price: item.price * item.quantity,
-        shipping_address: deliveryAddress.street,
-        shipping_city: deliveryAddress.commune,
-        shipping_postal_code: deliveryAddress.postalCode,
-        notes: deliveryAddress.notes
+        unit_price: item.product.price,
+        total_price: item.totalPrice,
+        shipping_address: `${deliveryAddress.value.street}, ${deliveryAddress.value.commune}, ${deliveryAddress.value.wilaya}, Algeria`,
+        shipping_phone: customerInfo.value.phone,
+        shipping_name: `${customerInfo.value.firstName} ${customerInfo.value.lastName}`,
+        payment_method: paymentMethod.value,
+        order_status: 'pending',
+        notes: `Order placed on ${new Date().toLocaleDateString()}`
       }
-
-      return await ordersStore.createOrder(orderData)
-    })
-
-    const createdOrders = await Promise.all(orderPromises)
-
-    // Clear cart after successful order creation
-    await cartStore.clearCart()
-
-    // Navigate to order confirmation with order IDs
-    const orderIds = createdOrders.map(order => order.id).join(',')
-    router.push(getLocalizedRoute(`/order-confirmation?orders=${orderIds}`))
-  } catch (error) {
-    console.error('Error placing order:', error)
-    // Error is already set in the store
+      
+      const orderId = await ordersStore.createOrder(orderData)
+      if (orderId) {
+        orderIds.push(orderId)
+      }
+    }
+    
+    if (orderIds.length > 0) {
+      // Clear the cart
+      cartStore.clearCart()
+      
+      // Navigate to order confirmation
+      router.push({
+        path: getLocalizedRoute('/order-confirmation'),
+        query: { orderIds: orderIds.join(',') }
+      })
+    } else {
+      error.value = t('checkout.orderError')
+    }
+  } catch (err) {
+    console.error('Error placing order:', err)
+    error.value = t('checkout.orderError')
+  } finally {
+    loading.value = false
   }
 }
 
 onMounted(() => {
-  // Pre-fill email if user is logged in
+  // Pre-fill email if available from cart
   if (cartStore.customerInfo?.email) {
-    customerInfo.email = cartStore.customerInfo.email
+    customerInfo.value.email = cartStore.customerInfo.email
   }
 })
 </script> 

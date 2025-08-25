@@ -222,7 +222,10 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "save": "Save",
-    "update": "Update"
+    "update": "Update",
+    "goHome": "Go Home",
+    "back": "Back",
+    "next": "Next"
   },
   "products": "Products",
   "profile": "Profile",
@@ -230,8 +233,6 @@
   "profile.subtitle": "Update your personal information and preferences",
   "newPassword": "New Password",
   "newPasswordPlaceholder": "Enter your new password",
-  "confirmPassword": "Confirm Password",
-  "confirmPasswordPlaceholder": "Confirm your new password",
   "enterNewPassword": "Enter your new password",
   "updatePassword": "Update Password",
   "updating": "Updating...",
@@ -417,18 +418,6 @@
       "errorCreatingProduct": "Error creating product"
     }
   },
-  "common": {
-    "cancel": "Cancel",
-    "goHome": "Go Home",
-    "back": "Back",
-    "saving": "Saving...",
-    "update": "Update",
-    "save": "Save",
-    "next": "Next"
-  },
-  "sections": {
-    "viewAll": "View All"
-  },
   "seller": {
     "becomeSeller": "Become a Seller",
     "dashboard": "Seller Dashboard",
@@ -501,9 +490,7 @@
     "productImages": "Product Images",
     "uploadImages": "Upload Images",
     "imageUploadHelp": "You can upload multiple images. First image will be the main image.",
-    "description": "Description",
-    "descriptionPlaceholder": "Enter product description in English",
-    "descriptionArPlaceholder": "Enter product description in Arabic"
+    "description": "Description"
   },
   "footer": {
     "description": "Leading e-commerce platform in Algeria - Everything You Need, All in One Place. Find It. Love It. Get It.",
@@ -533,15 +520,5 @@
     "profile": "Profile",
     "orders": "Orders",
     "settings": "Settings"
-  },
-  "header": {
-    "freeShipping": "Free Shipping",
-    "searchPlaceholder": "Search products...",
-    "postAnnouncement": "Post Announcement",
-    "userDashboard": "User Dashboard",
-    "myProfile": "My Profile",
-    "dashboard": "Dashboard",
-    "logout": "Logout",
-    "login": "Login"
   }
 }

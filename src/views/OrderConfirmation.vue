@@ -151,22 +151,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { getLocalizedPath } from '../lib/i18n-utils'
 import { useOrdersStore } from '../stores/orders'
 import { useCartStore } from '../stores/cart'
-import { getLocalizedPath } from '../lib/i18n-utils'
 
 const { t } = useI18n()
 const route = useRoute()
 const ordersStore = useOrdersStore()
 const cartStore = useCartStore()
-
-const orders = ref([])
-const loading = ref(true)
-const error = ref(null)
-const deliveryAddress = ref({})
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -174,83 +169,47 @@ const getLocalizedRoute = (path) => {
   return getLocalizedPath(path, currentLocale)
 }
 
-// Format price
-const formatPrice = (price) => {
-  return price.toLocaleString('ar-DZ')
-}
+// Get order IDs from query parameters
+const orderIds = computed(() => {
+  const ids = route.query.orderIds
+  return ids ? ids.split(',').map(id => id.trim()) : []
+})
 
-// Format date
+// Get orders data
+const orders = computed(() => {
+  return orderIds.value.map(id => ordersStore.getOrderById(id)).filter(Boolean)
+})
+
+// Format date helper
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('ar-DZ', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-// Get wilaya name
-const getWilayaName = (wilayaId) => {
-  const wilayas = {
-    '16': 'الجزائر - Alger',
-    '31': 'وهران - Oran',
-    '21': 'سكيكدة - Skikda',
-    '25': 'قسنطينة - Constantine',
-    '19': 'سطيف - Sétif',
-    '27': 'مستغانم - Mostaganem',
-    '24': 'قالمة - Guelma',
-    '23': 'عنابة - Annaba',
-    '26': 'المدية - Médéa',
-    '20': 'سعيدة - Saïda'
-  }
-  return wilayas[wilayaId] || wilayaId
+  return new Date(dateString).toLocaleDateString()
 }
 
 // Get status badge class
 const getStatusBadgeClass = (status) => {
   const statusClasses = {
-    'pending': 'badge-pending',
-    'confirmed': 'badge-confirmed',
-    'shipped': 'badge-shipped',
-    'delivered': 'badge-delivered',
-    'canceled': 'badge-canceled'
+    'pending': 'bg-yellow-100 text-yellow-800',
+    'confirmed': 'bg-blue-100 text-blue-800',
+    'shipped': 'bg-purple-100 text-purple-800',
+    'delivered': 'bg-green-100 text-green-800',
+    'canceled': 'bg-red-100 text-red-800'
   }
-  return statusClasses[status] || 'badge-pending'
+  return statusClasses[status] || 'bg-gray-100 text-gray-800'
 }
 
-// Load orders
-const loadOrders = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    
-    const orderIds = route.query.orders?.split(',') || []
-    
-    if (orderIds.length === 0) {
-      error.value = 'No order IDs provided'
-      return
-    }
-
-    // Load each order
-    const orderPromises = orderIds.map(id => ordersStore.getOrderById(id))
-    const loadedOrders = await Promise.all(orderPromises)
-    
-    orders.value = loadedOrders.filter(order => order !== null)
-    
-    // Get delivery address from cart store
-    deliveryAddress.value = cartStore.deliveryAddress || {}
-    
-  } catch (err) {
-    error.value = err.message
-    console.error('Error loading orders:', err)
-  } finally {
-    loading.value = false
-  }
+// Format price helper
+const formatPrice = (price) => {
+  return price.toLocaleString('ar-DZ')
 }
 
-onMounted(() => {
-  loadOrders()
+// Get delivery address from cart store
+const deliveryAddress = computed(() => cartStore.deliveryAddress || {})
+
+onMounted(async () => {
+  // Fetch orders if not already loaded
+  if (orders.value.length === 0 && orderIds.value.length > 0) {
+    await ordersStore.fetchOrders()
+  }
 })
 </script>
 

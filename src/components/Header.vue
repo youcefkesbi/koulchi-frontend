@@ -98,59 +98,53 @@
               </router-link>
             </nav>
 
-            <!-- Auth Section -->
-            <div class="flex items-center space-x-4 space-x-reverse">
-              <!-- Post Announcement Button -->
+            <!-- User Menu -->
+            <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
-                @click="handlePostAnnouncement"
-                class="px-6 py-3 bg-secondary text-white text-sm font-semibold rounded-2xl hover:bg-secondary-dark focus:outline-none focus:ring-4 focus:ring-secondary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
+                @click="userMenuOpen = !userMenuOpen"
+                class="flex items-center space-x-2 space-x-reverse px-4 py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
-                <i class="fas fa-bullhorn mr-2"></i>
-                {{ t('header.postAnnouncement') }}
+                <img
+                  :src="authStore.userAvatar || '/src/assets/user-avatar.png'"
+                  :alt="authStore.userDisplayName || authStore.userEmail"
+                  class="w-8 h-8 rounded-full object-cover"
+                />
+                <span class="font-medium">{{ authStore.userDisplayName || authStore.userEmail }}</span>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
-              <!-- User Menu / Login Button -->
-              <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
+              <!-- User Dropdown Menu -->
+              <div 
+                v-if="userMenuOpen"
+                class="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+              >
+                <router-link :to="getLocalizedRoute('/dashboard')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                  <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
+                </router-link>
+                <router-link :to="getLocalizedRoute('/profile')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                  <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
+                </router-link>
                 <button
-                  @click="userMenuOpen = !userMenuOpen"
-                  class="flex items-center space-x-3 space-x-reverse p-3 rounded-2xl hover:bg-gray-50 transition-all duration-300 group"
+                  @click="handleLogout"
+                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
                 >
-                  <img
-                    :src="authStore.userPhotoURL"
-                    :alt="authStore.userDisplayName"
-                    class="w-10 h-10 rounded-full border-2 border-primary group-hover:border-secondary transition-colors object-cover"
-                  />
-                  <span class="text-sm font-semibold text-gray-700 group-hover:text-primary transition-colors">{{ authStore.userDisplayName || authStore.userEmail }}</span>
-                  <i class="fas fa-chevron-down text-xs text-gray-500 group-hover:text-primary transition-colors"></i>
+                  <i class="fas fa-sign-out-alt mr-3"></i>{{ t('header.logout') }}
                 </button>
-
-                <!-- User Dropdown Menu -->
-                <div 
-                  v-if="userMenuOpen" 
-                  @click.stop
-                  class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
-                >
-                  <router-link :to="getLocalizedRoute('/dashboard')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
-                  </router-link>
-                  <router-link :to="getLocalizedRoute('/profile')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
-                    <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
-                  </router-link>
-                  <button 
-                    type="button"
-                    @click.prevent="logout" 
-                    class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
-                  >
-                    <i class="fas fa-sign-out-alt mr-3"></i>{{ t('header.logout') }}
-                  </button>
-                </div>
               </div>
+            </div>
 
-              <!-- Login Button -->
+            <!-- Auth Buttons -->
+            <div v-else class="flex items-center space-x-4 space-x-reverse">
               <button
-                v-else
+                @click="handlePostAnnouncement"
+                class="btn-primary"
+              >
+                <i class="fas fa-plus ml-2"></i>
+                {{ t('header.postAnnouncement') }}
+              </button>
+              <button
                 @click="handleLoginClick"
-                class="px-6 py-3 bg-primary text-white text-sm font-semibold rounded-2xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105"
+                class="btn-outline"
               >
                 <i class="fas fa-sign-in-alt mr-2"></i>{{ t('header.login') }}
               </button>
@@ -166,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
@@ -179,7 +173,6 @@ import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 
 const { t } = useI18n()
-
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -278,37 +271,15 @@ const handleLoginClick = () => {
   showLoginModal.value = true
 }
 
-const logout = async () => {
+const handleLogout = async () => {
   try {
-    // Close the dropdown first
-    userMenuOpen.value = false
-    
-    // Small delay to ensure dropdown closes
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    // Perform logout
     await authStore.logout()
-    
-    // Clear any cart data
-    cartStore.clearCart()
-    
-    // Clear wishlist data
-    if (wishlistStore.wishlistItems.length > 0) {
-      wishlistStore.wishlistItems = []
-    }
-    
-    // Redirect to home page and show login modal
-    router.push('/')
-    showLoginModal.value = true
+    router.push(getLocalizedRoute('/'))
   } catch (error) {
     console.error('Logout error:', error)
-    // Even if logout fails, redirect to home and show login modal
-    router.push('/')
-    showLoginModal.value = true
   }
 }
 
-// Add click outside listener
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })

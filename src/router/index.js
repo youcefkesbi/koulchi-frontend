@@ -215,13 +215,10 @@ router.beforeEach(async (to, from, next) => {
     return
   }
   
-  // Handle language routing
+  // Handle language routing - locale will be set in App.vue after mount
   if (to.meta.locale) {
     // Set the locale using utility function
     setLocale(to.meta.locale)
-    
-    // Update i18n locale directly
-    i18n.global.locale.value = to.meta.locale
   }
   
   if (to.meta.requiresAuth) {

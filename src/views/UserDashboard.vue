@@ -2,8 +2,8 @@
   <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-dark mb-2">{{ t('dashboard.userDashboard') }}</h1>
-      <p class="text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
+          <h1 class="text-3xl font-bold text-dark mb-2">{{ t('dashboard.userDashboard') }}</h1>
+    <p class="text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
     </div>
 
     <!-- Dashboard Grid -->
@@ -121,8 +121,8 @@
           <!-- Current Listings -->
           <div>
             <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.currentListings') }}</h3>
-            <div v-if="productStore.userProducts.length > 0" class="text-center py-4">
-              <p class="text-gray-600 mb-3">{{ t('dashboard.totalProducts', { count: productStore.userProducts.length }) }}</p>
+            <div v-if="userProducts.length > 0" class="text-center py-4">
+              <p class="text-gray-600 mb-3">{{ t('dashboard.totalProducts', { count: userProducts.length }) }}</p>
               <router-link :to="getLocalizedRoute('/dashboard/products')" class="btn-outline">
                 {{ t('dashboard.manageProducts') }}
               </router-link>
@@ -153,7 +153,7 @@
             <i class="fas fa-shopping-bag ml-2"></i>
             {{ t('dashboard.browseProducts') }}
           </router-link>
-          <router-link :to="getLocalizedRoute('/profile')" class="btn-outline text-center">
+          <router-link :to="getLocalizedRoute('/profile')" class="btn-primary text-center">
             <i class="fas fa-user ml-2"></i>
             {{ t('dashboard.editProfile') }}
           </router-link>
@@ -164,7 +164,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
@@ -173,8 +173,8 @@ import { useWishlistStore } from '../stores/wishlist'
 import { useOrdersStore } from '../stores/orders'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
-const { t } = useI18n()
 const route = useRoute()
+const { t } = useI18n()
 const authStore = useAuthStore()
 const productStore = useProductStore()
 const wishlistStore = useWishlistStore()
@@ -198,6 +198,21 @@ const getStatusBadgeClass = (status) => {
   return statusClasses[status] || 'badge-pending'
 }
 
+// Get user's products
+const userProducts = computed(() => {
+  return productStore.products.filter(product => product.seller_id === authStore.user?.id)
+})
+
+// Get user's orders
+const userOrders = computed(() => {
+  return ordersStore.buyerOrders
+})
+
+// Get pending orders
+const pendingOrders = computed(() => {
+  return ordersStore.pendingOrders
+})
+
 // Update order status
 const updateOrderStatus = async (orderId, newStatus) => {
   try {
@@ -208,13 +223,17 @@ const updateOrderStatus = async (orderId, newStatus) => {
 }
 
 onMounted(async () => {
-  // Load user data
-  await Promise.all([
-    productStore.fetchUserProducts(),
-    wishlistStore.fetchWishlist(),
-    ordersStore.fetchBuyerOrders(),
-    ordersStore.fetchSellerOrders()
-  ])
+  // Initialize orders store with current user
+  await ordersStore.initUser()
+  
+  // Fetch products and orders if not already loaded
+  if (productStore.products.length === 0) {
+    await productStore.fetchProducts()
+  }
+  
+  if (ordersStore.orders.length === 0) {
+    await ordersStore.fetchOrders()
+  }
 })
 </script>
 

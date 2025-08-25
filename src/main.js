@@ -12,4 +12,7 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
+// Make i18n instance globally available
+app.config.globalProperties.$i18n = i18n.global
+
 app.mount('#app') 
