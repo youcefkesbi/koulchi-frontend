@@ -31,7 +31,8 @@ export const useCartStore = defineStore('cart', () => {
       name: productData?.name || 'Unknown Product',
       price: dbItem.price,
       image: productData?.image_urls?.[0] || productData?.image || '',
-      quantity: dbItem.quantity
+      quantity: dbItem.quantity,
+      seller_id: productData?.seller_id || productData?.user_id || null
     }
   }
 
@@ -141,7 +142,8 @@ export const useCartStore = defineStore('cart', () => {
           nameAr: product.name_ar || product.name,
           price: product.price,
           image: product.image,
-          quantity
+          quantity,
+          seller_id: product.seller_id || product.user_id || null
         })
       }
 
