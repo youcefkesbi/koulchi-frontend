@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { setLocale, getSupportedLocales } from '../lib/i18n-utils'
+import i18n from '../i18n'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
@@ -140,7 +141,6 @@ const createLocalizedRoutes = () => {
     meta: { isRoot: true }
   })
   
-  console.log('Created routes:', routes)
   return routes
 }
 
@@ -208,25 +208,20 @@ const getBestLocaleForRedirect = () => {
 
 // Auth requirements and language handling
 router.beforeEach(async (to, from, next) => {
-  console.log('Router beforeEach - to:', to.path, 'from:', from.path, 'meta:', to.meta)
-  
   // Handle root redirect
   if (to.meta.isRoot) {
     const bestLocale = getBestLocaleForRedirect()
-    console.log('Root redirect to:', bestLocale)
     next(`/${bestLocale}`)
     return
   }
   
   // Handle language routing
   if (to.meta.locale) {
-    console.log('Setting locale to:', to.meta.locale)
     // Set the locale using utility function
     setLocale(to.meta.locale)
     
-    // Update i18n locale
-    const { locale } = await import('../i18n')
-    locale.value = to.meta.locale
+    // Update i18n locale directly
+    i18n.global.locale.value = to.meta.locale
   }
   
   if (to.meta.requiresAuth) {

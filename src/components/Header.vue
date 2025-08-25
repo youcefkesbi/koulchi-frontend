@@ -22,7 +22,7 @@
       <div class="py-6">
         <div class="flex items-center justify-between">
           <!-- Logo -->
-          <router-link to="/" class="flex items-center space-x-3 space-x-reverse group">
+          <router-link :to="getLocalizedRoute('/')" class="flex items-center space-x-3 space-x-reverse group">
             <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105">
               <i class="fas fa-shopping-bag text-white text-xl"></i>
             </div>
@@ -65,7 +65,7 @@
                 <router-link
                   v-for="category in categories"
                   :key="category.id"
-                  :to="`/category/${category.id}`"
+                  :to="getLocalizedRoute(`/category/${category.id}`)"
                   @click="categoriesMenuOpen = false"
                   class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-gray-50 transition-all duration-300 group"
                 >
@@ -84,13 +84,13 @@
           <div class="flex items-center space-x-6 space-x-reverse">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-6 space-x-reverse">
-              <router-link to="/wishlist" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
+              <router-link :to="getLocalizedRoute('/wishlist')" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
                 <i class="fas fa-heart text-xl"></i>
                 <span v-if="wishlistStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
                   {{ wishlistStore.totalItems }}
                 </span>
               </router-link>
-              <router-link to="/cart" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
+              <router-link :to="getLocalizedRoute('/cart')" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
                 <i class="fas fa-shopping-cart text-xl"></i>
                 <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
                   {{ cartStore.totalItems }}
@@ -130,10 +130,10 @@
                   @click.stop
                   class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
                 >
-                  <router-link to="/dashboard" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                  <router-link :to="getLocalizedRoute('/dashboard')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                   </router-link>
-                  <router-link to="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                  <router-link :to="getLocalizedRoute('/profile')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                     <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                   </router-link>
                   <button 
@@ -167,9 +167,9 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import i18n from '../i18n'
+import { getLocalizedPath } from '../lib/i18n-utils'
 
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
@@ -181,6 +181,7 @@ import LoginModal from './LoginModal.vue'
 const { t } = useI18n()
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
@@ -190,6 +191,12 @@ const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const showLoginModal = ref(false)
+
+// Get localized route path
+const getLocalizedRoute = (path) => {
+  const currentLocale = route.meta.locale || 'en'
+  return getLocalizedPath(path, currentLocale)
+}
 
 // Close dropdown when clicking outside
 const closeDropdown = () => {
@@ -234,7 +241,7 @@ const getCategoryName = (categoryId) => {
   const category = categories.value.find(cat => cat.id === categoryId)
   if (category) {
     // Check if we have a localized name for the current language
-    const currentLocale = i18n.global.locale.value
+    const currentLocale = route.meta.locale || 'en'
     
     if (currentLocale === 'ar' && category.name_ar) {
       return category.name_ar
@@ -253,7 +260,7 @@ const getCategoryName = (categoryId) => {
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     router.push({
-      path: '/products',
+      path: getLocalizedRoute('/products'),
       query: { search: searchQuery.value.trim() }
     })
   }
@@ -261,7 +268,7 @@ const handleSearch = () => {
 
 const handlePostAnnouncement = () => {
   if (authStore.isAuthenticated) {
-    router.push('/myannouncements/new')
+    router.push(getLocalizedRoute('/myannouncements/new'))
   } else {
     showLoginModal.value = true
   }
