@@ -14,25 +14,27 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, computed, watch } from 'vue'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { languages } from './i18n'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
-// Components are automatically imported in <script setup>
 const authStore = useAuthStore()
 const { locale } = useI18n()
 const route = useRoute()
 
 // Computed properties for language direction and locale
 const currentDir = computed(() => {
-  return locale.value === 'ar' ? 'rtl' : 'ltr'
+  const currentLocale = route.meta.locale || locale.value || 'en'
+  return languages[currentLocale]?.dir || 'ltr'
 })
 
 const currentLocale = computed(() => {
-  return locale.value === 'ar' ? 'ar-DZ' : locale.value === 'fr' ? 'fr-FR' : 'en-US'
+  const currentLocale = route.meta.locale || locale.value || 'en'
+  return languages[currentLocale]?.locale || 'en-US'
 })
 
 // Watch for route changes and update i18n locale
@@ -44,22 +46,23 @@ watch(() => route.meta.locale, (newLocale) => {
 
 // Watch for locale changes and update document direction
 watch(locale, (newLocale) => {
-  const dir = newLocale === 'ar' ? 'rtl' : 'ltr'
+  const dir = languages[newLocale]?.dir || 'ltr'
   document.documentElement.dir = dir
   document.documentElement.lang = newLocale
-  
-  // Save to localStorage
-  localStorage.setItem('locale', newLocale)
 }, { immediate: true })
 
+// Watch for route locale changes and update document attributes
+watch(() => route.meta.locale, (newLocale) => {
+  if (newLocale) {
+    const dir = languages[newLocale]?.dir || 'ltr'
+    document.documentElement.dir = dir
+    document.documentElement.lang = newLocale
+  }
+}, { immediate: true })
+
+// Initialize auth on mount
 onMounted(() => {
   authStore.initAuth()
-  
-  // Set initial document direction and language based on current i18n locale
-  const currentLocale = locale.value
-  const dir = currentLocale === 'ar' ? 'rtl' : 'ltr'
-  document.documentElement.dir = dir
-  document.documentElement.lang = currentLocale
 })
 
 onUnmounted(() => {
@@ -98,69 +101,9 @@ onUnmounted(() => {
 }
 
 .slide-up {
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.5s ease-in-out;
 }
 
-.bounce-gentle {
-  animation: bounceGentle 2s infinite;
-}
-
-/* RTL Support */
-[dir="rtl"] {
-  direction: rtl;
-  text-align: right;
-}
-
-[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
-}
-
-[dir="rtl"] .ml-2 {
-  margin-left: 0;
-  margin-right: 0.5rem;
-}
-
-[dir="rtl"] .mr-2 {
-  margin-right: 0;
-  margin-left: 0.5rem;
-}
-
-[dir="rtl"] .ml-3 {
-  margin-left: 0;
-  margin-right: 0.75rem;
-}
-
-[dir="rtl"] .mr-3 {
-  margin-right: 0;
-  margin-left: 0.75rem;
-}
-
-[dir="rtl"] .pl-12 {
-  padding-left: 0;
-  padding-right: 3rem;
-}
-
-[dir="rtl"] .pr-4 {
-  padding-right: 0;
-  padding-left: 1rem;
-}
-
-[dir="rtl"] .left-4 {
-  left: auto;
-  right: 1rem;
-}
-
-[dir="rtl"] .right-0 {
-  right: auto;
-  left: 0;
-}
-
-[dir="rtl"] .right-4 {
-  right: auto;
-  left: 1rem;
-}
-
-/* Keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -175,10 +118,5 @@ onUnmounted(() => {
     transform: translateY(0); 
     opacity: 1; 
   }
-}
-
-@keyframes bounceGentle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
 }
 </style> 

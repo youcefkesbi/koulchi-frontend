@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { setLocale, getSupportedLocales } from '../lib/i18n-utils'
 import i18n from '../i18n'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
@@ -17,131 +16,194 @@ import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 
-// Language detection and routing
-const supportedLocales = getSupportedLocales()
+// Supported locales configuration
+const supportedLocales = ['en', 'fr', 'ar']
 const defaultLocale = 'en'
 
-// Create routes with language prefixes
-const createLocalizedRoutes = () => {
-  const baseRoutes = [
-    {
-      path: '/',
-      name: 'Home',
-      component: Home
-    },
-    {
-      path: '/login',
-      name: 'LoginModal',
-      component: Home
-    },
-    {
-      path: '/products',
-      name: 'Products',
-      component: Products
-    },
-    {
-      path: '/product/:id',
-      name: 'ProductDetail',
-      component: ProductDetail,
-      props: true
-    },
-    {
-      path: '/cart',
-      name: 'Cart',
-      component: Cart
-    },
-    {
-      path: '/checkout',
-      name: 'Checkout',
-      component: Checkout
-    },
-    {
-      path: '/order-confirmation',
-      name: 'OrderConfirmation',
-      component: OrderConfirmation
-    },
-    {
-      path: '/dashboard',
-      name: 'UserDashboard',
-      component: UserDashboard,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/profile',
-      name: 'Profile',
-      component: Profile,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/wishlist',
-      name: 'Wishlist',
-      component: Wishlist,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/myannouncements/new',
-      name: 'NewAnnouncement',
-      component: () => import('../views/NewAnnouncement.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/auth/callback',
-      name: 'AuthCallback',
-      component: AuthCallback
-    },
-    {
-      path: '/reset-password',
-      name: 'ResetPassword',
-      component: ResetPassword
-    },
-    {
-      path: '/category/:categoryId',
-      name: 'CategoryPage',
-      component: CategoryPage,
-      props: true
-    },
-    {
-      path: '/stores',
-      name: 'Stores',
-      component: Stores
-    },
-    {
-      path: '/stores/:id',
-      name: 'StoreDetail',
-      component: StoreDetail,
-      props: true
-    },
-    {
-      path: '/dashboard/store/create',
-      name: 'CreateStore',
-      component: () => import('../views/CreateStore.vue'),
-      meta: { requiresAuth: true }
-    }
-  ]
+// Base routes without locale prefix
+const baseRoutes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/login',
+    name: 'LoginModal',
+    component: Home
+  },
+  {
+    path: '/products',
+    name: 'Products',
+    component: Products
+  },
+  {
+    path: '/product/:id',
+    name: 'ProductDetail',
+    component: ProductDetail,
+    props: true
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: Cart
+  },
+  {
+    path: '/checkout',
+    name: 'Checkout',
+    component: Checkout
+  },
+  {
+    path: '/order-confirmation',
+    name: 'OrderConfirmation',
+    component: OrderConfirmation
+  },
+  {
+    path: '/dashboard',
+    name: 'UserDashboard',
+    component: UserDashboard,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/wishlist',
+    name: 'Wishlist',
+    component: Wishlist,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/myannouncements/new',
+    name: 'NewAnnouncement',
+    component: () => import('../views/NewAnnouncement.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: AuthCallback
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword
+  },
+  {
+    path: '/category/:categoryId',
+    name: 'CategoryPage',
+    component: CategoryPage,
+    props: true
+  },
+  {
+    path: '/stores',
+    name: 'Stores',
+    component: Stores
+  },
+  {
+    path: '/stores/:id',
+    name: 'StoreDetail',
+    component: StoreDetail,
+    props: true
+  },
+  {
+    path: '/dashboard/store/create',
+    name: 'CreateStore',
+    component: () => import('../views/CreateStore.vue'),
+    meta: { requiresAuth: true }
+  }
+]
 
+// Create localized routes with locale parameter
+const createLocalizedRoutes = () => {
   const routes = []
   
-  // Add localized routes
+  // Add localized routes for each supported locale
   supportedLocales.forEach(locale => {
     baseRoutes.forEach(route => {
       routes.push({
         ...route,
         path: `/${locale}${route.path === '/' ? '' : route.path}`,
         name: `${route.name}_${locale}`,
-        meta: { ...route.meta, locale }
+        meta: { 
+          ...route.meta, 
+          locale,
+          requiresAuth: route.meta?.requiresAuth || false
+        }
       })
     })
   })
   
-  // Add root redirect - will be handled in beforeEach
+  // Add root redirect route
   routes.push({
     path: '/',
     name: 'RootRedirect',
-    component: Home,
-    meta: { isRoot: true }
+    redirect: () => {
+      const bestLocale = getBestLocale()
+      return `/${bestLocale}`
+    }
+  })
+  
+  // Add catch-all route for invalid locales
+  routes.push({
+    path: '/:locale(.*)',
+    name: 'InvalidLocale',
+    redirect: () => {
+      const bestLocale = getBestLocale()
+      return `/${bestLocale}`
+    }
   })
   
   return routes
+}
+
+// Get best locale based on priority order
+const getBestLocale = () => {
+  try {
+    // 1. From URL (highest priority) - check current route
+    const currentPath = window.location.pathname
+    const urlLocale = currentPath.match(/^\/(en|fr|ar)/)?.[1]
+    if (urlLocale && supportedLocales.includes(urlLocale)) {
+      return urlLocale
+    }
+    
+    // 2. From localStorage
+    const savedLocale = localStorage.getItem('locale')
+    if (savedLocale && supportedLocales.includes(savedLocale)) {
+      return savedLocale
+    }
+    
+    // 3. From browser navigator.language
+    const browserLang = navigator.language || navigator.userLanguage
+    if (browserLang) {
+      const langCode = browserLang.split('-')[0]
+      if (supportedLocales.includes(langCode)) {
+        return langCode
+      }
+    }
+    
+    // 4. Fallback to default
+    return defaultLocale
+  } catch (error) {
+    console.warn('Error detecting locale, defaulting to English:', error)
+    return defaultLocale
+  }
+}
+
+// Set locale in localStorage and update i18n
+const setLocale = (locale) => {
+  if (supportedLocales.includes(locale)) {
+    localStorage.setItem('locale', locale)
+    i18n.global.locale.value = locale
+    
+    // Update document direction for RTL support
+    const dir = locale === 'ar' ? 'rtl' : 'ltr'
+    document.documentElement.dir = dir
+    document.documentElement.lang = locale
+  }
 }
 
 const routes = createLocalizedRoutes()
@@ -158,69 +220,53 @@ const router = createRouter({
   }
 })
 
+// Authentication helper function
 async function getUser(next) {
   try {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
-      // Instead of redirecting to '/', redirect to the current locale
-      const currentPath = router.currentRoute.value.path
-      const localeMatch = currentPath.match(/^\/(fr|en|ar)/)
-      if (localeMatch) {
-        next(`/${localeMatch[1]}/login`)
-      } else {
-        next('/en/login')
-      }
+      // Redirect to login in current locale
+      const currentLocale = router.currentRoute.value.meta.locale || defaultLocale
+      next(`/${currentLocale}/login`)
     } else {
       next()
     }
   } catch (error) {
     console.error('Auth error:', error)
-    // Default to English login page
-    next('/en/login')
+    next(`/${defaultLocale}/login`)
   }
 }
 
-// Helper function to get best locale
-const getBestLocaleForRedirect = () => {
-  try {
-    // Check localStorage first
-    const savedLocale = localStorage.getItem('locale')
-    if (savedLocale && supportedLocales.includes(savedLocale)) {
-      return savedLocale
-    }
-    
-    // Check browser language
-    const browserLang = navigator.language || navigator.userLanguage
-    if (browserLang) {
-      const langCode = browserLang.split('-')[0]
-      if (supportedLocales.includes(langCode)) {
-        return langCode
-      }
-    }
-    
-    // Default to English
-    return 'en'
-  } catch (error) {
-    console.warn('Error detecting language, defaulting to English:', error)
-    return 'en'
-  }
-}
-
-// Auth requirements and language handling
+// Global router guard for locale handling and authentication
 router.beforeEach(async (to, from, next) => {
   // Handle root redirect
-  if (to.meta.isRoot) {
-    const bestLocale = getBestLocaleForRedirect()
+  if (to.name === 'RootRedirect') {
+    const bestLocale = getBestLocale()
     next(`/${bestLocale}`)
     return
   }
   
-  // Handle language routing - locale will be set in App.vue after mount
-  if (to.meta.locale) {
-    // Set the locale using utility function
-    setLocale(to.meta.locale)
+  // Handle invalid locale redirect
+  if (to.name === 'InvalidLocale') {
+    const bestLocale = getBestLocale()
+    next(`/${bestLocale}`)
+    return
   }
   
+  // Extract locale from route
+  const locale = to.meta.locale
+  
+  // Ensure locale is valid
+  if (!locale || !supportedLocales.includes(locale)) {
+    const bestLocale = getBestLocale()
+    next(`/${bestLocale}${to.path}`)
+    return
+  }
+  
+  // Set locale in i18n and localStorage
+  setLocale(locale)
+  
+  // Handle authentication requirements
   if (to.meta.requiresAuth) {
     await getUser(next)
   } else {

@@ -3,17 +3,21 @@ import en from '../locales/en.json'
 import fr from '../locales/fr.json'
 import ar from '../locales/ar.json'
 
-// Language configuration without flags
-const languages = {
-  fr: {
-    name: 'Français',
-    dir: 'ltr',
-    locale: 'fr-FR'
-  },
+// Supported locales configuration
+export const supportedLocales = ['en', 'fr', 'ar']
+export const defaultLocale = 'en'
+
+// Language metadata for UI display and RTL support
+export const languages = {
   en: {
     name: 'English',
     dir: 'ltr',
     locale: 'en-US'
+  },
+  fr: {
+    name: 'Français',
+    dir: 'ltr',
+    locale: 'fr-FR'
   },
   ar: {
     name: 'العربية',
@@ -22,39 +26,17 @@ const languages = {
   }
 }
 
-// Language detection logic
-const detectLanguage = () => {
-  // Check localStorage first
-  const savedLocale = localStorage.getItem('locale')
-  if (savedLocale && languages[savedLocale]) {
-    return savedLocale
-  }
-  
-  // Check browser language
-  const browserLang = navigator.language || navigator.userLanguage
-  if (browserLang) {
-    const langCode = browserLang.split('-')[0]
-    if (languages[langCode]) {
-      return langCode
-    }
-  }
-  
-  // Default to English if browser language is not supported
-  return 'en'
-}
-
-const defaultLocale = detectLanguage()
-
+// Create i18n instance
 const i18n = createI18n({
   legacy: false,
   locale: defaultLocale,
-  fallbackLocale: 'en',
+  fallbackLocale: defaultLocale,
   messages: {
     en,
     fr,
     ar
   },
-  // Add number and date formatting
+  // Number formatting
   numberFormats: {
     'en': {
       currency: {
@@ -78,7 +60,7 @@ const i18n = createI18n({
       }
     }
   },
-  // Add datetime formatting
+  // Date/time formatting
   datetimeFormats: {
     'en': {
       short: {
@@ -107,6 +89,4 @@ const i18n = createI18n({
   allowComposition: true
 })
 
-// Export languages config for use in components
-export { languages }
 export default i18n 

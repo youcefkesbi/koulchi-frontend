@@ -35,10 +35,13 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { languages } from '../i18n'
-import { useLocalizedI18n } from '../composables/useI18n'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { languages, supportedLocales } from '../i18n'
 
-const { locale, currentLanguage, changeLanguage } = useLocalizedI18n()
+const router = useRouter()
+const route = useRoute()
+const { locale } = useI18n()
 const isOpen = ref(false)
 
 // Convert languages object to array for iteration
@@ -47,9 +50,47 @@ const languagesArray = Object.keys(languages).map(code => ({
   ...languages[code]
 }))
 
-const selectLanguage = async (code) => {
-  await changeLanguage(code)
-  isOpen.value = false
+// Current language info
+const currentLanguage = computed(() => {
+  const currentLocale = route.meta.locale || locale.value || 'en'
+  return {
+    code: currentLocale,
+    name: languages[currentLocale]?.name || 'English'
+  }
+})
+
+// Select and switch language
+const selectLanguage = async (newLocale) => {
+  if (newLocale === currentLanguage.value.code) {
+    isOpen.value = false
+    return
+  }
+
+  try {
+    // Update localStorage
+    localStorage.setItem('locale', newLocale)
+    
+    // Update Vue i18n locale
+    locale.value = newLocale
+    
+    // Navigate to the same route but with new locale
+    const currentPath = route.path
+    const currentLocale = route.meta.locale
+    
+    if (currentLocale && currentLocale !== newLocale) {
+      // Replace the locale in the current path
+      const newPath = currentPath.replace(`/${currentLocale}`, `/${newLocale}`)
+      await router.push(newPath)
+    } else {
+      // If no locale in current route, add it
+      const newPath = `/${newLocale}${currentPath === '/' ? '' : currentPath}`
+      await router.push(newPath)
+    }
+    
+    isOpen.value = false
+  } catch (error) {
+    console.error('Error switching language:', error)
+  }
 }
 
 // Close dropdown when clicking outside
