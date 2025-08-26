@@ -39,7 +39,7 @@ npm install
 
 1. Create a new project at [supabase.com](https://supabase.com)
 2. Get your project URL and anon key
-3. Create a `.env.local` file:
+3. Create a `.env` file:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
