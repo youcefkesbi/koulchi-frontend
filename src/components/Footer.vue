@@ -8,7 +8,7 @@
             <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft">
               <i class="fas fa-shopping-bag text-white text-lg"></i>
             </div>
-                        <div>
+            <div>
               <h3 class="text-xl font-bold text-primary">{{ $t('footer.brandName') }}</h3>
             </div>
           </div>
@@ -39,22 +39,22 @@
               </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <router-link to="/about" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ t('footer.aboutUs') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <router-link to="/contact" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ t('footer.contactUs') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
+              <router-link to="/help" class="text-gray-300 hover:text-primary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-secondary transition-colors"></i>
                 {{ t('footer.help') }}
-              </a>
+              </router-link>
             </li>
           </ul>
         </div>
@@ -64,28 +64,28 @@
           <h4 class="text-lg font-bold text-white mb-4">{{ t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <router-link to="/return-policy" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.returnPolicy') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <router-link to="/terms" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.termsOfUse') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <router-link to="/privacy" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.privacyPolicy') }}
-              </a>
+              </router-link>
             </li>
             <li>
-              <a href="mailto:contact@koulchi.site" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
+              <router-link to="/faq" class="text-gray-300 hover:text-secondary transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.faq') }}
-              </a>
+              </router-link>
             </li>
           </ul>
         </div>

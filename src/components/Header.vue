@@ -1,23 +1,6 @@
 <template>
   <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
     <div class="container mx-auto px-4">
-      <!-- Top bar with contact info and language switcher -->
-      <div class="bg-green-900 text-white py-2 text-sm">
-        <div class="flex justify-between items-center">
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-envelope ml-2"></i>contact@koulchi.site
-            </span>
-          </div>
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <span class="flex items-center hover:text-green-200 transition-colors">
-              <i class="fas fa-truck ml-2"></i>{{ t('header.freeShipping') }}
-            </span>
-            <LanguageSwitcher />
-          </div>
-        </div>
-      </div>
-
       <!-- Main header -->
       <div class="py-6">
         <div class="flex items-center justify-between">
@@ -84,12 +67,6 @@
           <div class="flex items-center space-x-6 space-x-reverse">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-6 space-x-reverse">
-              <router-link :to="getLocalizedRoute('/wishlist')" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Wishlist">
-                <i class="fas fa-heart text-xl"></i>
-                <span v-if="wishlistStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
-                  {{ wishlistStore.totalItems }}
-                </span>
-              </router-link>
               <router-link :to="getLocalizedRoute('/cart')" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
                 <i class="fas fa-shopping-cart text-xl"></i>
                 <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
@@ -97,6 +74,18 @@
                 </span>
               </router-link>
             </nav>
+
+            <!-- Post Announcement Button -->
+            <button
+              @click="handlePostAnnouncement"
+              class="text-sm px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
+            >
+              <i class="fas fa-plus mr-1"></i>
+              {{ t('header.postAnnouncement') }}
+            </button>
+
+            <!-- Language Switcher -->
+            <LanguageSwitcher />
 
             <!-- User Menu -->
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
@@ -124,6 +113,12 @@
                 <router-link :to="getLocalizedRoute('/profile')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                 </router-link>
+                <router-link :to="getLocalizedRoute('/wishlist')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                  <i class="fas fa-heart mr-3"></i>{{ t('wishlist.title') }}
+                  <span v-if="wishlistStore.totalItems > 0" class="ml-2 bg-secondary text-white text-xs rounded-full px-2 py-1">
+                    {{ wishlistStore.totalItems }}
+                  </span>
+                </router-link>
                 <button
                   @click="handleLogout"
                   class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
@@ -135,13 +130,6 @@
 
             <!-- Auth Buttons -->
             <div v-else class="flex items-center space-x-4 space-x-reverse">
-              <button
-                @click="handlePostAnnouncement"
-                class="btn-primary"
-              >
-                <i class="fas fa-plus ml-2"></i>
-                {{ t('header.postAnnouncement') }}
-              </button>
               <button
                 @click="handleLoginClick"
                 class="btn-outline"
