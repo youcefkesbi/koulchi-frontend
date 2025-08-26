@@ -2,8 +2,8 @@
   <div :key="`dashboard-${locale}`" class="max-w-7xl mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">
-          <h1 class="text-3xl font-bold text-dark mb-2">{{ t('dashboard.userDashboard') }}</h1>
-    <p class="text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
+          <h1 class="text-3xl font-bold text-dark mb-2">{{ safeTranslate('dashboard.userDashboard', 'User Dashboard') }}</h1>
+    <p class="text-gray-600">{{ safeTranslate('dashboard.welcomeMessage', 'Welcome back, {name}!', { name: authStore.userDisplayName || authStore.userEmail }) }}</p>
     </div>
 
     <!-- Dashboard Grid -->
@@ -11,12 +11,12 @@
       <!-- Buying Section -->
       <div class="space-y-6">
         <div class="card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.buyingSection') }}</h2>
-          <p class="text-gray-600 mb-6">{{ t('dashboard.buyingDescription') }}</p>
+          <h2 class="text-xl font-bold text-dark mb-4">{{ safeTranslate('dashboard.buyingSection', 'Buying') }}</h2>
+          <p class="text-gray-600 mb-6">{{ safeTranslate('dashboard.buyingDescription', 'Track your orders, manage your wishlist, and view your purchase history') }}</p>
           
           <!-- Active Orders -->
           <div class="mb-6">
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.activeOrders') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ safeTranslate('dashboard.activeOrders', 'Active Orders') }}</h3>
             <div v-if="ordersStore.loading" class="text-center py-4">
               <i class="fas fa-spinner fa-spin text-primary text-xl"></i>
             </div>
@@ -73,12 +73,12 @@
       <!-- Selling Section -->
       <div class="space-y-6">
         <div class="card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.sellingSection') }}</h2>
-          <p class="text-gray-600 mb-6">{{ t('dashboard.sellingDescription') }}</p>
+          <h2 class="text-xl font-bold text-dark mb-4">{{ safeTranslate('dashboard.sellingSection', 'Selling') }}</h2>
+          <p class="text-gray-600 mb-6">{{ safeTranslate('dashboard.sellingDescription', 'Manage your products, stores, and track your sales performance') }}</p>
           
           <!-- Pending Orders -->
           <div class="mb-6">
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.pendingShipments') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ safeTranslate('dashboard.pendingShipments', 'Pending Shipments') }}</h3>
             <div v-if="ordersStore.loading" class="text-center py-4">
               <i class="fas fa-spinner fa-spin text-primary text-xl"></i>
             </div>
@@ -120,7 +120,7 @@
 
           <!-- Current Listings -->
           <div>
-            <h3 class="text-lg font-semibold text-dark mb-3">{{ t('dashboard.currentListings') }}</h3>
+            <h3 class="text-lg font-semibold text-dark mb-3">{{ safeTranslate('dashboard.currentListings', 'Current Listings') }}</h3>
             <div v-if="userProducts.length > 0" class="text-center py-4">
               <p class="text-gray-600 mb-3">{{ t('dashboard.totalProducts', { count: userProducts.length }) }}</p>
               <router-link :to="getLocalizedRoute('/dashboard/products')" class="btn-outline">
@@ -143,7 +143,7 @@
     <!-- Quick Actions -->
     <div class="mt-8">
       <div class="card">
-        <h2 class="text-xl font-bold text-dark mb-4">{{ t('dashboard.quickActions') }}</h2>
+        <h2 class="text-xl font-bold text-dark mb-4">{{ safeTranslate('dashboard.quickActions', 'Quick Actions') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <router-link :to="getLocalizedRoute('/myannouncements/new')" class="btn-primary text-center">
             <i class="fas fa-plus ml-2"></i>
@@ -164,7 +164,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
@@ -250,6 +250,9 @@ watch(locale, async (newLocale, oldLocale) => {
       route.meta.locale = newLocale
     }
     
+    // Force component refresh
+    await nextTick()
+    
     // Log current translations to debug
     console.log('Current translations:', {
       userDashboard: t('dashboard.userDashboard'),
@@ -284,6 +287,43 @@ onMounted(async () => {
   if (ordersStore.orders.length === 0) {
     await ordersStore.fetchOrders()
   }
+  
+  // Test all translations to ensure they are working
+  console.log('Testing translations for locale:', locale.value)
+  const testTranslations = [
+    'dashboard.userDashboard',
+    'dashboard.welcomeMessage',
+    'dashboard.buyingSection',
+    'dashboard.sellingSection',
+    'dashboard.activeOrders',
+    'dashboard.pendingShipments',
+    'dashboard.currentListings',
+    'dashboard.quickActions'
+  ]
+  
+  testTranslations.forEach(key => {
+    const translation = t(key)
+    if (translation === key) {
+      console.warn(`Missing translation for: ${key}`)
+    } else {
+      console.log(`✓ ${key}: ${translation}`)
+    }
+  })
+  
+  // Add global event listener for locale changes
+  const handleLocaleChange = (event) => {
+    console.log('Global locale change detected:', event.detail)
+    if (event.detail.locale !== locale.value) {
+      locale.value = event.detail.locale
+    }
+  }
+  
+  window.addEventListener('localeChanged', handleLocaleChange)
+  
+  // Cleanup event listener on unmount
+  onUnmounted(() => {
+    window.removeEventListener('localeChanged', handleLocaleChange)
+  })
 })
 </script>
 
