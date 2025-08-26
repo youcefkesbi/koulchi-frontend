@@ -9,6 +9,10 @@
           </div>
           <h2 class="text-2xl font-bold text-dark">{{ $t('completing_login') }}</h2>
           <p class="text-gray-600">{{ $t('please_wait') }}</p>
+          <!-- Additional user-friendly message -->
+          <p class="text-sm text-gray-500 mt-2">
+            Completing your login with {{ oauthProvider }}
+          </p>
         </div>
 
         <!-- Error State -->
@@ -17,7 +21,7 @@
             <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
           </div>
           <h2 class="text-2xl font-bold text-red-600">{{ $t('login_failed') }}</h2>
-          <p class="text-gray-600">{{ error }}</p>
+          <p class="text-gray-600">{{ getUserFriendlyErrorMessage(error) }}</p>
           <router-link 
             to="/" 
             class="inline-flex items-center px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-300"
@@ -34,6 +38,10 @@
           </div>
           <h2 class="text-2xl font-bold text-green-600">{{ $t('login_successful') }}</h2>
           <p class="text-gray-600">{{ $t('redirecting') }}</p>
+          <!-- Additional user-friendly message -->
+          <p class="text-sm text-gray-500 mt-2">
+            Welcome to Koulchi! Redirecting you to your dashboard...
+          </p>
         </div>
       </div>
     </div>
@@ -42,14 +50,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
+import { oauthProviderNames, oauthErrorMessages } from '../config/oauth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const loading = ref(true)
 const error = ref(null)
+const oauthProvider = ref('your account')
 
 onMounted(async () => {
   try {
@@ -63,6 +74,10 @@ onMounted(async () => {
     if (session?.user) {
       // User is authenticated, the auth store will handle loading profile data automatically
       
+      // Determine OAuth provider for user-friendly messaging
+      const provider = session.user.app_metadata?.provider || 'your account'
+      oauthProvider.value = oauthProviderNames[provider] || 'your account'
+      
       // Create profile if it doesn't exist (for new OAuth users)
       const oauthData = session.user.user_metadata || {}
       await authStore.createProfileIfNotExists(oauthData)
@@ -74,12 +89,38 @@ onMounted(async () => {
         router.push('/')
       }, 1500)
     } else {
-      throw new Error(t('errors.noSessionFound'))
+      throw new Error('No session found after OAuth callback')
     }
   } catch (err) {
     console.error('OAuth callback error:', err)
-    error.value = err.message || t('errors.authenticationFailed')
+    error.value = err.message || 'Authentication failed'
     loading.value = false
   }
 })
+
+// Convert technical error messages to user-friendly ones
+const getUserFriendlyErrorMessage = (errorMessage) => {
+  if (!errorMessage) return 'An unexpected error occurred'
+  
+  const message = errorMessage.toLowerCase()
+  
+  if (message.includes('network') || message.includes('fetch')) {
+    return oauthErrorMessages.network
+  }
+  
+  if (message.includes('timeout')) {
+    return oauthErrorMessages.timeout
+  }
+  
+  if (message.includes('cancelled')) {
+    return oauthErrorMessages.cancelled
+  }
+  
+  if (message.includes('oauth')) {
+    return oauthErrorMessages.oauth
+  }
+  
+  // Return a generic but friendly message for technical errors
+  return oauthErrorMessages.default
+}
 </script>

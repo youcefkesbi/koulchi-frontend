@@ -465,6 +465,10 @@ const handleLogin = async () => {
 const handleGoogleLogin = async () => {
   try {
     authStore.clearError()
+    
+    // Show user-friendly loading state
+    // Note: Supabase handles the OAuth flow internally
+    // Users will be redirected to Google's OAuth page, not Supabase URLs
     const result = await authStore.loginWithGoogle()
     
     if (result && !authStore.error) {
@@ -483,6 +487,10 @@ const handleGoogleLogin = async () => {
 const handleFacebookLogin = async () => {
   try {
     authStore.clearError()
+    
+    // Show user-friendly loading state
+    // Note: Supabase handles the OAuth flow internally
+    // Users will be redirected to Facebook's OAuth page, not Supabase URLs
     const result = await authStore.loginWithFacebook()
     
     if (result && !authStore.error) {

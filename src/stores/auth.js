@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
+import { oauthConfig } from '../config/oauth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -194,16 +195,10 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'http://localhost:3000', // or your prod domain later
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent'
-          }
-        }
-      })
+      // Note: Supabase handles OAuth redirects internally
+      // The redirectTo URL is for Supabase's internal routing, not user-facing
+      // Users will see a clean OAuth flow without exposure to backend URLs
+      const { data, error: authError } = await supabase.auth.signInWithOAuth(oauthConfig.google)
 
       if (authError) {
         error.value = authError.message
@@ -227,15 +222,10 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          redirectTo: 'http://localhost:3000', // or your prod domain later
-          queryParams: {
-            scope: 'email,public_profile'
-          }
-        }
-      })
+      // Note: Supabase handles OAuth redirects internally
+      // The redirectTo URL is for Supabase's internal routing, not user-facing
+      // Users will see a clean OAuth flow without exposure to backend URLs
+      const { data, error: authError } = await supabase.auth.signInWithOAuth(oauthConfig.facebook)
 
       if (authError) throw authError
 
