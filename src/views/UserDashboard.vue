@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8">
+  <div :key="`dashboard-${locale}`" class="max-w-7xl mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">
           <h1 class="text-3xl font-bold text-dark mb-2">{{ t('dashboard.userDashboard') }}</h1>
@@ -164,7 +164,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
@@ -174,17 +174,36 @@ import { useOrdersStore } from '../stores/orders'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const productStore = useProductStore()
 const wishlistStore = useWishlistStore()
 const ordersStore = useOrdersStore()
 
+// Fallback translation function to ensure sections always show
+const safeTranslate = (key, fallback = key, params = {}) => {
+  try {
+    const translation = t(key, params)
+    // If translation returns the key itself, it means the translation is missing
+    if (translation === key) {
+      console.warn(`Missing translation for key: ${key}, using fallback: ${fallback}`)
+      return fallback
+    }
+    return translation
+  } catch (error) {
+    console.warn(`Translation error for key: ${key}:`, error)
+    return fallback
+  }
+}
+
 // Get localized route path
 const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
+  const currentLocale = route.meta.locale || locale.value || 'en'
   return getLocalizedPath(path, currentLocale)
 }
+
+// Computed property for current locale to ensure reactivity
+const currentLocale = computed(() => locale.value)
 
 // Get status badge class
 const getStatusBadgeClass = (status) => {
@@ -222,6 +241,37 @@ const updateOrderStatus = async (orderId, newStatus) => {
   }
 }
 
+// Watch for locale changes to ensure proper re-rendering
+watch(locale, async (newLocale, oldLocale) => {
+  if (newLocale !== oldLocale) {
+    console.log('Locale changed from', oldLocale, 'to', newLocale)
+    // Force re-render by updating the route meta
+    if (route.meta.locale !== newLocale) {
+      route.meta.locale = newLocale
+    }
+    
+    // Log current translations to debug
+    console.log('Current translations:', {
+      userDashboard: t('dashboard.userDashboard'),
+      welcomeMessage: t('dashboard.welcomeMessage', { name: 'Test User' }),
+      buyingSection: t('dashboard.buyingSection'),
+      sellingSection: t('dashboard.sellingSection'),
+      activeOrders: t('dashboard.activeOrders'),
+      pendingShipments: t('dashboard.pendingShipments'),
+      currentListings: t('dashboard.currentListings'),
+      quickActions: t('dashboard.quickActions')
+    })
+  }
+}, { immediate: true })
+
+// Also watch for route changes to ensure proper locale handling
+watch(() => route.meta.locale, (newLocale) => {
+  if (newLocale && newLocale !== locale.value) {
+    console.log('Route locale changed to:', newLocale)
+    locale.value = newLocale
+  }
+}, { immediate: true })
+
 onMounted(async () => {
   // Initialize orders store with current user
   await ordersStore.initUser()
@@ -238,27 +288,5 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.badge {
-  @apply px-2 py-1 rounded-full text-xs font-semibold;
-}
-
-.badge-pending {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.badge-confirmed {
-  @apply bg-blue-100 text-blue-800;
-}
-
-.badge-shipped {
-  @apply bg-purple-100 text-purple-800;
-}
-
-.badge-delivered {
-  @apply bg-green-100 text-green-800;
-}
-
-.badge-canceled {
-  @apply bg-red-100 text-red-800;
-}
+/* Badge styles are now defined globally in style.css */
 </style> 

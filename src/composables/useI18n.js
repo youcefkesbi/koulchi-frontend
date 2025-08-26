@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { setLocale, getLocalizedPath, getCurrentLocale } from '../lib/i18n-utils'
@@ -20,19 +20,32 @@ export function useLocalizedI18n() {
   const changeLanguage = async (newLocale) => {
     if (newLocale === locale.value) return
 
-    // Update i18n locale
-    locale.value = newLocale
-    
-    // Set locale using utility function
-    setLocale(newLocale)
-    
-    // Navigate to localized version of current route
-    const currentPath = route.path
-    const currentLocale = route.meta.locale
-    
-    if (currentLocale && currentLocale !== newLocale) {
-      const newPath = getLocalizedPath(currentPath, newLocale)
-      await router.push(newPath)
+    try {
+      // Update i18n locale
+      locale.value = newLocale
+      
+      // Set locale using utility function
+      setLocale(newLocale)
+      
+      // Navigate to localized version of current route
+      const currentPath = route.path
+      const currentLocale = route.meta.locale
+      
+      if (currentLocale && currentLocale !== newLocale) {
+        const newPath = getLocalizedPath(currentPath, newLocale)
+        await router.push(newPath)
+      }
+      
+      // Force a re-render by updating the route meta
+      if (route.meta.locale !== newLocale) {
+        route.meta.locale = newLocale
+      }
+      
+      console.log('Language changed successfully to:', newLocale)
+    } catch (error) {
+      console.error('Error changing language:', error)
+      // Revert locale change on error
+      locale.value = currentLocale || 'en'
     }
   }
 
@@ -57,6 +70,19 @@ export function useLocalizedI18n() {
     return route.meta.locale || getCurrentLocale()
   })
 
+  // Watch for locale changes to ensure proper reactivity
+  watch(locale, (newLocale, oldLocale) => {
+    if (newLocale !== oldLocale) {
+      console.log('Locale changed in composable from', oldLocale, 'to', newLocale)
+      // Update document attributes
+      const langInfo = getLanguageInfo(newLocale)
+      if (langInfo) {
+        document.documentElement.lang = newLocale
+        document.documentElement.dir = langInfo.dir
+      }
+    }
+  }, { immediate: true })
+
   return {
     // i18n functions
     t,
@@ -74,4 +100,11 @@ export function useLocalizedI18n() {
     isCurrentRouteLocalized,
     currentRouteLocale
   }
+}
+
+// Helper function to get language info
+function getLanguageInfo(locale) {
+  // Import languages from i18n config
+  const { languages } = require('../i18n')
+  return languages[locale] || null
 }

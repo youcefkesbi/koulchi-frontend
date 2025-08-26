@@ -101,7 +101,10 @@ const i18n = createI18n({
         day: 'numeric'
       }
     }
-  }
+  },
+  // Ensure proper reactivity
+  globalInjection: true,
+  allowComposition: true
 })
 
 // Export languages config for use in components

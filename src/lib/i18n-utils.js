@@ -2,8 +2,13 @@ import { languages } from '../i18n'
 
 // Get current locale from localStorage or default to English
 export const getCurrentLocale = () => {
-  const savedLocale = localStorage.getItem('locale')
-  return savedLocale && languages[savedLocale] ? savedLocale : 'en'
+  try {
+    const savedLocale = localStorage.getItem('locale')
+    return savedLocale && languages[savedLocale] ? savedLocale : 'en'
+  } catch (error) {
+    console.warn('Error getting locale from localStorage:', error)
+    return 'en'
+  }
 }
 
 // Get supported locales
@@ -23,26 +28,34 @@ export const getLanguageInfo = (code) => {
 
 // Detect browser language
 export const detectBrowserLanguage = () => {
-  const browserLang = navigator.language || navigator.userLanguage
-  if (browserLang) {
-    const langCode = browserLang.split('-')[0]
-    if (isLocaleSupported(langCode)) {
-      return langCode
+  try {
+    const browserLang = navigator.language || navigator.userLanguage
+    if (browserLang) {
+      const langCode = browserLang.split('-')[0]
+      if (isLocaleSupported(langCode)) {
+        return langCode
+      }
     }
+  } catch (error) {
+    console.warn('Error detecting browser language:', error)
   }
   return 'en' // Default to English
 }
 
 // Get the best locale to use (localStorage > browser > default)
 export const getBestLocale = () => {
-  const savedLocale = getCurrentLocale()
-  if (savedLocale) {
-    return savedLocale
-  }
-  
-  const browserLocale = detectBrowserLanguage()
-  if (browserLocale) {
-    return browserLocale
+  try {
+    const savedLocale = getCurrentLocale()
+    if (savedLocale) {
+      return savedLocale
+    }
+    
+    const browserLocale = detectBrowserLanguage()
+    if (browserLocale) {
+      return browserLocale
+    }
+  } catch (error) {
+    console.warn('Error getting best locale:', error)
   }
   
   return 'en'
@@ -55,16 +68,26 @@ export const setLocale = (locale) => {
     return false
   }
   
-  localStorage.setItem('locale', locale)
-  
-  // Update document attributes
-  const langInfo = getLanguageInfo(locale)
-  if (langInfo) {
-    document.documentElement.lang = locale
-    document.documentElement.dir = langInfo.dir
+  try {
+    localStorage.setItem('locale', locale)
+    
+    // Update document attributes
+    const langInfo = getLanguageInfo(locale)
+    if (langInfo) {
+      document.documentElement.lang = locale
+      document.documentElement.dir = langInfo.dir
+    }
+    
+    // Dispatch custom event for locale change
+    window.dispatchEvent(new CustomEvent('localeChanged', { 
+      detail: { locale, langInfo } 
+    }))
+    
+    return true
+  } catch (error) {
+    console.error('Error setting locale:', error)
+    return false
   }
-  
-  return true
 }
 
 // Get localized route path
@@ -95,4 +118,21 @@ export const getRouteLocale = (path) => {
 // Check if current route is localized
 export const isRouteLocalized = (path) => {
   return getRouteLocale(path) !== null
+}
+
+// Force re-render of components by updating route meta
+export const forceRouteUpdate = (locale) => {
+  try {
+    // This will trigger a re-render of components that depend on route.meta.locale
+    if (window.location.pathname.includes(`/${locale}`)) {
+      // Force a small route update to trigger reactivity
+      const currentPath = window.location.pathname
+      const newPath = currentPath.replace(/^\/(fr|en|ar)/, `/${locale}`)
+      if (currentPath !== newPath) {
+        window.history.replaceState(null, '', newPath)
+      }
+    }
+  } catch (error) {
+    console.warn('Error forcing route update:', error)
+  }
 }

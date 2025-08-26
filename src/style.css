@@ -51,6 +51,27 @@
   .badge-accent {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent text-white shadow-soft;
   }
+
+  /* Dashboard specific badge classes */
+  .badge-pending {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 shadow-soft;
+  }
+
+  .badge-confirmed {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 shadow-soft;
+  }
+
+  .badge-shipped {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 shadow-soft;
+  }
+
+  .badge-delivered {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 shadow-soft;
+  }
+
+  .badge-canceled {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 shadow-soft;
+  }
 }
 
 /* Enhanced scrollbar */
