@@ -11,8 +11,19 @@ const isVercel = import.meta.env.VITE_VERCEL === '1' ||
                  window.location.hostname.includes('vercel.app') ||
                  window.location.hostname.includes('vercel.com')
 
+// App branding configuration
+const appBranding = {
+  name: 'Koulchi',
+  displayName: 'Koulchi - E-commerce Platform',
+  description: 'Simplified e-commerce platform for buying and selling',
+  version: import.meta.env.VITE_APP_VERSION || '1.0.0'
+}
+
 // Environment-specific configuration
 export const environment = {
+  // App branding
+  branding: appBranding,
+  
   // App URL - automatically detected
   appUrl: (() => {
     if (isProduction && isVercel) {
@@ -60,7 +71,10 @@ export const environment = {
     debugLogging: !isProduction,
     
     // Enable development tools in development
-    devTools: !isProduction
+    devTools: !isProduction,
+    
+    // OAuth branding features
+    oauthBranding: true
   }
 }
 
@@ -101,16 +115,31 @@ export const getPasswordResetRedirectUrl = () => {
   return getAuthRedirectUrl('reset-password')
 }
 
+// Helper function to get app branding information
+export const getAppBranding = () => {
+  return {
+    ...environment.branding,
+    appUrl: environment.appUrl,
+    environment: {
+      isProduction: environment.isProduction,
+      isVercel: environment.isVercel,
+      isDevelopment: environment.isDevelopment
+    }
+  }
+}
+
 // Debug logging in development
 if (environment.features.debugLogging) {
   console.log('Environment Configuration:', {
+    appName: environment.branding.name,
     appUrl: environment.appUrl,
     isProduction: environment.isProduction,
     isVercel: environment.isVercel,
     isDevelopment: environment.isDevelopment,
     isLocalhost: environment.isLocalhost,
     supabaseUrl: environment.supabase.url ? 'Configured' : 'Missing',
-    supabaseAnonKey: environment.supabase.anonKey ? 'Configured' : 'Missing'
+    supabaseAnonKey: environment.supabase.anonKey ? 'Configured' : 'Missing',
+    oauthBranding: environment.features.oauthBranding
   })
 }
 

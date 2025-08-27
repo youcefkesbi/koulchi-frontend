@@ -11,6 +11,16 @@
 
 import { getOAuthRedirectUrl } from './environment.js';
 
+// App branding configuration
+export const appConfig = {
+  name: 'Koulchi',
+  displayName: 'Koulchi - E-commerce Platform',
+  description: 'Simplified e-commerce platform for buying and selling',
+  logo: '/src/assets/logo.png', // Optional: Add your logo
+  privacyPolicy: '/privacy-policy', // Optional: Add privacy policy URL
+  termsOfService: '/terms-of-service' // Optional: Add terms URL
+}
+
 // OAuth provider configurations
 export const oauthConfig = {
   // Google OAuth settings
@@ -23,7 +33,10 @@ export const oauthConfig = {
       redirectTo: getOAuthRedirectUrl(),
       queryParams: {
         access_type: 'offline',
-        prompt: 'consent'
+        prompt: 'consent',
+        // Additional parameters for better branding
+        hd: '*', // Allow any hosted domain
+        include_granted_scopes: 'true'
       }
     }
   },
@@ -37,7 +50,10 @@ export const oauthConfig = {
       // The actual OAuth flow is handled by Supabase - users never see backend URLs
       redirectTo: getOAuthRedirectUrl(),
       queryParams: {
-        scope: 'email,public_profile'
+        scope: 'email,public_profile',
+        // Additional parameters for better branding
+        display: 'popup',
+        auth_type: 'rerequest'
       }
     }
   }
@@ -60,3 +76,6 @@ export const oauthErrorMessages = {
   oauth: 'Login with your account provider failed. Please try again.',
   default: 'Something went wrong during login. Please try again.'
 }
+
+// Export app config for use in other components
+export { appConfig }
