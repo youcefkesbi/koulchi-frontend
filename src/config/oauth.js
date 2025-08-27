@@ -9,6 +9,8 @@
  * - All redirects are handled internally by Supabase's OAuth flow
  */
 
+import { getOAuthRedirectUrl } from './environment.js';
+
 // OAuth provider configurations
 export const oauthConfig = {
   // Google OAuth settings
@@ -18,7 +20,7 @@ export const oauthConfig = {
       // Note: This redirectTo URL is for Supabase's internal routing only
       // Users will be redirected to Google's OAuth page, then back to our app
       // The actual OAuth flow is handled by Supabase - users never see backend URLs
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: getOAuthRedirectUrl(),
       queryParams: {
         access_type: 'offline',
         prompt: 'consent'
@@ -33,7 +35,7 @@ export const oauthConfig = {
       // Note: This redirectTo URL is for Supabase's internal routing only
       // Users will be redirected to Facebook's OAuth page, then back to our app
       // The actual OAuth flow is handled by Supabase - users never see backend URLs
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: getOAuthRedirectUrl(),
       queryParams: {
         scope: 'email,public_profile'
       }

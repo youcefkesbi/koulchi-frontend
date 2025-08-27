@@ -1,17 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
+import { environment, validateEnvironment } from '../config/environment.js';
 
-// Note: These environment variables are for backend infrastructure only
-// Users should never see these URLs - they are used internally by Supabase
-// for authentication, database connections, and API calls
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase environment variables are not properly configured. Please check your .env file.');
+// Validate environment configuration
+try {
+  validateEnvironment();
+} catch (error) {
+  console.error('Environment validation failed:', error.message);
+  // In development, we can continue with fallback values
+  if (!environment.isDevelopment) {
+    throw error;
+  }
 }
 
-// Create Supabase client for backend operations
-// This client handles authentication, database queries, and file storage
-// All operations happen server-side - users only see your app's UI
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create Supabase client using environment configuration
+export const supabase = createClient(
+  environment.supabase.url, 
+  environment.supabase.anonKey
+);
+
+// Export environment for use in other parts of the app
+export { environment };

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
 import { oauthConfig } from '../config/oauth'
+import { getPasswordResetRedirectUrl } from '../config/environment.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -366,7 +367,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'http://localhost:3000/reset-password'
+        redirectTo: getPasswordResetRedirectUrl()
       })
 
       if (authError) throw authError
@@ -390,7 +391,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const { error: authError } = await supabase.auth.resetPasswordForEmail(user.value.email, {
-        redirectTo: 'http://localhost:3000/reset-password'
+        redirectTo: getPasswordResetRedirectUrl()
       })
 
       if (authError) throw authError

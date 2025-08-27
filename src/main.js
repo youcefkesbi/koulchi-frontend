@@ -5,6 +5,9 @@ import i18n from './i18n'
 import App from './App.vue'
 import './style.css'
 
+// Import environment utilities for development
+import './utils/environment-test.js'
+
 const app = createApp(App)
 const pinia = createPinia()
 
