@@ -17,6 +17,10 @@ After configuration, they will show:
 - **[`OAUTH_BRANDING_QUICK_REFERENCE.md`](./OAUTH_BRANDING_QUICK_REFERENCE.md)** - Quick 3-step fix
 - **[`OAUTH_BRANDING_TROUBLESHOOTING.md`](./OAUTH_BRANDING_TROUBLESHOOTING.md)** - Debug and fix issues
 
+### **Environment Setup**
+- **[`OAUTH_ENVIRONMENT_SETUP.md`](./OAUTH_ENVIRONMENT_SETUP.md)** - Complete environment configuration guide
+- **[`OAUTH_ENVIRONMENT_QUICK_REFERENCE.md`](./OAUTH_ENVIRONMENT_QUICK_REFERENCE.md)** - Quick environment setup reference
+
 ### **Setup & Deployment**
 - **[`ENVIRONMENT_SETUP.md`](./ENVIRONMENT_SETUP.md)** - Environment configuration
 - **[`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md)** - Vercel deployment
@@ -44,20 +48,29 @@ After configuration, they will show:
 
 ## 🔧 **What Needs to Be Configured**
 
-### **1. Supabase Project**
+### **1. Environment Setup**
+- **Development**: Create `.env.local` with development OAuth credentials
+- **Production**: Configure Vercel environment variables with production OAuth credentials
+- **Callback Path**: Fixed as `/auth/v1/callback` for both environments
+
+### **2. Supabase Project**
 - Project Name: `Koulchi`
 - Site URL: Your app domain
-- Redirect URLs: `[your-domain]/auth/callback`
+- Redirect URLs: `[your-domain]/auth/v1/callback`
 
-### **2. Google OAuth App**
+### **3. Google OAuth App**
 - Application name: `Koulchi`
 - Application home page: Your app domain
 - Redirect URIs: Include both dev and production
+  - Development: `http://localhost:3000/auth/v1/callback`
+  - Production: `https://your-app.vercel.app/auth/v1/callback`
 
-### **3. Facebook OAuth App**
+### **4. Facebook OAuth App**
 - App Display Name: `Koulchi`
 - App Description: Your app description
 - Redirect URIs: Include both dev and production
+  - Development: `http://localhost:3000/auth/v1/callback`
+  - Production: `https://your-app.vercel.app/auth/v1/callback`
 
 ## 🧪 **Testing**
 
@@ -114,22 +127,29 @@ Feature Support: {authentication: true, oauth: true, ...}
 - OAuth redirect URIs automatically generated and validated
 - App branding controlled by OAuth provider settings
 - Environment detection prevents configuration errors
+- **New**: Automatic environment-specific OAuth configuration
+- **New**: Fixed callback path (`/auth/v1/callback`) for consistency
+- **New**: Environment validation for OAuth credentials
 
 ## 📱 **Code Changes Made**
 
 ### **Files Updated**
 - `src/config/oauth.js` - Added app branding and enhanced OAuth parameters
-- `src/config/environment.js` - Added app branding and OAuth features
+- `src/config/environment.js` - Added app branding, OAuth features, and environment-specific OAuth configuration
 - `src/lib/supabase.js` - Updated to use environment system
 - `src/stores/auth.js` - Updated password reset URLs
 - `src/main.js` - Added environment testing
-- `vite.config.js` - Enhanced environment variable handling
+- `vite.config.js` - Enhanced environment variable handling and OAuth environment loading
 
 ### **New Files Created**
 - Environment configuration system
 - OAuth branding configuration
 - Setup and troubleshooting scripts
 - Comprehensive documentation
+- **New**: `docs/env.local.example` - Development environment template
+- **New**: `docs/env.production.example` - Production environment template
+- **New**: `docs/OAUTH_ENVIRONMENT_SETUP.md` - Complete environment setup guide
+- **New**: `docs/OAUTH_ENVIRONMENT_QUICK_REFERENCE.md` - Quick environment reference
 
 ## 🎉 **Expected Results**
 
@@ -143,12 +163,16 @@ After completing the configuration:
 
 ## 🚀 **Next Steps**
 
-1. **Run the setup script**: `./scripts/setup-oauth-branding.sh`
-2. **Follow the configuration guide**: `OAUTH_BRANDING_GUIDE.md`
-3. **Configure your OAuth providers** (Google, Facebook)
-4. **Update Supabase project** settings
-5. **Test in both environments**
-6. **Verify branding appears correctly**
+1. **Set up environment configuration**:
+   - Copy `docs/env.local.example` to `.env.local` for development
+   - Configure Vercel environment variables for production
+2. **Follow the environment setup guide**: `OAUTH_ENVIRONMENT_SETUP.md`
+3. **Run the setup script**: `./scripts/setup-oauth-branding.sh`
+4. **Follow the configuration guide**: `OAUTH_BRANDING_GUIDE.md`
+5. **Configure your OAuth providers** (Google, Facebook)
+6. **Update Supabase project** settings
+7. **Test in both environments**
+8. **Verify branding appears correctly**
 
 ## 📞 **Support**
 

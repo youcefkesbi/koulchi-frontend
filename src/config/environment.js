@@ -3,6 +3,8 @@
  * 
  * This file automatically detects the environment and provides the correct
  * configuration values for both production (Vercel) and development (localhost).
+ * 
+ * OAuth is handled entirely by Supabase - no OAuth credentials needed in frontend.
  */
 
 // Detect environment
@@ -37,25 +39,14 @@ export const environment = {
 
   // Supabase configuration
   supabase: {
-    url: (() => {
-      if (isProduction && isVercel) {
-        // Production: Use Vercel environment variable
-        return import.meta.env.VITE_SUPABASE_URL
-      } else {
-        // Development: Use local Supabase project
-        return import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321'
-      }
-    })(),
-    
-    anonKey: (() => {
-      if (isProduction && isVercel) {
-        // Production: Use Vercel environment variable
-        return import.meta.env.VITE_SUPABASE_ANON_KEY
-      } else {
-        // Development: Use local Supabase project
-        return import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-local-anon-key'
-      }
-    })()
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
+  },
+
+  // OAuth configuration - handled entirely by Supabase
+  oauth: {
+    // OAuth callback path (Supabase's built-in path)
+    callbackPath: '/auth/v1/callback'
   },
 
   // Environment flags
@@ -107,7 +98,7 @@ export const getAuthRedirectUrl = (path = '') => {
 
 // Helper function to get OAuth redirect URL
 export const getOAuthRedirectUrl = () => {
-  return getAuthRedirectUrl('auth/callback')
+  return getAuthRedirectUrl(environment.oauth.callbackPath)
 }
 
 // Helper function to get password reset redirect URL
@@ -128,6 +119,14 @@ export const getAppBranding = () => {
   }
 }
 
+// Helper function to get OAuth configuration
+export const getOAuthConfig = () => {
+  return {
+    ...environment.oauth,
+    appUrl: environment.appUrl
+  }
+}
+
 // Debug logging in development
 if (environment.features.debugLogging) {
   console.log('Environment Configuration:', {
@@ -139,6 +138,7 @@ if (environment.features.debugLogging) {
     isLocalhost: environment.isLocalhost,
     supabaseUrl: environment.supabase.url ? 'Configured' : 'Missing',
     supabaseAnonKey: environment.supabase.anonKey ? 'Configured' : 'Missing',
+    oauthCallbackPath: environment.oauth.callbackPath,
     oauthBranding: environment.features.oauthBranding
   })
 }

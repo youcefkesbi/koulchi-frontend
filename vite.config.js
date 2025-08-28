@@ -38,6 +38,15 @@ export default defineConfig(({ command, mode }) => {
       __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
     },
     // Environment variable handling
-    envPrefix: 'VITE_'
+    envPrefix: 'VITE_',
+    // Ensure OAuth environment variables are available
+    envDir: process.cwd(),
+    // Load environment variables based on mode
+    env: {
+      // Development mode loads .env.local
+      development: loadEnv('development', process.cwd(), ''),
+      // Production mode loads .env
+      production: loadEnv('production', process.cwd(), '')
+    }
   }
 }) 

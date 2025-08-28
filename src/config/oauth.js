@@ -4,12 +4,14 @@
  * This file contains OAuth provider configurations and redirect URLs.
  * 
  * IMPORTANT: 
+ * - OAuth is handled entirely by Supabase - no OAuth credentials needed in frontend
  * - Supabase URLs are backend infrastructure and should NEVER be visible to users
  * - Users will see Google/Facebook OAuth pages, not Supabase URLs
  * - All redirects are handled internally by Supabase's OAuth flow
+ * - OAuth callback path uses Supabase's built-in /auth/v1/callback
  */
 
-import { getOAuthRedirectUrl } from './environment.js';
+import { getOAuthRedirectUrl, getOAuthConfig } from './environment.js';
 
 // App branding configuration
 export const appConfig = {
@@ -21,7 +23,7 @@ export const appConfig = {
   termsOfService: '/terms-of-service' // Optional: Add terms URL
 }
 
-// OAuth provider configurations
+// OAuth provider configurations - handled entirely by Supabase
 export const oauthConfig = {
   // Google OAuth settings
   google: {
@@ -65,8 +67,8 @@ export const oauthProviderNames = {
   facebook: 'Facebook'
 }
 
-// OAuth callback route
-export const oauthCallbackRoute = '/auth/callback'
+// OAuth callback route (Supabase's built-in path)
+export const oauthCallbackRoute = '/auth/v1/callback'
 
 // OAuth error messages (user-friendly)
 export const oauthErrorMessages = {
@@ -77,5 +79,4 @@ export const oauthErrorMessages = {
   default: 'Something went wrong during login. Please try again.'
 }
 
-// Export app config for use in other components
-export { appConfig }
+// Export all configurations for use in other components
