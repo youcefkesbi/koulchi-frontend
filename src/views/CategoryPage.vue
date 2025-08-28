@@ -189,7 +189,8 @@ const getCategoryDescription = (categoryId) => {
 const validateCategory = () => {
   const validCategories = productStore.categories.map(cat => cat.id)
   if (!validCategories.includes(categoryId.value)) {
-    router.push('/404')
+    // Use router to go back to home instead of hardcoded 404
+    router.push('/')
   }
 }
 
