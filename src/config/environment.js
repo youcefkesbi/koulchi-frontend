@@ -20,9 +20,11 @@ export const environment = {
   
   appUrl: (() => {
     if (isProduction && isVercel) {
+      // Production: Use Vercel environment variable or fallback to current origin
       return import.meta.env.VITE_APP_URL || window.location.origin
     } else {
-      return 'http://localhost:3000'
+      // Development: Use environment variable or fallback to localhost
+      return import.meta.env.VITE_APP_URL || 'http://localhost:3000'
     }
   })(),
 

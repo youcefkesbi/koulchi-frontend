@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
+import { environment } from '../config/environment'
 import i18n from '../i18n'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
@@ -154,6 +155,23 @@ const createLocalizedRoutes = () => {
     redirect: () => {
       const bestLocale = getBestLocale()
       return `/${bestLocale}`
+    }
+  })
+  
+  // Add catch-all route for unknown routes - redirect to production URL
+  routes.push({
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    beforeEnter: (to, from, next) => {
+      // If we're in production, redirect to the production URL
+      if (environment.isProduction) {
+        const productionUrl = environment.appUrl
+        window.location.href = productionUrl
+      } else {
+        // In development, redirect to home with best locale
+        const bestLocale = getBestLocale()
+        next(`/${bestLocale}`)
+      }
     }
   })
   

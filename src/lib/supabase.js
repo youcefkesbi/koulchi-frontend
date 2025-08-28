@@ -15,7 +15,15 @@ try {
 // Create Supabase client using environment configuration
 export const supabase = createClient(
   environment.supabase.url, 
-  environment.supabase.anonKey
+  environment.supabase.anonKey,
+  {
+    auth: {
+      // Ensure redirects use environment-aware URLs with proper callback path
+      redirectTo: environment.appUrl + environment.oauth.callbackPath,
+      // Use environment-aware callback URL
+      flowType: 'pkce'
+    }
+  }
 );
 
 // Export environment for use in other parts of the app
