@@ -67,6 +67,7 @@ VITE_VERCEL=1
 - [OAuth Environment Setup](OAUTH_ENVIRONMENT_SETUP.md) - Complete setup guide
 - [OAuth Environment Quick Reference](OAUTH_ENVIRONMENT_QUICK_REFERENCE.md) - Quick setup reference
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - Vercel deployment instructions
+- [Routing Improvements](ROUTING_IMPROVEMENTS.md) - Frontend routing and unknown route handling
 
 ## Project Structure
 
