@@ -13,17 +13,18 @@ A modern e-commerce platform built with Vue.js, featuring OAuth authentication, 
 
 ## 🔧 OAuth Environment Setup
 
-The OAuth system has been refactored to support different environment configurations:
+The OAuth system has been simplified to support different environment configurations:
 
-- **Development**: Uses `.env.local` with localhost URLs and development OAuth credentials
-- **Production**: Uses Vercel environment variables with production URLs and OAuth credentials
-- **Callback Path**: Fixed as `/auth/v1/callback` for consistency across environments
+- **Development**: Uses `.env.local` with localhost URLs
+- **Production**: Uses Vercel environment variables with production URLs
+- **OAuth**: Handled entirely by Supabase Dashboard - no OAuth credentials needed in frontend
+- **Callback Path**: Always `/auth/v1/callback` (Supabase's built-in path)
 
 ### Quick Setup
 
 1. **Development**: Copy `docs/env.local.example` to `.env.local`
 2. **Production**: Configure Vercel environment variables using `docs/env.production.example`
-3. **OAuth Apps**: Set up separate OAuth apps for development and production
+3. **OAuth**: Configure OAuth providers in Supabase Dashboard
 
 See [OAuth Environment Setup Guide](docs/OAUTH_ENVIRONMENT_SETUP.md) for complete instructions.
 
@@ -88,16 +89,16 @@ koulchi-frontend/
 #### Development (`.env.local`)
 ```bash
 VITE_APP_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=your-dev-google-oauth-client-id
-VITE_GOOGLE_CLIENT_SECRET=your-dev-google-oauth-client-secret
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_VERCEL=0
 ```
 
 #### Production (Vercel)
 ```bash
-VITE_APP_URL=https://your-app.vercel.app
-VITE_GOOGLE_CLIENT_ID=your-prod-google-oauth-client-id
-VITE_GOOGLE_CLIENT_SECRET=your-prod-google-oauth-client-secret
+VITE_APP_URL=https://koulchi-frontend.vercel.app
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_VERCEL=1
 ```
 
@@ -114,8 +115,6 @@ VITE_VERCEL=1
 - `VITE_APP_URL`
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_GOOGLE_CLIENT_ID`
-- `VITE_GOOGLE_CLIENT_SECRET`
 
 ## 📚 Documentation
 
@@ -139,7 +138,7 @@ Run the environment test script to verify configuration:
 ### OAuth Flow Testing
 
 1. **Development**: Test OAuth redirects to `http://localhost:3000/auth/v1/callback`
-2. **Production**: Test OAuth redirects to `https://your-app.vercel.app/auth/v1/callback`
+2. **Production**: Test OAuth redirects to `https://koulchi-frontend.vercel.app/auth/v1/callback`
 
 ## 🐛 Troubleshooting
 
@@ -153,9 +152,10 @@ Run the environment test script to verify configuration:
    - Check file names: `.env.local` for dev, `.env` for prod
    - Verify Vite configuration loads correct environment
 
-3. **OAuth credentials error**
-   - Ensure correct client ID/secret for each environment
-   - Verify OAuth app is properly configured
+3. **OAuth not working**
+   - Check OAuth provider configuration in Supabase Dashboard
+   - Verify redirect URIs are set correctly in Supabase
+   - Ensure OAuth providers are enabled in Supabase
 
 ### Debug Mode
 
@@ -181,8 +181,9 @@ This project is licensed under the MIT License.
 For issues and questions:
 1. Check the troubleshooting guides in the `docs/` folder
 2. Verify environment configuration
-3. Test OAuth flow in both environments
-4. Check browser console for validation logs
+3. Check OAuth provider configuration in Supabase Dashboard
+4. Test OAuth flow in both environments
+5. Check browser console for validation logs
 
 ---
 

@@ -2,7 +2,9 @@
  * Environment Configuration Test Script
  * 
  * This script tests the new environment configuration system
- * to ensure OAuth variables are properly loaded and validated.
+ * to ensure environment variables are properly loaded and validated.
+ * 
+ * OAuth is handled entirely by Supabase - no OAuth credentials needed in frontend.
  */
 
 import { environment, validateEnvironment, getOAuthConfig } from '../config/environment.js'
@@ -29,9 +31,8 @@ console.log(`   - Supabase Anon Key: ${environment.supabase.anonKey ? '✅ Confi
 
 // Test 4: OAuth Configuration
 console.log('\n4️⃣ OAuth Configuration:')
-console.log(`   - Google Client ID: ${environment.oauth.google.clientId ? '✅ Configured' : '❌ Missing'}`)
-console.log(`   - Google Client Secret: ${environment.oauth.google.clientSecret ? '✅ Configured' : '❌ Missing'}`)
 console.log(`   - Callback Path: ${environment.oauth.callbackPath}`)
+console.log(`   - Note: OAuth handled entirely by Supabase`)
 
 // Test 5: OAuth Redirect URL
 console.log('\n5️⃣ OAuth Redirect URL:')
@@ -61,7 +62,8 @@ console.log('\n🎯 Environment Configuration Test Complete!')
 console.log('\n📝 Next Steps:')
 console.log('   1. Create .env.local for development')
 console.log('   2. Configure Vercel environment variables for production')
-console.log('   3. Test OAuth flow in both environments')
-console.log('   4. Verify callback path is /auth/v1/callback')
+console.log('   3. Configure OAuth providers in Supabase Dashboard')
+console.log('   4. Test OAuth flow in both environments')
+console.log('   5. Verify callback path is /auth/v1/callback')
 
 export default environment

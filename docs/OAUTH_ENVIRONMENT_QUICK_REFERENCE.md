@@ -5,25 +5,26 @@
 ### Development (`.env.local`)
 ```bash
 VITE_APP_URL=http://localhost:3000
-VITE_GOOGLE_CLIENT_ID=your-dev-client-id
-VITE_GOOGLE_CLIENT_SECRET=your-dev-client-secret
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_VERCEL=0
 ```
 
 ### Production (Vercel Environment Variables)
 ```bash
-VITE_APP_URL=https://your-app.vercel.app
-VITE_GOOGLE_CLIENT_ID=your-prod-client-id
-VITE_GOOGLE_CLIENT_SECRET=your-prod-client-secret
+VITE_APP_URL=https://koulchi-frontend.vercel.app
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_VERCEL=1
 ```
 
 ## 🔑 Key Points
 
-- **Callback Path**: Fixed as `/auth/v1/callback` for both environments
+- **Callback Path**: Always `/auth/v1/callback` (Supabase's built-in path)
 - **Environment Detection**: Automatic via `import.meta.env.PROD`
-- **OAuth Credentials**: Different apps for dev vs prod
-- **URLs**: localhost:3000 (dev) vs your-app.vercel.app (prod)
+- **OAuth Credentials**: Managed entirely in Supabase Dashboard
+- **URLs**: localhost:3000 (dev) vs koulchi-frontend.vercel.app (prod)
+- **Supabase**: Same project for both environments
 
 ## 📁 Files
 
@@ -32,27 +33,29 @@ VITE_VERCEL=1
 - `src/config/environment.js` → Environment detection
 - `src/config/oauth.js` → OAuth configuration
 
-## 🔧 OAuth App Setup
+## 🔧 OAuth Setup
 
-### Development Redirect URIs
-- `http://localhost:3000/auth/v1/callback`
-- `http://localhost:54321/auth/v1/callback`
+### Supabase Dashboard Configuration
+1. Go to Authentication → Providers
+2. Enable Google OAuth provider
+3. Add your Google OAuth app credentials
+4. Set redirect URL to: `https://your-project.supabase.co/auth/v1/callback`
 
-### Production Redirect URIs
-- `https://your-app.vercel.app/auth/v1/callback`
-- `https://your-project.supabase.co/auth/v1/callback`
+### No Frontend OAuth Configuration Needed
+- OAuth credentials are managed in Supabase
+- Frontend only needs Supabase URL and anon key
+- OAuth flow handled entirely by Supabase
 
 ## ✅ Validation
 
 The app automatically validates:
-- Required environment variables
-- OAuth credentials
-- Callback path consistency
+- Required Supabase environment variables
+- OAuth callback path consistency
 
 ## 🐛 Troubleshooting
 
 1. **Check browser console** for environment logs
-2. **Verify OAuth app** redirect URIs
+2. **Verify OAuth provider** configuration in Supabase Dashboard
 3. **Ensure correct** environment file names
 4. **Test OAuth flow** in both environments
 
