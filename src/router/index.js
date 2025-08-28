@@ -16,6 +16,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
+import NotFound from '../views/NotFound.vue'
 
 // Supported locales configuration
 const supportedLocales = ['en', 'fr', 'ar']
@@ -158,20 +159,14 @@ const createLocalizedRoutes = () => {
     }
   })
   
-  // Add catch-all route for unknown routes - redirect to production URL
+  // Add catch-all route for unknown routes - show 404 component
   routes.push({
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    beforeEnter: (to, from, next) => {
-      // If we're in production, redirect to the production URL
-      if (environment.isProduction) {
-        const productionUrl = environment.appUrl
-        window.location.href = productionUrl
-      } else {
-        // In development, redirect to home with best locale
-        const bestLocale = getBestLocale()
-        next(`/${bestLocale}`)
-      }
+    component: NotFound,
+    meta: { 
+      locale: 'en', // Default locale for 404 page
+      requiresAuth: false 
     }
   })
   

@@ -69,6 +69,13 @@
   "freeShipping": "Livraison gratuite pour les commandes de plus de 5000 DZD",
   "phone": "Téléphone",
   "contact": "Contact",
+  "notFound": {
+    "title": "Page Non Trouvée",
+    "description": "Désolé, nous n'avons pas pu trouver la page que vous recherchez.",
+    "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "goHome": "Aller à l'Accueil",
+    "goBack": "Retour"
+  },
   "header": {
     "freeShipping": "Livraison gratuite pour les commandes de plus de 5000 DZD",
     "searchPlaceholder": "Rechercher des produits...",

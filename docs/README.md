@@ -68,6 +68,7 @@ VITE_VERCEL=1
 - [OAuth Environment Quick Reference](OAUTH_ENVIRONMENT_QUICK_REFERENCE.md) - Quick setup reference
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - Vercel deployment instructions
 - [Routing Improvements](ROUTING_IMPROVEMENTS.md) - Frontend routing and unknown route handling
+- [Routing Refactor Summary](ROUTING_REFACTOR_SUMMARY.md) - Complete Vue router refactoring for 404 fixes
 
 ## Project Structure
 

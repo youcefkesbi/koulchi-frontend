@@ -28,6 +28,14 @@ export const environment = {
     }
   })(),
 
+  // Base URL for routing (without trailing slash)
+  baseUrl: (() => {
+    const url = isProduction && isVercel 
+      ? (import.meta.env.VITE_APP_URL || window.location.origin)
+      : (import.meta.env.VITE_APP_URL || 'http://localhost:3000')
+    return url.replace(/\/$/, '') // Remove trailing slash
+  })(),
+
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL,
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -70,7 +78,7 @@ export const validateEnvironment = () => {
 }
 
 export const getAuthRedirectUrl = (path = '') => {
-  const baseUrl = environment.appUrl
+  const baseUrl = environment.baseUrl
   const cleanPath = path.startsWith('/') ? path : `/${path}`
   return `${baseUrl}${cleanPath}`
 }
