@@ -1,19 +1,13 @@
 /**
  * Environment Configuration for Koulchi Frontend
- * 
- * This file automatically detects the environment and provides the correct
- * configuration values for both production (Vercel) and development (localhost).
- * 
  * OAuth is handled entirely by Supabase - no OAuth credentials needed in frontend.
  */
 
-// Detect environment
 const isProduction = import.meta.env.PROD
 const isVercel = import.meta.env.VITE_VERCEL === '1' || 
                  window.location.hostname.includes('vercel.app') ||
                  window.location.hostname.includes('vercel.com')
 
-// App branding configuration
 const appBranding = {
   name: 'Koulchi',
   displayName: 'Koulchi - E-commerce Platform',
@@ -21,55 +15,39 @@ const appBranding = {
   version: import.meta.env.VITE_APP_VERSION || '1.0.0'
 }
 
-// Environment-specific configuration
 export const environment = {
-  // App branding
   branding: appBranding,
   
-  // App URL - automatically detected
   appUrl: (() => {
     if (isProduction && isVercel) {
-      // Production: Use Vercel environment variable or fallback to current origin
       return import.meta.env.VITE_APP_URL || window.location.origin
     } else {
-      // Development: Use localhost:3000
       return 'http://localhost:3000'
     }
   })(),
 
-  // Supabase configuration
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL,
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
   },
 
-  // OAuth configuration - handled entirely by Supabase
   oauth: {
-    // OAuth callback path (Supabase's built-in path)
     callbackPath: '/auth/v1/callback'
   },
 
-  // Environment flags
   isProduction,
   isVercel,
   isDevelopment: !isProduction,
   isLocalhost: window.location.hostname === 'localhost' || 
                window.location.hostname === '127.0.0.1',
 
-  // Feature flags
   features: {
-    // Enable debug logging in development
     debugLogging: !isProduction,
-    
-    // Enable development tools in development
     devTools: !isProduction,
-    
-    // OAuth branding features
     oauthBranding: true
   }
 }
 
-// Validation function to ensure required environment variables are set
 export const validateEnvironment = () => {
   const errors = []
   
@@ -89,24 +67,20 @@ export const validateEnvironment = () => {
   return true
 }
 
-// Helper function to get redirect URL for authentication flows
 export const getAuthRedirectUrl = (path = '') => {
   const baseUrl = environment.appUrl
   const cleanPath = path.startsWith('/') ? path : `/${path}`
   return `${baseUrl}${cleanPath}`
 }
 
-// Helper function to get OAuth redirect URL
 export const getOAuthRedirectUrl = () => {
   return getAuthRedirectUrl(environment.oauth.callbackPath)
 }
 
-// Helper function to get password reset redirect URL
 export const getPasswordResetRedirectUrl = () => {
   return getAuthRedirectUrl('reset-password')
 }
 
-// Helper function to get app branding information
 export const getAppBranding = () => {
   return {
     ...environment.branding,
@@ -119,7 +93,6 @@ export const getAppBranding = () => {
   }
 }
 
-// Helper function to get OAuth configuration
 export const getOAuthConfig = () => {
   return {
     ...environment.oauth,
@@ -127,7 +100,6 @@ export const getOAuthConfig = () => {
   }
 }
 
-// Debug logging in development
 if (environment.features.debugLogging) {
   console.log('Environment Configuration:', {
     appName: environment.branding.name,

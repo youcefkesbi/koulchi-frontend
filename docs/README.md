@@ -1,88 +1,22 @@
 # Koulchi Frontend
 
-A modern e-commerce platform built with Vue.js, featuring OAuth authentication, internationalization, and a responsive design.
+A modern e-commerce platform built with Vue.js, featuring OAuth authentication, internationalization, and responsive design.
 
-## 🚀 Features
+## Features
 
-- **Authentication**: OAuth (Google, Facebook) + Email/Password
+- **Authentication**: OAuth (Google, Facebook) + Email/Password via Supabase
 - **Internationalization**: Multi-language support (English, Arabic, French)
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **State Management**: Pinia for reactive state management
 - **Database**: Supabase backend with real-time subscriptions
-- **Environment Support**: Separate configurations for development and production
 
-## 🔧 OAuth Environment Setup
+## Environment Setup
 
-The OAuth system has been simplified to support different environment configurations:
+The OAuth system uses simplified environment configuration:
 
-- **Development**: Uses `.env.local` with localhost URLs
-- **Production**: Uses Vercel environment variables with production URLs
-- **OAuth**: Handled entirely by Supabase Dashboard - no OAuth credentials needed in frontend
-- **Callback Path**: Always `/auth/v1/callback` (Supabase's built-in path)
-
-### Quick Setup
-
-1. **Development**: Copy `docs/env.local.example` to `.env.local`
-2. **Production**: Configure Vercel environment variables using `docs/env.production.example`
-3. **OAuth**: Configure OAuth providers in Supabase Dashboard
-
-See [OAuth Environment Setup Guide](docs/OAUTH_ENVIRONMENT_SETUP.md) for complete instructions.
-
-## 📁 Project Structure
-
-```
-koulchi-frontend/
-├── src/
-│   ├── components/          # Vue components
-│   ├── config/             # Configuration files
-│   │   ├── environment.js  # Environment detection & OAuth config
-│   │   └── oauth.js        # OAuth provider configuration
-│   ├── stores/             # Pinia stores
-│   ├── views/              # Page components
-│   └── utils/              # Utility functions
-├── docs/                   # Documentation
-│   ├── OAUTH_ENVIRONMENT_SETUP.md
-│   ├── OAUTH_ENVIRONMENT_QUICK_REFERENCE.md
-│   └── OAUTH_REFACTORING_SUMMARY.md
-├── locales/                # i18n translations
-└── database/               # Database schema
-```
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-- Supabase project (local or hosted)
-
-### Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd koulchi-frontend
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Configuration**
-   ```bash
-   # Development
-   cp docs/env.local.example .env.local
-   # Edit .env.local with your development values
-   
-   # Production (Vercel)
-   # Set environment variables in Vercel dashboard
-   ```
-
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+- **Development**: `.env.local` with localhost URLs
+- **Production**: Vercel environment variables with production URLs
+- **OAuth**: Handled entirely by Supabase Dashboard
 
 ### Environment Variables
 
@@ -102,89 +36,53 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_VERCEL=1
 ```
 
-## 🚀 Deployment
+## Quick Start
 
-### Vercel
+1. **Clone and install**
+   ```bash
+   git clone <repository-url>
+   cd koulchi-frontend
+   npm install
+   ```
 
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+2. **Environment setup**
+   ```bash
+   cp docs/env.local.example .env.local
+   # Edit .env.local with your values
+   ```
 
-### Environment Variables Required
+3. **Start development**
+   ```bash
+   npm run dev
+   ```
 
-- `VITE_APP_URL`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+## OAuth Configuration
 
-## 📚 Documentation
+1. **Configure OAuth providers** in Supabase Dashboard
+2. **Set redirect URL** to: `https://your-project.supabase.co/auth/v1/callback`
+3. **Test OAuth flow** in both environments
 
-- [OAuth Environment Setup](docs/OAUTH_ENVIRONMENT_SETUP.md) - Complete environment configuration guide
-- [OAuth Environment Quick Reference](docs/OAUTH_ENVIRONMENT_QUICK_REFERENCE.md) - Quick setup reference
-- [OAuth Refactoring Summary](docs/OAUTH_REFACTORING_SUMMARY.md) - What was changed and why
-- [Environment Setup](docs/ENVIRONMENT_SETUP.md) - General environment configuration
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Vercel deployment instructions
+## Documentation
 
-## 🔍 Testing
+- [OAuth Environment Setup](OAUTH_ENVIRONMENT_SETUP.md) - Complete setup guide
+- [OAuth Environment Quick Reference](OAUTH_ENVIRONMENT_QUICK_REFERENCE.md) - Quick setup reference
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Vercel deployment instructions
 
-### Environment Configuration Test
+## Project Structure
 
-Run the environment test script to verify configuration:
-
-```bash
-# This will be available in the browser console during development
-# Check browser console for environment validation logs
+```
+koulchi-frontend/
+├── src/
+│   ├── components/          # Vue components
+│   ├── config/             # Configuration files
+│   ├── stores/             # Pinia stores
+│   ├── views/              # Page components
+│   └── utils/              # Utility functions
+├── docs/                   # Documentation
+├── locales/                # i18n translations
+└── database/               # Database schema
 ```
 
-### OAuth Flow Testing
+## License
 
-1. **Development**: Test OAuth redirects to `http://localhost:3000/auth/v1/callback`
-2. **Production**: Test OAuth redirects to `https://koulchi-frontend.vercel.app/auth/v1/callback`
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **OAuth redirect mismatch**
-   - Ensure callback path is exactly `/auth/v1/callback`
-   - Verify redirect URIs in Google Cloud Console
-
-2. **Environment variables not loading**
-   - Check file names: `.env.local` for dev, `.env` for prod
-   - Verify Vite configuration loads correct environment
-
-3. **OAuth not working**
-   - Check OAuth provider configuration in Supabase Dashboard
-   - Verify redirect URIs are set correctly in Supabase
-   - Ensure OAuth providers are enabled in Supabase
-
-### Debug Mode
-
-Development mode includes debug logging. Check browser console for:
-- Environment configuration details
-- OAuth configuration status
-- Validation results
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test in both development and production environments
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For issues and questions:
-1. Check the troubleshooting guides in the `docs/` folder
-2. Verify environment configuration
-3. Check OAuth provider configuration in Supabase Dashboard
-4. Test OAuth flow in both environments
-5. Check browser console for validation logs
-
----
-
-**Koulchi Frontend** - Modern e-commerce with OAuth authentication and environment-aware configuration.
+MIT License
