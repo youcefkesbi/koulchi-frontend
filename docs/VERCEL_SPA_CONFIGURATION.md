@@ -44,17 +44,17 @@ The router is properly configured with:
 - `src/config/oauth.js`
 - `src/lib/supabase.js`
 
-**OAuth Callback Path:** `/auth/callback`
+**OAuth Callback Handling:** Supabase handles OAuth callbacks through its own fixed endpoint
 
 **Supabase Configuration:**
 ```javascript
 auth: {
-  redirectTo: environment.baseUrl + environment.oauth.callbackPath,
+  // Let Supabase handle OAuth callbacks through its own fixed endpoint
   flowType: 'pkce'
 }
 ```
 
-This ensures that Supabase OAuth and email confirmation redirects land on valid SPA routes that Vue Router can handle.
+Supabase automatically handles OAuth redirects and callbacks, so no custom callback path configuration is needed in the frontend.
 
 ## 4. Environment Variables ✅
 
@@ -72,7 +72,7 @@ The app automatically detects Vercel deployment and uses the appropriate configu
 2. **Vercel rewrite rule:** Redirects to `/` (index.html)
 3. **Vue Router takes over:** Handles the route on the client side
 4. **404 handling:** If no matching route exists, shows the NotFound component
-5. **OAuth redirects:** Supabase redirects to `/auth/callback` which is a valid SPA route
+5. **OAuth redirects:** Supabase handles OAuth callbacks through its own fixed endpoint
 
 ## 6. Testing
 
