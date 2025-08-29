@@ -22,8 +22,8 @@
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
               <i class="fab fa-instagram text-white"></i>
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
-              <i class="fab fa-twitter text-white"></i>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-dark transition-all duration-300 shadow-soft">
+              <i class="fab fa-linkedin-in text-white"></i>
             </a>
           </div>
         </div>
