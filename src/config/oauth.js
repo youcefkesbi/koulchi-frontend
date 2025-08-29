@@ -18,7 +18,7 @@ export const oauthConfig = {
   google: {
     provider: 'google',
     options: {
-      redirectTo: getOAuthRedirectUrl(),
+      // Let Supabase handle OAuth redirects through its own fixed endpoint
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -31,7 +31,7 @@ export const oauthConfig = {
   facebook: {
     provider: 'facebook',
     options: {
-      redirectTo: getOAuthRedirectUrl(),
+      // Let Supabase handle OAuth redirects through its own fixed endpoint
       queryParams: {
         scope: 'email,public_profile',
         display: 'popup',
@@ -46,7 +46,8 @@ export const oauthProviderNames = {
   facebook: 'Facebook'
 }
 
-export const oauthCallbackRoute = '/auth/v1/callback'
+// Supabase handles OAuth callbacks through its own fixed endpoint
+// export const oauthCallbackRoute = '/auth/callback'
 
 export const oauthErrorMessages = {
   network: 'Network connection issue. Please check your internet connection and try again.',

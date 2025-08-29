@@ -42,7 +42,8 @@ export const environment = {
   },
 
   oauth: {
-    callbackPath: '/auth/v1/callback'
+    // Supabase handles OAuth callbacks through its own fixed endpoint
+    // No custom callbackPath needed
   },
 
   isProduction,
@@ -84,7 +85,9 @@ export const getAuthRedirectUrl = (path = '') => {
 }
 
 export const getOAuthRedirectUrl = () => {
-  return getAuthRedirectUrl(environment.oauth.callbackPath)
+  // Supabase handles OAuth redirects through its own fixed endpoint
+  // Return the base app URL for general auth redirects
+  return environment.baseUrl
 }
 
 export const getPasswordResetRedirectUrl = () => {

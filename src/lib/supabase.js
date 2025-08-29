@@ -18,9 +18,8 @@ export const supabase = createClient(
   environment.supabase.anonKey,
   {
     auth: {
-      // Ensure redirects use environment-aware URLs with proper callback path
-      redirectTo: environment.baseUrl + environment.oauth.callbackPath,
-      // Use environment-aware callback URL
+      // Let Supabase handle OAuth callbacks through its own fixed endpoint
+      // No custom redirectTo needed
       flowType: 'pkce'
     }
   }
