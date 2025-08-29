@@ -96,10 +96,12 @@
           <i class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
         </button>
         <router-link
-          :to="`/product/${product.id}`"
-          class="btn-outline text-sm py-2 px-4"
+          :to="`/${$i18n.locale.value}/product/${product.id}`"
+          class="btn-outline text-sm py-2 px-4 hover:bg-primary hover:text-white transition-all duration-300"
+          :title="$t('product.viewProduct')"
+          @click="handleViewProduct"
         >
-          <i class="fas fa-eye"></i>
+          <i class="fas fa-eye text-gray-600 group-hover:text-primary transition-colors"></i>
         </router-link>
       </div>
     </div>
@@ -153,6 +155,11 @@ const toggleWishlist = async () => {
   } catch (error) {
     console.error('Failed to toggle wishlist:', error)
   }
+}
+
+const handleViewProduct = () => {
+  console.log('View product clicked:', props.product.id)
+  console.log('Route will be:', `/${i18n.global.locale.value}/product/${props.product.id}`)
 }
 
 const handleImageError = (event) => {
