@@ -187,13 +187,16 @@
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                         <p class="text-sm text-gray-500 mt-1">
-                          {{ $t('seller.imageUploadHelp') }}
+                          {{ $t('seller.imageUploadHelp') }} ({{ $t('seller.maxImagesAllowed') }})
+                          <span v-if="selectedImages.length > 0" class="block mt-1 text-xs text-gray-400">
+                            {{ selectedImages.length }}/10 images selected
+                          </span>
                         </p>
                       </div>
 
                       <!-- Image Preview -->
                       <div v-if="selectedImages.length > 0" class="mt-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           <div
                             v-for="(image, index) in selectedImages"
                             :key="index"
@@ -399,6 +402,13 @@ const closeModal = () => {
 
 const handleImageUpload = (event) => {
   const files = Array.from(event.target.files)
+  
+  // Validate file count
+  if (selectedImages.value.length + files.length > 10) {
+    alert($t('seller.maxImagesAllowed'))
+    return
+  }
+  
   files.forEach(file => {
     if (file.type.startsWith('image/')) {
       const reader = new FileReader()

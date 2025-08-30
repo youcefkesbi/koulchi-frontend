@@ -139,7 +139,7 @@
               </div>
               
               <!-- Image Preview -->
-              <div v-if="imageFiles.length > 0" class="mt-4 grid grid-cols-3 gap-4">
+              <div v-if="imageFiles.length > 0" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <div v-for="(file, index) in imageFiles" :key="index" class="relative">
                   <img :src="file.preview" class="w-full h-24 object-cover rounded-lg" />
                   <button
@@ -154,6 +154,7 @@
               
               <p class="text-sm text-gray-500 mt-2">
                 {{ $t('announcement.imagesSelected', { count: imageFiles.length }) }}
+                <span class="text-xs text-gray-400 ml-2">({{ $t('announcement.maxImagesAllowed') }})</span>
               </p>
             </div>
 
@@ -302,7 +303,7 @@ const handleImageUpload = (event) => {
   const files = Array.from(event.target.files)
   
       // Validate file count
-    if (imageFiles.value.length + files.length > 3) {
+    if (imageFiles.value.length + files.length > 10) {
       error.value = $t('announcement.maxImagesAllowed')
       return
     }

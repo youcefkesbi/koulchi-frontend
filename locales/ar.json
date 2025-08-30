@@ -283,7 +283,7 @@
     "error": "خطأ في نشر الإعلان",
     "stockQuantity": "كمية المخزون",
     "stockQuantityPlaceholder": "أدخل كمية المخزون",
-    "maxImagesAllowed": "الحد الأقصى 3 صور مسموح بها",
+          "maxImagesAllowed": "الحد الأقصى 10 صور مسموح بها",
     "fileTooLarge": "الملف {fileName} كبير جدًا. الحد الأقصى للحجم هو 2 ميجابايت.",
     "fileNotImage": "الملف {fileName} ليس صورة.",
     "errorCreating": "خطأ في إنشاء الإعلان",
