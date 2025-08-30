@@ -18,13 +18,10 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
+      console.log('Fetching products...');
       let query = supabase
         .from('products')
-        .select(`
-          *,
-          seller:profiles!products_seller_id_fkey(*),
-          store:stores(*)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       // Apply filters if provided
@@ -34,11 +31,16 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await query;
       
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
+        throw supabaseError;
+      }
       
+      console.log('Products fetched:', data?.length || 0, 'products');
       products.value = data || [];
       return data;
     } catch (err) {
+      console.error('Error fetching products:', err);
       error.value = err.message || 'Failed to fetch products';
       throw err;
     } finally {
@@ -53,11 +55,7 @@ export const useProductStore = defineStore('product', () => {
     try {
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select(`
-          *,
-          seller:profiles!products_seller_id_fkey(*),
-          store:stores(*)
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       
@@ -87,11 +85,7 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select(`
-          *,
-          seller:profiles!products_seller_id_fkey(*),
-          store:stores(*)
-        `)
+        .select('*')
         .eq('id', id)
         .single()
       
@@ -254,11 +248,7 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select(`
-          *,
-          seller:profiles!products_seller_id_fkey(*),
-          store:stores(*)
-        `)
+        .select('*')
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
       

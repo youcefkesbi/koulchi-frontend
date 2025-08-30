@@ -120,6 +120,9 @@ const props = defineProps({
   }
 })
 
+// Debug logging
+console.log('ProductCard received product:', props.product)
+
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
