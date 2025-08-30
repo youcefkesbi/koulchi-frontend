@@ -497,8 +497,8 @@ export const useAuthStore = defineStore('auth', () => {
                 const { cartService } = await import('../../database/cartService.js')
                 const { wishlistService } = await import('../../database/wishlistService.js')
                 
-                await cartService.syncLocalToSupabase(session.user.id)
-                await wishlistService.syncLocalToSupabase(session.user.id)
+                await cartService.syncLocalToSupabase()
+                await wishlistService.syncLocalToSupabase()
               } catch (err) {
                 console.error('Error syncing local data to Supabase:', err)
               }

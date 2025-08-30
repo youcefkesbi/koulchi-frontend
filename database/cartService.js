@@ -87,71 +87,32 @@ class CartService {
 
   /**
    * Add or update cart item in Supabase
+   * RLS automatically scopes to current user
    */
-  async addToSupabaseCart(userId, productId, quantity) {
-    console.log('CartService.addToSupabaseCart called with:', { userId, productId, quantity })
+  async addToSupabaseCart(productId, quantity) {
+    console.log('CartService.addToSupabaseCart called with:', { productId, quantity })
     
     try {
-      // First, ensure the user profile exists
-      console.log('Checking if user profile exists...')
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .single()
-        
-        if (profileError) {
-          console.error('Profile query error:', profileError)
-          if (profileError.code === 'PGRST116') {
-            console.log('Profile does not exist, creating new profile...')
-            // Create profile if it doesn't exist
-            const { error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: userId,
-                role: 'user'
-              })
-            
-            if (createError) {
-              console.error('Failed to create profile:', createError)
-              throw new Error(`Failed to create user profile: ${createError.message}`)
-            }
-            console.log('Profile created successfully')
-          } else {
-            throw new Error(`Profile query failed: ${profileError.message}`)
-          }
-        } else if (!profile) {
-          console.log('Profile does not exist, creating new profile...')
-          // Create profile if it doesn't exist
-          const { error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              role: 'user'
-            })
-          
-          if (createError) {
-            console.error('Failed to create profile:', createError)
-            throw new Error(`Failed to create user profile: ${createError.message}`)
-          }
-          console.log('Profile created successfully')
-        } else {
-          console.log('Profile exists:', profile)
-        }
-      } catch (error) {
-        console.error('Error in profile check/creation:', error)
-        throw error
+      // Get current user ID for logging purposes
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
       }
+      
+      console.log('Adding cart item for user:', user.id)
+      
+      // Profile creation is handled automatically by Supabase Auth triggers
+      // No need to manually check/create profiles
 
       // Now add/update the cart item using the exact SQL format specified
       console.log('Adding/updating cart item in Supabase...')
-      console.log('Inserting cart item with user_id:', userId, 'product_id:', productId, 'quantity:', quantity)
+      console.log('Inserting cart item with product_id:', productId, 'quantity:', quantity)
       
       // Use raw SQL query as specified:
       // insert into cart (user_id, product_id, quantity, created_at)
       // values ('<user_id>', '<product_id>', <quantity>, now())
       // on conflict (user_id, product_id) do update set quantity = excluded.quantity;
+      // Note: user_id is automatically set by RLS to auth.uid()
       
       let data, error
       
@@ -159,7 +120,6 @@ class CartService {
         console.log('Attempting to use RPC function add_to_cart...')
         const result = await supabase
           .rpc('add_to_cart', {
-            p_user_id: userId,
             p_product_id: productId,
             p_quantity: quantity
           })
@@ -176,7 +136,6 @@ class CartService {
         console.log('RPC function not found or failed, falling back to upsert...', rpcError)
         
         console.log('Using upsert fallback with data:', {
-          user_id: userId,
           product_id: productId,
           quantity,
           created_at: new Date().toISOString()
@@ -186,7 +145,6 @@ class CartService {
           .from('cart')
           .upsert(
             {
-              user_id: userId,
               product_id: productId,
               quantity,
               created_at: new Date().toISOString()
@@ -222,15 +180,15 @@ class CartService {
 
   /**
    * Remove cart item from Supabase
+   * RLS automatically scopes to current user
    */
-  async removeFromSupabaseCart(userId, productId) {
-    console.log('Removing cart item with user_id:', userId, 'product_id:', productId)
+  async removeFromSupabaseCart(productId) {
+    console.log('Removing cart item with product_id:', productId)
     
     try {
       const { error } = await supabase
         .from('cart')
         .delete()
-        .eq('user_id', userId)
         .eq('product_id', productId)
 
       if (error) {
@@ -253,9 +211,10 @@ class CartService {
 
   /**
    * Get cart items from Supabase with product details
+   * RLS automatically filters by current user
    */
-  async getSupabaseCart(userId) {
-    console.log('Fetching cart for user:', userId)
+  async getSupabaseCart() {
+    console.log('Fetching cart for current user (RLS auto-filtered)')
     
     try {
       const { data, error } = await supabase
@@ -265,7 +224,7 @@ class CartService {
           quantity,
           products(id, name, price, image_urls, seller_id)
         `)
-        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
 
       if (error) {
         console.error('Supabase cart query error:', error)
@@ -319,7 +278,7 @@ class CartService {
         }
         
         console.log('Adding to Supabase cart...')
-        await this.addToSupabaseCart(userId, productId, quantity)
+        await this.addToSupabaseCart(productId, quantity)
         console.log('Successfully added to Supabase cart')
       } else {
         // User is not signed in - add to localStorage
@@ -355,10 +314,8 @@ class CartService {
 
     if (isAuth) {
       // User is signed in - remove from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) throw new Error('User ID not found')
-      
-      await this.removeFromSupabaseCart(userId, productId)
+      // RLS automatically scopes to current user
+      await this.removeFromSupabaseCart(productId)
     } else {
       // User is not signed in - remove from localStorage
       const localCart = this.getLocalCart()
@@ -380,10 +337,8 @@ class CartService {
 
     if (isAuth) {
       // User is signed in - update in Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) throw new Error('User ID not found')
-      
-      await this.addToSupabaseCart(userId, productId, quantity)
+      // RLS automatically scopes to current user
+      await this.addToSupabaseCart(productId, quantity)
     } else {
       // User is not signed in - update in localStorage
       const localCart = this.getLocalCart()
@@ -404,10 +359,8 @@ class CartService {
 
     if (isAuth) {
       // User is signed in - get from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) return []
-      
-      return await this.getSupabaseCart(userId)
+      // RLS automatically scopes to current user
+      return await this.getSupabaseCart()
     } else {
       // User is not signed in - get from localStorage
       const localCart = this.getLocalCart()
@@ -449,13 +402,10 @@ class CartService {
 
     if (isAuth) {
       // User is signed in - clear from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) return
-      
+      // RLS automatically scopes to current user
       const { error } = await supabase
         .from('cart')
         .delete()
-        .eq('user_id', userId)
 
       if (error) {
         throw new Error(`Failed to clear Supabase cart: ${error.message}`)
@@ -468,16 +418,17 @@ class CartService {
 
   /**
    * Sync localStorage cart to Supabase (called after login)
+   * RLS automatically scopes to current user
    */
-  async syncLocalToSupabase(userId) {
+  async syncLocalToSupabase() {
     const localCart = this.getLocalCart()
     
     if (localCart.length === 0) return
 
     try {
       // Insert all local cart items into Supabase
+      // RLS automatically sets user_id to auth.uid()
       const cartItems = localCart.map(item => ({
-        user_id: userId,
         product_id: item.productId,
         quantity: item.quantity,
         created_at: new Date().toISOString()

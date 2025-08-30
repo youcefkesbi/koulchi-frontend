@@ -59,7 +59,8 @@ export const useOrdersStore = defineStore('orders', () => {
       await initUser()
       if (!currentUser.value) throw new Error('User not authenticated')
 
-      let query = supabase
+      // RLS automatically filters orders by current user
+      const { data, error: fetchError } = await supabase
         .from('orders')
         .select(`
           *,
@@ -73,12 +74,6 @@ export const useOrdersStore = defineStore('orders', () => {
           )
         `)
         .order('created_at', { ascending: false })
-
-      if (userId) {
-        query = query.eq('buyer_id', userId)
-      }
-
-      const { data, error: fetchError } = await query
       
       if (fetchError) throw fetchError
       
@@ -99,6 +94,7 @@ export const useOrdersStore = defineStore('orders', () => {
       await initUser()
       if (!currentUser.value) throw new Error('User not authenticated')
 
+      // RLS automatically filters orders by current user
       const { data, error: fetchError } = await supabase
         .from('orders')
         .select(`
@@ -111,7 +107,6 @@ export const useOrdersStore = defineStore('orders', () => {
             )
           )
         `)
-        .eq('id', currentUser.value.id)
         .order('created_at', { ascending: false })
       
       if (fetchError) throw fetchError
@@ -133,11 +128,10 @@ export const useOrdersStore = defineStore('orders', () => {
       await initUser()
       if (!currentUser.value) throw new Error('User not authenticated')
 
-      // First get all products where current user is the seller
+      // RLS automatically filters products by current user as seller
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select('id')
-        .eq('seller_id', currentUser.value.id)
       
       if (productsError) throw productsError
       
@@ -149,6 +143,7 @@ export const useOrdersStore = defineStore('orders', () => {
       const productIds = products.map(p => p.id)
       
       // Get orders that contain these products
+      // RLS automatically filters order_items by current user's orders
       const { data, error: fetchError } = await supabase
         .from('order_items')
         .select(`
@@ -158,7 +153,7 @@ export const useOrdersStore = defineStore('orders', () => {
           ),
           product:products(
             *,
-            seller:profiles!products_seller_id_fkey(*)
+            seller:profiles(*)
           )
         `)
         .in('product_id', productIds)
@@ -190,8 +185,8 @@ export const useOrdersStore = defineStore('orders', () => {
       if (!currentUser.value) throw new Error('User not authenticated')
 
       // Create the order first
+      // RLS automatically sets user_id to auth.uid()
       const orderPayload = {
-        user_id: currentUser.value.id,
         total_amount: orderData.total_amount,
         status: 'pending',
         shipping_address: orderData.shipping_address,

@@ -87,71 +87,32 @@ class WishlistService {
 
   /**
    * Add item to wishlist in Supabase
+   * RLS automatically scopes to current user
    */
-  async addToSupabaseWishlist(userId, productId) {
-    console.log('WishlistService.addToSupabaseWishlist called with:', { userId, productId })
+  async addToSupabaseWishlist(productId) {
+    console.log('WishlistService.addToSupabaseWishlist called with:', { productId })
     
     try {
-      // First, ensure the user profile exists
-      console.log('Checking if user profile exists...')
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .single()
-        
-        if (profileError) {
-          console.error('Profile query error:', profileError)
-          if (profileError.code === 'PGRST116') {
-            console.log('Profile does not exist, creating new profile...')
-            // Create profile if it doesn't exist
-            const { error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                id: userId,
-                role: 'user'
-              })
-            
-            if (createError) {
-              console.error('Failed to create profile:', createError)
-              throw new Error(`Failed to create user profile: ${createError.message}`)
-            }
-            console.log('Profile created successfully')
-          } else {
-            throw new Error(`Profile query failed: ${profileError.message}`)
-          }
-        } else if (!profile) {
-          console.log('Profile does not exist, creating new profile...')
-          // Create profile if it doesn't exist
-          const { error: createError } = await supabase
-            .from('profiles')
-            .insert({
-              id: userId,
-              role: 'user'
-            })
-          
-          if (createError) {
-            console.error('Failed to create profile:', createError)
-            throw new Error(`Failed to create user profile: ${createError.message}`)
-          }
-          console.log('Profile created successfully')
-        } else {
-          console.log('Profile exists:', profile)
-        }
-      } catch (error) {
-        console.error('Error in profile check/creation:', error)
-        throw error
+      // Get current user ID for logging purposes
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
       }
+      
+      console.log('Adding wishlist item for user:', user.id)
+      
+      // Profile creation is handled automatically by Supabase Auth triggers
+      // No need to manually check/create profiles
 
       // Now add the wishlist item using the exact SQL format specified
       console.log('Adding wishlist item to Supabase...')
-      console.log('Inserting wishlist item with user_id:', userId, 'product_id:', productId)
+      console.log('Inserting wishlist item with product_id:', productId)
       
       // Use raw SQL query as specified:
       // insert into wishlist (user_id, product_id)
       // values ('<user_id>', '<product_id>')
       // on conflict (user_id, product_id) do nothing;
+      // Note: user_id is automatically set by RLS to auth.uid()
       
       let data, error
       
@@ -159,7 +120,6 @@ class WishlistService {
         console.log('Attempting to use RPC function add_to_wishlist...')
         const result = await supabase
           .rpc('add_to_wishlist', {
-            p_user_id: userId,
             p_product_id: productId
           })
         
@@ -175,7 +135,6 @@ class WishlistService {
         console.log('RPC function not found or failed, falling back to upsert...', rpcError)
         
         console.log('Using upsert fallback with data:', {
-          user_id: userId,
           product_id: productId
         })
         
@@ -183,7 +142,6 @@ class WishlistService {
           .from('wishlist')
           .upsert(
             {
-              user_id: userId,
               product_id: productId
             },
             {
@@ -248,9 +206,10 @@ class WishlistService {
 
   /**
    * Get wishlist items from Supabase with product details
+   * RLS automatically filters by current user
    */
-  async getSupabaseWishlist(userId) {
-    console.log('Fetching wishlist for user:', userId)
+  async getSupabaseWishlist() {
+    console.log('Fetching wishlist for current user (RLS auto-filtered)')
     
     try {
       const { data, error } = await supabase
@@ -260,7 +219,6 @@ class WishlistService {
           created_at, 
           products(id, name, price, image_urls, seller_id)
         `)
-        .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -315,7 +273,7 @@ class WishlistService {
         }
         
         console.log('Adding to Supabase wishlist...')
-        await this.addToSupabaseWishlist(userId, productId)
+        await this.addToSupabaseWishlist(productId)
         console.log('Successfully added to Supabase wishlist')
       } else {
         // User is not signed in - add to localStorage
@@ -348,10 +306,8 @@ class WishlistService {
 
     if (isAuth) {
       // User is signed in - remove from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) throw new Error('User ID not found')
-      
-      await this.removeFromSupabaseWishlist(userId, productId)
+      // RLS automatically scopes to current user
+      await this.removeFromSupabaseWishlist(productId)
     } else {
       // User is not signed in - remove from localStorage
       const localWishlist = this.getLocalWishlist()
@@ -368,10 +324,8 @@ class WishlistService {
 
     if (isAuth) {
       // User is signed in - get from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) return []
-      
-      return await this.getSupabaseWishlist(userId)
+      // RLS automatically scopes to current user
+      return await this.getSupabaseWishlist()
     } else {
       // User is not signed in - get from localStorage
       const localWishlist = this.getLocalWishlist()
@@ -413,13 +367,10 @@ class WishlistService {
 
     if (isAuth) {
       // User is signed in - clear from Supabase
-      const userId = await this.getCurrentUserId()
-      if (!userId) return
-      
+      // RLS automatically scopes to current user
       const { error } = await supabase
         .from('wishlist')
         .delete()
-        .eq('user_id', userId)
 
       if (error) {
         throw new Error(`Failed to clear Supabase wishlist: ${error.message}`)
@@ -432,16 +383,17 @@ class WishlistService {
 
   /**
    * Sync localStorage wishlist to Supabase (called after login)
+   * RLS automatically scopes to current user
    */
-  async syncLocalToSupabase(userId) {
+  async syncLocalToSupabase() {
     const localWishlist = this.getLocalWishlist()
     
     if (localWishlist.length === 0) return
 
     try {
       // Insert all local wishlist items into Supabase
+      // RLS automatically sets user_id to auth.uid()
       const wishlistItems = localWishlist.map(item => ({
-        user_id: userId,
         product_id: item.productId
       }))
 
