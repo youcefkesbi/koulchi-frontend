@@ -25,10 +25,12 @@ export const useWishlistStore = defineStore('wishlist', () => {
         products: {
           id: item.id,
           name: item.name,
-          name_ar: item.nameAr,
           price: item.price,
           image_urls: item.image ? [item.image] : [],
-          seller_id: item.seller_id
+          seller_id: item.seller_id,
+          stock_quantity: 0, // Default value since not in wishlist data
+          is_new: false, // Default value since not in wishlist data
+          is_on_sale: false // Default value since not in wishlist data
         }
       }));
       

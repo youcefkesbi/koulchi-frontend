@@ -43,7 +43,7 @@
         <div class="relative overflow-hidden rounded-lg mb-4">
           <img 
             :src="getProductImage(item.products)" 
-            :alt="item.products.name || item.products.name_ar"
+            :alt="item.products.name"
             class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
             @error="handleImageError"
           />
@@ -72,7 +72,7 @@
         <div class="space-y-3">
           <!-- Title -->
           <h3 class="font-semibold text-lg text-dark line-clamp-2">
-            {{ item.products.name || item.products.name_ar }}
+            {{ item.products.name }}
           </h3>
 
           <!-- Stock Status -->

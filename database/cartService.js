@@ -146,6 +146,7 @@ class CartService {
 
       // Now add/update the cart item using the exact SQL format specified
       console.log('Adding/updating cart item in Supabase...')
+      console.log('Inserting cart item with user_id:', userId, 'product_id:', productId, 'quantity:', quantity)
       
       // Use raw SQL query as specified:
       // insert into cart (user_id, product_id, quantity, created_at)
@@ -155,6 +156,7 @@ class CartService {
       let data, error
       
       try {
+        console.log('Attempting to use RPC function add_to_cart...')
         const result = await supabase
           .rpc('add_to_cart', {
             p_user_id: userId,
@@ -164,8 +166,22 @@ class CartService {
         
         data = result.data
         error = result.error
+        
+        if (error) {
+          console.log('RPC function failed, error:', error)
+        } else {
+          console.log('RPC function succeeded, data:', data)
+        }
       } catch (rpcError) {
-        console.log('RPC function not found, falling back to upsert...')
+        console.log('RPC function not found or failed, falling back to upsert...', rpcError)
+        
+        console.log('Using upsert fallback with data:', {
+          user_id: userId,
+          product_id: productId,
+          quantity,
+          created_at: new Date().toISOString()
+        })
+        
         const result = await supabase
           .from('cart')
           .upsert(
@@ -182,10 +198,18 @@ class CartService {
         
         data = result.data
         error = result.error
+        
+        console.log('Upsert result:', { data, error })
       }
 
       if (error) {
         console.error('Supabase cart insert error:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         throw new Error(`Failed to add item to Supabase cart: ${error.message}`)
       }
       
@@ -200,14 +224,30 @@ class CartService {
    * Remove cart item from Supabase
    */
   async removeFromSupabaseCart(userId, productId) {
-    const { error } = await supabase
-      .from('cart')
-      .delete()
-      .eq('user_id', userId)
-      .eq('product_id', productId)
+    console.log('Removing cart item with user_id:', userId, 'product_id:', productId)
+    
+    try {
+      const { error } = await supabase
+        .from('cart')
+        .delete()
+        .eq('user_id', userId)
+        .eq('product_id', productId)
 
-    if (error) {
-      throw new Error(`Failed to remove item from Supabase cart: ${error.message}`)
+      if (error) {
+        console.error('Supabase cart delete error:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw new Error(`Failed to remove item from Supabase cart: ${error.message}`)
+      }
+      
+      console.log('Cart item removed successfully')
+    } catch (error) {
+      console.error('Error in removeFromSupabaseCart:', error)
+      throw error
     }
   }
 
@@ -215,36 +255,45 @@ class CartService {
    * Get cart items from Supabase with product details
    */
   async getSupabaseCart(userId) {
-    const { data, error } = await supabase
-      .from('cart')
-      .select(`
-        product_id,
-        quantity,
-        products (
-          id,
-          name,
-          name_ar,
-          price,
-          image_urls,
-          seller_id
-        )
-      `)
-      .eq('user_id', userId)
+    console.log('Fetching cart for user:', userId)
+    
+    try {
+      const { data, error } = await supabase
+        .from('cart')
+        .select(`
+          product_id,
+          quantity,
+          products(id, name, price, image_urls, seller_id)
+        `)
+        .eq('user_id', userId)
 
-    if (error) {
-      throw new Error(`Failed to fetch Supabase cart: ${error.message}`)
+      if (error) {
+        console.error('Supabase cart query error:', error)
+        throw new Error(`Failed to fetch Supabase cart: ${error.message}`)
+      }
+
+      console.log('Raw cart data from Supabase:', data)
+
+      const mappedData = (data || []).map(item => {
+        const mappedItem = {
+          id: item.product_id,
+          productId: item.product_id,
+          quantity: item.quantity,
+          name: item.products?.name || 'Unknown Product',
+          price: item.products?.price || 0,
+          image: item.products?.image_urls?.[0] || '',
+          seller_id: item.products?.seller_id
+        }
+        console.log('Mapped cart item:', mappedItem)
+        return mappedItem
+      })
+
+      console.log('Final mapped cart data:', mappedData)
+      return mappedData
+    } catch (error) {
+      console.error('Error in getSupabaseCart:', error)
+      throw error
     }
-
-    return (data || []).map(item => ({
-      id: item.product_id,
-      productId: item.product_id,
-      quantity: item.quantity,
-      name: item.products?.name || 'Unknown Product',
-      nameAr: item.products?.name_ar,
-      price: item.products?.price || 0,
-      image: item.products?.image_urls?.[0] || '',
-      seller_id: item.products?.seller_id
-    }))
   }
 
   /**
@@ -369,7 +418,7 @@ class CartService {
       const productIds = localCart.map(item => item.productId)
       const { data: products, error } = await supabase
         .from('products')
-        .select('id, name, name_ar, price, image_urls, seller_id')
+        .select('id, name, price, image_urls, seller_id')
         .in('id', productIds)
 
       if (error || !products) {
@@ -384,7 +433,6 @@ class CartService {
           productId: item.productId,
           quantity: item.quantity,
           name: product?.name || 'Unknown Product',
-          nameAr: product?.name_ar,
           price: product?.price || 0,
           image: product?.image_urls?.[0] || '',
           seller_id: product?.seller_id

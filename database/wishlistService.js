@@ -146,6 +146,7 @@ class WishlistService {
 
       // Now add the wishlist item using the exact SQL format specified
       console.log('Adding wishlist item to Supabase...')
+      console.log('Inserting wishlist item with user_id:', userId, 'product_id:', productId)
       
       // Use raw SQL query as specified:
       // insert into wishlist (user_id, product_id)
@@ -155,6 +156,7 @@ class WishlistService {
       let data, error
       
       try {
+        console.log('Attempting to use RPC function add_to_wishlist...')
         const result = await supabase
           .rpc('add_to_wishlist', {
             p_user_id: userId,
@@ -163,8 +165,20 @@ class WishlistService {
         
         data = result.data
         error = result.error
+        
+        if (error) {
+          console.log('RPC function failed, error:', error)
+        } else {
+          console.log('RPC function succeeded, data:', data)
+        }
       } catch (rpcError) {
-        console.log('RPC function not found, falling back to upsert...')
+        console.log('RPC function not found or failed, falling back to upsert...', rpcError)
+        
+        console.log('Using upsert fallback with data:', {
+          user_id: userId,
+          product_id: productId
+        })
+        
         const result = await supabase
           .from('wishlist')
           .upsert(
@@ -179,10 +193,18 @@ class WishlistService {
         
         data = result.data
         error = result.error
+        
+        console.log('Upsert result:', { data, error })
       }
 
       if (error) {
         console.error('Supabase wishlist insert error:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         throw new Error(`Failed to add item to Supabase wishlist: ${error.message}`)
       }
       
@@ -197,14 +219,30 @@ class WishlistService {
    * Remove item from wishlist in Supabase
    */
   async removeFromSupabaseWishlist(userId, productId) {
-    const { error } = await supabase
-      .from('wishlist')
-      .delete()
-      .eq('user_id', userId)
-      .eq('product_id', productId)
+    console.log('Removing wishlist item with user_id:', userId, 'product_id:', productId)
+    
+    try {
+      const { error } = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_id', userId)
+        .eq('product_id', productId)
 
-    if (error) {
-      throw new Error(`Failed to remove item from Supabase wishlist: ${error.message}`)
+      if (error) {
+        console.error('Supabase wishlist delete error:', error)
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw new Error(`Failed to remove item from Supabase wishlist: ${error.message}`)
+      }
+      
+      console.log('Wishlist item removed successfully')
+    } catch (error) {
+      console.error('Error in removeFromSupabaseWishlist:', error)
+      throw error
     }
   }
 
@@ -212,37 +250,46 @@ class WishlistService {
    * Get wishlist items from Supabase with product details
    */
   async getSupabaseWishlist(userId) {
-    const { data, error } = await supabase
-      .from('wishlist')
-      .select(`
-        product_id,
-        created_at,
-        products (
-          id,
-          name,
-          name_ar,
-          price,
-          image_urls,
-          seller_id
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+    console.log('Fetching wishlist for user:', userId)
+    
+    try {
+      const { data, error } = await supabase
+        .from('wishlist')
+        .select(`
+          product_id, 
+          created_at, 
+          products(id, name, price, image_urls, seller_id)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
 
-    if (error) {
-      throw new Error(`Failed to fetch Supabase wishlist: ${error.message}`)
+      if (error) {
+        console.error('Supabase wishlist query error:', error)
+        throw new Error(`Failed to fetch Supabase wishlist: ${error.message}`)
+      }
+
+      console.log('Raw wishlist data from Supabase:', data)
+
+      const mappedData = (data || []).map(item => {
+        const mappedItem = {
+          id: item.product_id,
+          productId: item.product_id,
+          name: item.products?.name || 'Unknown Product',
+          price: item.products?.price || 0,
+          image: item.products?.image_urls?.[0] || '',
+          seller_id: item.products?.seller_id,
+          created_at: item.created_at
+        }
+        console.log('Mapped wishlist item:', mappedItem)
+        return mappedItem
+      })
+
+      console.log('Final mapped wishlist data:', mappedData)
+      return mappedData
+    } catch (error) {
+      console.error('Error in getSupabaseWishlist:', error)
+      throw error
     }
-
-    return (data || []).map(item => ({
-      id: item.product_id,
-      productId: item.product_id,
-      name: item.products?.name || 'Unknown Product',
-      nameAr: item.products?.name_ar,
-      price: item.products?.price || 0,
-      image: item.products?.image_urls?.[0] || '',
-      seller_id: item.products?.seller_id,
-      created_at: item.created_at
-    }))
   }
 
   /**
@@ -335,7 +382,7 @@ class WishlistService {
       const productIds = localWishlist.map(item => item.productId)
       const { data: products, error } = await supabase
         .from('products')
-        .select('id, name, name_ar, price, image_urls, seller_id')
+        .select('id, name, price, image_urls, seller_id')
         .in('id', productIds)
 
       if (error || !products) {
@@ -349,7 +396,6 @@ class WishlistService {
           id: item.productId,
           productId: item.productId,
           name: product?.name || 'Unknown Product',
-          nameAr: product?.name_ar,
           price: product?.price || 0,
           image: product?.image_urls?.[0] || '',
           seller_id: product?.seller_id,
