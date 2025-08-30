@@ -1,38 +1,25 @@
-import { supabase } from '../src/lib/supabase'
-
-export interface WishlistItem {
-  productId: string
-}
-
-export interface WishlistItemWithProduct extends WishlistItem {
-  id: string
-  name: string
-  nameAr?: string
-  price: number
-  image: string
-  seller_id?: string
-  created_at: string
-}
-
-export interface LocalWishlistItem {
-  productId: string
-}
+import { supabase } from '../src/lib/supabase.js'
 
 class WishlistService {
-  private readonly WISHLIST_STORAGE_KEY = 'wishlist'
+  constructor() {
+    this.WISHLIST_STORAGE_KEY = 'wishlist'
+  }
 
   /**
    * Check if user is authenticated
    */
-  private async isAuthenticated(): Promise<boolean> {
+  async isAuthenticated() {
     const { data: { user } } = await supabase.auth.getUser()
-    return !!user
+    console.log('WishlistService.isAuthenticated - User data:', user)
+    const isAuth = !!user
+    console.log('WishlistService.isAuthenticated - Result:', isAuth)
+    return isAuth
   }
 
   /**
    * Get current user ID
    */
-  private async getCurrentUserId(): Promise<string | null> {
+  async getCurrentUserId() {
     const { data: { user } } = await supabase.auth.getUser()
     return user?.id || null
   }
@@ -40,7 +27,7 @@ class WishlistService {
   /**
    * Get wishlist items from localStorage
    */
-  private getLocalWishlist(): LocalWishlistItem[] {
+  getLocalWishlist() {
     try {
       const wishlistData = localStorage.getItem(this.WISHLIST_STORAGE_KEY)
       return wishlistData ? JSON.parse(wishlistData) : []
@@ -53,7 +40,7 @@ class WishlistService {
   /**
    * Save wishlist items to localStorage
    */
-  private saveLocalWishlist(wishlist: LocalWishlistItem[]): void {
+  saveLocalWishlist(wishlist) {
     try {
       localStorage.setItem(this.WISHLIST_STORAGE_KEY, JSON.stringify(wishlist))
     } catch (error) {
@@ -64,7 +51,7 @@ class WishlistService {
   /**
    * Clear localStorage wishlist
    */
-  private clearLocalWishlist(): void {
+  clearLocalWishlist() {
     try {
       localStorage.removeItem(this.WISHLIST_STORAGE_KEY)
     } catch (error) {
@@ -75,7 +62,29 @@ class WishlistService {
   /**
    * Add item to wishlist in Supabase
    */
-  private async addToSupabaseWishlist(userId: string, productId: string): Promise<void> {
+  async addToSupabaseWishlist(userId, productId) {
+    // First, ensure the user profile exists
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .single()
+    
+    if (profileError || !profile) {
+      // Create profile if it doesn't exist
+      const { error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          role: 'user'
+        })
+      
+      if (createError) {
+        throw new Error(`Failed to create user profile: ${createError.message}`)
+      }
+    }
+
+    // Now add the wishlist item
     const { error } = await supabase
       .from('wishlist')
       .upsert(
@@ -96,7 +105,7 @@ class WishlistService {
   /**
    * Remove item from wishlist in Supabase
    */
-  private async removeFromSupabaseWishlist(userId: string, productId: string): Promise<void> {
+  async removeFromSupabaseWishlist(userId, productId) {
     const { error } = await supabase
       .from('wishlist')
       .delete()
@@ -111,7 +120,7 @@ class WishlistService {
   /**
    * Get wishlist items from Supabase with product details
    */
-  private async getSupabaseWishlist(userId: string): Promise<WishlistItemWithProduct[]> {
+  async getSupabaseWishlist(userId) {
     const { data, error } = await supabase
       .from('wishlist')
       .select(`
@@ -148,23 +157,34 @@ class WishlistService {
   /**
    * Add item to wishlist (works for both authenticated and guest users)
    */
-  async addItem(productId: string): Promise<void> {
+  async addItem(productId) {
+    console.log('WishlistService.addItem called with:', { productId })
+    
     const isAuth = await this.isAuthenticated()
+    console.log('User authenticated:', isAuth)
 
     if (isAuth) {
       // User is signed in - add to Supabase
       const userId = await this.getCurrentUserId()
+      console.log('User ID:', userId)
+      
       if (!userId) throw new Error('User ID not found')
       
+      console.log('Adding to Supabase wishlist...')
       await this.addToSupabaseWishlist(userId, productId)
+      console.log('Successfully added to Supabase wishlist')
     } else {
       // User is not signed in - add to localStorage
+      console.log('Adding to localStorage wishlist...')
       const localWishlist = this.getLocalWishlist()
       
       // Check if item already exists
       if (!localWishlist.some(item => item.productId === productId)) {
         localWishlist.push({ productId })
         this.saveLocalWishlist(localWishlist)
+        console.log('Successfully added to localStorage wishlist')
+      } else {
+        console.log('Item already exists in localStorage wishlist')
       }
     }
   }
@@ -172,7 +192,7 @@ class WishlistService {
   /**
    * Remove item from wishlist
    */
-  async removeItem(productId: string): Promise<void> {
+  async removeItem(productId) {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -192,7 +212,7 @@ class WishlistService {
   /**
    * Get all wishlist items with product details
    */
-  async getItems(): Promise<WishlistItemWithProduct[]> {
+  async getItems() {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -238,7 +258,7 @@ class WishlistService {
   /**
    * Clear all wishlist items
    */
-  async clearWishlist(): Promise<void> {
+  async clearWishlist() {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -263,7 +283,7 @@ class WishlistService {
   /**
    * Sync localStorage wishlist to Supabase (called after login)
    */
-  async syncLocalToSupabase(userId: string): Promise<void> {
+  async syncLocalToSupabase(userId) {
     const localWishlist = this.getLocalWishlist()
     
     if (localWishlist.length === 0) return
@@ -296,7 +316,7 @@ class WishlistService {
   /**
    * Get wishlist item count
    */
-  async getItemCount(): Promise<number> {
+  async getItemCount() {
     const items = await this.getItems()
     return items.length
   }
@@ -304,7 +324,7 @@ class WishlistService {
   /**
    * Check if product is in wishlist
    */
-  async isProductInWishlist(productId: string): Promise<boolean> {
+  async isProductInWishlist(productId) {
     const items = await this.getItems()
     return items.some(item => item.productId === productId)
   }
@@ -312,7 +332,7 @@ class WishlistService {
   /**
    * Toggle wishlist item (add if not present, remove if present)
    */
-  async toggleItem(productId: string): Promise<boolean> {
+  async toggleItem(productId) {
     const isInWishlist = await this.isProductInWishlist(productId)
     
     if (isInWishlist) {

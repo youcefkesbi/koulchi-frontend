@@ -1,39 +1,25 @@
-import { supabase } from '../src/lib/supabase'
-
-export interface CartItem {
-  productId: string
-  quantity: number
-}
-
-export interface CartItemWithProduct extends CartItem {
-  id: string
-  name: string
-  nameAr?: string
-  price: number
-  image: string
-  seller_id?: string
-}
-
-export interface LocalCartItem {
-  productId: string
-  quantity: number
-}
+import { supabase } from '../src/lib/supabase.js'
 
 class CartService {
-  private readonly CART_STORAGE_KEY = 'cart'
+  constructor() {
+    this.CART_STORAGE_KEY = 'cart'
+  }
 
   /**
    * Check if user is authenticated
    */
-  private async isAuthenticated(): Promise<boolean> {
+  async isAuthenticated() {
     const { data: { user } } = await supabase.auth.getUser()
-    return !!user
+    console.log('CartService.isAuthenticated - User data:', user)
+    const isAuth = !!user
+    console.log('CartService.isAuthenticated - Result:', isAuth)
+    return isAuth
   }
 
   /**
    * Get current user ID
    */
-  private async getCurrentUserId(): Promise<string | null> {
+  async getCurrentUserId() {
     const { data: { user } } = await supabase.auth.getUser()
     return user?.id || null
   }
@@ -41,7 +27,7 @@ class CartService {
   /**
    * Get cart items from localStorage
    */
-  private getLocalCart(): LocalCartItem[] {
+  getLocalCart() {
     try {
       const cartData = localStorage.getItem(this.CART_STORAGE_KEY)
       return cartData ? JSON.parse(cartData) : []
@@ -54,7 +40,7 @@ class CartService {
   /**
    * Save cart items to localStorage
    */
-  private saveLocalCart(cart: LocalCartItem[]): void {
+  saveLocalCart(cart) {
     try {
       localStorage.setItem(this.CART_STORAGE_KEY, JSON.stringify(cart))
     } catch (error) {
@@ -65,7 +51,7 @@ class CartService {
   /**
    * Clear localStorage cart
    */
-  private clearLocalCart(): void {
+  clearLocalCart() {
     try {
       localStorage.removeItem(this.CART_STORAGE_KEY)
     } catch (error) {
@@ -76,7 +62,29 @@ class CartService {
   /**
    * Add or update cart item in Supabase
    */
-  private async addToSupabaseCart(userId: string, productId: string, quantity: number): Promise<void> {
+  async addToSupabaseCart(userId, productId, quantity) {
+    // First, ensure the user profile exists
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .single()
+    
+    if (profileError || !profile) {
+      // Create profile if it doesn't exist
+      const { error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          role: 'user'
+        })
+      
+      if (createError) {
+        throw new Error(`Failed to create user profile: ${createError.message}`)
+      }
+    }
+
+    // Now add/update the cart item
     const { error } = await supabase
       .from('cart')
       .upsert(
@@ -99,7 +107,7 @@ class CartService {
   /**
    * Remove cart item from Supabase
    */
-  private async removeFromSupabaseCart(userId: string, productId: string): Promise<void> {
+  async removeFromSupabaseCart(userId, productId) {
     const { error } = await supabase
       .from('cart')
       .delete()
@@ -114,7 +122,7 @@ class CartService {
   /**
    * Get cart items from Supabase with product details
    */
-  private async getSupabaseCart(userId: string): Promise<CartItemWithProduct[]> {
+  async getSupabaseCart(userId) {
     const { data, error } = await supabase
       .from('cart')
       .select(`
@@ -150,17 +158,25 @@ class CartService {
   /**
    * Add item to cart (works for both authenticated and guest users)
    */
-  async addItem(productId: string, quantity: number = 1): Promise<void> {
+  async addItem(productId, quantity = 1) {
+    console.log('CartService.addItem called with:', { productId, quantity })
+    
     const isAuth = await this.isAuthenticated()
+    console.log('User authenticated:', isAuth)
 
     if (isAuth) {
       // User is signed in - add to Supabase
       const userId = await this.getCurrentUserId()
+      console.log('User ID:', userId)
+      
       if (!userId) throw new Error('User ID not found')
       
+      console.log('Adding to Supabase cart...')
       await this.addToSupabaseCart(userId, productId, quantity)
+      console.log('Successfully added to Supabase cart')
     } else {
       // User is not signed in - add to localStorage
+      console.log('Adding to localStorage cart...')
       const localCart = this.getLocalCart()
       const existingItem = localCart.find(item => item.productId === productId)
       
@@ -171,13 +187,14 @@ class CartService {
       }
       
       this.saveLocalCart(localCart)
+      console.log('Successfully added to localStorage cart')
     }
   }
 
   /**
    * Remove item from cart
    */
-  async removeItem(productId: string): Promise<void> {
+  async removeItem(productId) {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -197,7 +214,7 @@ class CartService {
   /**
    * Update item quantity in cart
    */
-  async updateQuantity(productId: string, quantity: number): Promise<void> {
+  async updateQuantity(productId, quantity) {
     if (quantity <= 0) {
       await this.removeItem(productId)
       return
@@ -226,7 +243,7 @@ class CartService {
   /**
    * Get all cart items with product details
    */
-  async getItems(): Promise<CartItemWithProduct[]> {
+  async getItems() {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -272,7 +289,7 @@ class CartService {
   /**
    * Clear all cart items
    */
-  async clearCart(): Promise<void> {
+  async clearCart() {
     const isAuth = await this.isAuthenticated()
 
     if (isAuth) {
@@ -297,7 +314,7 @@ class CartService {
   /**
    * Sync localStorage cart to Supabase (called after login)
    */
-  async syncLocalToSupabase(userId: string): Promise<void> {
+  async syncLocalToSupabase(userId) {
     const localCart = this.getLocalCart()
     
     if (localCart.length === 0) return
@@ -332,7 +349,7 @@ class CartService {
   /**
    * Get cart item count
    */
-  async getItemCount(): Promise<number> {
+  async getItemCount() {
     const items = await this.getItems()
     return items.reduce((total, item) => total + item.quantity, 0)
   }
@@ -340,7 +357,7 @@ class CartService {
   /**
    * Check if product is in cart
    */
-  async isProductInCart(productId: string): Promise<boolean> {
+  async isProductInCart(productId) {
     const items = await this.getItems()
     return items.some(item => item.productId === productId)
   }
@@ -348,7 +365,7 @@ class CartService {
   /**
    * Get cart total price
    */
-  async getTotalPrice(): Promise<number> {
+  async getTotalPrice() {
     const items = await this.getItems()
     return items.reduce((total, item) => total + (item.price * item.quantity), 0)
   }

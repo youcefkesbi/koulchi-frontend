@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { wishlistService } from '../../database/wishlistService';
+import { wishlistService } from '../../database/wishlistService.js';
 
 export const useWishlistStore = defineStore('wishlist', () => {
   // State

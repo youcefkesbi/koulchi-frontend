@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { cartService } from '../../database/cartService'
+import { cartService } from '../../database/cartService.js'
 
 export const useCartStore = defineStore('cart', () => {
   const items = ref([])
@@ -64,6 +64,9 @@ export const useCartStore = defineStore('cart', () => {
 
   const addToCart = async (product, quantity = 1) => {
     try {
+      console.log('Cart store addToCart called with:', { product, quantity })
+      console.log('Cart service available:', !!cartService)
+      
       // Use the cart service to add item
       await cartService.addItem(product.id, quantity)
       
