@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { supabase } from '../lib/supabase';
+import { wishlistService } from '../../database/wishlistService';
 
 export const useWishlistStore = defineStore('wishlist', () => {
   // State
@@ -14,37 +14,25 @@ export const useWishlistStore = defineStore('wishlist', () => {
     error.value = null;
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error: supabaseError } = await supabase
-        .from('wishlist')
-        .select(`
-          id,
-          product_id,
-          created_at,
-          products (
-            id,
-            name,
-            name_ar,
-            description,
-            price,
-            image_urls,
-            stock_quantity,
-            is_new,
-            is_on_sale,
-            category_id,
-            seller_id,
-            store_id
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Use the wishlist service to fetch items
+      const items = await wishlistService.getItems();
       
-      if (supabaseError) throw supabaseError;
+      // Transform the data to match the expected format
+      wishlistItems.value = items.map(item => ({
+        id: item.id,
+        product_id: item.productId,
+        created_at: item.created_at,
+        products: {
+          id: item.id,
+          name: item.name,
+          name_ar: item.nameAr,
+          price: item.price,
+          image_urls: item.image ? [item.image] : [],
+          seller_id: item.seller_id
+        }
+      }));
       
-      wishlistItems.value = data || [];
-      return data;
+      return wishlistItems.value;
     } catch (err) {
       error.value = err.message || 'Failed to fetch wishlist';
       throw err;
@@ -55,42 +43,13 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const addToWishlist = async (productId) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Check if product is already in wishlist
-      const existingItem = wishlistItems.value.find(item => item.product_id === productId);
-      if (existingItem) {
-        throw new Error('Product is already in your wishlist');
-      }
-
-      const { data, error: supabaseError } = await supabase
-        .from('wishlist')
-        .insert({
-          user_id: user.id,
-          product_id: productId
-        })
-        .select()
-        .single();
+      // Use the wishlist service to add item
+      await wishlistService.addItem(productId);
       
-      if (supabaseError) throw supabaseError;
+      // Refresh wishlist items
+      await fetchWishlist();
       
-      // Fetch the product details to add to wishlist
-      const { data: productData, error: productError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-      
-      if (productError) throw productError;
-      
-      // Add to local state
-      wishlistItems.value.unshift({
-        ...data,
-        products: productData
-      });
-      
-      return data;
+      return true;
     } catch (err) {
       error.value = err.message || 'Failed to add to wishlist';
       throw err;
@@ -99,19 +58,15 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const removeFromWishlist = async (wishlistItemId) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error: supabaseError } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('id', wishlistItemId)
-        .eq('user_id', user.id);
+      // Find the product ID from the wishlist item
+      const item = wishlistItems.value.find(item => item.id === wishlistItemId);
+      if (!item) throw new Error('Wishlist item not found');
       
-      if (supabaseError) throw supabaseError;
+      // Use the wishlist service to remove item
+      await wishlistService.removeItem(item.product_id);
       
-      // Remove from local state
-      wishlistItems.value = wishlistItems.value.filter(item => item.id !== wishlistItemId);
+      // Refresh wishlist items
+      await fetchWishlist();
       
       return true;
     } catch (err) {
@@ -122,19 +77,11 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const removeProductFromWishlist = async (productId) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error: supabaseError } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('product_id', productId)
-        .eq('user_id', user.id);
+      // Use the wishlist service to remove item
+      await wishlistService.removeItem(productId);
       
-      if (supabaseError) throw supabaseError;
-      
-      // Remove from local state
-      wishlistItems.value = wishlistItems.value.filter(item => item.product_id !== productId);
+      // Refresh wishlist items
+      await fetchWishlist();
       
       return true;
     } catch (err) {
@@ -149,15 +96,8 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const clearWishlist = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { error: supabaseError } = await supabase
-        .from('wishlist')
-        .delete()
-        .eq('user_id', user.id);
-      
-      if (supabaseError) throw supabaseError;
+      // Use the wishlist service to clear wishlist
+      await wishlistService.clearWishlist();
       
       // Clear local state
       wishlistItems.value = [];
@@ -165,6 +105,18 @@ export const useWishlistStore = defineStore('wishlist', () => {
       return true;
     } catch (err) {
       error.value = err.message || 'Failed to clear wishlist';
+      throw err;
+    }
+  };
+
+  // Sync local wishlist to Supabase after login
+  const syncLocalToSupabase = async (userId) => {
+    try {
+      await wishlistService.syncLocalToSupabase(userId);
+      // Refresh wishlist items after sync
+      await fetchWishlist();
+    } catch (err) {
+      error.value = err.message || 'Failed to sync local wishlist to Supabase';
       throw err;
     }
   };
@@ -193,5 +145,6 @@ export const useWishlistStore = defineStore('wishlist', () => {
     removeProductFromWishlist,
     isInWishlist,
     clearWishlist,
+    syncLocalToSupabase,
   };
 });

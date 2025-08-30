@@ -490,6 +490,19 @@ export const useAuthStore = defineStore('auth', () => {
           console.log('Auth state change:', event, session?.user?.email)
           if (session?.user) {
             await loadUserWithProfile(session.user)
+            
+            // Sync local cart and wishlist to Supabase after login
+            if (event === 'SIGNED_IN') {
+              try {
+                const { cartService } = await import('../../database/cartService')
+                const { wishlistService } = await import('../../database/wishlistService')
+                
+                await cartService.syncLocalToSupabase(session.user.id)
+                await wishlistService.syncLocalToSupabase(session.user.id)
+              } catch (err) {
+                console.error('Error syncing local data to Supabase:', err)
+              }
+            }
           } else {
             user.value = null
           }

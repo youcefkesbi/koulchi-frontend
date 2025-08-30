@@ -130,13 +130,13 @@
           </div>
 
           <!-- Checkout Button -->
-          <router-link
-            to="/checkout"
+          <button
+            @click="handleCheckout"
             class="btn-primary w-full text-center text-lg py-4"
           >
             <i class="fas fa-credit-card ml-2"></i>
             {{ $t('cartPage.checkout') }}
-          </router-link>
+          </button>
         </div>
       </div>
     </div>
@@ -168,16 +168,24 @@
       </div>
     </section>
   </div>
+
+  <!-- Login Modal for non-authenticated users -->
+  <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useProductStore } from '../stores/product'
+import { useAuthStore } from '../stores/auth'
 import ProductCard from '../components/ProductCard.vue'
+import LoginModal from '../components/LoginModal.vue'
 
 const cartStore = useCartStore()
 const productStore = useProductStore()
+const authStore = useAuthStore()
+
+const showLoginModal = ref(false)
 
 const recommendedProducts = computed(() => {
   // Get products that are not in cart
@@ -197,6 +205,15 @@ const updateQuantity = async (productId, quantity) => {
 
 const removeItem = async (productId) => {
   await cartStore.removeFromCart(productId)
+}
+
+const handleCheckout = () => {
+  if (!authStore.isAuthenticated) {
+    showLoginModal.value = true
+  } else {
+    // User is authenticated, proceed to checkout
+    window.location.href = '/checkout'
+  }
 }
 
 const handleImageError = (event) => {

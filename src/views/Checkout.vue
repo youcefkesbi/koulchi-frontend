@@ -223,6 +223,9 @@
       </router-link>
     </div>
   </div>
+
+  <!-- Login Modal for non-authenticated users -->
+  <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
 </template>
 
 <script setup>
@@ -232,12 +235,17 @@ import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
 import { useCartStore } from '../stores/cart'
 import { useOrdersStore } from '../stores/orders'
+import { useAuthStore } from '../stores/auth'
+import LoginModal from '../components/LoginModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
+const authStore = useAuthStore()
+
+const showLoginModal = ref(false)
 
 const customerInfo = ref({
   firstName: '',
@@ -300,6 +308,12 @@ const getLocalizedRoute = (path) => {
 }
 
 const placeOrder = async () => {
+  // Check if user is authenticated
+  if (!authStore.isAuthenticated) {
+    showLoginModal.value = true
+    return
+  }
+
   if (!termsAccepted.value) {
     error.value = t('checkout.termsRequired')
     return
