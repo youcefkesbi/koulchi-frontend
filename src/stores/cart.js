@@ -23,6 +23,10 @@ export const useCartStore = defineStore('cart', () => {
   const total = computed(() => subtotal.value + deliveryFee.value)
   
   const hasItems = computed(() => items.value.length > 0)
+  
+  const isProductInCart = (productId) => {
+    return items.value.some(item => item.id === productId)
+  }
 
   // Helper function to map cart item from database
   const mapCartItem = (dbItem, productData) => {
@@ -41,6 +45,7 @@ export const useCartStore = defineStore('cart', () => {
     try {
       loading.value = true
       error.value = null
+      console.log('Fetching cart...')
       
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
@@ -52,7 +57,34 @@ export const useCartStore = defineStore('cart', () => {
         return
       }
 
-      // Fetch cart items
+      // Ensure user has a profile (required for cart operations)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (profileError || !profile) {
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            role: 'user'
+          })
+        
+        if (createError) {
+          console.error('Failed to create profile:', createError)
+          // Fallback to localStorage
+          const savedCart = localStorage.getItem('guest-cart')
+          if (savedCart) {
+            items.value = JSON.parse(savedCart)
+          }
+          return
+        }
+      }
+
+      // Fetch cart items using the user's profile ID
       const { data: cartItems, error: cartError } = await supabase
         .from('cart')
         .select('*')
@@ -61,6 +93,8 @@ export const useCartStore = defineStore('cart', () => {
       if (cartError) throw cartError
 
       if (cartItems && cartItems.length > 0) {
+        console.log('Found', cartItems.length, 'cart items')
+        
         // Fetch product details for each cart item
         const productIds = cartItems.map(item => item.product_id)
         const { data: products, error: productsError } = await supabase
@@ -75,7 +109,10 @@ export const useCartStore = defineStore('cart', () => {
           const product = products.find(p => p.id === cartItem.product_id)
           return mapCartItem(cartItem, product)
         })
+        
+        console.log('Mapped', items.value.length, 'cart items with product data')
       } else {
+        console.log('No cart items found')
         items.value = []
       }
     } catch (err) {
@@ -100,26 +137,56 @@ export const useCartStore = defineStore('cart', () => {
         return
       }
 
-      // Clear existing cart items for this user
-      await supabase
-        .from('cart')
-        .delete()
+      // Ensure user has a profile (required for cart operations)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
         .eq('user_id', user.id)
+        .single()
+      
+      if (profileError || !profile) {
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            role: 'user'
+          })
+        
+        if (createError) {
+          console.error('Failed to create profile:', createError)
+          // Fallback to localStorage
+          localStorage.setItem('guest-cart', JSON.stringify(items.value))
+          return
+        }
+      }
 
-      // Insert new cart items
+      // Use upsert to handle unique constraint properly
       if (items.value.length > 0) {
         const cartItems = items.value.map(item => ({
           user_id: user.id,
           product_id: item.id,
-          quantity: item.quantity,
-          price: item.price
+          quantity: item.quantity
         }))
 
+        // First, clear existing items for this user
+        await supabase
+          .from('cart')
+          .delete()
+          .eq('user_id', user.id)
+
+        // Then insert new items
         const { error: insertError } = await supabase
           .from('cart')
           .insert(cartItems)
 
         if (insertError) throw insertError
+      } else {
+        // Clear cart if no items
+        await supabase
+          .from('cart')
+          .delete()
+          .eq('user_id', user.id)
       }
     } catch (err) {
       error.value = err.message
@@ -134,9 +201,27 @@ export const useCartStore = defineStore('cart', () => {
       const existingItem = items.value.find(item => item.id === product.id)
       
       if (existingItem) {
+        // Update quantity of existing item
         existingItem.quantity += quantity
+        
+        // Update the existing item in the database
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { error: updateError } = await supabase
+            .from('cart')
+            .update({ quantity: existingItem.quantity })
+            .eq('user_id', user.id)
+            .eq('product_id', product.id)
+          
+          if (updateError) {
+            console.error('Error updating quantity in database:', updateError)
+            // Fallback to full sync
+            await syncCartToDatabase()
+          }
+        }
       } else {
-        items.value.push({
+        // Add new item to cart
+        const newItem = {
           id: product.id,
           name: product.name || product.name_ar,
           nameAr: product.name_ar || product.name,
@@ -144,10 +229,45 @@ export const useCartStore = defineStore('cart', () => {
           image: product.image_urls?.[0] || product.image || '',
           quantity,
           seller_id: product.seller_id || null
-        })
+        }
+        
+        items.value.push(newItem)
+        
+        // Add the new item to the database
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { error: insertError } = await supabase
+            .from('cart')
+            .insert({
+              user_id: user.id,
+              product_id: product.id,
+              quantity
+            })
+          
+          if (insertError) {
+            console.error('Error adding item to database:', insertError)
+            
+            // Handle unique constraint violation
+            if (insertError.code === '23505') {
+              // Product already exists in cart, update quantity instead
+              const { error: updateError } = await supabase
+                .from('cart')
+                .update({ quantity })
+                .eq('user_id', user.id)
+                .eq('product_id', product.id)
+              
+              if (updateError) {
+                console.error('Error updating existing cart item:', updateError)
+                // Fallback to full sync
+                await syncCartToDatabase()
+              }
+            } else {
+              // Other error, fallback to full sync
+              await syncCartToDatabase()
+            }
+          }
+        }
       }
-
-      await syncCartToDatabase()
     } catch (err) {
       error.value = err.message
       console.error('Error adding to cart:', err)
@@ -157,7 +277,22 @@ export const useCartStore = defineStore('cart', () => {
   const removeFromCart = async (productId) => {
     try {
       items.value = items.value.filter(item => item.id !== productId)
-      await syncCartToDatabase()
+      
+      // Remove the specific item from the database
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error: deleteError } = await supabase
+          .from('cart')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', productId)
+        
+        if (deleteError) {
+          console.error('Error removing item from database:', deleteError)
+          // Fallback to full sync
+          await syncCartToDatabase()
+        }
+      }
     } catch (err) {
       error.value = err.message
       console.error('Error removing from cart:', err)
@@ -172,7 +307,22 @@ export const useCartStore = defineStore('cart', () => {
           await removeFromCart(productId)
         } else {
           item.quantity = quantity
-          await syncCartToDatabase()
+          
+          // Update the specific item in the database
+          const { data: { user } } = await supabase.auth.getUser()
+          if (user) {
+            const { error: updateError } = await supabase
+              .from('cart')
+              .update({ quantity })
+              .eq('user_id', user.id)
+              .eq('product_id', productId)
+            
+            if (updateError) {
+              console.error('Error updating quantity in database:', updateError)
+              // Fallback to full sync
+              await syncCartToDatabase()
+            }
+          }
         }
       }
     } catch (err) {
@@ -184,7 +334,21 @@ export const useCartStore = defineStore('cart', () => {
   const clearCart = async () => {
     try {
       items.value = []
-      await syncCartToDatabase()
+      
+      // Clear cart from database
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error: deleteError } = await supabase
+          .from('cart')
+          .delete()
+          .eq('user_id', user.id)
+        
+        if (deleteError) {
+          console.error('Error clearing cart from database:', deleteError)
+          // Fallback to full sync
+          await syncCartToDatabase()
+        }
+      }
     } catch (err) {
       error.value = err.message
       console.error('Error clearing cart:', err)
@@ -209,6 +373,7 @@ export const useCartStore = defineStore('cart', () => {
     deliveryFee,
     total,
     hasItems,
+    isProductInCart,
     
     // Actions
     fetchCart,
