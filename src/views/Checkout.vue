@@ -316,27 +316,22 @@ const placeOrder = async () => {
   try {
     const orderIds = []
     
-    // Create an order for each cart item
-    for (const item of cartStore.items) {
-      const orderData = {
-        buyer_id: cartStore.customerInfo?.id || null,
-        seller_id: item.seller_id,
-        product_id: item.product.id,
+    // Create a single order with all items
+    const orderData = {
+      total_amount: cartStore.total,
+      shipping_address: `${deliveryAddress.value.street}, ${deliveryAddress.value.commune}, ${deliveryAddress.value.wilaya}, Algeria`,
+      notes: `Order placed on ${new Date().toLocaleDateString()}`,
+      items: cartStore.items.map(item => ({
+        id: item.id,
         quantity: item.quantity,
-        unit_price: item.product.price,
-        total_price: item.totalPrice,
-        shipping_address: `${deliveryAddress.value.street}, ${deliveryAddress.value.commune}, ${deliveryAddress.value.wilaya}, Algeria`,
-        shipping_phone: customerInfo.value.phone,
-        shipping_name: `${customerInfo.value.firstName} ${customerInfo.value.lastName}`,
-        payment_method: paymentMethod.value,
-        order_status: 'pending',
-        notes: `Order placed on ${new Date().toLocaleDateString()}`
-      }
-      
-      const orderId = await ordersStore.createOrder(orderData)
-      if (orderId) {
-        orderIds.push(orderId)
-      }
+        price: item.price,
+        variant: null
+      }))
+    }
+    
+    const order = await ordersStore.createOrder(orderData)
+    if (order) {
+      orderIds.push(order.id)
     }
     
     if (orderIds.length > 0) {

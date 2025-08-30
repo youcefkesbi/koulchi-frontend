@@ -20,7 +20,11 @@ export const useProductStore = defineStore('product', () => {
     try {
       let query = supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(*),
+          store:stores(*)
+        `)
         .order('created_at', { ascending: false });
       
       // Apply filters if provided
@@ -49,7 +53,11 @@ export const useProductStore = defineStore('product', () => {
     try {
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(*),
+          store:stores(*)
+        `)
         .eq('id', id)
         .single();
       
@@ -79,7 +87,11 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(*),
+          store:stores(*)
+        `)
         .eq('id', id)
         .single()
       
@@ -242,7 +254,11 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          seller:profiles!products_seller_id_fkey(*),
+          store:stores(*)
+        `)
         .eq('seller_id', user.id)
         .order('created_at', { ascending: false });
       

@@ -33,7 +33,9 @@ export const useWishlistStore = defineStore('wishlist', () => {
             stock_quantity,
             is_new,
             is_on_sale,
-            category_id
+            category_id,
+            seller_id,
+            store_id
           )
         `)
         .eq('user_id', user.id)

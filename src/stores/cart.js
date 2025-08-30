@@ -29,10 +29,10 @@ export const useCartStore = defineStore('cart', () => {
     return {
       id: dbItem.product_id,
       name: productData?.name || 'Unknown Product',
-      price: dbItem.price,
-      image: productData?.image_urls?.[0] || productData?.image || '',
+      price: productData?.price || 0, // Use product price, not cart item price
+      image: productData?.image_urls?.[0] || '',
       quantity: dbItem.quantity,
-      seller_id: productData?.seller_id || productData?.user_id || null
+      seller_id: productData?.seller_id || null
     }
   }
 
@@ -54,7 +54,7 @@ export const useCartStore = defineStore('cart', () => {
 
       // Fetch cart items
       const { data: cartItems, error: cartError } = await supabase
-        .from('cart_items')
+        .from('cart')
         .select('*')
         .eq('user_id', user.id)
       
@@ -102,7 +102,7 @@ export const useCartStore = defineStore('cart', () => {
 
       // Clear existing cart items for this user
       await supabase
-        .from('cart_items')
+        .from('cart')
         .delete()
         .eq('user_id', user.id)
 
@@ -116,7 +116,7 @@ export const useCartStore = defineStore('cart', () => {
         }))
 
         const { error: insertError } = await supabase
-          .from('cart_items')
+          .from('cart')
           .insert(cartItems)
 
         if (insertError) throw insertError
@@ -141,9 +141,9 @@ export const useCartStore = defineStore('cart', () => {
           name: product.name || product.name_ar,
           nameAr: product.name_ar || product.name,
           price: product.price,
-          image: product.image,
+          image: product.image_urls?.[0] || product.image || '',
           quantity,
-          seller_id: product.seller_id || product.user_id || null
+          seller_id: product.seller_id || null
         })
       }
 
