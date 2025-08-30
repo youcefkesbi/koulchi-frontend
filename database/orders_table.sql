@@ -6,30 +6,20 @@ CREATE TYPE order_status AS ENUM (
   'delivered',
   'canceled'
 );
-
 -- Orders table
-CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
-
-  buyer_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE NO ACTION,
-  seller_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE NO ACTION,
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE ON UPDATE NO ACTION,
-
-  quantity INT4 NOT NULL DEFAULT 1,
-  total_price NUMERIC NOT NULL,
-
-  status order_status NOT NULL DEFAULT 'pending',
-
-  shipping_address TEXT NOT NULL,
-  shipping_city TEXT NOT NULL,
-  shipping_postal_code TEXT,
-  notes TEXT,
-
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+create table orders (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid not null references profiles(user_id) on delete cascade, -- buyer
+  status order_status default 'pending' not null,
+  total_amount numeric(10,2) not null default 0,
+  shipping_address text,
+  notes text,                        -- buyer notes
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
--- Index to quickly find all orders for a user
-CREATE INDEX idx_orders_buyer_id ON orders (buyer_id);
-CREATE INDEX idx_orders_seller_id ON orders (seller_id);
-CREATE INDEX idx_orders_product_id ON orders (product_id);
+-- 🔹 Indexes for orders
+create index idx_orders_user_id on orders(user_id);                        -- buyer's orders
+create index idx_orders_status on orders(status);                          -- admin filtering by status
+create index idx_orders_created_at on orders(created_at);                  -- recent orders / reports
+create index idx_orders_user_status on orders(user_id, status);            -- fast user + status queries

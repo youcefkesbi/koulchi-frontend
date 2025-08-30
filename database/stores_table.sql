@@ -1,7 +1,7 @@
 CREATE TABLE public.stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE, -- store owner
+  owner_id UUID NOT NULL REFERENCES profiles(user_id) ON DELETE CASCADE, -- store owner
 
   name TEXT NOT NULL,
   description TEXT,

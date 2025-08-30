@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     price DECIMAL(10,2) NOT NULL,
     image_urls TEXT[] DEFAULT '{}',
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
-    seller_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    seller_id UUID REFERENCES profiles(user_id) ON DELETE CASCADE,
     stock_quantity INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     is_new BOOLEAN DEFAULT true,
