@@ -63,12 +63,12 @@ export const useOrdersStore = defineStore('orders', () => {
         .from('orders')
         .select(`
           *,
-          buyer:profiles!orders_user_id_fkey(*),
+          buyer:profiles(*),
           order_items(
             *,
             product:products(
               *,
-              seller:profiles!products_seller_id_fkey(*)
+              seller:profiles(*)
             )
           )
         `)
@@ -107,11 +107,11 @@ export const useOrdersStore = defineStore('orders', () => {
             *,
             product:products(
               *,
-              seller:profiles!products_seller_id_fkey(*)
+              seller:profiles(*)
             )
           )
         `)
-        .eq('user_id', currentUser.value.id)
+        .eq('id', currentUser.value.id)
         .order('created_at', { ascending: false })
       
       if (fetchError) throw fetchError
@@ -154,7 +154,7 @@ export const useOrdersStore = defineStore('orders', () => {
         .select(`
           order:orders(
             *,
-            buyer:profiles!orders_user_id_fkey(*)
+            buyer:profiles(*)
           ),
           product:products(
             *,
@@ -226,12 +226,12 @@ export const useOrdersStore = defineStore('orders', () => {
         .from('orders')
         .select(`
           *,
-          buyer:profiles!orders_user_id_fkey(*),
+          buyer:profiles(*),
           order_items(
             *,
             product:products(
               *,
-              seller:profiles!products_seller_id_fkey(*)
+              seller:profiles(*)
             )
           )
         `)
@@ -350,12 +350,12 @@ export const useOrdersStore = defineStore('orders', () => {
         .from('orders')
         .select(`
           *,
-          buyer:profiles!orders_user_id_fkey(*),
+          buyer:profiles(*),
           order_items(
             *,
             product:products(
               *,
-              seller:profiles!products_seller_id_fkey(*)
+              seller:profiles(*)
             )
           )
         `)

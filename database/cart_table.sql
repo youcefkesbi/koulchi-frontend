@@ -1,6 +1,6 @@
 create table cart (
   id uuid default gen_random_uuid() primary key,
-  user_id uuid references profiles(user_id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
   product_id uuid references products(id) on delete cascade not null,
   quantity int not null default 1,
   created_at timestamp with time zone default now(),

@@ -94,29 +94,54 @@ class CartService {
     try {
       // First, ensure the user profile exists
       console.log('Checking if user profile exists...')
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', userId)
-        .single()
-      
-      if (profileError || !profile) {
-        console.log('Profile does not exist, creating new profile...')
-        // Create profile if it doesn't exist
-        const { error: createError } = await supabase
+      try {
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .insert({
-            user_id: userId,
-            role: 'user'
-          })
+          .select('id')
+          .eq('id', userId)
+          .single()
         
-        if (createError) {
-          console.error('Failed to create profile:', createError)
-          throw new Error(`Failed to create user profile: ${createError.message}`)
+        if (profileError) {
+          console.error('Profile query error:', profileError)
+          if (profileError.code === 'PGRST116') {
+            console.log('Profile does not exist, creating new profile...')
+            // Create profile if it doesn't exist
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: userId,
+                role: 'user'
+              })
+            
+            if (createError) {
+              console.error('Failed to create profile:', createError)
+              throw new Error(`Failed to create user profile: ${createError.message}`)
+            }
+            console.log('Profile created successfully')
+          } else {
+            throw new Error(`Profile query failed: ${profileError.message}`)
+          }
+        } else if (!profile) {
+          console.log('Profile does not exist, creating new profile...')
+          // Create profile if it doesn't exist
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              role: 'user'
+            })
+          
+          if (createError) {
+            console.error('Failed to create profile:', createError)
+            throw new Error(`Failed to create user profile: ${createError.message}`)
+          }
+          console.log('Profile created successfully')
+        } else {
+          console.log('Profile exists:', profile)
         }
-        console.log('Profile created successfully')
-      } else {
-        console.log('Profile exists:', profile)
+      } catch (error) {
+        console.error('Error in profile check/creation:', error)
+        throw error
       }
 
       // Now add/update the cart item using the exact SQL format specified

@@ -163,7 +163,7 @@ export const useAuthStore = defineStore('auth', () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
-            user_id: data.user.id,
+            id: data.user.id,
             full_name: userData.full_name || 'User',
             role: 'user',
             city: userData.city || null
@@ -287,7 +287,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.value.id)
+        .eq('id', user.value.id)
         .maybeSingle()
 
       if (checkError) return null
@@ -334,7 +334,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data, error: updateError } = await supabase
         .from('profiles')
         .upsert({
-          user_id: user.value.id,
+          id: user.value.id,
           full_name: profileData.full_name,
           city: profileData.city
         })
@@ -452,7 +452,7 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', authUser.id)
+        .eq('id', authUser.id)
         .single()
 
       if (profileError) {
