@@ -7,6 +7,6 @@ create table cart (
   updated_at timestamp with time zone default now()
 );
 
--- Make sure a user cannot add the same product twice
+-- Make sure a user cannot add the same product twice -
 create unique index cart_user_product_unique 
 on cart(user_id, product_id);
