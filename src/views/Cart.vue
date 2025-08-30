@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="container-lg space-y-8 section-padding">
     <!-- Page Header -->
     <div class="flex justify-between items-center">
       <h1 class="text-3xl font-bold text-dark">{{ $t('cartPage.title') }}</h1>

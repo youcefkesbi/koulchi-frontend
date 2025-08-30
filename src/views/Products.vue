@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="container-lg space-y-8 section-padding">
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
       <div>
@@ -60,7 +60,7 @@
     </div>
 
     <!-- Products Grid -->
-    <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div v-if="filteredProducts.length > 0" class="grid-responsive">
       <ProductCard
         v-for="product in filteredProducts"
         :key="product.id"

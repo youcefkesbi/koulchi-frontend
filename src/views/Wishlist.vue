@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="container-lg space-y-8 section-padding">
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
       <div>
@@ -33,7 +33,7 @@
       <p class="text-gray-600">{{ $t('loading') }}</p>
     </div>
 
-    <div v-else-if="wishlistStore.totalItems > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div v-else-if="wishlistStore.totalItems > 0" class="grid-responsive">
       <div
         v-for="item in wishlistStore.wishlistItems"
         :key="item.id"

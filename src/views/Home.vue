@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-20 animate-fade-in px-4">
+  <div class="container-lg space-y-20 animate-fade-in section-padding">
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft">
       <!-- Background Pattern -->
@@ -40,7 +40,7 @@
       
 
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div class="grid-responsive">
         <ProductCard
           v-for="product in newProducts"
           :key="product.id"
@@ -54,7 +54,7 @@
     <!-- Categories Section -->
     <section class="animate-slide-up">
       <h2 class="text-3xl font-bold text-dark mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <router-link
           v-for="category in categories"
           :key="category.id"
@@ -76,7 +76,7 @@
     </section>
 
     <!-- Features Section -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
+    <section class="grid-cards animate-slide-up">
       <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
         <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary-dark transition-all duration-300">
           <i class="fas fa-truck text-white text-2xl"></i>

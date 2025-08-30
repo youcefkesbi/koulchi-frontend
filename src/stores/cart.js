@@ -51,9 +51,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   // Sync local cart to Supabase after login
-  const syncLocalToSupabase = async (userId) => {
+  const syncLocalToSupabase = async () => {
     try {
-      await cartService.syncLocalToSupabase(userId)
+      await cartService.syncLocalToSupabase()
       // Refresh cart items after sync
       await fetchCart()
     } catch (err) {

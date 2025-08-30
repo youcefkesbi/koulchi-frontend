@@ -123,9 +123,9 @@ export const useWishlistStore = defineStore('wishlist', () => {
   };
 
   // Sync local wishlist to Supabase after login
-  const syncLocalToSupabase = async (userId) => {
+  const syncLocalToSupabase = async () => {
     try {
-      await wishlistService.syncLocalToSupabase(userId);
+      await wishlistService.syncLocalToSupabase();
       // Refresh wishlist items after sync
       await fetchWishlist();
     } catch (err) {

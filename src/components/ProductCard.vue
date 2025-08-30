@@ -1,115 +1,109 @@
 <template>
-  <div class="card group hover:shadow-lg transition-all duration-300">
-    <!-- Product Image -->
-    <div v-if="productImage" class="relative overflow-hidden rounded-lg mb-4">
+  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <!-- Product Image Container -->
+    <div class="relative overflow-hidden bg-gray-50">
       <img 
+        v-if="productImage" 
         :src="productImage" 
         :alt="product.name"
-        class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+        class="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
         @error="handleImageError"
       />
       
-      <!-- Badges -->
-      <div class="absolute top-2 right-2 flex flex-col space-y-1">
-        <span v-if="product.isNew" class="badge badge-new">
+      <!-- No Image Placeholder -->
+      <div v-else class="w-full h-56 flex items-center justify-center">
+        <div class="text-center text-gray-400">
+          <i class="fas fa-image text-5xl mb-3 opacity-50"></i>
+          <p class="text-sm font-medium">{{ $t('product.noImage') }}</p>
+        </div>
+      </div>
+      
+      <!-- Badges Container -->
+      <div class="absolute top-3 right-3 flex flex-col space-y-2">
+        <span v-if="product.is_new" class="badge-new">
           {{ $t('product.new') }}
         </span>
-        <span v-if="product.isOnSale" class="badge badge-sale">
+        <span v-if="product.is_on_sale" class="badge-sale">
           {{ $t('product.sale') }}
         </span>
       </div>
       
       <!-- COD Badge -->
-      <div class="absolute top-2 left-2">
-        <span class="badge badge-cod">
-          <i class="fas fa-money-bill-wave ml-1"></i>
+      <div class="absolute top-3 left-3">
+        <span class="badge-cod">
+          <i class="fas fa-money-bill-wave ml-2"></i>
           {{ $t('product.cod') }}
         </span>
       </div>
-    </div>
-    
-    <!-- No Image Placeholder -->
-    <div v-else class="relative overflow-hidden rounded-lg mb-4 bg-gray-100 flex items-center justify-center h-48">
-      <div class="text-center text-gray-400">
-        <i class="fas fa-image text-4xl mb-2"></i>
-        <p class="text-sm">{{ $t('product.noImage') }}</p>
-      </div>
-      
-      <!-- Badges -->
-      <div class="absolute top-2 right-2 flex flex-col space-y-1">
-        <span v-if="product.isNew" class="badge badge-new">
-          {{ $t('product.new') }}
-        </span>
-        <span v-if="product.isOnSale" class="badge badge-sale">
-          {{ $t('product.sale') }}
-        </span>
-      </div>
-      
-      <!-- COD Badge -->
-      <div class="absolute top-2 left-2">
-        <span class="badge badge-cod">
-          <i class="fas fa-money-bill-wave ml-1"></i>
-          {{ $t('product.cod') }}
-        </span>
-      </div>
+
+      <!-- Wishlist Button (Floating) -->
+      <button
+        @click="toggleWishlist"
+        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+        :class="{ 'text-red-500': isInWishlist, 'text-gray-600': !isInWishlist }"
+        :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
+      >
+        <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isInWishlist }"></i>
+      </button>
     </div>
 
-    <!-- Product Info -->
-    <div class="space-y-3">
+    <!-- Product Info Container -->
+    <div class="p-6 space-y-4">
       <!-- Title -->
-      <h3 class="font-semibold text-lg text-dark line-clamp-2">
+      <h3 class="font-bold text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
         {{ product.name }}
       </h3>
 
       <!-- Stock Status -->
       <div class="flex items-center space-x-2 space-x-reverse">
-        <div class="flex items-center">
-          <i class="fas fa-box text-primary text-sm"></i>
-          <span class="text-sm text-gray-600 mr-1">{{ product.stock_quantity }}</span>
+        <div class="flex items-center bg-gray-50 px-3 py-2 rounded-lg">
+          <i class="fas fa-box text-primary text-sm ml-2"></i>
+          <span class="text-sm font-medium text-gray-700">{{ product.stock_quantity || 0 }}</span>
         </div>
-        <span class="text-sm text-gray-500">متوفر</span>
+        <span class="text-sm text-gray-600 font-medium">متوفر</span>
       </div>
 
       <!-- Price -->
-      <div class="flex items-center space-x-2 space-x-reverse">
-        <span class="text-xl font-bold text-primary">
+      <div class="flex items-center justify-between">
+        <span class="text-2xl font-bold text-primary">
           {{ formatPrice(product.price) }} {{ $t('product.currency') }}
+        </span>
+        <span v-if="product.is_on_sale" class="text-sm text-gray-500 line-through">
+          {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
         </span>
       </div>
 
       <!-- Actions -->
-      <div class="flex space-x-2 space-x-reverse">
+      <div class="flex space-x-3 space-x-reverse pt-2">
         <button
           @click="addToCart"
-          class="flex-1 btn-primary text-sm py-2"
-          :disabled="product.stock_quantity <= 0"
+          :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+          class="flex-1 btn-primary text-sm py-3 px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <i class="fas fa-shopping-cart ml-2"></i>
-          {{ product.stock_quantity > 0 ? $t('product.addToCart') : $t('product.outOfStock') }}
+          <i v-if="!cartLoading" class="fas fa-shopping-cart ml-2"></i>
+          <i v-else class="fas fa-spinner fa-spin ml-2"></i>
+          {{ getCartButtonText() }}
         </button>
-        <button
-          @click="toggleWishlist"
-          class="btn-outline text-sm py-2 px-4"
-          :class="{ 'text-red-500 border-red-300': isInWishlist }"
-          :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
-        >
-          <i class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
-        </button>
+        
         <router-link
           :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="btn-outline text-sm py-2 px-4 hover:bg-primary hover:text-white transition-all duration-300"
+          class="btn-outline text-sm py-3 px-4 rounded-xl font-semibold hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center"
           :title="$t('product.viewProduct')"
-          @click="handleViewProduct"
         >
           <i class="fas fa-eye text-gray-600 group-hover:text-primary transition-colors"></i>
         </router-link>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="error" class="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+        {{ error }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useCartStore } from '../stores/cart'
 import { useWishlistStore } from '../stores/wishlist'
 
@@ -120,10 +114,13 @@ const props = defineProps({
   }
 })
 
-
-
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
+
+// Local state for better UX
+const cartLoading = ref(false)
+const wishlistLoading = ref(false)
+const error = ref('')
 
 const productImage = computed(() => {
   // Handle both old single image and new image_urls array
@@ -134,6 +131,7 @@ const productImage = computed(() => {
 })
 
 const formatPrice = (price) => {
+  if (!price) return '0'
   return price.toLocaleString('ar-DZ')
 }
 
@@ -141,27 +139,49 @@ const isInWishlist = computed(() => {
   return wishlistStore.isInWishlist(props.product.id)
 })
 
+const getCartButtonText = () => {
+  if (cartLoading.value) return 'جاري الإضافة...'
+  if ((props.product.stock_quantity || 0) <= 0) return 'غير متوفر'
+  return 'أضف للسلة'
+}
+
 const addToCart = async () => {
-  if (props.product.stock_quantity > 0) {
+  if ((props.product.stock_quantity || 0) <= 0) return
+  
+  try {
+    cartLoading.value = true
+    error.value = ''
+    
     await cartStore.addToCart(props.product)
+    
+    // Show success feedback
+    console.log('Product added to cart successfully')
+  } catch (err) {
+    console.error('Failed to add to cart:', err)
+    error.value = err.message || 'فشل في إضافة المنتج للسلة'
+  } finally {
+    cartLoading.value = false
   }
 }
 
 const toggleWishlist = async () => {
   try {
+    wishlistLoading.value = true
+    error.value = ''
+    
     if (isInWishlist.value) {
       await wishlistStore.removeProductFromWishlist(props.product.id)
+      console.log('Product removed from wishlist successfully')
     } else {
       await wishlistStore.addToWishlist(props.product.id)
+      console.log('Product added to wishlist successfully')
     }
-  } catch (error) {
-    console.error('Failed to toggle wishlist:', error)
+  } catch (err) {
+    console.error('Failed to toggle wishlist:', err)
+    error.value = err.message || 'فشل في تحديث قائمة الأمنيات'
+  } finally {
+    wishlistLoading.value = false
   }
-}
-
-const handleViewProduct = () => {
-  console.log('View product clicked:', props.product.id)
-  console.log('Route will be:', `/${i18n.global.locale.value}/product/${props.product.id}`)
 }
 
 const handleImageError = (event) => {
@@ -176,6 +196,7 @@ onMounted(async () => {
       await wishlistStore.fetchWishlist()
     } catch (error) {
       // User might not be authenticated, which is fine
+      console.log('User not authenticated or wishlist fetch failed:', error)
     }
   }
 })
@@ -196,5 +217,41 @@ onMounted(async () => {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Enhanced badge styles */
+.badge-new {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-green-500 text-white shadow-lg;
+}
+
+.badge-sale {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg;
+}
+
+.badge-cod {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-500 text-white shadow-lg;
+}
+
+/* Product card hover effects */
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style> 
