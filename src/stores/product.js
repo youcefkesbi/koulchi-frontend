@@ -18,7 +18,6 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      console.log('Fetching products...');
       let query = supabase
         .from('products')
         .select('*')
@@ -31,16 +30,11 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: supabaseError } = await query;
       
-      if (supabaseError) {
-        console.error('Supabase error:', supabaseError);
-        throw supabaseError;
-      }
+      if (supabaseError) throw supabaseError;
       
-      console.log('Products fetched:', data?.length || 0, 'products');
       products.value = data || [];
       return data;
     } catch (err) {
-      console.error('Error fetching products:', err);
       error.value = err.message || 'Failed to fetch products';
       throw err;
     } finally {

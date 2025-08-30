@@ -38,15 +38,7 @@
         </router-link>
       </div>
       
-      <!-- Debug Info -->
-      <div class="mb-4 p-4 bg-gray-100 rounded-lg">
-        <p class="text-sm text-gray-600">
-          Debug: Products loaded: {{ productStore.products.length }}, 
-          New products: {{ newProducts.length }}, 
-          Loading: {{ productStore.loading }}, 
-          Error: {{ productStore.error }}
-        </p>
-      </div>
+
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <ProductCard
@@ -56,10 +48,7 @@
         />
       </div>
       
-      <!-- No Products Message -->
-      <div v-if="newProducts.length === 0 && !productStore.loading" class="text-center py-8">
-        <p class="text-gray-500">No products found</p>
-      </div>
+
     </section>
 
     <!-- Categories Section -->
@@ -190,16 +179,13 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
-import { testDatabase, checkDatabaseTables } from '../utils/test-database'
+
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
 const newProducts = computed(() => {
-  console.log('newProducts computed - products count:', productStore.products.length)
-  const result = productStore.products.slice(0, 8)
-  console.log('newProducts result:', result.length, 'products')
-  return result
+  return productStore.products.slice(0, 8)
 })
 
 const categories = computed(() => {
@@ -234,26 +220,11 @@ const scrollToNewProducts = () => {
 }
 
 onMounted(async () => {
-  console.log('Home component mounted')
-  
-  // Test database connection first
-  await testDatabase()
-  await checkDatabaseTables()
-  
   if (productStore.products.length === 0) {
-    console.log('Fetching products...')
     await productStore.fetchProducts()
-  } else {
-    console.log('Products already loaded:', productStore.products.length)
   }
-  
   if (productStore.categories.length === 0) {
-    console.log('Fetching categories...')
     await productStore.fetchCategories()
-  } else {
-    console.log('Categories already loaded:', productStore.categories.length)
   }
-  
-  console.log('Final state - Products:', productStore.products.length, 'Categories:', productStore.categories.length)
 })
 </script>
