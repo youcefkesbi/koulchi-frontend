@@ -9,11 +9,23 @@ class CartService {
    * Check if user is authenticated
    */
   async isAuthenticated() {
-    const { data: { user } } = await supabase.auth.getUser()
-    console.log('CartService.isAuthenticated - User data:', user)
-    const isAuth = !!user
-    console.log('CartService.isAuthenticated - Result:', isAuth)
-    return isAuth
+    try {
+      console.log('CartService.isAuthenticated - Checking authentication...')
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('CartService.isAuthenticated - Auth error:', error)
+        return false
+      }
+      
+      console.log('CartService.isAuthenticated - User data:', user)
+      const isAuth = !!user
+      console.log('CartService.isAuthenticated - Result:', isAuth)
+      return isAuth
+    } catch (error) {
+      console.error('CartService.isAuthenticated - Exception:', error)
+      return false
+    }
   }
 
   /**
@@ -63,44 +75,61 @@ class CartService {
    * Add or update cart item in Supabase
    */
   async addToSupabaseCart(userId, productId, quantity) {
-    // First, ensure the user profile exists
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .eq('user_id', userId)
-      .single()
+    console.log('CartService.addToSupabaseCart called with:', { userId, productId, quantity })
     
-    if (profileError || !profile) {
-      // Create profile if it doesn't exist
-      const { error: createError } = await supabase
+    try {
+      // First, ensure the user profile exists
+      console.log('Checking if user profile exists...')
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: userId,
-          role: 'user'
-        })
+        .select('user_id')
+        .eq('user_id', userId)
+        .single()
       
-      if (createError) {
-        throw new Error(`Failed to create user profile: ${createError.message}`)
-      }
-    }
-
-    // Now add/update the cart item
-    const { error } = await supabase
-      .from('cart')
-      .upsert(
-        {
-          user_id: userId,
-          product_id: productId,
-          quantity,
-          created_at: new Date().toISOString()
-        },
-        {
-          onConflict: 'user_id,product_id'
+      if (profileError || !profile) {
+        console.log('Profile does not exist, creating new profile...')
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            role: 'user'
+          })
+        
+        if (createError) {
+          console.error('Failed to create profile:', createError)
+          throw new Error(`Failed to create user profile: ${createError.message}`)
         }
-      )
+        console.log('Profile created successfully')
+      } else {
+        console.log('Profile exists:', profile)
+      }
 
-    if (error) {
-      throw new Error(`Failed to add item to Supabase cart: ${error.message}`)
+      // Now add/update the cart item using the exact query format specified
+      console.log('Adding/updating cart item in Supabase...')
+      const { data, error } = await supabase
+        .from('cart')
+        .upsert(
+          {
+            user_id: userId,
+            product_id: productId,
+            quantity,
+            created_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'user_id,product_id'
+          }
+        )
+
+      if (error) {
+        console.error('Supabase cart insert error:', error)
+        throw new Error(`Failed to add item to Supabase cart: ${error.message}`)
+      }
+      
+      console.log('Cart item added/updated successfully:', data)
+    } catch (error) {
+      console.error('Error in addToSupabaseCart:', error)
+      throw error
     }
   }
 
@@ -159,35 +188,50 @@ class CartService {
    * Add item to cart (works for both authenticated and guest users)
    */
   async addItem(productId, quantity = 1) {
+    console.log('=== CartService.addItem START ===')
     console.log('CartService.addItem called with:', { productId, quantity })
     
-    const isAuth = await this.isAuthenticated()
-    console.log('User authenticated:', isAuth)
+    try {
+      const isAuth = await this.isAuthenticated()
+      console.log('User authenticated:', isAuth)
 
-    if (isAuth) {
-      // User is signed in - add to Supabase
-      const userId = await this.getCurrentUserId()
-      console.log('User ID:', userId)
-      
-      if (!userId) throw new Error('User ID not found')
-      
-      console.log('Adding to Supabase cart...')
-      await this.addToSupabaseCart(userId, productId, quantity)
-      console.log('Successfully added to Supabase cart')
-    } else {
-      // User is not signed in - add to localStorage
-      console.log('Adding to localStorage cart...')
-      const localCart = this.getLocalCart()
-      const existingItem = localCart.find(item => item.productId === productId)
-      
-      if (existingItem) {
-        existingItem.quantity += quantity
+      if (isAuth) {
+        // User is signed in - add to Supabase
+        console.log('User is authenticated, proceeding to Supabase...')
+        const userId = await this.getCurrentUserId()
+        console.log('User ID:', userId)
+        
+        if (!userId) {
+          console.error('User ID not found despite being authenticated')
+          throw new Error('User ID not found')
+        }
+        
+        console.log('Adding to Supabase cart...')
+        await this.addToSupabaseCart(userId, productId, quantity)
+        console.log('Successfully added to Supabase cart')
       } else {
-        localCart.push({ productId, quantity })
+        // User is not signed in - add to localStorage
+        console.log('User is not authenticated, using localStorage...')
+        const localCart = this.getLocalCart()
+        const existingItem = localCart.find(item => item.productId === productId)
+        
+        if (existingItem) {
+          existingItem.quantity += quantity
+          console.log('Updated existing item quantity:', existingItem.quantity)
+        } else {
+          localCart.push({ productId, quantity })
+          console.log('Added new item to local cart')
+        }
+        
+        this.saveLocalCart(localCart)
+        console.log('Successfully added to localStorage cart')
       }
       
-      this.saveLocalCart(localCart)
-      console.log('Successfully added to localStorage cart')
+      console.log('=== CartService.addItem SUCCESS ===')
+    } catch (error) {
+      console.error('=== CartService.addItem ERROR ===')
+      console.error('Error in addItem:', error)
+      throw error
     }
   }
 

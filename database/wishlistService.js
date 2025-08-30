@@ -63,42 +63,59 @@ class WishlistService {
    * Add item to wishlist in Supabase
    */
   async addToSupabaseWishlist(userId, productId) {
-    // First, ensure the user profile exists
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .eq('user_id', userId)
-      .single()
+    console.log('WishlistService.addToSupabaseWishlist called with:', { userId, productId })
     
-    if (profileError || !profile) {
-      // Create profile if it doesn't exist
-      const { error: createError } = await supabase
+    try {
+      // First, ensure the user profile exists
+      console.log('Checking if user profile exists...')
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: userId,
-          role: 'user'
-        })
+        .select('user_id')
+        .eq('user_id', userId)
+        .single()
       
-      if (createError) {
-        throw new Error(`Failed to create user profile: ${createError.message}`)
-      }
-    }
-
-    // Now add the wishlist item
-    const { error } = await supabase
-      .from('wishlist')
-      .upsert(
-        {
-          user_id: userId,
-          product_id: productId
-        },
-        {
-          onConflict: 'user_id,product_id'
+      if (profileError || !profile) {
+        console.log('Profile does not exist, creating new profile...')
+        // Create profile if it doesn't exist
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            role: 'user'
+          })
+        
+        if (createError) {
+          console.error('Failed to create profile:', createError)
+          throw new Error(`Failed to create user profile: ${createError.message}`)
         }
-      )
+        console.log('Profile created successfully')
+      } else {
+        console.log('Profile exists:', profile)
+      }
 
-    if (error) {
-      throw new Error(`Failed to add item to Supabase wishlist: ${error.message}`)
+      // Now add the wishlist item using the exact query format specified
+      console.log('Adding wishlist item to Supabase...')
+      const { data, error } = await supabase
+        .from('wishlist')
+        .upsert(
+          {
+            user_id: userId,
+            product_id: productId
+          },
+          {
+            onConflict: 'user_id,product_id'
+          }
+        )
+
+      if (error) {
+        console.error('Supabase wishlist insert error:', error)
+        throw new Error(`Failed to add item to Supabase wishlist: ${error.message}`)
+      }
+      
+      console.log('Wishlist item added successfully:', data)
+    } catch (error) {
+      console.error('Error in addToSupabaseWishlist:', error)
+      throw error
     }
   }
 
@@ -158,34 +175,47 @@ class WishlistService {
    * Add item to wishlist (works for both authenticated and guest users)
    */
   async addItem(productId) {
+    console.log('=== WishlistService.addItem START ===')
     console.log('WishlistService.addItem called with:', { productId })
     
-    const isAuth = await this.isAuthenticated()
-    console.log('User authenticated:', isAuth)
+    try {
+      const isAuth = await this.isAuthenticated()
+      console.log('User authenticated:', isAuth)
 
-    if (isAuth) {
-      // User is signed in - add to Supabase
-      const userId = await this.getCurrentUserId()
-      console.log('User ID:', userId)
-      
-      if (!userId) throw new Error('User ID not found')
-      
-      console.log('Adding to Supabase wishlist...')
-      await this.addToSupabaseWishlist(userId, productId)
-      console.log('Successfully added to Supabase wishlist')
-    } else {
-      // User is not signed in - add to localStorage
-      console.log('Adding to localStorage wishlist...')
-      const localWishlist = this.getLocalWishlist()
-      
-      // Check if item already exists
-      if (!localWishlist.some(item => item.productId === productId)) {
-        localWishlist.push({ productId })
-        this.saveLocalWishlist(localWishlist)
-        console.log('Successfully added to localStorage wishlist')
+      if (isAuth) {
+        // User is signed in - add to Supabase
+        console.log('User is authenticated, proceeding to Supabase...')
+        const userId = await this.getCurrentUserId()
+        console.log('User ID:', userId)
+        
+        if (!userId) {
+          console.error('User ID not found despite being authenticated')
+          throw new Error('User ID not found')
+        }
+        
+        console.log('Adding to Supabase wishlist...')
+        await this.addToSupabaseWishlist(userId, productId)
+        console.log('Successfully added to Supabase wishlist')
       } else {
-        console.log('Item already exists in localStorage wishlist')
+        // User is not signed in - add to localStorage
+        console.log('User is not authenticated, using localStorage...')
+        const localWishlist = this.getLocalWishlist()
+        
+        // Check if item already exists
+        if (!localWishlist.some(item => item.productId === productId)) {
+          localWishlist.push({ productId })
+          this.saveLocalWishlist(localWishlist)
+          console.log('Successfully added to localStorage wishlist')
+        } else {
+          console.log('Item already exists in localStorage wishlist')
+        }
       }
+      
+      console.log('=== WishlistService.addItem SUCCESS ===')
+    } catch (error) {
+      console.error('=== WishlistService.addItem ERROR ===')
+      console.error('Error in addItem:', error)
+      throw error
     }
   }
 
