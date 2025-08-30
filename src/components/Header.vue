@@ -94,7 +94,7 @@
                 class="flex items-center space-x-2 space-x-reverse px-4 py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
                 <img
-                  :src="authStore.userAvatar || '/src/assets/user-avatar.png'"
+                  :src="authStore.userAvatar || '/user-avatar.png'"
                   :alt="authStore.userDisplayName || authStore.userEmail"
                   class="w-8 h-8 rounded-full object-cover"
                 />

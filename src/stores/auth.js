@@ -14,7 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!user.value)
   const userDisplayName = computed(() => user.value?.full_name || user.value?.email || 'User')
   const userEmail = computed(() => user.value?.email || '')
-  const userPhotoURL = computed(() => '/src/assets/user-avatar.png') // Always use default avatar
+  const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
   const userRole = computed(() => user.value?.role || 'user')
 
   // Check if user is actually authenticated with Supabase
