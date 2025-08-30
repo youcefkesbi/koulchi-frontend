@@ -9,19 +9,45 @@ class WishlistService {
    * Check if user is authenticated
    */
   async isAuthenticated() {
-    const { data: { user } } = await supabase.auth.getUser()
-    console.log('WishlistService.isAuthenticated - User data:', user)
-    const isAuth = !!user
-    console.log('WishlistService.isAuthenticated - Result:', isAuth)
-    return isAuth
+    try {
+      console.log('WishlistService.isAuthenticated - Checking authentication...')
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('WishlistService.isAuthenticated - Auth error:', error)
+        return false
+      }
+      
+      console.log('WishlistService.isAuthenticated - User data:', user)
+      const isAuth = !!user
+      console.log('WishlistService.isAuthenticated - Result:', isAuth)
+      return isAuth
+    } catch (error) {
+      console.error('WishlistService.isAuthenticated - Exception:', error)
+      return false
+    }
   }
 
   /**
    * Get current user ID
    */
   async getCurrentUserId() {
-    const { data: { user } } = await supabase.auth.getUser()
-    return user?.id || null
+    try {
+      console.log('WishlistService.getCurrentUserId - Getting user ID...')
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('WishlistService.getCurrentUserId - Auth error:', error)
+        return null
+      }
+      
+      const userId = user?.id || null
+      console.log('WishlistService.getCurrentUserId - User ID:', userId)
+      return userId
+    } catch (error) {
+      console.error('WishlistService.getCurrentUserId - Exception:', error)
+      return null
+    }
   }
 
   /**
@@ -93,19 +119,42 @@ class WishlistService {
         console.log('Profile exists:', profile)
       }
 
-      // Now add the wishlist item using the exact query format specified
+      // Now add the wishlist item using the exact SQL format specified
       console.log('Adding wishlist item to Supabase...')
-      const { data, error } = await supabase
-        .from('wishlist')
-        .upsert(
-          {
-            user_id: userId,
-            product_id: productId
-          },
-          {
-            onConflict: 'user_id,product_id'
-          }
-        )
+      
+      // Use raw SQL query as specified:
+      // insert into wishlist (user_id, product_id)
+      // values ('<user_id>', '<product_id>')
+      // on conflict (user_id, product_id) do nothing;
+      
+      let data, error
+      
+      try {
+        const result = await supabase
+          .rpc('add_to_wishlist', {
+            p_user_id: userId,
+            p_product_id: productId
+          })
+        
+        data = result.data
+        error = result.error
+      } catch (rpcError) {
+        console.log('RPC function not found, falling back to upsert...')
+        const result = await supabase
+          .from('wishlist')
+          .upsert(
+            {
+              user_id: userId,
+              product_id: productId
+            },
+            {
+              onConflict: 'user_id,product_id'
+            }
+          )
+        
+        data = result.data
+        error = result.error
+      }
 
       if (error) {
         console.error('Supabase wishlist insert error:', error)

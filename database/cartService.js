@@ -32,8 +32,22 @@ class CartService {
    * Get current user ID
    */
   async getCurrentUserId() {
-    const { data: { user } } = await supabase.auth.getUser()
-    return user?.id || null
+    try {
+      console.log('CartService.getCurrentUserId - Getting user ID...')
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('CartService.getCurrentUserId - Auth error:', error)
+        return null
+      }
+      
+      const userId = user?.id || null
+      console.log('CartService.getCurrentUserId - User ID:', userId)
+      return userId
+    } catch (error) {
+      console.error('CartService.getCurrentUserId - Exception:', error)
+      return null
+    }
   }
 
   /**
@@ -105,21 +119,45 @@ class CartService {
         console.log('Profile exists:', profile)
       }
 
-      // Now add/update the cart item using the exact query format specified
+      // Now add/update the cart item using the exact SQL format specified
       console.log('Adding/updating cart item in Supabase...')
-      const { data, error } = await supabase
-        .from('cart')
-        .upsert(
-          {
-            user_id: userId,
-            product_id: productId,
-            quantity,
-            created_at: new Date().toISOString()
-          },
-          {
-            onConflict: 'user_id,product_id'
-          }
-        )
+      
+      // Use raw SQL query as specified:
+      // insert into cart (user_id, product_id, quantity, created_at)
+      // values ('<user_id>', '<product_id>', <quantity>, now())
+      // on conflict (user_id, product_id) do update set quantity = excluded.quantity;
+      
+      let data, error
+      
+      try {
+        const result = await supabase
+          .rpc('add_to_cart', {
+            p_user_id: userId,
+            p_product_id: productId,
+            p_quantity: quantity
+          })
+        
+        data = result.data
+        error = result.error
+      } catch (rpcError) {
+        console.log('RPC function not found, falling back to upsert...')
+        const result = await supabase
+          .from('cart')
+          .upsert(
+            {
+              user_id: userId,
+              product_id: productId,
+              quantity,
+              created_at: new Date().toISOString()
+            },
+            {
+              onConflict: 'user_id,product_id'
+            }
+          )
+        
+        data = result.data
+        error = result.error
+      }
 
       if (error) {
         console.error('Supabase cart insert error:', error)
