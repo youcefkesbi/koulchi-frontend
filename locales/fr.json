@@ -254,8 +254,8 @@
   "features": {
     "fastDelivery": "Livraison rapide",
     "fastDeliveryDesc": "Livraison gratuite pour les commandes de plus de 5000 DZD",
-    "cod": "Paiement à la livraison",
-    "codDesc": "Payez en toute sécurité à la réception de votre commande",
+    "cod": "Options de Paiement Multiples",
+    "codDesc": "Payez en toute sécurité avec Paiement à la Livraison, BaridiMob, CIB, et plus encore",
     "qualityGuarantee": "Découvrez Plus, Payez Moins",
     "qualityGuaranteeDesc": "Des Offres que Vous Aimerez, des Prix auxquels Vous Ferez Confiance"
   },
@@ -267,8 +267,8 @@
     "whyChooseUs": "Pourquoi choisir Koulchi ?"
   },
   "benefits": {
-    "securePayment": "Paiement sécurisé à la livraison",
-    "securePaymentDesc": "Payez seulement à la réception et inspection de votre commande",
+    "securePayment": "Options de Paiement Sécurisé Multiples",
+    "securePaymentDesc": "Payez en toute sécurité avec Paiement à la Livraison, BaridiMob, CIB, et plus encore",
     "fastDeliveryAlgeria": "Livraison rapide dans toute l'Algérie",
     "fastDeliveryAlgeriaDesc": "Nous livrons dans toutes les provinces algériennes",
     "originalProducts": "Découvrez Plus, Payez Moins",
@@ -448,8 +448,8 @@
     "returnPolicy": "Politique de Retour",
     "termsOfUse": "Conditions d'Utilisation",
     "faq": "FAQ",
-    "cod": "COD",
-    "cashOnDelivery": "Paiement à la Livraison",
+    "cod": "Options de Paiement Multiples",
+    "cashOnDelivery": "Paiement à la Livraison, BaridiMob, CIB, et plus encore",
     "brandName": "Koulchi"
   },
   "navigation": {

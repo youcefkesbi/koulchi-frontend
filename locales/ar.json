@@ -195,8 +195,8 @@
   "features": {
     "fastDelivery": "توصيل سريع",
     "fastDeliveryDesc": "توصيل مجاني للطلبات أكثر من 5000 دج",
-    "cod": "دفع عند الاستلام",
-    "codDesc": "ادفع عند استلام طلبك بأمان تام",
+    "cod": "خيارات دفع متعددة",
+    "codDesc": "ادفع بأمان مع الدفع عند الاستلام، باريدي موب، CIB، والمزيد",
     "qualityGuarantee": "اكتشف المزيد، ادفع أقل",
     "qualityGuaranteeDesc": "عروض ستحبها، أسعار تثق بها"
   },
@@ -208,8 +208,8 @@
     "whyChooseUs": "لماذا تختار كولشي؟"
   },
   "benefits": {
-    "securePayment": "دفع آمن عند الاستلام",
-    "securePaymentDesc": "ادفع فقط عند استلام طلبك وفحصه",
+    "securePayment": "خيارات دفع آمنة متعددة",
+    "securePaymentDesc": "ادفع بأمان مع الدفع عند الاستلام، باريدي موب، CIB، والمزيد",
     "fastDeliveryAlgeria": "توصيل سريع في جميع أنحاء الجزائر",
     "fastDeliveryAlgeriaDesc": "نوصل إلى جميع الولايات الجزائرية",
     "originalProducts": "اكتشف المزيد، ادفع أقل",
@@ -422,8 +422,8 @@
     "returnPolicy": "سياسة الإرجاع",
     "termsOfUse": "شروط الاستخدام",
     "faq": "الأسئلة الشائعة",
-    "cod": "دفع عند الاستلام",
-    "cashOnDelivery": "دفع عند الاستلام",
+    "cod": "خيارات دفع متعددة",
+    "cashOnDelivery": "دفع عند الاستلام، باريدي موب، CIB، والمزيد",
     "brandName": "كولشي"
   },
   "navigation": {
