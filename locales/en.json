@@ -233,7 +233,10 @@
     "goHome": "Go Home",
     "back": "Back",
     "retry": "Try Again",
-    "next": "Next"
+    "next": "Next",
+    "loading": "Loading...",
+    "price": "Price",
+    "currency": "DZD"
   },
   "products": "Products",
   "profile": "Profile",
@@ -352,6 +355,8 @@
   "dashboard": {
     "userDashboard": "User Dashboard",
     "welcomeMessage": "Welcome back, {name}!",
+    "buyingDashboard": "Buying Dashboard",
+    "sellingDashboard": "Selling Dashboard",
     "buyingSection": "Buying",
     "sellingSection": "Selling",
     "buyingDescription": "Track your orders, manage your wishlist, and view your purchase history",
@@ -380,7 +385,9 @@
     "quickActions": "Quick Actions",
     "postAnnouncement": "Post Announcement",
     "browseProducts": "Browse Products",
-    "editProfile": "Edit Profile"
+    "editProfile": "Edit Profile",
+    "startShopping": "Start Shopping",
+    "createStore": "Create Store"
   },
   "announcement": {
     "postAnnouncement": "Post an Announcement",

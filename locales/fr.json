@@ -348,7 +348,10 @@
     "update": "Mettre à jour",
     "save": "Enregistrer",
     "retry": "Réessayer",
-    "next": "Suivant"
+    "next": "Suivant",
+    "loading": "Chargement...",
+    "price": "Prix",
+    "currency": "DZD"
   },
   "categories": {
     "cars": "Voitures",
@@ -466,6 +469,8 @@
   "dashboard": {
     "userDashboard": "Tableau de Bord Utilisateur",
     "welcomeMessage": "Bon retour, {name} !",
+    "buyingDashboard": "Tableau de Bord d'Achat",
+    "sellingDashboard": "Tableau de Bord de Vente",
     "buyingSection": "Achat",
     "sellingSection": "Vente",
     "buyingDescription": "Suivez vos commandes, gérez votre liste de souhaits et consultez votre historique d'achat",
@@ -494,7 +499,9 @@
     "quickActions": "Actions Rapides",
     "postAnnouncement": "Publier une Annonce",
     "browseProducts": "Parcourir les Produits",
-    "editProfile": "Modifier le Profil"
+    "editProfile": "Modifier le Profil",
+    "startShopping": "Commencer les Achats",
+    "createStore": "Créer un Magasin"
   },
   "wishlist": {
     "title": "Liste de Souhaits",

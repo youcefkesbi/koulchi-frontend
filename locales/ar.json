@@ -237,6 +237,8 @@
   "dashboard": {
     "userDashboard": "لوحة تحكم المستخدم",
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
+    "buyingDashboard": "لوحة تحكم الشراء",
+    "sellingDashboard": "لوحة تحكم البيع",
     "buyingSection": "الشراء",
     "sellingSection": "البيع",
     "buyingDescription": "تتبع طلباتك، وأدر قائمة أمنياتك، واعرض سجل مشترياتك",
@@ -265,7 +267,9 @@
     "quickActions": "إجراءات سريعة",
     "postAnnouncement": "نشر إعلان",
     "browseProducts": "تصفح المنتجات",
-    "editProfile": "تعديل الملف الشخصي"
+    "editProfile": "تعديل الملف الشخصي",
+    "startShopping": "ابدأ التسوق",
+    "createStore": "إنشاء متجر"
   },
   "announcement": {
     "postAnnouncement": "نشر إعلان",
@@ -322,7 +326,10 @@
     "update": "تحديث",
     "save": "حفظ",
     "retry": "حاول مرة أخرى",
-    "next": "التالي"
+    "next": "التالي",
+    "loading": "جاري التحميل...",
+    "price": "السعر",
+    "currency": "دج"
   },
   "categories": {
     "cars": "السيارات",
