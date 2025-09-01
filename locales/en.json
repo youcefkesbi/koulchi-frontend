@@ -309,8 +309,8 @@
   "features": {
     "fastDelivery": "Fast Delivery",
     "fastDeliveryDesc": "Free shipping for orders over 5000 DZD",
-    "cod": "Multiple Payment Options",
-    "codDesc": "Pay safely with Cash on Delivery, BaridiMob, CIB, and more.",
+    "cod": "Cash on Delivery",
+    "codDesc": "Pay safely when you receive your order",
     "qualityGuarantee": "Discover More, Pay Less",
     "qualityGuaranteeDesc": "Deals You'll Love, Prices You'll Trust"
   },
@@ -322,8 +322,8 @@
     "whyChooseUs": "Why Choose Koulchi?"
   },
   "benefits": {
-    "securePayment": "Multiple Secure Payment Options",
-    "securePaymentDesc": "Pay safely with Cash on Delivery, BaridiMob, CIB, and more",
+    "securePayment": "Secure Cash on Delivery",
+    "securePaymentDesc": "Pay only when you receive and inspect your order",
     "fastDeliveryAlgeria": "Fast Delivery Across Algeria",
     "fastDeliveryAlgeriaDesc": "We deliver to all Algerian provinces",
     "originalProducts": "Discover More, Pay Less",
@@ -517,8 +517,8 @@
     "returnPolicy": "Return Policy",
     "termsOfUse": "Terms of Use",
     "faq": "FAQ",
-    "cod": "Multiple Payment Options",
-    "cashOnDelivery": "Cash on Delivery, BaridiMob, CIB, and more",
+    "cod": "COD",
+    "cashOnDelivery": "Cash on Delivery",
     "brandName": "Koulchi"
   },
   "navigation": {
