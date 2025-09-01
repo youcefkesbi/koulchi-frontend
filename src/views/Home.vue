@@ -17,7 +17,7 @@
           {{ t('hero.subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style="animation-delay: 0.2s">
-          <button @click="scrollToNewProducts" class="bg-white text-slate-800 font-semibold text-base px-8 py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
+          <button @click="scrollToMostSoldProducts" class="bg-white text-slate-800 font-semibold text-base px-8 py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
             <i class="fas fa-shopping-bag ml-2"></i>
             {{ t('hero.shopNow') }}
           </button>
@@ -29,25 +29,52 @@
       </div>
     </section>
 
-    <!-- New Products Section -->
-    <section id="new-products" class="animate-slide-up">
+    <!-- Most Sold Products Section -->
+    <section id="most-sold-products" class="animate-slide-up">
       <div class="flex justify-between items-center mb-8">
-        <h2 class="text-3xl font-bold text-dark">{{ t('sections.newProducts') }}</h2>
+        <h2 class="text-3xl font-bold text-dark">{{ t('sections.mostSoldProducts') }}</h2>
         <router-link to="/products" class="text-primary hover:text-primary-dark text-base font-semibold hover:underline transition-colors">
           {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-2"></i>
         </router-link>
       </div>
       
-
+      <!-- Loading State -->
+      <div v-if="loading" class="grid-responsive">
+        <div v-for="i in 8" :key="i" class="card animate-pulse">
+          <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
       
-      <div class="grid-responsive">
+      <!-- Error State -->
+      <div v-else-if="error" class="text-center py-12">
+        <div class="text-red-500 text-lg mb-4">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          {{ error }}
+        </div>
+        <button @click="loadMostSoldProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+          {{ t('common.retry') }}
+        </button>
+      </div>
+      
+      <!-- Products Grid -->
+      <div v-else class="grid-responsive">
         <ProductCard
-          v-for="product in newProducts"
+          v-for="product in mostSoldProducts"
           :key="product.id"
           :product="product"
         />
       </div>
       
+      <!-- Empty State -->
+      <div v-if="!loading && !error && mostSoldProducts.length === 0" class="text-center py-12">
+        <div class="text-gray-500 text-lg mb-4">
+          <i class="fas fa-box-open mr-2"></i>
+          {{ t('sections.noMostSoldProducts') }}
+        </div>
+      </div>
 
     </section>
 
@@ -175,18 +202,18 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
 
-
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
-const newProducts = computed(() => {
-  return productStore.products.slice(0, 8)
-})
+// State for most sold products
+const mostSoldProducts = ref([])
+const loading = ref(false)
+const error = ref(null)
 
 const categories = computed(() => {
   return productStore.categories.filter(cat => cat.id !== 'all')
@@ -212,19 +239,34 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const scrollToNewProducts = () => {
-  const newProductsSection = document.getElementById('new-products')
-  if (newProductsSection) {
-    newProductsSection.scrollIntoView({ behavior: 'smooth' })
+const loadMostSoldProducts = async () => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const products = await productStore.fetchMostSoldProducts(10)
+    mostSoldProducts.value = products
+  } catch (err) {
+    error.value = err.message || 'Failed to load most sold products'
+  } finally {
+    loading.value = false
+  }
+}
+
+const scrollToMostSoldProducts = () => {
+  const mostSoldSection = document.getElementById('most-sold-products')
+  if (mostSoldSection) {
+    mostSoldSection.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
 onMounted(async () => {
-  if (productStore.products.length === 0) {
-    await productStore.fetchProducts()
-  }
+  // Load categories if not already loaded
   if (productStore.categories.length === 0) {
     await productStore.fetchCategories()
   }
+  
+  // Load most sold products
+  await loadMostSoldProducts()
 })
 </script>
