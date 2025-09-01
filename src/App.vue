@@ -95,28 +95,5 @@ onUnmounted(() => {
   transition: all 0.2s ease-in-out;
 }
 
-/* Custom animations */
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.slide-up {
-  animation: slideUp 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { 
-    transform: translateY(20px); 
-    opacity: 0; 
-  }
-  to { 
-    transform: translateY(0); 
-    opacity: 1; 
-  }
-}
+/* Custom animations - using global my-fade-in and my-slide-up classes */
 </style> 

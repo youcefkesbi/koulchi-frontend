@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-light-gray to-white py-8 animate-fade-in">
+  <div class="min-h-screen bg-gradient-to-br from-light-gray to-white py-8 my-fade-in">
     <div class="container mx-auto px-4 max-w-4xl">
       <!-- Header -->
       <div class="text-center mb-12">
@@ -12,7 +12,7 @@
       </div>
 
       <!-- Success Message -->
-                      <div v-if="showSuccess" class="mb-8 p-6 bg-green-100 text-green-800 rounded-2xl shadow-soft animate-slide-up">
+                      <div v-if="showSuccess" class="mb-8 p-6 bg-green-100 text-green-800 rounded-2xl shadow-soft my-slide-up">
           <div class="flex items-center space-x-3 space-x-reverse">
                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
               <i class="fas fa-check text-white text-2xl"></i>
@@ -25,7 +25,7 @@
       </div>
 
       <!-- Error Message -->
-      <div v-if="error" class="mb-8 p-6 bg-red-100 text-red-800 rounded-2xl shadow-soft animate-slide-up">
+      <div v-if="error" class="mb-8 p-6 bg-red-100 text-red-800 rounded-2xl shadow-soft my-slide-up">
         <div class="flex items-center space-x-3 space-x-reverse">
           <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
             <i class="fas fa-exclamation-triangle text-2xl"></i>
@@ -38,7 +38,7 @@
       </div>
 
       <!-- Form Card -->
-      <div class="bg-white rounded-3xl shadow-soft p-8 animate-slide-up">
+      <div class="bg-white rounded-3xl shadow-soft p-8 my-slide-up">
         <form @submit.prevent="submitForm" class="space-y-8">
           <!-- Product Information Section -->
           <div class="space-y-6">
@@ -520,33 +520,7 @@ const submitForm = async () => {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Animation classes - using global my-fade-in and my-slide-up classes */
 
 /* Custom file upload styling */
 input[type="file"] {

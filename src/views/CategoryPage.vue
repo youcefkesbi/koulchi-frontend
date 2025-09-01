@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8 animate-fade-in">
+  <div class="max-w-7xl mx-auto px-4 py-8 my-fade-in">
     <!-- Category Header -->
     <div class="text-center mb-12">
       <div class="flex items-center justify-center space-x-4 space-x-reverse mb-6">
@@ -235,21 +235,7 @@ onMounted(async () => {
   position: relative;
 }
 
-/* Animation classes */
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Animation classes - using global my-fade-in class */
 
 /* Hover effects for category icon */
 .category-icon {

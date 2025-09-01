@@ -1,5 +1,5 @@
 <template>
-  <div class="container-lg space-y-20 animate-fade-in section-padding">
+  <div class="container-lg space-y-20 my-fade-in section-padding">
     <!-- Hero Section -->
     <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft">
       <!-- Background Pattern -->
@@ -10,13 +10,13 @@
         <div class="absolute top-6 left-6 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
         <div class="absolute bottom-6 right-6 w-24 h-24 bg-green-400/20 rounded-full blur-xl"></div>
         
-        <h1 class="text-4xl md:text-6xl font-bold mb-6 animate-slide-up bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6 my-slide-up bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
           {{ t('hero.title') }}
         </h1>
-        <p class="text-lg md:text-xl mb-8 text-green-50 animate-slide-up" style="animation-delay: 0.1s">
+        <p class="text-lg md:text-xl mb-8 text-green-50 my-slide-up" style="animation-delay: 0.1s">
           {{ t('hero.subtitle') }}
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style="animation-delay: 0.2s">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
           <button @click="scrollToMostSoldProducts" class="bg-white text-slate-800 font-semibold text-base px-8 py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
             <i class="fas fa-shopping-bag ml-2"></i>
             {{ t('hero.shopNow') }}
@@ -30,7 +30,7 @@
     </section>
 
     <!-- Most Sold Products Section -->
-    <section id="most-sold-products" class="animate-slide-up">
+    <section id="most-sold-products" class="my-slide-up">
       <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold text-dark">{{ t('sections.mostSoldProducts') }}</h2>
         <router-link to="/products" class="text-primary hover:text-primary-dark text-base font-semibold hover:underline transition-colors">
@@ -79,7 +79,7 @@
     </section>
 
     <!-- Categories Section -->
-    <section class="animate-slide-up">
+    <section class="my-slide-up">
       <h2 class="text-3xl font-bold text-dark mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <router-link
@@ -103,7 +103,7 @@
     </section>
 
     <!-- Features Section -->
-    <section class="grid-cards animate-slide-up">
+    <section class="grid-cards my-slide-up">
       <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
         <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary-dark transition-all duration-300">
           <i class="fas fa-truck text-white text-2xl"></i>
@@ -130,7 +130,7 @@
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="bg-gradient-to-br from-light-gray to-white rounded-3xl p-12 shadow-soft animate-slide-up">
+    <section class="bg-gradient-to-br from-light-gray to-white rounded-3xl p-12 shadow-soft my-slide-up">
       <h2 class="text-4xl font-bold text-dark mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div class="space-y-6">
