@@ -217,6 +217,9 @@
           </div>
         </div>
 
+        <!-- Maystro Integration -->
+        <MaystroIntegration />
+
         <!-- Quick Actions -->
         <div class="card">
           <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.quickActions') }}</h3>
@@ -249,6 +252,7 @@ import { useProductStore } from '../stores/product'
 import { useWishlistStore } from '../stores/wishlist'
 import { useOrdersStore } from '../stores/orders'
 import { getLocalizedPath } from '../lib/i18n-utils'
+import MaystroIntegration from '../components/MaystroIntegration.vue'
 
 const route = useRoute()
 const { t } = useI18n()
