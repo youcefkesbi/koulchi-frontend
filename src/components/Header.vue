@@ -2,8 +2,8 @@
   <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
     <div class="container mx-auto px-4">
       <!-- Main header -->
-      <div class="py-6">
-        <div class="flex items-center justify-between">
+      <div class="py-4 sm:py-6">
+        <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <!-- Logo -->
           <router-link :to="getLocalizedRoute('/')" class="flex items-center space-x-3 space-x-reverse group">
             <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105">
@@ -15,7 +15,7 @@
           </router-link>
 
           <!-- Search bar -->
-          <div class="flex-1 max-w-2xl mx-8">
+          <div class="w-full sm:flex-1 sm:max-w-2xl sm:mx-8 order-3 sm:order-2">
             <div class="relative group">
               <input
                 v-model="searchQuery"
@@ -29,7 +29,7 @@
           </div>
 
           <!-- Categories Dropdown -->
-          <div class="relative categories-dropdown">
+          <div class="relative categories-dropdown order-2 sm:order-3">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
               class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50"
@@ -42,9 +42,9 @@
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
             >
-              <div class="grid grid-cols-2 gap-1 p-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
                 <router-link
                   v-for="category in categories"
                   :key="category.id"
@@ -64,9 +64,9 @@
           </div>
 
           <!-- Navigation and Auth -->
-          <div class="flex items-center space-x-6 space-x-reverse">
+          <div class="flex items-center space-x-4 sm:space-x-6 space-x-reverse order-1 sm:order-4">
             <!-- Navigation Icons -->
-            <nav class="flex items-center space-x-6 space-x-reverse">
+            <nav class="flex items-center space-x-4 sm:space-x-6 space-x-reverse">
               <router-link :to="getLocalizedRoute('/cart')" class="relative text-gray-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
                 <i class="fas fa-shopping-cart text-xl"></i>
                 <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-secondary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
@@ -78,10 +78,11 @@
             <!-- Post Announcement Button -->
             <button
               @click="handlePostAnnouncement"
-              class="text-sm px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
+              class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
               <i class="fas fa-plus mr-1"></i>
-              {{ t('header.postAnnouncement') }}
+              <span class="hidden sm:inline">{{ t('header.postAnnouncement') }}</span>
+              <span class="sm:hidden">Post</span>
             </button>
 
             <!-- Language Switcher -->
@@ -91,21 +92,21 @@
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
                 @click="userMenuOpen = !userMenuOpen"
-                class="flex items-center space-x-2 space-x-reverse px-4 py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
+                class="flex items-center space-x-2 space-x-reverse px-2 sm:px-4 py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
                 <img
                   :src="authStore.userAvatar || '/user-avatar.png'"
                   :alt="authStore.userDisplayName || authStore.userEmail"
                   class="w-8 h-8 rounded-full object-cover"
                 />
-                <span class="font-medium">{{ authStore.userDisplayName || authStore.userEmail }}</span>
+                <span class="font-medium hidden sm:block">{{ authStore.userDisplayName || authStore.userEmail }}</span>
                 <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
                 <router-link :to="getLocalizedRoute('/dashboard')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
@@ -132,9 +133,11 @@
             <div v-else class="flex items-center space-x-4 space-x-reverse">
               <button
                 @click="handleLoginClick"
-                class="btn-outline"
+                class="btn-outline text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3"
               >
-                <i class="fas fa-sign-in-alt mr-2"></i>{{ t('header.login') }}
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                <span class="hidden sm:inline">{{ t('header.login') }}</span>
+                <span class="sm:hidden">Login</span>
               </button>
             </div>
           </div>

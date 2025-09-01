@@ -31,28 +31,28 @@
 @layer components {
   /* Button Components */
   .btn-primary {
-    @apply bg-primary text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20 active:scale-95;
+    @apply bg-primary text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20 active:scale-95 text-sm sm:text-base;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-secondary/20 active:scale-95;
+    @apply bg-secondary text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-secondary/20 active:scale-95 text-sm sm:text-base;
   }
 
   .btn-outline {
-    @apply border-2 border-primary text-primary font-semibold px-6 py-3 rounded-xl hover:bg-primary hover:text-white transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20 active:scale-95 shadow-md hover:shadow-lg;
+    @apply border-2 border-primary text-primary font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl hover:bg-primary hover:text-white transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/20 active:scale-95 shadow-md hover:shadow-lg text-sm sm:text-base;
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm rounded-lg;
+    @apply px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg;
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg rounded-2xl;
+    @apply px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-2xl;
   }
 
   /* Card Components */
   .card {
-    @apply bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transform hover:scale-105 transition-all duration-300;
+    @apply bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 hover:shadow-xl transform hover:scale-105 transition-all duration-300;
   }
 
   .card-hover {
@@ -61,7 +61,7 @@
 
   /* Form Components */
   .input-field {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-md focus:shadow-lg;
+    @apply w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-md focus:shadow-lg text-sm sm:text-base;
   }
 
   .input-field:focus {
@@ -145,20 +145,20 @@
 
   /* Grid Components */
   .grid-responsive {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
   }
 
   .grid-cards {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
   }
 
   /* Spacing Utilities */
   .section-padding {
-    @apply py-12 md:py-16 lg:py-20;
+    @apply py-8 sm:py-12 md:py-16 lg:py-20;
   }
 
   .section-margin {
-    @apply my-12 md:my-16 lg:my-20;
+    @apply my-8 sm:my-12 md:my-16 lg:my-20;
   }
 
   /* Custom Animation Classes */

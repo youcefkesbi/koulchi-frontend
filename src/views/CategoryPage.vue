@@ -1,16 +1,16 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-8 my-fade-in">
+  <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8 my-fade-in">
     <!-- Category Header -->
-    <div class="text-center mb-12">
-      <div class="flex items-center justify-center space-x-4 space-x-reverse mb-6">
-        <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
-          <i :class="getCategoryIcon(categoryId)" class="text-white text-2xl"></i>
+    <div class="text-center mb-8 sm:mb-12">
+      <div class="flex items-center justify-center space-x-3 sm:space-x-4 space-x-reverse mb-4 sm:mb-6">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
+          <i :class="getCategoryIcon(categoryId)" class="text-white text-lg sm:text-2xl"></i>
         </div>
-        <h1 class="text-4xl font-bold text-dark bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-dark bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
           {{ getCategoryName(categoryId) }}
         </h1>
       </div>
-      <p class="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+      <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
         {{ getCategoryDescription(categoryId) }}
       </p>
     </div>
@@ -45,7 +45,7 @@
     </div>
 
     <!-- Products Grid -->
-    <div v-else-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div v-else-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
       <ProductCard
         v-for="product in filteredProducts"
         :key="product.id"

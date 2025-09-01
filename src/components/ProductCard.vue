@@ -6,12 +6,12 @@
         v-if="productImage" 
         :src="productImage" 
         :alt="product.name"
-        class="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+        class="w-full h-48 sm:h-56 object-cover group-hover:scale-110 transition-transform duration-500"
         @error="handleImageError"
       />
       
       <!-- No Image Placeholder -->
-      <div v-else class="w-full h-56 flex items-center justify-center">
+      <div v-else class="w-full h-48 sm:h-56 flex items-center justify-center">
         <div class="text-center text-gray-400">
           <i class="fas fa-image text-5xl mb-3 opacity-50"></i>
           <p class="text-sm font-medium">{{ $t('product.noImage') }}</p>
@@ -48,9 +48,9 @@
     </div>
 
     <!-- Product Info Container -->
-    <div class="p-6 space-y-4">
+    <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
       <!-- Title -->
-      <h3 class="font-bold text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
+      <h3 class="font-bold text-base sm:text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
         {{ product.name }}
       </h3>
 
@@ -65,29 +65,30 @@
 
       <!-- Price -->
       <div class="flex items-center justify-between">
-        <span class="text-2xl font-bold text-primary">
+        <span class="text-xl sm:text-2xl font-bold text-primary">
           {{ formatPrice(product.price) }} {{ $t('product.currency') }}
         </span>
-        <span v-if="product.is_on_sale" class="text-sm text-gray-500 line-through">
+        <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 line-through">
           {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
         </span>
       </div>
 
       <!-- Actions -->
-      <div class="flex space-x-3 space-x-reverse pt-2">
+      <div class="flex space-x-2 sm:space-x-3 space-x-reverse pt-2">
         <button
           @click="addToCart"
           :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 btn-primary text-sm py-3 px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 btn-primary text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <i v-if="!cartLoading" class="fas fa-shopping-cart ml-2"></i>
-          <i v-else class="fas fa-spinner fa-spin ml-2"></i>
-          {{ getCartButtonText() }}
+          <i v-if="!cartLoading" class="fas fa-shopping-cart ml-1 sm:ml-2"></i>
+          <i v-else class="fas fa-spinner fa-spin ml-1 sm:ml-2"></i>
+          <span class="hidden sm:inline">{{ getCartButtonText() }}</span>
+          <span class="sm:hidden">Add</span>
         </button>
         
         <router-link
           :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="btn-outline text-sm py-3 px-4 rounded-xl font-semibold hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center"
+          class="btn-outline text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center"
           :title="$t('product.viewProduct')"
         >
           <i class="fas fa-eye text-gray-600 group-hover:text-primary transition-colors"></i>
