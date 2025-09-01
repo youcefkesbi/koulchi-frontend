@@ -6,15 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface MaystroCredentials {
-  accountId: string
-  accessToken: string
-  refreshToken: string
-  expiresAt: string
-}
-
 // Encryption function using Web Crypto API
-async function encryptToken(token: string, secretKey: string): Promise<string> {
+async function encryptToken(token, secretKey) {
   const encoder = new TextEncoder()
   const data = encoder.encode(token)
   
@@ -83,7 +76,7 @@ serve(async (req) => {
     }
 
     // Get the request body
-    const body: MaystroCredentials = await req.json()
+    const body = await req.json()
     
     // Validate required fields
     if (!body.accountId || !body.accessToken || !body.refreshToken || !body.expiresAt) {

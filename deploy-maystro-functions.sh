@@ -21,10 +21,10 @@ if ! supabase status &> /dev/null; then
     exit 1
 fi
 
-echo "📦 Deploying connect-maystro function..."
+echo "📦 Deploying connect-maystro function (JavaScript)..."
 supabase functions deploy connect-maystro
 
-echo "📦 Deploying disconnect-maystro function..."
+echo "📦 Deploying disconnect-maystro function (JavaScript)..."
 supabase functions deploy disconnect-maystro
 
 echo "🔐 Setting environment variables..."

@@ -1,5 +1,5 @@
 // Utility function for decrypting tokens
-export async function decryptToken(encryptedToken: string, secretKey: string): Promise<string> {
+export async function decryptToken(encryptedToken, secretKey) {
   try {
     const decoder = new TextDecoder()
     

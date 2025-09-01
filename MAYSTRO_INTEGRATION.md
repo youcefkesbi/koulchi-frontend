@@ -105,7 +105,7 @@ using (auth.uid() = seller_id);
 
 ### 1. connect-maystro
 
-**Location**: `supabase/functions/connect-maystro/index.ts`
+**Location**: `supabase/functions/connect-maystro/index.js`
 
 **Purpose**: Securely stores encrypted Maystro credentials
 
@@ -127,7 +127,7 @@ using (auth.uid() = seller_id);
 
 ### 2. disconnect-maystro
 
-**Location**: `supabase/functions/disconnect-maystro/index.ts`
+**Location**: `supabase/functions/disconnect-maystro/index.js`
 
 **Purpose**: Removes the seller's Maystro integration
 

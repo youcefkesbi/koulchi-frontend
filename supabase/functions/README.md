@@ -8,6 +8,8 @@ This directory contains Supabase Edge Functions for integrating with Maystro Del
 
 Connects a seller's account to Maystro by storing encrypted credentials.
 
+**File:** `supabase/functions/connect-maystro/index.js`
+
 **Endpoint:** `POST /functions/v1/connect-maystro`
 
 **Request Body:**
@@ -23,7 +25,7 @@ Connects a seller's account to Maystro by storing encrypted credentials.
 **Response:**
 ```json
 {
-  "success": true,
+  "success": true, 
   "message": "Maystro integration connected successfully",
   "data": {
     "id": "uuid",
@@ -37,12 +39,14 @@ Connects a seller's account to Maystro by storing encrypted credentials.
 
 Removes a seller's Maystro integration.
 
+**File:** `supabase/functions/disconnect-maystro/index.js`
+
 **Endpoint:** `DELETE /functions/v1/disconnect-maystro`
 
 **Response:**
 ```json
 {
-  "success": true,
+  "success": true, 
   "message": "Maystro integration disconnected successfully"
 }
 ```
