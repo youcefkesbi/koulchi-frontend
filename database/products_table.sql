@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     stock_quantity INTEGER DEFAULT 0,
+    sold_count INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     is_new BOOLEAN DEFAULT true,
     store_id uuid references public.stores (id) on delete cascade,
