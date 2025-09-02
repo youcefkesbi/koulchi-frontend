@@ -266,9 +266,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useStoreStore } from '../stores/store'
 import { useProductStore } from '../stores/product'
 
+const $router = useRouter()
 const storeStore = useStoreStore()
 const productStore = useProductStore()
 
@@ -370,17 +372,22 @@ const handleSubmit = async () => {
         banner_url: bannerUrl
       })
     } else {
-      await storeStore.createStore({
+      const newStore = await storeStore.createStore({
         name: formData.name,
         description: formData.description,
         logo_url: logoUrl,
         banner_url: bannerUrl
       })
+      
+      // Redirect to store dashboard for new stores
+      $router.push(`/dashboard/store/${newStore.id}`)
     }
 
     closeModal()
   } catch (error) {
     console.error('Error saving store:', error)
+    // Show error to user - could be improved with toast notifications
+    alert(error.message || 'Failed to save store')
   }
 }
 

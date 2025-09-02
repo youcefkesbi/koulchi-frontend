@@ -220,7 +220,11 @@
     "review": "Révision et Création",
     "descriptionHelp": "Décrivez ce que propose votre magasin et ce qui le rend unique",
     "logoHelp": "Téléchargez une image de logo carrée (recommandé: 512x512px)",
-    "bannerHelp": "Téléchargez une image de bannière large (recommandé: 1200x400px)"
+    "bannerHelp": "Téléchargez une image de bannière large (recommandé: 1200x400px)",
+    "creatingStore": "Création du Magasin...",
+    "storeCreatedSuccessfully": "Votre magasin a été créé avec succès !",
+    "storeCreationError": "Impossible de créer votre magasin, veuillez réessayer.",
+    "redirectingToStore": "Redirection vers le tableau de bord de votre magasin..."
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",

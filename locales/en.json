@@ -223,7 +223,11 @@
     "review": "Review & Create",
     "descriptionHelp": "Describe what your store offers and what makes it unique",
     "logoHelp": "Upload a square logo image (recommended: 512x512px)",
-    "bannerHelp": "Upload a wide banner image (recommended: 1200x400px)"
+    "bannerHelp": "Upload a wide banner image (recommended: 1200x400px)",
+    "creatingStore": "Creating Store...",
+    "storeCreatedSuccessfully": "Your store has been created successfully!",
+    "storeCreationError": "Could not create your store, please try again.",
+    "redirectingToStore": "Redirecting to your store dashboard..."
   },
   "common": {
     "cancel": "Cancel",

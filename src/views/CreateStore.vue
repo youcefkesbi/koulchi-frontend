@@ -46,6 +46,32 @@
 
           <!-- Form -->
           <form @submit.prevent="handleSubmit" class="space-y-8">
+            <!-- Success Message -->
+            <div v-if="successMessage" class="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
+              <div class="flex items-center space-x-3 space-x-reverse">
+                <i class="fas fa-check-circle text-green-600 flex-shrink-0"></i>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-green-800 mb-1">{{ $t('common.success') }}</h4>
+                  <p class="text-green-700 text-sm">{{ successMessage }}</p>
+                  <p class="text-green-600 text-xs mt-2">{{ $t('stores.redirectingToStore') }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            <div v-if="errorMessage" class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+              <div class="flex items-center space-x-3 space-x-reverse">
+                <i class="fas fa-exclamation-circle text-red-600 flex-shrink-0"></i>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-red-800 mb-1">{{ $t('common.error') }}</h4>
+                  <p class="text-red-700 text-sm">{{ errorMessage }}</p>
+                </div>
+                <button @click="errorMessage = ''" class="text-red-400 hover:text-red-600">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
             <!-- Step 1: Basic Information -->
             <div v-if="currentStep === 1" class="space-y-6">
               <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.basicInfo') }}</h2>
@@ -219,11 +245,11 @@
                 <button
                   v-if="currentStep === 3"
                   type="submit"
-                  :disabled="storeStore.loading"
+                  :disabled="loading"
                   class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <div v-if="storeStore.loading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {{ $t('stores.createStore') }}
+                  <div v-if="loading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {{ loading ? $t('stores.creatingStore') : $t('stores.createStore') }}
                 </button>
               </div>
             </div>
@@ -237,9 +263,11 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/store'
 
 const router = useRouter()
+const { t: $t } = useI18n()
 const storeStore = useStoreStore()
 
 const currentStep = ref(1)
@@ -298,8 +326,16 @@ const previousStep = () => {
   }
 }
 
+const loading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+
 const handleSubmit = async () => {
   try {
+    loading.value = true
+    successMessage.value = ''
+    errorMessage.value = ''
+
     let logoUrl = formData.logo_url
     let bannerUrl = formData.banner_url
 
@@ -314,17 +350,26 @@ const handleSubmit = async () => {
       bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
     }
 
-    await storeStore.createStore({
+    const newStore = await storeStore.createStore({
       name: formData.name,
       description: formData.description,
       logo_url: logoUrl,
       banner_url: bannerUrl
     })
 
-    // Redirect to dashboard
-    router.push('/dashboard')
+    // Show success message
+    successMessage.value = $t('stores.storeCreatedSuccessfully')
+    
+    // Redirect to store dashboard after a short delay
+    setTimeout(() => {
+      router.push(`/dashboard/store/${newStore.id}`)
+    }, 1500)
+
   } catch (error) {
     console.error('Error creating store:', error)
+    errorMessage.value = error.message || $t('stores.storeCreationError')
+  } finally {
+    loading.value = false
   }
 }
 </script>

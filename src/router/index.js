@@ -116,6 +116,13 @@ const baseRoutes = [
     name: 'CreateStore',
     component: () => import('../views/CreateStore.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/dashboard/store/:id',
+    name: 'StoreDashboard',
+    component: StoreDetail,
+    props: true,
+    meta: { requiresAuth: true }
   }
 ]
 
