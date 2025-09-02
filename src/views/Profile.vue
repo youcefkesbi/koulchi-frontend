@@ -99,14 +99,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { useProfile } from '../composables/useProfile'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const { getProfile, updateProfile, loading, error, success, clearStates } = useProfile()
 
-const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
@@ -119,10 +120,23 @@ const profileForm = reactive({
 // Load user profile data
 const loadProfile = async () => {
   try {
+    clearStates()
+    
     if (authStore.user) {
-      profileForm.fullName = authStore.user.full_name || ''
+      // Try to get profile from database first
+      const profile = await getProfile()
+      
+      if (profile) {
+        profileForm.fullName = profile.full_name || ''
+        profileForm.city = profile.city || ''
+      } else {
+        // Fallback to auth store data
+        profileForm.fullName = authStore.user.full_name || ''
+        profileForm.city = authStore.user.city || ''
+      }
+      
+      // Email is always from auth store
       profileForm.email = authStore.user.email || ''
-      profileForm.city = authStore.user.city || ''
     }
   } catch (error) {
     console.error('Error loading profile:', error)
@@ -133,18 +147,16 @@ const loadProfile = async () => {
 // Update profile
 const handleUpdateProfile = async () => {
   try {
-    loading.value = true
-    errorMessage.value = ''
+    clearStates()
     successMessage.value = ''
+    errorMessage.value = ''
 
-    const { error } = await authStore.updateProfile({
+    const result = await updateProfile({
       full_name: profileForm.fullName,
       city: profileForm.city
     })
 
-    if (error) {
-      errorMessage.value = error
-    } else {
+    if (result) {
       successMessage.value = 'Profile updated successfully!'
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -153,11 +165,27 @@ const handleUpdateProfile = async () => {
     }
   } catch (error) {
     console.error('Error updating profile:', error)
-    errorMessage.value = 'Error updating profile'
-  } finally {
-    loading.value = false
+    errorMessage.value = error.message || 'Error updating profile'
   }
 }
+
+// Watch for errors from the composable
+watch(error, (newError) => {
+  if (newError) {
+    errorMessage.value = newError
+  }
+})
+
+// Watch for success from the composable
+watch(success, (newSuccess) => {
+  if (newSuccess) {
+    successMessage.value = 'Profile updated successfully!'
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
+  }
+})
 
 onMounted(() => {
   if (!authStore.isAuthenticated) {
@@ -167,3 +195,4 @@ onMounted(() => {
   loadProfile()
 })
 </script>
+

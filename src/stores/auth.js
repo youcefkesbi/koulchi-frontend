@@ -322,43 +322,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Note: Profile updates are now handled by the useProfile composable
+  // This method is kept for backward compatibility but should not be used
   const updateProfile = async (profileData) => {
-    try {
-      loading.value = true
-      error.value = null
-
-      if (!user.value?.id) {
-        throw new Error('No authenticated user')
-      }
-
-      const { data, error: updateError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.value.id,
-          full_name: profileData.full_name,
-          city: profileData.city
-        })
-        .select()
-        .single()
-
-      if (updateError) {
-        error.value = updateError.message
-        return { error: updateError.message }
-      }
-
-      // Update local user data
-      if (data) {
-        user.value = { ...user.value, ...data }
-      }
-
-      return { success: true, data }
-    } catch (err) {
-      const errorMessage = err.message || 'Failed to update profile'
-      error.value = errorMessage
-      return { error: errorMessage }
-    } finally {
-      loading.value = false
-    }
+    console.warn('updateProfile in auth store is deprecated. Use useProfile composable instead.')
+    throw new Error('Profile updates should use the useProfile composable')
   }
 
   const resetPasswordForEmail = async (email) => {
@@ -447,26 +415,36 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Helper function to load user with profile data
+  // Simplified to avoid recursion - only loads basic profile info
   const loadUserWithProfile = async (authUser) => {
     try {
+      // Only load essential profile fields to avoid recursion
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, city, role')
         .eq('id', authUser.id)
         .single()
 
       if (profileError) {
+        // No profile found or error, just use auth user
         user.value = authUser
         return
       }
 
       if (profile) {
-        user.value = { ...authUser, ...profile, email: authUser.email }
+        // Merge profile data with auth user, keeping email from auth
+        user.value = { 
+          ...authUser, 
+          full_name: profile.full_name,
+          city: profile.city,
+          role: profile.role
+        }
       } else {
         user.value = authUser
       }
     } catch (err) {
-      // Profile doesn't exist or error fetching, just use auth user
+      // Error fetching profile, just use auth user
+      console.warn('Could not load profile data:', err)
       user.value = authUser
     }
   }
