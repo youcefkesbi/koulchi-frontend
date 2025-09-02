@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-2xl mx-auto">
       <!-- Page Header -->
       <div class="mb-8 text-center">
         <h1 class="text-4xl font-bold text-dark mb-4">{{ $t('profile.title') }}</h1>
@@ -9,30 +9,21 @@
 
       <!-- Profile Form -->
       <div class="bg-white rounded-3xl shadow-soft p-8">
-        <form @submit.prevent="handleUpdateProfile" class="space-y-6">
-          <!-- Personal Information Section -->
-          <div class="border-b border-gray-200 pb-6">
-            <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('profile.personalInfo') }}</h2>
-            
-            <div class="grid grid-cols-1 gap-6">
-              <!-- Full Name -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
-                <input
-                  v-model="profileForm.fullName"
-                  type="text"
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                  :placeholder="$t('profile.fullNamePlaceholder')"
-                />
-                <p class="text-xs text-gray-500 mt-1">{{ $t('profile.fullNameNote') }}</p>
-              </div>
-            </div>
+        <form @submit.prevent="saveProfile" class="space-y-6">
+          <!-- Full Name Field -->
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
+            <input
+              v-model="fullName"
+              type="text"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
+              :placeholder="$t('profile.fullNamePlaceholder')"
+            />
+            <p class="text-xs text-gray-500 mt-1">{{ $t('profile.fullNameNote') }}</p>
           </div>
 
-
-
           <!-- Action Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 pt-6">
+          <div class="flex flex-col sm:flex-row gap-4">
             <button
               type="submit"
               :disabled="loading"
@@ -51,19 +42,9 @@
           </div>
         </form>
 
-        <!-- Success/Error Messages -->
-        <div v-if="successMessage" class="mt-6 p-4 bg-green-100 text-green-700 rounded-xl text-center">
-          {{ successMessage }}
-        </div>
-        
-        <div v-if="errorMessage" class="mt-6 p-4 bg-red-100 text-red-700 rounded-xl text-center">
-          {{ errorMessage }}
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="mt-6 p-4 bg-blue-100 text-blue-700 rounded-xl text-center">
-          <i class="fas fa-spinner fa-spin mr-2"></i>
-          Updating profile...
+        <!-- Message Display -->
+        <div v-if="message" class="mt-6 p-4 rounded-xl text-center" :class="messageClass">
+          {{ message }}
         </div>
       </div>
     </div>
@@ -71,94 +52,103 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { useProfile } from '../composables/useProfile'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '../lib/supabase'
 
-const authStore = useAuthStore()
 const router = useRouter()
-const { getProfile, updateProfile, loading, error, success, clearStates } = useProfile()
 
-const successMessage = ref('')
-const errorMessage = ref('')
+// State
+const fullName = ref('')
+const message = ref('')
+const loading = ref(false)
+const isError = ref(false)
 
-const profileForm = reactive({
-  fullName: ''
+// Computed message class for styling
+const messageClass = computed(() => {
+  return isError.value 
+    ? 'bg-red-100 text-red-700' 
+    : 'bg-green-100 text-green-700'
 })
 
-// Load user profile data
-const loadProfile = async () => {
+// Fetch current profile on mount
+const fetchProfile = async () => {
   try {
-    clearStates()
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    if (authStore.user) {
-      // Try to get profile from database first
-      const profile = await getProfile()
-      
-      if (profile) {
-        profileForm.fullName = profile.full_name || ''
-      } else {
-        // Fallback to auth store data
-        profileForm.fullName = authStore.user.full_name || ''
-      }
+    if (userError || !user) {
+      router.push('/')
+      return
     }
+
+    // Fetch profile from database
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('Error fetching profile:', profileError)
+      return
+    }
+
+    // Set full name if profile exists, otherwise keep empty
+    fullName.value = profile?.full_name || ''
   } catch (error) {
-    console.error('Error loading profile:', error)
-    errorMessage.value = 'Error loading profile data'
+    console.error('Error in fetchProfile:', error)
   }
 }
 
-// Update profile
-const handleUpdateProfile = async () => {
+// Save profile using upsert
+const saveProfile = async () => {
   try {
-    clearStates()
-    successMessage.value = ''
-    errorMessage.value = ''
+    loading.value = true
+    message.value = ''
+    isError.value = false
 
-    const result = await updateProfile({
-      full_name: profileForm.fullName
-    })
-
-    if (result) {
-      successMessage.value = 'Profile updated successfully!'
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        successMessage.value = ''
-      }, 3000)
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      throw new Error('Not authenticated')
     }
+
+    // Upsert profile
+    const { error: upsertError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        full_name: fullName.value
+      }, {
+        onConflict: 'id'
+      })
+
+    if (upsertError) {
+      throw upsertError
+    }
+
+    // Success
+    message.value = 'Profile updated successfully!'
+    
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      message.value = ''
+    }, 3000)
+
   } catch (error) {
-    console.error('Error updating profile:', error)
-    errorMessage.value = error.message || 'Error updating profile'
-    // Ensure loading state is reset on error
-    clearStates()
+    console.error('Error saving profile:', error)
+    isError.value = true
+    message.value = error.message || 'Error saving profile'
+  } finally {
+    loading.value = false
   }
 }
 
-// Watch for errors from the composable
-watch(error, (newError) => {
-  if (newError) {
-    errorMessage.value = newError
-  }
-})
-
-// Watch for success from the composable
-watch(success, (newSuccess) => {
-  if (newSuccess) {
-    successMessage.value = 'Profile updated successfully!'
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = ''
-    }, 3000)
-  }
-})
-
+// Initialize on mount
 onMounted(() => {
-  if (!authStore.isAuthenticated) {
-    router.push('/')
-    return
-  }
-  loadProfile()
+  fetchProfile()
 })
 </script>
 
