@@ -21,12 +21,6 @@ for insert
 to authenticated
 with check (owner_id = auth.uid());
 
-create policy "users can select their own store"
-on stores
-for select
-to authenticated
-using (owner_id = auth.uid());
-
 create policy "users can update their own store"
 on stores
 for update
@@ -45,3 +39,18 @@ on stores
 for select
 to public
 using (true);  -- all rows are visible
+
+-- Create the trigger function (if it doesn't exist)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Add the trigger to your stores table
+CREATE TRIGGER update_stores_updated_at 
+    BEFORE UPDATE ON stores 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();

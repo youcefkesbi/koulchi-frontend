@@ -351,13 +351,6 @@ for insert
 to authenticated
 with check (owner_id = auth.uid());
 
--- Users can select their own store
-create policy "users can select their own store"
-on stores
-for select
-to authenticated
-using (owner_id = auth.uid());
-
 -- Users can update their own store
 create policy "users can update their own store"
 on stores
@@ -373,12 +366,29 @@ for delete
 to authenticated
 using (owner_id = auth.uid());
 
--- Everyone can view stores (for public browsing)
+-- Everyone can view stores (simplified - single policy for all access)
 create policy "everyone can view stores"
 on stores
 for select
 to public
 using (true);
+```
+
+### Database Triggers
+```sql
+-- Automatic updated_at column management
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_stores_updated_at 
+    BEFORE UPDATE ON stores 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 ```
 
 ## Storage Buckets
@@ -479,14 +489,14 @@ using (true);
 - **User authentication**: Only authenticated users can upload files
 
 ### Database Security
-- **Row Level Security (RLS)**: Multi-layered access control with specific policies:
+- **Row Level Security (RLS)**: Simplified access control with specific policies:
   - **INSERT**: Users can only create stores with their own `owner_id`
-  - **SELECT (authenticated)**: Users can access their own stores  
-  - **SELECT (public)**: Everyone can view all stores (for browsing)
+  - **SELECT**: Single public policy allows everyone to view all stores (no separate authenticated policy)
   - **UPDATE**: Users can only update their own stores
   - **DELETE**: Users can only delete their own stores
 - **Foreign key constraints**: `owner_id` references `auth.users(id)`
 - **Cascade deletion**: Store deletion removes associated images
+- **Automatic timestamps**: `updated_at` column automatically updated on any change via database trigger
 
 ## Error Handling
 

@@ -44,8 +44,8 @@ export const useStoreStore = defineStore('store', () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
-      // RLS policy "users can select their own store" will automatically filter by owner_id = auth.uid()
-      // But we keep the explicit filter for clarity and potential performance benefits
+      // Uses the public SELECT policy but with explicit filter by owner_id
+      // This ensures we only get the user's own stores
       const { data, error: fetchError } = await supabase
         .from('stores')
         .select('*')
