@@ -220,6 +220,94 @@
         <!-- Maystro Integration -->
         <MaystroIntegration />
 
+        <!-- Store Management -->
+        <div class="card">
+          <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.storeManagement') }}</h3>
+          <div v-if="storeStore.userStores.length > 0" class="space-y-6">
+            <div 
+              v-for="store in storeStore.userStores" 
+              :key="store.id"
+              class="border border-gray-200 rounded-xl p-6"
+            >
+              <!-- Store Header -->
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-4">
+                  <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center overflow-hidden">
+                    <img 
+                      v-if="store.logo_url" 
+                      :src="store.logo_url" 
+                      :alt="store.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <i v-else class="fas fa-store text-white text-2xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="text-xl font-bold text-gray-900">{{ store.name }}</h4>
+                    <p v-if="store.description" class="text-gray-600">{{ store.description }}</p>
+                    <p v-else class="text-gray-500 italic">{{ t('stores.noDescription') }}</p>
+                  </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="flex items-center space-x-3">
+                  <router-link 
+                    :to="getLocalizedRoute(`/dashboard/store/${store.id}`)"
+                    class="btn-primary text-sm px-4 py-2"
+                  >
+                    <i class="fas fa-cog mr-2"></i>
+                    {{ t('stores.manageStore') }}
+                  </router-link>
+                  <router-link 
+                    :to="getLocalizedRoute(`/stores/${store.id}`)"
+                    class="btn-outline text-sm px-4 py-2"
+                    target="_blank"
+                  >
+                    <i class="fas fa-external-link-alt mr-2"></i>
+                    {{ t('stores.viewPublicStore') }}
+                  </router-link>
+                </div>
+              </div>
+
+              <!-- Store Banner -->
+              <div v-if="store.banner_url" class="mb-4">
+                <img 
+                  :src="store.banner_url" 
+                  :alt="store.name"
+                  class="w-full h-32 object-cover rounded-lg"
+                />
+              </div>
+
+              <!-- Store Stats -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-primary">{{ getStoreProductCount(store.id) }}</div>
+                  <div class="text-sm text-gray-600">{{ t('stores.products') }}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-green-600">{{ formatDate(store.created_at) }}</div>
+                  <div class="text-sm text-gray-600">{{ t('stores.createdOn') }}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-blue-600">0</div>
+                  <div class="text-sm text-gray-600">{{ t('stores.storeViews') }}</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-purple-600">0</div>
+                  <div class="text-sm text-gray-600">{{ t('stores.totalSales') }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-12">
+            <i class="fas fa-store text-gray-400 text-5xl mb-4"></i>
+            <p class="text-gray-600 text-lg mb-2">{{ t('stores.noStoresYet') }}</p>
+            <p class="text-gray-500 mb-4">{{ t('stores.noStoresYetMessage') }}</p>
+            <router-link :to="getLocalizedRoute('/dashboard/store/create')" class="btn-primary">
+              {{ t('stores.createFirstStore') }}
+            </router-link>
+          </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="card">
           <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.quickActions') }}</h3>
@@ -251,6 +339,7 @@ import { useAuthStore } from '../stores/auth'
 import { useProductStore } from '../stores/product'
 import { useWishlistStore } from '../stores/wishlist'
 import { useOrdersStore } from '../stores/orders'
+import { useStoreStore } from '../stores/store'
 import { getLocalizedPath } from '../lib/i18n-utils'
 import MaystroIntegration from '../components/MaystroIntegration.vue'
 
@@ -260,6 +349,7 @@ const authStore = useAuthStore()
 const productStore = useProductStore()
 const wishlistStore = useWishlistStore()
 const ordersStore = useOrdersStore()
+const storeStore = useStoreStore()
 
 // Default to buying dashboard as requested
 const activeTab = ref('buying')
@@ -286,6 +376,17 @@ const getStatusBadgeClass = (status) => {
 const userProducts = computed(() => {
   return productStore.products.filter(product => product.seller_id === authStore.user?.id)
 })
+
+// Get store product count
+const getStoreProductCount = (storeId) => {
+  return productStore.products.filter(product => product.store_id === storeId).length
+}
+
+// Format date
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString()
+}
 
 // Update order status
 const updateOrderStatus = async (orderId, newStatus) => {

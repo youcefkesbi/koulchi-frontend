@@ -190,6 +190,22 @@ export const useStoreStore = defineStore('store', () => {
 
   const uploadStoreImage = async (file, bucketName, fileName) => {
     try {
+      // Validate bucket name to ensure correct storage location
+      if (bucketName !== 'stores-logos' && bucketName !== 'stores-banners') {
+        throw new Error(`Invalid bucket name: ${bucketName}. Must be 'stores-logos' or 'stores-banners'`)
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        throw new Error('File must be an image')
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      if (file.size > maxSize) {
+        throw new Error('File size must be less than 5MB')
+      }
+
       const { data, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(fileName, file, {
@@ -206,12 +222,17 @@ export const useStoreStore = defineStore('store', () => {
       return publicUrl
     } catch (err) {
       console.error('Error uploading image:', err)
-      throw err
+      throw new Error(`Failed to upload image: ${err.message}`)
     }
   }
 
   const deleteStoreImage = async (fileName, bucketName) => {
     try {
+      // Validate bucket name
+      if (bucketName !== 'stores-logos' && bucketName !== 'stores-banners') {
+        throw new Error(`Invalid bucket name: ${bucketName}. Must be 'stores-logos' or 'stores-banners'`)
+      }
+
       const { error: deleteError } = await supabase.storage
         .from(bucketName)
         .remove([fileName])
@@ -219,7 +240,68 @@ export const useStoreStore = defineStore('store', () => {
       if (deleteError) throw deleteError
     } catch (err) {
       console.error('Error deleting image:', err)
+      throw new Error(`Failed to delete image: ${err.message}`)
+    }
+  }
+
+  const updateStoreWithImages = async (storeId, updates, logoFile = null, bannerFile = null) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      let logoUrl = updates.logo_url
+      let bannerUrl = updates.banner_url
+
+      // Handle logo upload if provided
+      if (logoFile instanceof File) {
+        const fileName = `logo-${storeId}-${Date.now()}-${logoFile.name}`
+        logoUrl = await uploadStoreImage(logoFile, 'stores-logos', fileName)
+      }
+
+      // Handle banner upload if provided
+      if (bannerFile instanceof File) {
+        const fileName = `banner-${storeId}-${Date.now()}-${bannerFile.name}`
+        bannerUrl = await uploadStoreImage(bannerFile, 'stores-banners', fileName)
+      }
+
+      // Update store data with new URLs
+      const updateData = {
+        ...updates,
+        logo_url: logoUrl,
+        banner_url: bannerUrl
+      }
+
+      const { data, error: updateError } = await supabase
+        .from('stores')
+        .update(updateData)
+        .eq('id', storeId)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+
+      // Update in both arrays
+      const updateArray = (arr) => {
+        const index = arr.findIndex(s => s.id === storeId)
+        if (index !== -1) {
+          arr[index] = data
+        }
+      }
+
+      updateArray(userStores.value)
+      updateArray(stores.value)
+      
+      if (currentStore.value?.id === storeId) {
+        currentStore.value = data
+      }
+
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Error updating store with images:', err)
       throw err
+    } finally {
+      loading.value = false
     }
   }
 
@@ -252,6 +334,7 @@ export const useStoreStore = defineStore('store', () => {
     deleteStore,
     uploadStoreImage,
     deleteStoreImage,
+    updateStoreWithImages,
     clearError,
     clearCurrentStore
   }

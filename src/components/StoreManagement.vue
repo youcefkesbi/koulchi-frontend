@@ -352,34 +352,36 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
   try {
-    let logoUrl = formData.logo_url
-    let bannerUrl = formData.banner_url
+    let logoFile = null
+    let bannerFile = null
 
-    // Upload new images if they're files
+    // Check if new files were uploaded
     if (formData.logo_url instanceof File) {
-      const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
-      logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
+      logoFile = formData.logo_url
     }
 
     if (formData.banner_url instanceof File) {
-      const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
-      bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
+      bannerFile = formData.banner_url
     }
 
     if (editingStore.value) {
-      await storeStore.updateStore(editingStore.value.id, {
-        name: formData.name,
-        description: formData.description,
-        logo_url: logoUrl,
-        banner_url: bannerUrl
-      })
+      // Update existing store
+      await storeStore.updateStoreWithImages(
+        editingStore.value.id,
+        {
+          name: formData.name.trim(),
+          description: formData.description?.trim() || null
+        },
+        logoFile,
+        bannerFile
+      )
     } else {
-      // Prepare store data with proper null handling for optional fields
+      // Create new store
       const storeData = {
         name: formData.name.trim(), // Required field
         description: formData.description?.trim() || null, // Optional field
-        logo_url: logoUrl || null, // Optional field 
-        banner_url: bannerUrl || null // Optional field
+        logo_url: null, // Will be set by createStore method
+        banner_url: null // Will be set by createStore method
       }
 
       const newStore = await storeStore.createStore(storeData)

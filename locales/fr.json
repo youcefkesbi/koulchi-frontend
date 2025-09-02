@@ -234,7 +234,20 @@
     "quickActions": "Actions Rapides",
     "addProduct": "Ajouter un Produit",
     "addFirstProduct": "Ajouter le Premier Produit",
-    "analytics": "Analyses"
+    "analytics": "Analyses",
+    "manageStore": "Gérer le Magasin",
+    "uploadLogo": "Télécharger le Logo",
+    "uploadBanner": "Télécharger la Bannière",
+    "changeLogo": "Changer le Logo",
+    "changeBanner": "Changer la Bannière",
+    "removeLogo": "Supprimer le Logo",
+    "removeBanner": "Supprimer la Bannière",
+    "logoUploadError": "Échec du téléchargement du logo",
+    "bannerUploadError": "Échec du téléchargement de la bannière",
+    "fileTooLarge": "Le fichier est trop volumineux. La taille maximale est de 5 Mo.",
+    "invalidFileType": "Type de fichier invalide. Seules les images sont autorisées.",
+    "uploadSuccess": "Téléchargement réussi",
+    "updateSuccess": "Magasin mis à jour avec succès"
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",
@@ -546,7 +559,8 @@
     "browseProducts": "Parcourir les Produits",
     "editProfile": "Modifier le Profil",
     "startShopping": "Commencer les Achats",
-    "createStore": "Créer un Magasin"
+    "createStore": "Créer un Magasin",
+    "storeManagement": "Gestion des boutiques"
   },
   "wishlist": {
     "title": "Liste de Souhaits",

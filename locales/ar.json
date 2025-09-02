@@ -170,7 +170,20 @@
     "quickActions": "الإجراءات السريعة",
     "addProduct": "إضافة منتج",
     "addFirstProduct": "إضافة أول منتج",
-    "analytics": "التحليلات"
+    "analytics": "التحليلات",
+    "manageStore": "إدارة المتجر",
+    "uploadLogo": "رفع الشعار",
+    "uploadBanner": "رفع اللافتة",
+    "changeLogo": "تغيير الشعار",
+    "changeBanner": "تغيير اللافتة",
+    "removeLogo": "إزالة الشعار",
+    "removeBanner": "إزالة اللافتة",
+    "logoUploadError": "فشل في رفع الشعار",
+    "bannerUploadError": "فشل في رفع اللافتة",
+    "fileTooLarge": "الملف كبير جداً. الحد الأقصى للحجم هو 5 ميجابايت.",
+    "invalidFileType": "نوع ملف غير صالح. الصور فقط مسموحة.",
+    "uploadSuccess": "تم الرفع بنجاح",
+    "updateSuccess": "تم تحديث المتجر بنجاح"
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",
@@ -287,7 +300,8 @@
     "browseProducts": "تصفح المنتجات",
     "editProfile": "تعديل الملف الشخصي",
     "startShopping": "ابدأ التسوق",
-    "createStore": "إنشاء متجر"
+    "createStore": "إنشاء متجر",
+    "storeManagement": "إدارة المتاجر"
   },
   "announcement": {
     "postAnnouncement": "نشر إعلان",

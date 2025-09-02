@@ -237,7 +237,20 @@
     "quickActions": "Quick Actions",
     "addProduct": "Add Product",
     "addFirstProduct": "Add First Product",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "manageStore": "Manage Store",
+    "uploadLogo": "Upload Logo",
+    "uploadBanner": "Upload Banner",
+    "changeLogo": "Change Logo",
+    "changeBanner": "Change Banner",
+    "removeLogo": "Remove Logo",
+    "removeBanner": "Remove Banner",
+    "logoUploadError": "Failed to upload logo",
+    "bannerUploadError": "Failed to upload banner",
+    "fileTooLarge": "File is too large. Maximum size is 5MB.",
+    "invalidFileType": "Invalid file type. Only images are allowed.",
+    "uploadSuccess": "Upload successful",
+    "updateSuccess": "Store updated successfully"
   },
   "common": {
     "cancel": "Cancel",

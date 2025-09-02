@@ -336,26 +336,39 @@ const handleSubmit = async () => {
     successMessage.value = ''
     errorMessage.value = ''
 
-    let logoUrl = formData.logo_url
-    let bannerUrl = formData.banner_url
+    let logoUrl = null
+    let bannerUrl = null
 
-    // Upload new images if they're files
+    // Upload logo if provided
     if (formData.logo_url instanceof File) {
-      const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
-      logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
+      try {
+        const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
+        logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
+      } catch (uploadError) {
+        console.error('Logo upload failed:', uploadError)
+        errorMessage.value = `Logo upload failed: ${uploadError.message}`
+        return
+      }
     }
 
+    // Upload banner if provided
     if (formData.banner_url instanceof File) {
-      const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
-      bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
+      try {
+        const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
+        bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
+      } catch (uploadError) {
+        console.error('Banner upload failed:', uploadError)
+        errorMessage.value = `Banner upload failed: ${uploadError.message}`
+        return
+      }
     }
 
     // Prepare store data with proper null handling for optional fields
     const storeData = {
       name: formData.name.trim(), // Required field
       description: formData.description?.trim() || null, // Optional field
-      logo_url: logoUrl || null, // Optional field 
-      banner_url: bannerUrl || null // Optional field
+      logo_url: logoUrl, // Optional field - will be null if no upload
+      banner_url: bannerUrl // Optional field - will be null if no upload
     }
 
     const newStore = await storeStore.createStore(storeData)
