@@ -224,7 +224,17 @@
     "creatingStore": "Création du Magasin...",
     "storeCreatedSuccessfully": "Votre magasin a été créé avec succès !",
     "storeCreationError": "Impossible de créer votre magasin, veuillez réessayer.",
-    "redirectingToStore": "Redirection vers le tableau de bord de votre magasin..."
+    "redirectingToStore": "Redirection vers le tableau de bord de votre magasin...",
+    "storeDashboard": "Tableau de Bord du Magasin",
+    "manageDashboardDescription": "Gérez votre magasin, vos produits et consultez les analyses",
+    "viewPublicStore": "Voir le Magasin Public",
+    "createdOn": "Créé le",
+    "storeViews": "Vues du Magasin",
+    "totalSales": "Ventes Totales",
+    "quickActions": "Actions Rapides",
+    "addProduct": "Ajouter un Produit",
+    "addFirstProduct": "Ajouter le Premier Produit",
+    "analytics": "Analyses"
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",

@@ -92,15 +92,18 @@ export const useStoreStore = defineStore('store', () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
+      // Prepare store data with proper null handling
+      const storeInsertData = {
+        owner_id: user.id,
+        name: storeData.name,
+        description: storeData.description || null,
+        logo_url: storeData.logo_url || null,
+        banner_url: storeData.banner_url || null
+      }
+
       const { data, error: createError } = await supabase
         .from('stores')
-        .insert({
-          owner_id: user.id,
-          name: storeData.name,
-          description: storeData.description,
-          logo_url: storeData.logo_url,
-          banner_url: storeData.banner_url
-        })
+        .insert(storeInsertData)
         .select()
         .single()
 

@@ -160,7 +160,17 @@
     "creatingStore": "جاري إنشاء المتجر...",
     "storeCreatedSuccessfully": "تم إنشاء متجرك بنجاح!",
     "storeCreationError": "لا يمكن إنشاء متجرك، يرجى المحاولة مرة أخرى.",
-    "redirectingToStore": "جاري التوجيه إلى لوحة تحكم متجرك..."
+    "redirectingToStore": "جاري التوجيه إلى لوحة تحكم متجرك...",
+    "storeDashboard": "لوحة تحكم المتجر",
+    "manageDashboardDescription": "أدر متجرك ومنتجاتك واطلع على التحليلات",
+    "viewPublicStore": "عرض المتجر العام",
+    "createdOn": "تم الإنشاء في",
+    "storeViews": "مشاهدات المتجر",
+    "totalSales": "إجمالي المبيعات",
+    "quickActions": "الإجراءات السريعة",
+    "addProduct": "إضافة منتج",
+    "addFirstProduct": "إضافة أول منتج",
+    "analytics": "التحليلات"
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",

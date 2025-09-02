@@ -267,10 +267,12 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/store'
 import { useProductStore } from '../stores/product'
 
 const $router = useRouter()
+const { t: $t } = useI18n()
 const storeStore = useStoreStore()
 const productStore = useProductStore()
 
@@ -372,12 +374,15 @@ const handleSubmit = async () => {
         banner_url: bannerUrl
       })
     } else {
-      const newStore = await storeStore.createStore({
-        name: formData.name,
-        description: formData.description,
-        logo_url: logoUrl,
-        banner_url: bannerUrl
-      })
+      // Prepare store data with proper null handling for optional fields
+      const storeData = {
+        name: formData.name.trim(), // Required field
+        description: formData.description?.trim() || null, // Optional field
+        logo_url: logoUrl || null, // Optional field 
+        banner_url: bannerUrl || null // Optional field
+      }
+
+      const newStore = await storeStore.createStore(storeData)
       
       // Redirect to store dashboard for new stores
       $router.push(`/dashboard/store/${newStore.id}`)
@@ -387,7 +392,7 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('Error saving store:', error)
     // Show error to user - could be improved with toast notifications
-    alert(error.message || 'Failed to save store')
+    alert(error.message || $t('stores.storeCreationError'))
   }
 }
 

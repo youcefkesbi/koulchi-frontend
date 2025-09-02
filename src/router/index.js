@@ -16,6 +16,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
+import StoreDashboard from '../views/StoreDashboard.vue'
 import NotFound from '../views/NotFound.vue'
 
 // Supported locales configuration
@@ -120,7 +121,7 @@ const baseRoutes = [
   {
     path: '/dashboard/store/:id',
     name: 'StoreDashboard',
-    component: StoreDetail,
+    component: StoreDashboard,
     props: true,
     meta: { requiresAuth: true }
   }

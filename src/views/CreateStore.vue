@@ -350,12 +350,15 @@ const handleSubmit = async () => {
       bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
     }
 
-    const newStore = await storeStore.createStore({
-      name: formData.name,
-      description: formData.description,
-      logo_url: logoUrl,
-      banner_url: bannerUrl
-    })
+    // Prepare store data with proper null handling for optional fields
+    const storeData = {
+      name: formData.name.trim(), // Required field
+      description: formData.description?.trim() || null, // Optional field
+      logo_url: logoUrl || null, // Optional field 
+      banner_url: bannerUrl || null // Optional field
+    }
+
+    const newStore = await storeStore.createStore(storeData)
 
     // Show success message
     successMessage.value = $t('stores.storeCreatedSuccessfully')
