@@ -14,7 +14,7 @@
           <div class="border-b border-gray-200 pb-6">
             <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('profile.personalInfo') }}</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 gap-6">
               <!-- Full Name -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
@@ -26,40 +26,10 @@
                 />
                 <p class="text-xs text-gray-500 mt-1">{{ $t('profile.fullNameNote') }}</p>
               </div>
-
-              <!-- Phone Number -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.phone') }}</label>
-                <input
-                  v-model="profileForm.phone"
-                  type="tel"
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                  :placeholder="$t('profile.phonePlaceholder')"
-                />
-                <p class="text-xs text-gray-500 mt-1">{{ $t('profile.phoneNote') }}</p>
-              </div>
             </div>
           </div>
 
-          <!-- Contact Information Section -->
-          <div class="border-b border-gray-200 pb-6">
-            <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('profile.contactInfo') }}</h2>
-            
-            <div class="grid grid-cols-1 gap-6">
-              <!-- Email -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.email') }}</label>
-                <input
-                  v-model="profileForm.email"
-                  type="email"
-                  disabled
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-                  :placeholder="$t('profile.emailPlaceholder')"
-                />
-                <p class="text-xs text-gray-500 mt-1">{{ $t('profile.emailNote') }}</p>
-              </div>
-            </div>
-          </div>
+
 
           <!-- Action Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 pt-6">
@@ -114,9 +84,7 @@ const successMessage = ref('')
 const errorMessage = ref('')
 
 const profileForm = reactive({
-  fullName: '',
-  phone: '',
-  email: ''
+  fullName: ''
 })
 
 // Load user profile data
@@ -134,10 +102,6 @@ const loadProfile = async () => {
         // Fallback to auth store data
         profileForm.fullName = authStore.user.full_name || ''
       }
-      
-      // Phone and email are always from auth store (auth.users)
-      profileForm.phone = authStore.user.phone || ''
-      profileForm.email = authStore.user.email || ''
     }
   } catch (error) {
     console.error('Error loading profile:', error)

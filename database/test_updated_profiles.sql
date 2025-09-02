@@ -1,4 +1,4 @@
--- Test script for updated profile system (phone_number removed)
+-- Test script for simplified profile system (full_name only)
 -- Run this as an authenticated user to verify the functionality
 
 -- 1. Test SELECT policy - should return current user's profile
@@ -51,7 +51,7 @@ SET
     full_name = 'Updated Test User',
     updated_at = NOW()
 WHERE id = auth.uid()
-RETURNING id, full_name, phone_number, updated_at;
+RETURNING id, full_name, updated_at;
 
 -- 8. Final verification
 -- Show the current state of the user's profile
