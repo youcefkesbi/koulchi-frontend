@@ -165,8 +165,7 @@ export const useAuthStore = defineStore('auth', () => {
           .insert({
             id: data.user.id,
             full_name: userData.full_name || 'User',
-            role: 'user',
-            city: userData.city || ''
+            role: 'user'
           })
 
         if (profileError) {
@@ -299,8 +298,7 @@ export const useAuthStore = defineStore('auth', () => {
         const profileData = {
           user_id: user.value.id,
           full_name: userData.full_name || null,
-          role: 'user',
-          city: userData.city || null
+          role: 'user'
         }
 
         const { data: newProfile, error: createError } = await supabase
@@ -423,7 +421,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Only load essential profile fields to avoid recursion
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, city, role')
+        .select('id, full_name, role')
         .eq('id', authUser.id)
         .single()
 
@@ -438,7 +436,6 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = { 
           ...authUser, 
           full_name: profile.full_name,
-          city: profile.city,
           role: profile.role
         }
       } else {

@@ -17,7 +17,7 @@ export function useProfile() {
 
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, city, role, updated_at')
+        .select('id, full_name, role, updated_at')
         .eq('id', authStore.user.id)
         .single()
 
@@ -49,10 +49,9 @@ export function useProfile() {
         .insert({
           id: authStore.user.id,
           full_name: authStore.user.email?.split('@')[0] || 'User',
-          role: 'user',
-          city: ''
+          role: 'user'
         })
-        .select('id, full_name, city, role, updated_at')
+        .select('id, full_name, role, updated_at')
         .single()
 
       if (createError) {
@@ -79,13 +78,10 @@ export function useProfile() {
         throw new Error('No authenticated user')
       }
 
-      // Validate updates - only allow specific fields
+      // Validate updates - only allow full_name field
       const allowedUpdates = {}
       if (updates.full_name !== undefined) {
         allowedUpdates.full_name = updates.full_name
-      }
-      if (updates.city !== undefined) {
-        allowedUpdates.city = updates.city
       }
 
       if (Object.keys(allowedUpdates).length === 0) {
@@ -100,7 +96,7 @@ export function useProfile() {
         .from('profiles')
         .update(allowedUpdates)
         .eq('id', authStore.user.id)
-        .select('id, full_name, city, role, updated_at')
+        .select('id, full_name, role, updated_at')
         .single()
 
       if (updateError) {
@@ -154,10 +150,9 @@ export function useProfile() {
         .insert({
           id: userId,
           full_name: userData.full_name || userData.email?.split('@')[0] || 'User',
-          role: 'user',
-          city: userData.city || ''
+          role: 'user'
         })
-        .select('id, full_name, city, role, updated_at')
+        .select('id, full_name, role, updated_at')
         .single()
 
       if (createError) {

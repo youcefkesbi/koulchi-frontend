@@ -14,7 +14,7 @@
           <div class="border-b border-gray-200 pb-6">
             <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('profile.personalInfo') }}</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 gap-6">
               <!-- Full Name -->
               <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
@@ -24,42 +24,6 @@
                   required
                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
                   :placeholder="$t('profile.fullNamePlaceholder')"
-                />
-              </div>
-
-              <!-- Email -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.email') }}</label>
-                <input
-                  v-model="profileForm.email"
-                  type="email"
-                  required
-                  disabled
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-                  :placeholder="$t('profile.emailPlaceholder')"
-                />
-                <p class="text-xs text-gray-500 mt-1">{{ $t('profile.emailNote') }}</p>
-              </div>
-
-
-
-
-            </div>
-          </div>
-
-          <!-- Address Information Section -->
-          <div class="border-b border-gray-200 pb-6">
-            <h2 class="text-2xl font-bold text-dark mb-6">{{ $t('profile.addressInfo') }}</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- City -->
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.city') }}</label>
-                <input
-                  v-model="profileForm.city"
-                  type="text"
-                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                  :placeholder="$t('profile.cityPlaceholder')"
                 />
               </div>
             </div>
@@ -118,9 +82,7 @@ const successMessage = ref('')
 const errorMessage = ref('')
 
 const profileForm = reactive({
-  fullName: '',
-  email: '',
-  city: ''
+  fullName: ''
 })
 
 // Load user profile data
@@ -134,15 +96,10 @@ const loadProfile = async () => {
       
       if (profile) {
         profileForm.fullName = profile.full_name || ''
-        profileForm.city = profile.city || ''
       } else {
         // Fallback to auth store data
         profileForm.fullName = authStore.user.full_name || ''
-        profileForm.city = authStore.user.city || ''
       }
-      
-      // Email is always from auth store
-      profileForm.email = authStore.user.email || ''
     }
   } catch (error) {
     console.error('Error loading profile:', error)
@@ -158,8 +115,7 @@ const handleUpdateProfile = async () => {
     errorMessage.value = ''
 
     const result = await updateProfile({
-      full_name: profileForm.fullName,
-      city: profileForm.city
+      full_name: profileForm.fullName
     })
 
     if (result) {
