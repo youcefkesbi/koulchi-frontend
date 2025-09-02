@@ -9,7 +9,7 @@
 
       <!-- Profile Form -->
       <div class="bg-white rounded-3xl shadow-soft p-8">
-        <form @submit.prevent="saveProfile" class="space-y-6">
+        <form @submit.prevent="updateProfile" class="space-y-6">
           <!-- Full Name Field -->
           <div>
             <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
@@ -82,27 +82,31 @@ const fetchProfile = async () => {
       return
     }
 
-    // Fetch profile from database
+    // Fetch existing profile from database (should exist since auto-created on signup)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
       .eq('id', user.id)
       .single()
 
-    if (profileError && profileError.code !== 'PGRST116') {
+    if (profileError) {
       console.error('Error fetching profile:', profileError)
+      isError.value = true
+      message.value = 'Error loading profile'
       return
     }
 
-    // Set full name if profile exists, otherwise keep empty
-    fullName.value = profile?.full_name || ''
+    // Prefill the full name input
+    fullName.value = profile.full_name || ''
   } catch (error) {
     console.error('Error in fetchProfile:', error)
+    isError.value = true
+    message.value = 'Error loading profile'
   }
 }
 
-// Save profile using upsert
-const saveProfile = async () => {
+// Update profile function
+const updateProfile = async () => {
   try {
     loading.value = true
     message.value = ''
@@ -115,18 +119,16 @@ const saveProfile = async () => {
       throw new Error('Not authenticated')
     }
 
-    // Upsert profile
-    const { error: upsertError } = await supabase
+    // Update profile - only full_name field
+    const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({
-        id: user.id,
-        full_name: fullName.value
-      }, {
-        onConflict: 'id'
+      .update({ 
+        full_name: fullName.value 
       })
+      .eq('id', user.id)
 
-    if (upsertError) {
-      throw upsertError
+    if (updateError) {
+      throw updateError
     }
 
     // Success
@@ -138,9 +140,9 @@ const saveProfile = async () => {
     }, 3000)
 
   } catch (error) {
-    console.error('Error saving profile:', error)
+    console.error('Error updating profile:', error)
     isError.value = true
-    message.value = error.message || 'Error saving profile'
+    message.value = error.message || 'Error updating profile'
   } finally {
     loading.value = false
   }

@@ -35,8 +35,8 @@ ON profiles
 FOR DELETE
 USING (auth.uid() = id);
 
--- Optional: admins full access
-CREATE POLICY "Admins full access"
-ON profiles
-FOR ALL
-USING (EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role = 'admin'));
+-- Admins full access (using JWT metadata)
+create policy "Admins full access"
+on profiles
+for all
+using (auth.jwt()->>'role' = 'admin');
