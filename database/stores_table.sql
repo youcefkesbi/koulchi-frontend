@@ -31,7 +31,7 @@ create policy "users can update their own store"
 on stores
 for update
 to authenticated
-using (user_id = auth.uid())
+using (owner_id = auth.uid())
 with check (owner_id = auth.uid());
 
 create policy "users can delete their own store"

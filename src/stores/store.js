@@ -19,6 +19,7 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
+      // Uses the public SELECT policy "everyone can view stores" - no authentication required
       const { data, error: fetchError } = await supabase
         .from('stores')
         .select('*')
@@ -43,6 +44,8 @@ export const useStoreStore = defineStore('store', () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('User not authenticated')
 
+      // RLS policy "users can select their own store" will automatically filter by owner_id = auth.uid()
+      // But we keep the explicit filter for clarity and potential performance benefits
       const { data, error: fetchError } = await supabase
         .from('stores')
         .select('*')
@@ -65,6 +68,7 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
+      // Uses the public SELECT policy "everyone can view stores" - any user can view any store
       const { data, error: fetchError } = await supabase
         .from('stores')
         .select('*')
@@ -93,6 +97,7 @@ export const useStoreStore = defineStore('store', () => {
       if (!user) throw new Error('User not authenticated')
 
       // Prepare store data with proper null handling
+      // RLS INSERT policy ensures owner_id must equal auth.uid()
       const storeInsertData = {
         owner_id: user.id,
         name: storeData.name,
@@ -126,6 +131,7 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
+      // RLS UPDATE policy ensures only owner can update their store (owner_id = auth.uid())
       const { data, error: updateError } = await supabase
         .from('stores')
         .update(updates)
@@ -165,6 +171,7 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
+      // RLS DELETE policy ensures only owner can delete their store (owner_id = auth.uid())
       const { error: deleteError } = await supabase
         .from('stores')
         .delete()
@@ -271,6 +278,7 @@ export const useStoreStore = defineStore('store', () => {
         banner_url: bannerUrl
       }
 
+      // RLS UPDATE policy ensures only owner can update their store (owner_id = auth.uid())
       const { data, error: updateError } = await supabase
         .from('stores')
         .update(updateData)

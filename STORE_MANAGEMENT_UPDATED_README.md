@@ -342,6 +342,45 @@ CREATE TABLE public.stores (
 );
 ```
 
+### Row Level Security (RLS) Policies
+```sql
+-- Users can insert their own store
+create policy "users can insert their own store"
+on stores
+for insert
+to authenticated
+with check (owner_id = auth.uid());
+
+-- Users can select their own store
+create policy "users can select their own store"
+on stores
+for select
+to authenticated
+using (owner_id = auth.uid());
+
+-- Users can update their own store
+create policy "users can update their own store"
+on stores
+for update
+to authenticated
+using (owner_id = auth.uid())
+with check (owner_id = auth.uid());
+
+-- Users can delete their own store
+create policy "users can delete their own store"
+on stores
+for delete
+to authenticated
+using (owner_id = auth.uid());
+
+-- Everyone can view stores (for public browsing)
+create policy "everyone can view stores"
+on stores
+for select
+to public
+using (true);
+```
+
 ## Storage Buckets
 
 ### Required Supabase Storage Buckets
@@ -440,7 +479,12 @@ CREATE TABLE public.stores (
 - **User authentication**: Only authenticated users can upload files
 
 ### Database Security
-- **Row Level Security (RLS)**: Users can only access their own stores
+- **Row Level Security (RLS)**: Multi-layered access control with specific policies:
+  - **INSERT**: Users can only create stores with their own `owner_id`
+  - **SELECT (authenticated)**: Users can access their own stores  
+  - **SELECT (public)**: Everyone can view all stores (for browsing)
+  - **UPDATE**: Users can only update their own stores
+  - **DELETE**: Users can only delete their own stores
 - **Foreign key constraints**: `owner_id` references `auth.users(id)`
 - **Cascade deletion**: Store deletion removes associated images
 
