@@ -93,34 +93,120 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
-      // Prepare store data with proper null handling
-      // RLS INSERT policy ensures owner_id must equal auth.uid()
-      const storeInsertData = {
-        owner_id: user.id,
-        name: storeData.name,
-        description: storeData.description || null,
-        logo_url: storeData.logo_url || null,
-        banner_url: storeData.banner_url || null
+      // 1. Enhanced Authentication Validation
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError) {
+        console.error('Authentication error:', authError)
+        throw new Error('Authentication failed. Please log in again.')
+      }
+      
+      if (!user || !user.id) {
+        throw new Error('User not authenticated. Please log in to create a store.')
       }
 
+      // 2. Enhanced Input Validation
+      if (!storeData || typeof storeData !== 'object') {
+        throw new Error('Invalid store data provided')
+      }
+
+      const storeName = storeData.name?.trim()
+      if (!storeName || storeName.length === 0) {
+        throw new Error('Store name is required')
+      }
+
+      if (storeName.length > 100) {
+        throw new Error('Store name must be less than 100 characters')
+      }
+
+      const storeDescription = storeData.description?.trim() || null
+      if (storeDescription && storeDescription.length > 500) {
+        throw new Error('Store description must be less than 500 characters')
+      }
+
+      // 3. Prepare store data with proper validation and null handling
+      // Only include fields that should be inserted (no id, created_at, updated_at)
+      const storeInsertData = {
+        owner_id: user.id, // Required: set to authenticated user's ID
+        name: storeName, // Required: validated store name
+        description: storeDescription, // Optional: null if empty
+        logo_url: storeData.logo_url || null, // Optional: null if not provided
+        banner_url: storeData.banner_url || null // Optional: null if not provided
+      }
+
+      console.log('Creating store with data:', { 
+        ...storeInsertData, 
+        owner_id: '***' // Hide user ID in logs for security
+      })
+
+      // 4. Database Insert with Enhanced Error Handling
       const { data, error: createError } = await supabase
         .from('stores')
         .insert(storeInsertData)
         .select()
         .single()
 
-      if (createError) throw createError
+      if (createError) {
+        console.error('Database insert error:', createError)
+        
+        // Provide user-friendly error messages based on error type
+        if (createError.code === '23505') {
+          // Unique constraint violation
+          if (createError.message.includes('unique_owner')) {
+            throw new Error('You already have a store. Each user can only create one store.')
+          }
+          throw new Error('This store name is already taken. Please choose a different name.')
+        } else if (createError.code === '23503') {
+          // Foreign key constraint violation
+          throw new Error('Invalid user account. Please log out and log in again.')
+        } else if (createError.code === '42501') {
+          // Permission denied
+          throw new Error('Permission denied. Please ensure you have the necessary permissions to create a store.')
+        } else if (createError.message?.includes('permission denied')) {
+          throw new Error('Permission denied. Database permissions may not be properly configured.')
+        } else {
+          throw new Error(`Failed to create store: ${createError.message}`)
+        }
+      }
 
-      userStores.value.unshift(data)
-      stores.value.unshift(data)
+      if (!data) {
+        throw new Error('Store was created but no data was returned. Please refresh the page.')
+      }
+
+      console.log('Store created successfully:', data.id)
+
+      // 5. Update Local State (Optimistic Updates)
+      try {
+        // Add to user stores (at the beginning for newest first)
+        if (Array.isArray(userStores.value)) {
+          userStores.value.unshift(data)
+        } else {
+          userStores.value = [data]
+        }
+
+        // Add to all stores (at the beginning for newest first)
+        if (Array.isArray(stores.value)) {
+          stores.value.unshift(data)
+        } else {
+          stores.value = [data]
+        }
+      } catch (stateError) {
+        console.warn('Error updating local state:', stateError)
+        // Don't throw here as the store was successfully created
+      }
+
       return data
     } catch (err) {
-      error.value = err.message
-      console.error('Error creating store:', err)
-      throw err
+      // Enhanced Error Handling
+      const errorMessage = err.message || 'An unexpected error occurred while creating the store'
+      error.value = errorMessage
+      console.error('Error creating store:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint
+      })
+      throw new Error(errorMessage)
     } finally {
       loading.value = false
     }

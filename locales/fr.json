@@ -204,10 +204,7 @@
     "storeDescriptionPlaceholder": "Décrivez votre magasin et ce que vous proposez",
     "storeLogo": "Logo du Magasin",
     "storeBanner": "Bannière du Magasin",
-    "uploadLogo": "Télécharger le Logo",
-    "changeLogo": "Changer le Logo",
-    "uploadBanner": "Télécharger la Bannière",
-    "changeBanner": "Changer la Bannière",
+
     "logoPreview": "Aperçu du Logo",
     "bannerPreview": "Aperçu de la Bannière",
     "products": "Produits",
@@ -247,7 +244,14 @@
     "fileTooLarge": "Le fichier est trop volumineux. La taille maximale est de 5 Mo.",
     "invalidFileType": "Type de fichier invalide. Seules les images sont autorisées.",
     "uploadSuccess": "Téléchargement réussi",
-    "updateSuccess": "Magasin mis à jour avec succès"
+    "updateSuccess": "Magasin mis à jour avec succès",
+    "storeNameRequired": "Le nom du magasin est requis",
+    "storeNameTooLong": "Le nom du magasin doit comporter moins de 100 caractères",
+    "storeDescriptionTooLong": "La description du magasin doit comporter moins de 500 caractères",
+    "authenticationError": "Veuillez vous connecter pour créer un magasin",
+    "permissionError": "Permission refusée. Veuillez vérifier les permissions de votre compte.",
+    "storeAlreadyExists": "Vous avez déjà un magasin. Chaque utilisateur ne peut créer qu'un seul magasin.",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion internet et réessayer."
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",

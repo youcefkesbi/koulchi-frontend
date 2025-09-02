@@ -336,45 +336,107 @@ const handleSubmit = async () => {
     successMessage.value = ''
     errorMessage.value = ''
 
+    // 1. Enhanced Form Validation
+    const storeName = formData.name?.trim()
+    if (!storeName) {
+      errorMessage.value = $t('stores.storeNameRequired') || 'Store name is required'
+      return
+    }
+
+    if (storeName.length > 100) {
+      errorMessage.value = $t('stores.storeNameTooLong') || 'Store name must be less than 100 characters'
+      return
+    }
+
+    const storeDescription = formData.description?.trim()
+    if (storeDescription && storeDescription.length > 500) {
+      errorMessage.value = $t('stores.storeDescriptionTooLong') || 'Store description must be less than 500 characters'
+      return
+    }
+
     let logoUrl = null
     let bannerUrl = null
 
-    // Upload logo if provided
+    // 2. Enhanced Image Upload with Better Error Handling
     if (formData.logo_url instanceof File) {
       try {
-        const fileName = `logo-${Date.now()}-${formData.logo_url.name}`
+        // Validate file before upload
+        if (formData.logo_url.size > 5 * 1024 * 1024) {
+          throw new Error($t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.')
+        }
+        
+        if (!formData.logo_url.type.startsWith('image/')) {
+          throw new Error($t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.')
+        }
+
+        const fileName = `logo-${Date.now()}-${Math.random().toString(36).substring(2)}-${formData.logo_url.name}`
         logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
+        
+        console.log('Logo uploaded successfully:', logoUrl)
       } catch (uploadError) {
         console.error('Logo upload failed:', uploadError)
-        errorMessage.value = `Logo upload failed: ${uploadError.message}`
+        errorMessage.value = `${$t('stores.logoUploadError') || 'Logo upload failed'}: ${uploadError.message}`
         return
       }
     }
 
-    // Upload banner if provided
     if (formData.banner_url instanceof File) {
       try {
-        const fileName = `banner-${Date.now()}-${formData.banner_url.name}`
+        // Validate file before upload
+        if (formData.banner_url.size > 5 * 1024 * 1024) {
+          throw new Error($t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.')
+        }
+        
+        if (!formData.banner_url.type.startsWith('image/')) {
+          throw new Error($t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.')
+        }
+
+        const fileName = `banner-${Date.now()}-${Math.random().toString(36).substring(2)}-${formData.banner_url.name}`
         bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
+        
+        console.log('Banner uploaded successfully:', bannerUrl)
       } catch (uploadError) {
         console.error('Banner upload failed:', uploadError)
-        errorMessage.value = `Banner upload failed: ${uploadError.message}`
+        errorMessage.value = `${$t('stores.bannerUploadError') || 'Banner upload failed'}: ${uploadError.message}`
         return
       }
     }
 
-    // Prepare store data with proper null handling for optional fields
+    // 3. Prepare Store Data with Validated Input
     const storeData = {
-      name: formData.name.trim(), // Required field
-      description: formData.description?.trim() || null, // Optional field
-      logo_url: logoUrl, // Optional field - will be null if no upload
-      banner_url: bannerUrl // Optional field - will be null if no upload
+      name: storeName, // Required: validated store name
+      description: storeDescription || null, // Optional: null if empty
+      logo_url: logoUrl, // Optional: null if no upload
+      banner_url: bannerUrl // Optional: null if no upload
     }
 
+    console.log('Submitting store data:', {
+      ...storeData,
+      description: storeData.description ? 'Present' : 'Null',
+      logo_url: storeData.logo_url ? 'Present' : 'Null',
+      banner_url: storeData.banner_url ? 'Present' : 'Null'
+    })
+
+    // 4. Create Store with Enhanced Error Handling
     const newStore = await storeStore.createStore(storeData)
 
-    // Show success message
-    successMessage.value = $t('stores.storeCreatedSuccessfully')
+    if (!newStore || !newStore.id) {
+      throw new Error('Store creation failed: No store data returned')
+    }
+
+    console.log('Store created successfully:', newStore.id)
+
+    // 5. Success Handling
+    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!'
+    
+    // Clear form data on success
+    formData.name = ''
+    formData.description = ''
+    formData.logo_url = ''
+    formData.banner_url = ''
+    logoPreview.value = ''
+    bannerPreview.value = ''
+    currentStep.value = 1
     
     // Redirect to store dashboard after a short delay
     setTimeout(() => {
@@ -383,7 +445,23 @@ const handleSubmit = async () => {
 
   } catch (error) {
     console.error('Error creating store:', error)
-    errorMessage.value = error.message || $t('stores.storeCreationError')
+    
+    // Enhanced Error Message Handling
+    let userFriendlyMessage = ''
+    
+    if (error.message.includes('User not authenticated')) {
+      userFriendlyMessage = $t('stores.authenticationError') || 'Please log in to create a store'
+    } else if (error.message.includes('permission denied')) {
+      userFriendlyMessage = $t('stores.permissionError') || 'Permission denied. Please check your account permissions.'
+    } else if (error.message.includes('already have a store')) {
+      userFriendlyMessage = $t('stores.storeAlreadyExists') || 'You already have a store. Each user can only create one store.'
+    } else if (error.message.includes('network') || error.message.includes('fetch')) {
+      userFriendlyMessage = $t('stores.networkError') || 'Network error. Please check your internet connection and try again.'
+    } else {
+      userFriendlyMessage = error.message || $t('stores.storeCreationError') || 'Could not create your store, please try again.'
+    }
+    
+    errorMessage.value = userFriendlyMessage
   } finally {
     loading.value = false
   }

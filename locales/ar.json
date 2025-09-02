@@ -140,10 +140,7 @@
     "storeDescriptionPlaceholder": "صف متجرك وما تقدمه",
     "storeLogo": "شعار المتجر",
     "storeBanner": "لافتة المتجر",
-    "uploadLogo": "رفع الشعار",
-    "changeLogo": "تغيير الشعار",
-    "uploadBanner": "رفع اللافتة",
-    "changeBanner": "تغيير اللافتة",
+
     "logoPreview": "معاينة الشعار",
     "bannerPreview": "معاينة اللافتة",
     "products": "المنتجات",
@@ -183,7 +180,14 @@
     "fileTooLarge": "الملف كبير جداً. الحد الأقصى للحجم هو 5 ميجابايت.",
     "invalidFileType": "نوع ملف غير صالح. الصور فقط مسموحة.",
     "uploadSuccess": "تم الرفع بنجاح",
-    "updateSuccess": "تم تحديث المتجر بنجاح"
+    "updateSuccess": "تم تحديث المتجر بنجاح",
+    "storeNameRequired": "اسم المتجر مطلوب",
+    "storeNameTooLong": "يجب أن يكون اسم المتجر أقل من 100 حرف",
+    "storeDescriptionTooLong": "يجب أن يكون وصف المتجر أقل من 500 حرف",
+    "authenticationError": "يرجى تسجيل الدخول لإنشاء متجر",
+    "permissionError": "تم رفض الإذن. يرجى التحقق من أذونات حسابك.",
+    "storeAlreadyExists": "لديك متجر بالفعل. يمكن لكل مستخدم إنشاء متجر واحد فقط.",
+    "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى."
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",

@@ -207,10 +207,7 @@
     "storeDescriptionPlaceholder": "Describe your store and what you offer",
     "storeLogo": "Store Logo",
     "storeBanner": "Store Banner",
-    "uploadLogo": "Upload Logo",
-    "changeLogo": "Change Logo",
-    "uploadBanner": "Upload Banner",
-    "changeBanner": "Change Banner",
+
     "logoPreview": "Logo Preview",
     "bannerPreview": "Banner Preview",
     "products": "Products",
@@ -250,7 +247,14 @@
     "fileTooLarge": "File is too large. Maximum size is 5MB.",
     "invalidFileType": "Invalid file type. Only images are allowed.",
     "uploadSuccess": "Upload successful",
-    "updateSuccess": "Store updated successfully"
+    "updateSuccess": "Store updated successfully",
+    "storeNameRequired": "Store name is required",
+    "storeNameTooLong": "Store name must be less than 100 characters",
+    "storeDescriptionTooLong": "Store description must be less than 500 characters",
+    "authenticationError": "Please log in to create a store",
+    "permissionError": "Permission denied. Please check your account permissions.",
+    "storeAlreadyExists": "You already have a store. Each user can only create one store.",
+    "networkError": "Network error. Please check your internet connection and try again."
   },
   "common": {
     "cancel": "Cancel",
