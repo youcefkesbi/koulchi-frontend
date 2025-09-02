@@ -166,14 +166,16 @@ export const useAuthStore = defineStore('auth', () => {
             id: data.user.id,
             full_name: userData.full_name || 'User',
             role: 'user',
-            city: userData.city || null
+            city: userData.city || ''
           })
 
         if (profileError) {
-          // Profile creation failed silently
+          console.error('Profile creation failed during signup:', profileError)
+          // Profile creation failed, but don't fail the entire signup
         }
       } catch (profileInsertError) {
-        // Profile creation failed silently
+        console.error('Profile creation error during signup:', profileInsertError)
+        // Profile creation failed, but don't fail the entire signup
       }
     }
 

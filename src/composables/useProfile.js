@@ -56,7 +56,8 @@ export function useProfile() {
         .single()
 
       if (createError) {
-        throw createError
+        console.error('Profile creation error:', createError)
+        throw new Error(createError.message || 'Failed to create profile')
       }
 
       return data
@@ -94,6 +95,7 @@ export function useProfile() {
       // Add updated_at timestamp
       allowedUpdates.updated_at = new Date().toISOString()
 
+      // Always include the user ID in the where clause for RLS policies
       const { data, error: updateError } = await supabase
         .from('profiles')
         .update(allowedUpdates)
@@ -102,7 +104,8 @@ export function useProfile() {
         .single()
 
       if (updateError) {
-        throw updateError
+        console.error('Profile update error:', updateError)
+        throw new Error(updateError.message || 'Failed to update profile')
       }
 
       // Update local auth store user data
@@ -115,9 +118,9 @@ export function useProfile() {
     } catch (err) {
       console.error('Error updating profile:', err)
       error.value = err.message
-      throw err
-    } finally {
+      // Ensure loading state is reset on error
       loading.value = false
+      throw err
     }
   }
 
@@ -139,6 +142,37 @@ export function useProfile() {
     }
   }
 
+  // Create profile during signup (for use in auth store)
+  const createProfileOnSignup = async (userId, userData = {}) => {
+    try {
+      if (!userId) {
+        throw new Error('User ID is required')
+      }
+
+      const { data, error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          full_name: userData.full_name || userData.email?.split('@')[0] || 'User',
+          role: 'user',
+          city: userData.city || ''
+        })
+        .select('id, full_name, city, role, updated_at')
+        .single()
+
+      if (createError) {
+        console.error('Signup profile creation error:', createError)
+        throw new Error(createError.message || 'Failed to create profile during signup')
+      }
+
+      return data
+    } catch (err) {
+      console.error('Error creating profile during signup:', err)
+      error.value = err.message
+      throw err
+    }
+  }
+
   // Clear error and success states
   const clearStates = () => {
     error.value = null
@@ -154,6 +188,7 @@ export function useProfile() {
     // Actions
     getProfile,
     createProfile,
+    createProfileOnSignup,
     updateProfile,
     refreshProfile,
     clearStates

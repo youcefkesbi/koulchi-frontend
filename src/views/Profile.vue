@@ -93,6 +93,12 @@
         <div v-if="errorMessage" class="mt-6 p-4 bg-red-100 text-red-700 rounded-xl text-center">
           {{ errorMessage }}
         </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="mt-6 p-4 bg-blue-100 text-blue-700 rounded-xl text-center">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
+          Updating profile...
+        </div>
       </div>
     </div>
   </div>
@@ -166,6 +172,8 @@ const handleUpdateProfile = async () => {
   } catch (error) {
     console.error('Error updating profile:', error)
     errorMessage.value = error.message || 'Error updating profile'
+    // Ensure loading state is reset on error
+    clearStates()
   }
 }
 
