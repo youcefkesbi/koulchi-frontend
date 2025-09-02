@@ -163,8 +163,11 @@ const addToCart = async (product) => {
 const removeFromWishlist = async (wishlistItemId) => {
   try {
     await wishlistStore.removeFromWishlist(wishlistItemId)
+    // Success - item is already removed from UI (optimistic update)
   } catch (error) {
     console.error('Failed to remove from wishlist:', error)
+    // Show error message to user
+    alert(t('wishlist.removeError') || 'Failed to remove item from wishlist')
   }
 }
 

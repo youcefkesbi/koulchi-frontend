@@ -176,14 +176,13 @@ class WishlistService {
   /**
    * Remove item from wishlist in Supabase
    */
-  async removeFromSupabaseWishlist(userId, productId) {
-    console.log('Removing wishlist item with user_id:', userId, 'product_id:', productId)
+  async removeFromSupabaseWishlist(productId) {
+    console.log('Removing wishlist item with product_id:', productId)
     
     try {
       const { error } = await supabase
         .from('wishlist')
         .delete()
-        .eq('user_id', userId)
         .eq('product_id', productId)
 
       if (error) {

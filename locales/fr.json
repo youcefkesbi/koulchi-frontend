@@ -541,6 +541,7 @@
     "emptyMessage": "Commencez à ajouter des produits à votre liste de souhaits",
     "addToWishlist": "Ajouter à la Liste de Souhaits",
     "removeFromWishlist": "Retirer de la Liste de Souhaits",
+    "removeError": "Échec de la suppression de l'article de la liste de souhaits",
     "clearWishlist": "Vider la Liste de Souhaits",
     "clearConfirm": "Êtes-vous sûr de vouloir vider votre liste de souhaits ?",
     "continueShopping": "Continuer les Achats",

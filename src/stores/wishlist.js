@@ -71,15 +71,17 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const removeFromWishlist = async (wishlistItemId) => {
     try {
-      // Find the product ID from the wishlist item
-      const item = wishlistItems.value.find(item => item.id === wishlistItemId);
-      if (!item) throw new Error('Wishlist item not found');
+      // Find the wishlist item to remove
+      const itemIndex = wishlistItems.value.findIndex(item => item.id === wishlistItemId);
+      if (itemIndex === -1) throw new Error('Wishlist item not found');
       
-      // Use the wishlist service to remove item
+      const item = wishlistItems.value[itemIndex];
+      
+      // Use the wishlist service to remove item from database
       await wishlistService.removeItem(item.product_id);
       
-      // Refresh wishlist items
-      await fetchWishlist();
+      // Update local state immediately (optimistic update)
+      wishlistItems.value.splice(itemIndex, 1);
       
       return true;
     } catch (err) {
@@ -90,11 +92,18 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const removeProductFromWishlist = async (productId) => {
     try {
-      // Use the wishlist service to remove item
+      // Find and remove all items with this product ID
+      const itemsToRemove = wishlistItems.value.filter(item => item.product_id === productId);
+      
+      if (itemsToRemove.length === 0) {
+        throw new Error('Product not found in wishlist');
+      }
+      
+      // Remove from database
       await wishlistService.removeItem(productId);
       
-      // Refresh wishlist items
-      await fetchWishlist();
+      // Update local state immediately
+      wishlistItems.value = wishlistItems.value.filter(item => item.product_id !== productId);
       
       return true;
     } catch (err) {
