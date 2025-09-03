@@ -299,6 +299,7 @@ export const useStoreStore = defineStore('store', () => {
         throw new Error('File size must be less than 5MB')
       }
 
+      // Upload file to Supabase storage
       const { data, error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(fileName, file, {
@@ -306,11 +307,29 @@ export const useStoreStore = defineStore('store', () => {
           upsert: false
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError)
+        
+        // Provide specific error messages based on error type
+        if (uploadError.message?.includes('already exists')) {
+          throw new Error('A file with this name already exists. Please try again.')
+        } else if (uploadError.message?.includes('permission denied')) {
+          throw new Error('Permission denied. Please check your account permissions.')
+        } else if (uploadError.message?.includes('quota')) {
+          throw new Error('Storage quota exceeded. Please contact support.')
+        } else {
+          throw new Error(`Upload failed: ${uploadError.message}`)
+        }
+      }
 
+      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from(bucketName)
         .getPublicUrl(fileName)
+
+      if (!publicUrl) {
+        throw new Error('Failed to get public URL for uploaded file')
+      }
 
       return publicUrl
     } catch (err) {
@@ -337,25 +356,71 @@ export const useStoreStore = defineStore('store', () => {
     }
   }
 
+  const createStoreWithImages = async (storeData, logoFile = null, bannerFile = null) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      // Upload images in parallel for better performance
+      const uploadPromises = []
+      
+      if (logoFile instanceof File) {
+        const fileName = `logo-${Date.now()}-${Math.random().toString(36).substring(2)}-${logoFile.name}`
+        uploadPromises.push(uploadStoreImage(logoFile, 'stores-logos', fileName))
+      } else {
+        uploadPromises.push(Promise.resolve(null))
+      }
+
+      if (bannerFile instanceof File) {
+        const fileName = `banner-${Date.now()}-${Math.random().toString(36).substring(2)}-${bannerFile.name}`
+        uploadPromises.push(uploadStoreImage(bannerFile, 'stores-banners', fileName))
+      } else {
+        uploadPromises.push(Promise.resolve(null))
+      }
+
+      const [logoUrl, bannerUrl] = await Promise.all(uploadPromises)
+
+      // Prepare store data with uploaded image URLs
+      const finalStoreData = {
+        ...storeData,
+        logo_url: logoUrl,
+        banner_url: bannerUrl
+      }
+
+      // Create store using existing createStore function
+      return await createStore(finalStoreData)
+    } catch (err) {
+      error.value = err.message
+      console.error('Error creating store with images:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const updateStoreWithImages = async (storeId, updates, logoFile = null, bannerFile = null) => {
     try {
       loading.value = true
       error.value = null
 
-      let logoUrl = updates.logo_url
-      let bannerUrl = updates.banner_url
-
-      // Handle logo upload if provided
+      // Upload images in parallel for better performance
+      const uploadPromises = []
+      
       if (logoFile instanceof File) {
         const fileName = `logo-${storeId}-${Date.now()}-${logoFile.name}`
-        logoUrl = await uploadStoreImage(logoFile, 'stores-logos', fileName)
+        uploadPromises.push(uploadStoreImage(logoFile, 'stores-logos', fileName))
+      } else {
+        uploadPromises.push(Promise.resolve(updates.logo_url))
       }
 
-      // Handle banner upload if provided
       if (bannerFile instanceof File) {
         const fileName = `banner-${storeId}-${Date.now()}-${bannerFile.name}`
-        bannerUrl = await uploadStoreImage(bannerFile, 'stores-banners', fileName)
+        uploadPromises.push(uploadStoreImage(bannerFile, 'stores-banners', fileName))
+      } else {
+        uploadPromises.push(Promise.resolve(updates.banner_url))
       }
+
+      const [logoUrl, bannerUrl] = await Promise.all(uploadPromises)
 
       // Update store data with new URLs
       const updateData = {
@@ -424,6 +489,7 @@ export const useStoreStore = defineStore('store', () => {
     fetchUserStores,
     fetchStoreById,
     createStore,
+    createStoreWithImages,
     updateStore,
     deleteStore,
     uploadStoreImage,

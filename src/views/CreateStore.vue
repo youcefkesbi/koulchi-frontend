@@ -124,9 +124,13 @@
                   v-model="formData.name"
                   type="text"
                   required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                  :class="[
+                    'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors',
+                    validationErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'
+                  ]"
                   :placeholder="$t('stores.storeNamePlaceholder')"
                 />
+                <p v-if="validationErrors.name" class="text-red-600 text-sm mt-1">{{ validationErrors.name }}</p>
               </div>
 
               <div>
@@ -136,9 +140,13 @@
                 <textarea
                   v-model="formData.description"
                   rows="4"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none"
+                  :class="[
+                    'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none',
+                    validationErrors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'
+                  ]"
                   :placeholder="$t('stores.storeDescriptionPlaceholder')"
                 ></textarea>
+                <p v-if="validationErrors.description" class="text-red-600 text-sm mt-1">{{ validationErrors.description }}</p>
                 <p class="text-sm text-gray-500 mt-1">{{ $t('stores.descriptionHelp') }}</p>
               </div>
             </div>
@@ -183,6 +191,7 @@
                     {{ logoPreview ? $t('stores.changeLogo') : $t('stores.uploadLogo') }}
                   </button>
                   <p class="text-sm text-gray-500">{{ $t('stores.logoHelp') }}</p>
+                  <p v-if="validationErrors.logo" class="text-red-600 text-sm mt-1">{{ validationErrors.logo }}</p>
                 </div>
               </div>
 
@@ -222,6 +231,7 @@
                     {{ bannerPreview ? $t('stores.changeBanner') : $t('stores.uploadBanner') }}
                   </button>
                   <p class="text-sm text-gray-500">{{ $t('stores.bannerHelp') }}</p>
+                  <p v-if="validationErrors.banner" class="text-red-600 text-sm mt-1">{{ validationErrors.banner }}</p>
                 </div>
               </div>
             </div>
@@ -275,7 +285,7 @@
                   v-if="currentStep < 3"
                   type="button"
                   @click="nextStep"
-                  :disabled="!canProceed"
+                  :disabled="!isStepValid"
                   class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {{ $t('common.next') }}
@@ -301,7 +311,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/store'
@@ -310,10 +320,11 @@ const router = useRouter()
 const { t: $t } = useI18n()
 const storeStore = useStoreStore()
 
+// Step management
 const currentStep = ref(1)
-const logoPreview = ref('')
-const bannerPreview = ref('')
+const stepLoading = ref(false)
 
+// Form data
 const formData = reactive({
   name: '',
   description: '',
@@ -321,16 +332,115 @@ const formData = reactive({
   banner_url: ''
 })
 
+// Image previews
+const logoPreview = ref('')
+const bannerPreview = ref('')
+
+// UI state
+const loading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+
+// Validation
+const validationErrors = reactive({
+  name: '',
+  description: '',
+  logo: '',
+  banner: ''
+})
+
+// Computed properties
 const canProceed = computed(() => {
   if (currentStep.value === 1) {
-    return formData.name.trim().length > 0
+    return formData.name.trim().length > 0 && !validationErrors.name
   }
   return true
 })
 
+const isStepValid = computed(() => {
+  switch (currentStep.value) {
+    case 1:
+      return formData.name.trim().length > 0 && !validationErrors.name
+    case 2:
+      return true // Images are optional
+    case 3:
+      return canProceed.value
+    default:
+      return false
+  }
+})
+
+// Watch for form changes to clear errors
+watch(() => formData.name, () => {
+  if (validationErrors.name) {
+    validationErrors.name = ''
+  }
+})
+
+watch(() => formData.description, () => {
+  if (validationErrors.description) {
+    validationErrors.description = ''
+  }
+})
+
+// Validation functions
+const validateForm = () => {
+  const errors = { name: '', description: '', logo: '', banner: '' }
+  
+  // Validate store name
+  const name = formData.name?.trim()
+  if (!name) {
+    errors.name = $t('stores.storeNameRequired') || 'Store name is required'
+  } else if (name.length > 100) {
+    errors.name = $t('stores.storeNameTooLong') || 'Store name must be less than 100 characters'
+  }
+  
+  // Validate description
+  const description = formData.description?.trim()
+  if (description && description.length > 500) {
+    errors.description = $t('stores.storeDescriptionTooLong') || 'Store description must be less than 500 characters'
+  }
+  
+  // Validate logo file
+  if (formData.logo_url instanceof File) {
+    if (formData.logo_url.size > 5 * 1024 * 1024) {
+      errors.logo = $t('stores.fileTooLarge') || 'Logo file is too large. Maximum size is 5MB.'
+    } else if (!formData.logo_url.type.startsWith('image/')) {
+      errors.logo = $t('stores.invalidFileType') || 'Invalid logo file type. Only images are allowed.'
+    }
+  }
+  
+  // Validate banner file
+  if (formData.banner_url instanceof File) {
+    if (formData.banner_url.size > 5 * 1024 * 1024) {
+      errors.banner = $t('stores.fileTooLarge') || 'Banner file is too large. Maximum size is 5MB.'
+    } else if (!formData.banner_url.type.startsWith('image/')) {
+      errors.banner = $t('stores.invalidFileType') || 'Invalid banner file type. Only images are allowed.'
+    }
+  }
+  
+  Object.assign(validationErrors, errors)
+  return !Object.values(errors).some(error => error !== '')
+}
+
+// Image handling functions
 const handleLogoChange = (event) => {
   const file = event.target.files[0]
   if (file) {
+    // Clear previous validation error
+    validationErrors.logo = ''
+    
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      validationErrors.logo = $t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.'
+      return
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      validationErrors.logo = $t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.'
+      return
+    }
+    
     logoPreview.value = URL.createObjectURL(file)
     formData.logo_url = file
   }
@@ -339,23 +449,46 @@ const handleLogoChange = (event) => {
 const handleBannerChange = (event) => {
   const file = event.target.files[0]
   if (file) {
+    // Clear previous validation error
+    validationErrors.banner = ''
+    
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      validationErrors.banner = $t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.'
+      return
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      validationErrors.banner = $t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.'
+      return
+    }
+    
     bannerPreview.value = URL.createObjectURL(file)
     formData.banner_url = file
   }
 }
 
 const removeLogo = () => {
+  if (logoPreview.value) {
+    URL.revokeObjectURL(logoPreview.value)
+  }
   logoPreview.value = ''
   formData.logo_url = ''
+  validationErrors.logo = ''
 }
 
 const removeBanner = () => {
+  if (bannerPreview.value) {
+    URL.revokeObjectURL(bannerPreview.value)
+  }
   bannerPreview.value = ''
   formData.banner_url = ''
+  validationErrors.banner = ''
 }
 
+// Step navigation
 const nextStep = () => {
-  if (currentStep.value < 3) {
+  if (currentStep.value < 3 && isStepValid.value) {
     currentStep.value++
   }
 }
@@ -366,144 +499,107 @@ const previousStep = () => {
   }
 }
 
-const loading = ref(false)
-const successMessage = ref('')
-const errorMessage = ref('')
+// Cleanup function
+const cleanup = () => {
+  if (logoPreview.value) {
+    URL.revokeObjectURL(logoPreview.value)
+  }
+  if (bannerPreview.value) {
+    URL.revokeObjectURL(bannerPreview.value)
+  }
+}
 
+// Main store creation function
 const handleSubmit = async () => {
   try {
     loading.value = true
     successMessage.value = ''
     errorMessage.value = ''
 
-    // 1. Enhanced Form Validation
-    const storeName = formData.name?.trim()
-    if (!storeName) {
-      errorMessage.value = $t('stores.storeNameRequired') || 'Store name is required'
+    // 1. Validate form data
+    if (!validateForm()) {
+      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.'
       return
     }
 
-    if (storeName.length > 100) {
-      errorMessage.value = $t('stores.storeNameTooLong') || 'Store name must be less than 100 characters'
-      return
-    }
-
-    const storeDescription = formData.description?.trim()
-    if (storeDescription && storeDescription.length > 500) {
-      errorMessage.value = $t('stores.storeDescriptionTooLong') || 'Store description must be less than 500 characters'
-      return
-    }
-
-    let logoUrl = null
-    let bannerUrl = null
-
-    // 2. Enhanced Image Upload with Better Error Handling
-    if (formData.logo_url instanceof File) {
-      try {
-        // Validate file before upload
-        if (formData.logo_url.size > 5 * 1024 * 1024) {
-          throw new Error($t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.')
-        }
-        
-        if (!formData.logo_url.type.startsWith('image/')) {
-          throw new Error($t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.')
-        }
-
-        const fileName = `logo-${Date.now()}-${Math.random().toString(36).substring(2)}-${formData.logo_url.name}`
-        logoUrl = await storeStore.uploadStoreImage(formData.logo_url, 'stores-logos', fileName)
-        
-        console.log('Logo uploaded successfully:', logoUrl)
-      } catch (uploadError) {
-        console.error('Logo upload failed:', uploadError)
-        errorMessage.value = `${$t('stores.logoUploadError') || 'Logo upload failed'}: ${uploadError.message}`
-        return
-      }
-    }
-
-    if (formData.banner_url instanceof File) {
-      try {
-        // Validate file before upload
-        if (formData.banner_url.size > 5 * 1024 * 1024) {
-          throw new Error($t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.')
-        }
-        
-        if (!formData.banner_url.type.startsWith('image/')) {
-          throw new Error($t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.')
-        }
-
-        const fileName = `banner-${Date.now()}-${Math.random().toString(36).substring(2)}-${formData.banner_url.name}`
-        bannerUrl = await storeStore.uploadStoreImage(formData.banner_url, 'stores-banners', fileName)
-        
-        console.log('Banner uploaded successfully:', bannerUrl)
-      } catch (uploadError) {
-        console.error('Banner upload failed:', uploadError)
-        errorMessage.value = `${$t('stores.bannerUploadError') || 'Banner upload failed'}: ${uploadError.message}`
-        return
-      }
-    }
-
-    // 3. Prepare Store Data with Validated Input
+    // 2. Prepare store data
     const storeData = {
-      name: storeName, // Required: validated store name
-      description: storeDescription || null, // Optional: null if empty
-      logo_url: logoUrl, // Optional: null if no upload
-      banner_url: bannerUrl // Optional: null if no upload
+      name: formData.name.trim(),
+      description: formData.description?.trim() || null
     }
 
-    console.log('Submitting store data:', {
-      ...storeData,
+    console.log('Creating store with data:', {
+      name: storeData.name,
       description: storeData.description ? 'Present' : 'Null',
-      logo_url: storeData.logo_url ? 'Present' : 'Null',
-      banner_url: storeData.banner_url ? 'Present' : 'Null'
+      logo: formData.logo_url instanceof File ? 'File provided' : 'No file',
+      banner: formData.banner_url instanceof File ? 'File provided' : 'No file'
     })
 
-    // 4. Create Store with Enhanced Error Handling
-    const newStore = await storeStore.createStore(storeData)
+    // 3. Create store with images using optimized function
+    const newStore = await storeStore.createStoreWithImages(
+      storeData,
+      formData.logo_url instanceof File ? formData.logo_url : null,
+      formData.banner_url instanceof File ? formData.banner_url : null
+    )
 
-    if (!newStore || !newStore.id) {
+    if (!newStore?.id) {
       throw new Error('Store creation failed: No store data returned')
     }
 
     console.log('Store created successfully:', newStore.id)
 
-    // 5. Success Handling
+    // 4. Success handling
     successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!'
     
-    // Clear form data on success
-    formData.name = ''
-    formData.description = ''
-    formData.logo_url = ''
-    formData.banner_url = ''
-    logoPreview.value = ''
-    bannerPreview.value = ''
-    currentStep.value = 1
+    // Clean up and reset form
+    cleanup()
+    resetForm()
     
-    // Redirect to store dashboard after a short delay
+    // Redirect to store dashboard
     setTimeout(() => {
       router.push(`/dashboard/store/${newStore.id}`)
     }, 1500)
 
   } catch (error) {
     console.error('Error creating store:', error)
-    
-    // Enhanced Error Message Handling
-    let userFriendlyMessage = ''
-    
-    if (error.message.includes('User not authenticated')) {
-      userFriendlyMessage = $t('stores.authenticationError') || 'Please log in to create a store'
-    } else if (error.message.includes('permission denied')) {
-      userFriendlyMessage = $t('stores.permissionError') || 'Permission denied. Please check your account permissions.'
-    } else if (error.message.includes('already have a store')) {
-      userFriendlyMessage = $t('stores.storeAlreadyExists') || 'You already have a store. Each user can only create one store.'
-    } else if (error.message.includes('network') || error.message.includes('fetch')) {
-      userFriendlyMessage = $t('stores.networkError') || 'Network error. Please check your internet connection and try again.'
-    } else {
-      userFriendlyMessage = error.message || $t('stores.storeCreationError') || 'Could not create your store, please try again.'
-    }
-    
-    errorMessage.value = userFriendlyMessage
+    errorMessage.value = getErrorMessage(error)
   } finally {
     loading.value = false
   }
+}
+
+// Error message helper
+const getErrorMessage = (error) => {
+  const message = error.message || ''
+  
+  if (message.includes('User not authenticated')) {
+    return $t('stores.authenticationError') || 'Please log in to create a store'
+  } else if (message.includes('permission denied')) {
+    return $t('stores.permissionError') || 'Permission denied. Please check your account permissions.'
+  } else if (message.includes('already have a store')) {
+    return $t('stores.storeAlreadyExists') || 'You already have a store. Each user can only create one store.'
+  } else if (message.includes('network') || message.includes('fetch')) {
+    return $t('stores.networkError') || 'Network error. Please check your internet connection and try again.'
+  } else if (message.includes('upload')) {
+    return $t('stores.uploadError') || 'Failed to upload images. Please try again.'
+  } else {
+    return message || $t('stores.storeCreationError') || 'Could not create your store, please try again.'
+  }
+}
+
+// Form reset helper
+const resetForm = () => {
+  formData.name = ''
+  formData.description = ''
+  formData.logo_url = ''
+  formData.banner_url = ''
+  logoPreview.value = ''
+  bannerPreview.value = ''
+  currentStep.value = 1
+  
+  // Clear validation errors
+  Object.keys(validationErrors).forEach(key => {
+    validationErrors[key] = ''
+  })
 }
 </script>
