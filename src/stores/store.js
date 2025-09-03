@@ -41,8 +41,18 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session || !session.user) {
+        console.log('Fetch user stores request: User not authenticated')
+        throw new Error('User not authenticated')
+      }
+      
+      console.log('Fetch user stores request: User authenticated', { 
+        userId: session.user.id, 
+        email: session.user.email 
+      })
+      
+      const user = session.user
 
       // Uses the public SELECT policy but with explicit filter by owner_id
       // This ensures we only get the user's own stores
@@ -93,17 +103,25 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
-      // 1. Enhanced Authentication Validation
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      // 1. Enhanced Authentication Validation using getSession()
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (authError) {
-        console.error('Authentication error:', authError)
+      if (sessionError) {
+        console.error('Session error:', sessionError)
         throw new Error('Authentication failed. Please log in again.')
       }
       
-      if (!user || !user.id) {
-        throw new Error('User not authenticated. Please log in to create a store.')
+      if (!session || !session.user) {
+        console.log('Store creation request: User not authenticated')
+        throw new Error('User not authenticated')
       }
+      
+      console.log('Store creation request: User authenticated', { 
+        userId: session.user.id, 
+        email: session.user.email 
+      })
+      
+      const user = session.user
 
       // 2. Enhanced Input Validation
       if (!storeData || typeof storeData !== 'object') {
@@ -360,6 +378,24 @@ export const useStoreStore = defineStore('store', () => {
     try {
       loading.value = true
       error.value = null
+
+      // 1. Enhanced Authentication Validation using getSession()
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError)
+        throw new Error('Authentication failed. Please log in again.')
+      }
+      
+      if (!session || !session.user) {
+        console.log('Store creation with images request: User not authenticated')
+        throw new Error('User not authenticated')
+      }
+      
+      console.log('Store creation with images request: User authenticated', { 
+        userId: session.user.id, 
+        email: session.user.email 
+      })
 
       // Upload images in parallel for better performance
       const uploadPromises = []
