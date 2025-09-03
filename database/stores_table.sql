@@ -11,7 +11,7 @@ CREATE TABLE public.stores (
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL,
 );
 
--- Enable Row Level Security
+-- Enable Row Level Security --
 ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 
 create policy "users can insert their own store"
