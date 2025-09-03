@@ -341,7 +341,7 @@ CREATE TABLE public.stores (
   CONSTRAINT unique_owner UNIQUE(owner_id)
 );
 ```
-
+--
 ### Row Level Security (RLS) Policies
 ```sql
 -- Users can insert their own store
