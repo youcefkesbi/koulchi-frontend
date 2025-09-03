@@ -28,18 +28,58 @@
           <div class="mb-8">
             <div class="flex items-center justify-center space-x-8">
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                <span class="text-sm font-medium text-gray-600">{{ $t('stores.basicInfo') }}</span>
+                <div 
+                  :class="[
+                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                    currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
+                  ]"
+                >1</div>
+                <span 
+                  :class="[
+                    'text-sm font-medium',
+                    currentStep >= 1 ? 'text-gray-600' : 'text-gray-400'
+                  ]"
+                >{{ $t('stores.basicInfo') }}</span>
               </div>
-              <div class="w-16 h-0.5 bg-gray-200"></div>
+              <div 
+                :class="[
+                  'w-16 h-0.5',
+                  currentStep >= 2 ? 'bg-primary' : 'bg-gray-200'
+                ]"
+              ></div>
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                <span class="text-sm font-medium text-gray-400">{{ $t('stores.images') }}</span>
+                <div 
+                  :class="[
+                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                    currentStep >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
+                  ]"
+                >2</div>
+                <span 
+                  :class="[
+                    'text-sm font-medium',
+                    currentStep >= 2 ? 'text-gray-600' : 'text-gray-400'
+                  ]"
+                >{{ $t('stores.images') }}</span>
               </div>
-              <div class="w-16 h-0.5 bg-gray-200"></div>
+              <div 
+                :class="[
+                  'w-16 h-0.5',
+                  currentStep >= 3 ? 'bg-primary' : 'bg-gray-200'
+                ]"
+              ></div>
               <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                <span class="text-sm font-medium text-gray-400">{{ $t('stores.review') }}</span>
+                <div 
+                  :class="[
+                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                    currentStep >= 3 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
+                  ]"
+                >3</div>
+                <span 
+                  :class="[
+                    'text-sm font-medium',
+                    currentStep >= 3 ? 'text-gray-600' : 'text-gray-400'
+                  ]"
+                >{{ $t('stores.review') }}</span>
               </div>
             </div>
           </div>
