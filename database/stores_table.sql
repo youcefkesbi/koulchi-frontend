@@ -2,7 +2,6 @@ CREATE TABLE public.stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE, -- store owner
-
   name TEXT NOT NULL,
   description TEXT,
   logo_url TEXT,
@@ -14,7 +13,6 @@ CREATE TABLE public.stores (
 
 -- Enable Row Level Security
 ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
-
 
 create policy "users can insert their own store"
 on stores
