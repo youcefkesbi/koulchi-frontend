@@ -23,7 +23,14 @@
     <!-- Store Creation Form -->
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-soft p-8">
+        <!-- Authentication Loading State -->
+        <div v-if="!isAuthenticated && !user" class="bg-white rounded-2xl shadow-soft p-8 text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <p class="text-gray-600">{{ $t('common.loading') || 'Loading...' }}</p>
+        </div>
+        
+        <!-- Main Form (only show when authenticated) -->
+        <div v-else class="bg-white rounded-2xl shadow-soft p-8">
           <!-- Progress Steps -->
           <div class="mb-8">
             <div class="flex items-center justify-center space-x-8">
@@ -311,14 +318,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useStoreStore } from '../stores/store'
+import { supabase } from '../lib/supabase'
 
 const router = useRouter()
 const { t: $t } = useI18n()
-const storeStore = useStoreStore()
 
 // Step management
 const currentStep = ref(1)
@@ -341,6 +347,12 @@ const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
+// Authentication state
+const user = ref(null)
+const session = ref(null)
+const isAuthenticated = ref(false)
+const authSubscription = ref(null)
+
 // Validation
 const validationErrors = reactive({
   name: '',
@@ -348,6 +360,91 @@ const validationErrors = reactive({
   logo: '',
   banner: ''
 })
+
+// Authentication functions
+const validateSession = async () => {
+  try {
+    // Get current session
+    const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      throw new Error('Authentication failed. Please log in again.')
+    }
+    
+    // Check if session exists
+    if (!currentSession || !currentSession.user) {
+      console.log('No valid session found')
+      return null
+    }
+    
+    // Check if token is expired and refresh if needed
+    const now = Math.floor(Date.now() / 1000)
+    if (currentSession.expires_at && currentSession.expires_at < now) {
+      console.log('Token expired, attempting refresh...')
+      
+      // Attempt to refresh the session
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+      
+      if (refreshError || !refreshData.session) {
+        console.log('Session refresh failed:', refreshError)
+        return null
+      }
+      
+      console.log('Session refreshed successfully')
+      session.value = refreshData.session
+      user.value = refreshData.session.user
+      isAuthenticated.value = true
+      return refreshData.session
+    }
+    
+    // Session is valid
+    session.value = currentSession
+    user.value = currentSession.user
+    isAuthenticated.value = true
+    
+    console.log('Valid session found', { 
+      userId: currentSession.user.id, 
+      email: currentSession.user.email,
+      expiresAt: new Date(currentSession.expires_at * 1000).toISOString()
+    })
+    
+    return currentSession
+  } catch (err) {
+    console.error('Session validation error:', err)
+    session.value = null
+    user.value = null
+    isAuthenticated.value = false
+    return null
+  }
+}
+
+const requireAuth = async () => {
+  const currentSession = await validateSession()
+  
+  if (!currentSession) {
+    const error = new Error('User not authenticated')
+    error.code = 'AUTH_REQUIRED'
+    throw error
+  }
+  
+  return currentSession
+}
+
+const handleAuthError = (error) => {
+  console.error('Authentication error:', error)
+  
+  // Clear local state
+  user.value = null
+  session.value = null
+  isAuthenticated.value = false
+  
+  // Redirect to login
+  const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+  router.push(`/${currentLocale}/login`)
+  
+  throw new Error('Please log in to continue')
+}
 
 // Computed properties
 const canProceed = computed(() => {
@@ -509,6 +606,213 @@ const cleanup = () => {
   }
 }
 
+// Store creation functions with proper authentication
+const uploadStoreImage = async (file, bucketName, fileName) => {
+  try {
+    // Validate session first
+    const currentSession = await requireAuth()
+
+    // Validate bucket name
+    if (bucketName !== 'stores-logos' && bucketName !== 'stores-banners') {
+      throw new Error(`Invalid bucket name: ${bucketName}. Must be 'stores-logos' or 'stores-banners'`)
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('File must be an image')
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      throw new Error('File size must be less than 5MB')
+    }
+
+    console.log('Uploading image:', { bucketName, fileName, fileSize: file.size })
+
+    // Upload file to Supabase storage (JWT automatically attached)
+    const { data, error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError)
+      
+      if (uploadError.message?.includes('already exists')) {
+        throw new Error('A file with this name already exists. Please try again.')
+      } else if (uploadError.message?.includes('permission denied')) {
+        throw new Error('Permission denied. Please check your account permissions.')
+      } else if (uploadError.message?.includes('quota')) {
+        throw new Error('Storage quota exceeded. Please contact support.')
+      } else {
+        throw new Error(`Upload failed: ${uploadError.message}`)
+      }
+    }
+
+    // Get public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName)
+
+    if (!publicUrl) {
+      throw new Error('Failed to get public URL for uploaded file')
+    }
+
+    console.log('Image uploaded successfully:', publicUrl)
+    return publicUrl
+  } catch (err) {
+    console.error('Error uploading image:', err)
+    
+    // Handle auth errors
+    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
+      handleAuthError(err)
+    }
+    
+    throw new Error(`Failed to upload image: ${err.message}`)
+  }
+}
+
+const createStore = async (storeData) => {
+  try {
+    // Validate session first
+    const currentSession = await requireAuth()
+
+    // Input validation
+    if (!storeData || typeof storeData !== 'object') {
+      throw new Error('Invalid store data provided')
+    }
+
+    const storeName = storeData.name?.trim()
+    if (!storeName || storeName.length === 0) {
+      throw new Error('Store name is required')
+    }
+
+    if (storeName.length > 100) {
+      throw new Error('Store name must be less than 100 characters')
+    }
+
+    const storeDescription = storeData.description?.trim() || null
+    if (storeDescription && storeDescription.length > 500) {
+      throw new Error('Store description must be less than 500 characters')
+    }
+
+    // Prepare store data
+    const storeInsertData = {
+      owner_id: currentSession.user.id, // Uses authenticated user's ID
+      name: storeName,
+      description: storeDescription,
+      logo_url: storeData.logo_url || null,
+      banner_url: storeData.banner_url || null
+    }
+
+    console.log('Creating store with data:', { 
+      ...storeInsertData, 
+      owner_id: '***' // Hide user ID in logs for security
+    })
+
+    // Database insert using Supabase client (JWT automatically attached)
+    const { data, error: createError } = await supabase
+      .from('stores')
+      .insert(storeInsertData)
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('Database insert error:', createError)
+      
+      // Handle specific error types
+      if (createError.code === '23505') {
+        if (createError.message.includes('unique_owner')) {
+          throw new Error('You already have a store. Each user can only create one store.')
+        }
+        throw new Error('This store name is already taken. Please choose a different name.')
+      } else if (createError.code === '23503') {
+        throw new Error('Invalid user account. Please log out and log in again.')
+      } else if (createError.code === '42501') {
+        throw new Error('Permission denied. Please ensure you have the necessary permissions to create a store.')
+      } else {
+        throw new Error(`Failed to create store: ${createError.message}`)
+      }
+    }
+
+    if (!data) {
+      throw new Error('Store was created but no data was returned. Please refresh the page.')
+    }
+
+    console.log('Store created successfully:', data.id)
+    return data
+  } catch (err) {
+    const errorMessage = err.message || 'An unexpected error occurred while creating the store'
+    console.error('Error creating store:', {
+      message: err.message,
+      code: err.code,
+      details: err.details,
+      hint: err.hint
+    })
+    
+    // Handle auth errors
+    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
+      handleAuthError(err)
+    }
+    
+    throw new Error(errorMessage)
+  }
+}
+
+const createStoreWithImages = async (storeData, logoFile = null, bannerFile = null) => {
+  try {
+    // Validate session first
+    await requireAuth()
+
+    console.log('Creating store with images:', {
+      hasLogo: !!logoFile,
+      hasBanner: !!bannerFile,
+      storeName: storeData.name
+    })
+
+    // Upload images in parallel for better performance
+    const uploadPromises = []
+    
+    if (logoFile instanceof File) {
+      const fileName = `logo-${Date.now()}-${Math.random().toString(36).substring(2)}-${logoFile.name}`
+      uploadPromises.push(uploadStoreImage(logoFile, 'stores-logos', fileName))
+    } else {
+      uploadPromises.push(Promise.resolve(null))
+    }
+
+    if (bannerFile instanceof File) {
+      const fileName = `banner-${Date.now()}-${Math.random().toString(36).substring(2)}-${bannerFile.name}`
+      uploadPromises.push(uploadStoreImage(bannerFile, 'stores-banners', fileName))
+    } else {
+      uploadPromises.push(Promise.resolve(null))
+    }
+
+    const [logoUrl, bannerUrl] = await Promise.all(uploadPromises)
+
+    // Prepare store data with uploaded image URLs
+    const finalStoreData = {
+      ...storeData,
+      logo_url: logoUrl,
+      banner_url: bannerUrl
+    }
+
+    // Create store using the main createStore function
+    return await createStore(finalStoreData)
+  } catch (err) {
+    console.error('Error creating store with images:', err)
+    
+    // Handle auth errors
+    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
+      handleAuthError(err)
+    }
+    
+    throw err
+  }
+}
+
 // Main store creation function
 const handleSubmit = async () => {
   try {
@@ -535,8 +839,8 @@ const handleSubmit = async () => {
       banner: formData.banner_url instanceof File ? 'File provided' : 'No file'
     })
 
-    // 3. Create store with images using optimized function
-    const newStore = await storeStore.createStoreWithImages(
+    // 3. Create store with images using our enhanced function
+    const newStore = await createStoreWithImages(
       storeData,
       formData.logo_url instanceof File ? formData.logo_url : null,
       formData.banner_url instanceof File ? formData.banner_url : null
@@ -602,4 +906,72 @@ const resetForm = () => {
     validationErrors[key] = ''
   })
 }
+
+// Initialize authentication and set up auth state listener
+const initAuth = async () => {
+  try {
+    // Get initial session
+    await validateSession()
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log('Auth state change:', event, newSession?.user?.email)
+        
+        if (newSession?.user) {
+          session.value = newSession
+          user.value = newSession.user
+          isAuthenticated.value = true
+          
+          // Handle sign in
+          if (event === 'SIGNED_IN') {
+            console.log('User signed in:', newSession.user.email)
+          }
+        } else {
+          // User signed out or session expired
+          console.log('User signed out or session expired')
+          session.value = null
+          user.value = null
+          isAuthenticated.value = false
+          
+          // Redirect to login if user is not authenticated
+          const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+          router.push(`/${currentLocale}/login`)
+        }
+      }
+    )
+    
+    // Store the subscription for cleanup
+    authSubscription.value = subscription
+    
+    return subscription
+  } catch (err) {
+    console.error('Auth initialization failed:', err)
+    session.value = null
+    user.value = null
+    isAuthenticated.value = false
+  }
+}
+
+// Lifecycle hooks
+onMounted(async () => {
+  // Initialize authentication
+  await initAuth()
+  
+  // Check if user is authenticated, if not redirect to login
+  if (!isAuthenticated.value) {
+    const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+    router.push(`/${currentLocale}/login`)
+  }
+})
+
+onUnmounted(() => {
+  // Clean up auth subscription
+  if (authSubscription.value) {
+    authSubscription.value.unsubscribe()
+  }
+  
+  // Clean up image previews
+  cleanup()
+})
 </script>
