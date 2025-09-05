@@ -147,9 +147,7 @@ export const useStoreStore = defineStore('store', () => {
       const storeInsertData = {
         owner_id: user.id, // Required: set to authenticated user's ID
         name: storeName, // Required: validated store name
-        description: storeDescription, // Optional: null if empty
-        logo_url: storeData.logo_url || null, // Optional: null if not provided
-        banner_url: storeData.banner_url || null // Optional: null if not provided
+        description: storeDescription // Optional: null if empty
       }
 
       console.log('Creating store with data:', { 

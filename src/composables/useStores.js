@@ -226,9 +226,7 @@ export function useStores() {
       const storeInsertData = {
         owner_id: session.user.id, // Uses authenticated user's ID
         name: storeName,
-        description: storeDescription,
-        logo_url: storeData.logo_url || null,
-        banner_url: storeData.banner_url || null
+        description: storeDescription
       }
 
       console.log('Creating store with data:', { 

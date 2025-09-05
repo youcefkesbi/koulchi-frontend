@@ -66,26 +66,6 @@
                     'text-sm font-medium',
                     currentStep >= 2 ? 'text-gray-600' : 'text-gray-400'
                   ]"
-                >{{ $t('stores.images') }}</span>
-              </div>
-              <div 
-                :class="[
-                  'w-16 h-0.5',
-                  currentStep >= 3 ? 'bg-primary' : 'bg-gray-200'
-                ]"
-              ></div>
-              <div class="flex items-center space-x-3">
-                <div 
-                  :class="[
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
-                    currentStep >= 3 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
-                  ]"
-                >3</div>
-                <span 
-                  :class="[
-                    'text-sm font-medium',
-                    currentStep >= 3 ? 'text-gray-600' : 'text-gray-400'
-                  ]"
                 >{{ $t('stores.review') }}</span>
               </div>
             </div>
@@ -158,118 +138,20 @@
               </div>
             </div>
 
-            <!-- Step 2: Images -->
+
+            <!-- Step 2: Review -->
             <div v-if="currentStep === 2" class="space-y-6">
-              <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.images') }}</h2>
-              
-              <!-- Store Logo -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  {{ $t('stores.storeLogo') }}
-                </label>
-                <div class="space-y-3">
-                  <div v-if="logoPreview" class="relative">
-                    <img 
-                      :src="logoPreview" 
-                      :alt="$t('stores.logoPreview')"
-                      class="w-32 h-32 object-cover rounded-xl border border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      @click="removeLogo"
-                      class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                    >
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                  <input
-                    ref="logoInput"
-                    type="file"
-                    accept="image/*"
-                    @change="handleLogoChange"
-                    class="hidden"
-                  />
-                  <button
-                    type="button"
-                    @click="$refs.logoInput.click()"
-                    class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors text-center"
-                  >
-                    <i class="fas fa-upload mr-2"></i>
-                    {{ logoPreview ? $t('stores.changeLogo') : $t('stores.uploadLogo') }}
-                  </button>
-                  <p class="text-sm text-gray-500">{{ $t('stores.logoHelp') }}</p>
-                  <p v-if="validationErrors.logo" class="text-red-600 text-sm mt-1">{{ validationErrors.logo }}</p>
-                </div>
-              </div>
-
-              <!-- Store Banner -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  {{ $t('stores.storeBanner') }}
-                </label>
-                <div class="space-y-3">
-                  <div v-if="bannerPreview" class="relative">
-                    <img 
-                      :src="bannerPreview" 
-                      :alt="$t('stores.bannerPreview')"
-                      class="w-full h-48 object-cover rounded-xl border border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      @click="removeBanner"
-                      class="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                    >
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                  <input
-                    ref="bannerInput"
-                    type="file"
-                    accept="image/*"
-                    @change="handleBannerChange"
-                    class="hidden"
-                  />
-                  <button
-                    type="button"
-                    @click="$refs.bannerInput.click()"
-                    class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors text-center"
-                  >
-                    <i class="fas fa-upload mr-2"></i>
-                    {{ bannerPreview ? $t('stores.changeBanner') : $t('stores.uploadBanner') }}
-                  </button>
-                  <p class="text-sm text-gray-500">{{ $t('stores.bannerHelp') }}</p>
-                  <p v-if="validationErrors.banner" class="text-red-600 text-sm mt-1">{{ validationErrors.banner }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 3: Review -->
-            <div v-if="currentStep === 3" class="space-y-6">
               <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.review') }}</h2>
               
               <div class="bg-gray-50 rounded-xl p-6 space-y-4">
                 <div class="flex items-center space-x-4 space-x-reverse">
                   <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-                    <img 
-                      v-if="logoPreview" 
-                      :src="logoPreview" 
-                      :alt="formData.name"
-                      class="w-full h-full object-cover rounded-xl"
-                    />
-                    <i v-else class="fas fa-store text-white text-2xl"></i>
+                    <i class="fas fa-store text-white text-2xl"></i>
                   </div>
                   <div>
                     <h3 class="text-xl font-bold text-gray-800">{{ formData.name }}</h3>
                     <p class="text-gray-600">{{ formData.description || $t('stores.noDescription') }}</p>
                   </div>
-                </div>
-                
-                <div v-if="bannerPreview" class="w-full h-32 bg-gray-200 rounded-lg overflow-hidden">
-                  <img 
-                    :src="bannerPreview" 
-                    :alt="formData.name"
-                    class="w-full h-full object-cover"
-                  />
                 </div>
               </div>
             </div>
@@ -289,7 +171,7 @@
 
               <div class="flex space-x-3 space-x-reverse">
                 <button
-                  v-if="currentStep < 3"
+                  v-if="currentStep < 2"
                   type="button"
                   @click="nextStep"
                   :disabled="!isStepValid"
@@ -300,7 +182,7 @@
                 </button>
                 
                 <button
-                  v-if="currentStep === 3"
+                  v-if="currentStep === 2"
                   type="submit"
                   :disabled="loading"
                   class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -333,14 +215,8 @@ const stepLoading = ref(false)
 // Form data
 const formData = reactive({
   name: '',
-  description: '',
-  logo_url: '',
-  banner_url: ''
+  description: ''
 })
-
-// Image previews
-const logoPreview = ref('')
-const bannerPreview = ref('')
 
 // UI state
 const loading = ref(false)
@@ -356,9 +232,7 @@ const authSubscription = ref(null)
 // Validation
 const validationErrors = reactive({
   name: '',
-  description: '',
-  logo: '',
-  banner: ''
+  description: ''
 })
 
 // Authentication functions
@@ -459,8 +333,6 @@ const isStepValid = computed(() => {
     case 1:
       return formData.name.trim().length > 0 && !validationErrors.name
     case 2:
-      return true // Images are optional
-    case 3:
       return canProceed.value
     default:
       return false
@@ -482,7 +354,7 @@ watch(() => formData.description, () => {
 
 // Validation functions
 const validateForm = () => {
-  const errors = { name: '', description: '', logo: '', banner: '' }
+  const errors = { name: '', description: '' }
   
   // Validate store name
   const name = formData.name?.trim()
@@ -498,94 +370,14 @@ const validateForm = () => {
     errors.description = $t('stores.storeDescriptionTooLong') || 'Store description must be less than 500 characters'
   }
   
-  // Validate logo file
-  if (formData.logo_url instanceof File) {
-    if (formData.logo_url.size > 5 * 1024 * 1024) {
-      errors.logo = $t('stores.fileTooLarge') || 'Logo file is too large. Maximum size is 5MB.'
-    } else if (!formData.logo_url.type.startsWith('image/')) {
-      errors.logo = $t('stores.invalidFileType') || 'Invalid logo file type. Only images are allowed.'
-    }
-  }
-  
-  // Validate banner file
-  if (formData.banner_url instanceof File) {
-    if (formData.banner_url.size > 5 * 1024 * 1024) {
-      errors.banner = $t('stores.fileTooLarge') || 'Banner file is too large. Maximum size is 5MB.'
-    } else if (!formData.banner_url.type.startsWith('image/')) {
-      errors.banner = $t('stores.invalidFileType') || 'Invalid banner file type. Only images are allowed.'
-    }
-  }
-  
   Object.assign(validationErrors, errors)
   return !Object.values(errors).some(error => error !== '')
 }
 
-// Image handling functions
-const handleLogoChange = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    // Clear previous validation error
-    validationErrors.logo = ''
-    
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      validationErrors.logo = $t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.'
-      return
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      validationErrors.logo = $t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.'
-      return
-    }
-    
-    logoPreview.value = URL.createObjectURL(file)
-    formData.logo_url = file
-  }
-}
-
-const handleBannerChange = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    // Clear previous validation error
-    validationErrors.banner = ''
-    
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      validationErrors.banner = $t('stores.invalidFileType') || 'Invalid file type. Only images are allowed.'
-      return
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      validationErrors.banner = $t('stores.fileTooLarge') || 'File is too large. Maximum size is 5MB.'
-      return
-    }
-    
-    bannerPreview.value = URL.createObjectURL(file)
-    formData.banner_url = file
-  }
-}
-
-const removeLogo = () => {
-  if (logoPreview.value) {
-    URL.revokeObjectURL(logoPreview.value)
-  }
-  logoPreview.value = ''
-  formData.logo_url = ''
-  validationErrors.logo = ''
-}
-
-const removeBanner = () => {
-  if (bannerPreview.value) {
-    URL.revokeObjectURL(bannerPreview.value)
-  }
-  bannerPreview.value = ''
-  formData.banner_url = ''
-  validationErrors.banner = ''
-}
 
 // Step navigation
 const nextStep = () => {
-  if (currentStep.value < 3 && isStepValid.value) {
+  if (currentStep.value < 2 && isStepValid.value) {
     currentStep.value++
   }
 }
@@ -596,84 +388,8 @@ const previousStep = () => {
   }
 }
 
-// Cleanup function
-const cleanup = () => {
-  if (logoPreview.value) {
-    URL.revokeObjectURL(logoPreview.value)
-  }
-  if (bannerPreview.value) {
-    URL.revokeObjectURL(bannerPreview.value)
-  }
-}
 
 // Store creation functions with proper authentication
-const uploadStoreImage = async (file, bucketName, fileName) => {
-  try {
-    // Validate session first
-    const currentSession = await requireAuth()
-
-    // Validate bucket name
-    if (bucketName !== 'stores-logos' && bucketName !== 'stores-banners') {
-      throw new Error(`Invalid bucket name: ${bucketName}. Must be 'stores-logos' or 'stores-banners'`)
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      throw new Error('File must be an image')
-    }
-
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSize) {
-      throw new Error('File size must be less than 5MB')
-    }
-
-    console.log('Uploading image:', { bucketName, fileName, fileSize: file.size })
-
-    // Upload file to Supabase storage (JWT automatically attached)
-    const { data, error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      })
-
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError)
-      
-      if (uploadError.message?.includes('already exists')) {
-        throw new Error('A file with this name already exists. Please try again.')
-      } else if (uploadError.message?.includes('permission denied')) {
-        throw new Error('Permission denied. Please check your account permissions.')
-      } else if (uploadError.message?.includes('quota')) {
-        throw new Error('Storage quota exceeded. Please contact support.')
-      } else {
-        throw new Error(`Upload failed: ${uploadError.message}`)
-      }
-    }
-
-    // Get public URL for the uploaded file
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(fileName)
-
-    if (!publicUrl) {
-      throw new Error('Failed to get public URL for uploaded file')
-    }
-
-    console.log('Image uploaded successfully:', publicUrl)
-    return publicUrl
-  } catch (err) {
-    console.error('Error uploading image:', err)
-    
-    // Handle auth errors
-    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
-      handleAuthError(err)
-    }
-    
-    throw new Error(`Failed to upload image: ${err.message}`)
-  }
-}
 
 const createStore = async (storeData) => {
   try {
@@ -703,9 +419,7 @@ const createStore = async (storeData) => {
     const storeInsertData = {
       owner_id: currentSession.user.id, // Uses authenticated user's ID
       name: storeName,
-      description: storeDescription,
-      logo_url: storeData.logo_url || null,
-      banner_url: storeData.banner_url || null
+      description: storeDescription
     }
 
     console.log('Creating store with data:', { 
@@ -762,56 +476,6 @@ const createStore = async (storeData) => {
   }
 }
 
-const createStoreWithImages = async (storeData, logoFile = null, bannerFile = null) => {
-  try {
-    // Validate session first
-    await requireAuth()
-
-    console.log('Creating store with images:', {
-      hasLogo: !!logoFile,
-      hasBanner: !!bannerFile,
-      storeName: storeData.name
-    })
-
-    // Upload images in parallel for better performance
-    const uploadPromises = []
-    
-    if (logoFile instanceof File) {
-      const fileName = `logo-${Date.now()}-${Math.random().toString(36).substring(2)}-${logoFile.name}`
-      uploadPromises.push(uploadStoreImage(logoFile, 'stores-logos', fileName))
-    } else {
-      uploadPromises.push(Promise.resolve(null))
-    }
-
-    if (bannerFile instanceof File) {
-      const fileName = `banner-${Date.now()}-${Math.random().toString(36).substring(2)}-${bannerFile.name}`
-      uploadPromises.push(uploadStoreImage(bannerFile, 'stores-banners', fileName))
-    } else {
-      uploadPromises.push(Promise.resolve(null))
-    }
-
-    const [logoUrl, bannerUrl] = await Promise.all(uploadPromises)
-
-    // Prepare store data with uploaded image URLs
-    const finalStoreData = {
-      ...storeData,
-      logo_url: logoUrl,
-      banner_url: bannerUrl
-    }
-
-    // Create store using the main createStore function
-    return await createStore(finalStoreData)
-  } catch (err) {
-    console.error('Error creating store with images:', err)
-    
-    // Handle auth errors
-    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
-      handleAuthError(err)
-    }
-    
-    throw err
-  }
-}
 
 // Main store creation function
 const handleSubmit = async () => {
@@ -834,17 +498,11 @@ const handleSubmit = async () => {
 
     console.log('Creating store with data:', {
       name: storeData.name,
-      description: storeData.description ? 'Present' : 'Null',
-      logo: formData.logo_url instanceof File ? 'File provided' : 'No file',
-      banner: formData.banner_url instanceof File ? 'File provided' : 'No file'
+      description: storeData.description ? 'Present' : 'Null'
     })
 
-    // 3. Create store with images using our enhanced function
-    const newStore = await createStoreWithImages(
-      storeData,
-      formData.logo_url instanceof File ? formData.logo_url : null,
-      formData.banner_url instanceof File ? formData.banner_url : null
-    )
+    // 3. Create store
+    const newStore = await createStore(storeData)
 
     if (!newStore?.id) {
       throw new Error('Store creation failed: No store data returned')
@@ -855,8 +513,7 @@ const handleSubmit = async () => {
     // 4. Success handling
     successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!'
     
-    // Clean up and reset form
-    cleanup()
+    // Reset form
     resetForm()
     
     // Redirect to store dashboard
@@ -895,10 +552,6 @@ const getErrorMessage = (error) => {
 const resetForm = () => {
   formData.name = ''
   formData.description = ''
-  formData.logo_url = ''
-  formData.banner_url = ''
-  logoPreview.value = ''
-  bannerPreview.value = ''
   currentStep.value = 1
   
   // Clear validation errors
@@ -970,8 +623,5 @@ onUnmounted(() => {
   if (authSubscription.value) {
     authSubscription.value.unsubscribe()
   }
-  
-  // Clean up image previews
-  cleanup()
 })
 </script>

@@ -163,81 +163,6 @@
               ></textarea>
             </div>
 
-            <!-- Store Logo -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ $t('stores.storeLogo') }}
-              </label>
-              <div class="space-y-3">
-                <div v-if="logoPreview" class="relative">
-                  <img 
-                    :src="logoPreview" 
-                    :alt="$t('stores.logoPreview')"
-                    class="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    @click="removeLogo"
-                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-                <input
-                  ref="logoInput"
-                  type="file"
-                  accept="image/*"
-                  @change="handleLogoChange"
-                  class="hidden"
-                />
-                <button
-                  type="button"
-                  @click="$refs.logoInput.click()"
-                  class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors text-center"
-                >
-                  <i class="fas fa-upload mr-2"></i>
-                  {{ logoPreview ? $t('stores.changeLogo') : $t('stores.uploadLogo') }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Store Banner -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ $t('stores.storeBanner') }}
-              </label>
-              <div class="space-y-3">
-                <div v-if="bannerPreview" class="relative">
-                  <img 
-                    :src="bannerPreview" 
-                    :alt="$t('stores.bannerPreview')"
-                    class="w-full h-32 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    @click="removeBanner"
-                    class="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                  >
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-                <input
-                  ref="bannerInput"
-                  type="file"
-                  accept="image/*"
-                  @change="handleBannerChange"
-                  class="hidden"
-                />
-                <button
-                  type="button"
-                  @click="$refs.bannerInput.click()"
-                  class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors text-center"
-                >
-                  <i class="fas fa-upload mr-2"></i>
-                  {{ bannerPreview ? $t('stores.changeBanner') : $t('stores.uploadBanner') }}
-                </button>
-              </div>
-            </div>
 
             <!-- Form Actions -->
             <div class="flex items-center justify-end space-x-3 space-x-reverse pt-4 border-t border-gray-200">
@@ -278,60 +203,21 @@ const productStore = useProductStore()
 
 const showCreateModal = ref(false)
 const editingStore = ref(null)
-const logoPreview = ref('')
-const bannerPreview = ref('')
 
 const formData = reactive({
   name: '',
-  description: '',
-  logo_url: '',
-  banner_url: ''
+  description: ''
 })
 
 const getStoreProductCount = (storeId) => {
   return productStore.products.filter(p => p.store_id === storeId).length
 }
 
-const handleLogoChange = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    logoPreview.value = URL.createObjectURL(file)
-    formData.logo_url = file
-  }
-}
-
-const handleBannerChange = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    bannerPreview.value = URL.createObjectURL(file)
-    formData.banner_url = file
-  }
-}
-
-const removeLogo = () => {
-  logoPreview.value = ''
-  formData.logo_url = ''
-  if (editingStore.value?.logo_url) {
-    formData.logo_url = editingStore.value.logo_url
-  }
-}
-
-const removeBanner = () => {
-  bannerPreview.value = ''
-  formData.banner_url = ''
-  if (editingStore.value?.banner_url) {
-    formData.banner_url = editingStore.value.banner_url
-  }
-}
 
 const editStore = (store) => {
   editingStore.value = store
   formData.name = store.name
   formData.description = store.description || ''
-  formData.logo_url = store.logo_url || ''
-  formData.banner_url = store.banner_url || ''
-  logoPreview.value = store.logo_url || ''
-  bannerPreview.value = store.banner_url || ''
   showCreateModal.value = true
 }
 
@@ -344,44 +230,21 @@ const closeModal = () => {
 const resetForm = () => {
   formData.name = ''
   formData.description = ''
-  formData.logo_url = ''
-  formData.banner_url = ''
-  logoPreview.value = ''
-  bannerPreview.value = ''
 }
 
 const handleSubmit = async () => {
   try {
-    let logoFile = null
-    let bannerFile = null
-
-    // Check if new files were uploaded
-    if (formData.logo_url instanceof File) {
-      logoFile = formData.logo_url
-    }
-
-    if (formData.banner_url instanceof File) {
-      bannerFile = formData.banner_url
-    }
-
     if (editingStore.value) {
       // Update existing store
-      await storeStore.updateStoreWithImages(
-        editingStore.value.id,
-        {
-          name: formData.name.trim(),
-          description: formData.description?.trim() || null
-        },
-        logoFile,
-        bannerFile
-      )
+      await storeStore.updateStore(editingStore.value.id, {
+        name: formData.name.trim(),
+        description: formData.description?.trim() || null
+      })
     } else {
       // Create new store
       const storeData = {
         name: formData.name.trim(), // Required field
-        description: formData.description?.trim() || null, // Optional field
-        logo_url: null, // Will be set by createStore method
-        banner_url: null // Will be set by createStore method
+        description: formData.description?.trim() || null // Optional field
       }
 
       const newStore = await storeStore.createStore(storeData)
