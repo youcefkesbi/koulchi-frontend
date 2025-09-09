@@ -128,13 +128,41 @@ export const useStoreStore = defineStore('store', () => {
         throw new Error('Invalid store data provided')
       }
 
-      const storeName = storeData.name?.trim()
-      if (!storeName || storeName.length === 0) {
-        throw new Error('Store name is required')
+      // Check if pack is provided
+      if (!storeData.pack_id) {
+        throw new Error('Pack selection is required')
       }
 
-      if (storeName.length > 100) {
-        throw new Error('Store name must be less than 100 characters')
+      // Validate pack limits
+      const { data: packData, error: packError } = await supabase
+        .from('packs')
+        .select('*')
+        .eq('id', storeData.pack_id)
+        .single()
+
+      if (packError || !packData) {
+        throw new Error('Invalid pack selected')
+      }
+
+      // Check if user can create store with this pack
+      const canCreate = await supabase.rpc('can_user_create_store', {
+        p_user_id: user.id,
+        p_pack_name: packData.name
+      })
+
+      if (canCreate.error || !canCreate.data) {
+        throw new Error('You do not have the required verifications for this pack')
+      }
+
+      // Validate store name (only required for Pro Pack)
+      if (packData.name === 'Pro Pack') {
+        const storeName = storeData.name?.trim()
+        if (!storeName || storeName.length === 0) {
+          throw new Error('Store name is required for Pro Pack')
+        }
+        if (storeName.length > 100) {
+          throw new Error('Store name must be less than 100 characters')
+        }
       }
 
       const storeDescription = storeData.description?.trim() || null
@@ -142,12 +170,23 @@ export const useStoreStore = defineStore('store', () => {
         throw new Error('Store description must be less than 500 characters')
       }
 
+      // Validate location
+      if (!storeData.location?.trim()) {
+        throw new Error('Store location is required')
+      }
+
       // 3. Prepare store data with proper validation and null handling
-      // Only include fields that should be inserted (no id, created_at, updated_at)
       const storeInsertData = {
-        owner_id: user.id, // Required: set to authenticated user's ID
-        name: storeName, // Required: validated store name
-        description: storeDescription // Optional: null if empty
+        owner_id: user.id,
+        pack_id: storeData.pack_id,
+        name: packData.name === 'Pro Pack' ? storeData.name?.trim() : null,
+        description: storeDescription,
+        location: storeData.location.trim(),
+        external_buttons: storeData.external_buttons || [],
+        customization_settings: storeData.customization_settings || {},
+        logo_url: storeData.logo_url || null,
+        banner_url: storeData.banner_url || null,
+        status: 'pending' // All stores start as pending for review
       }
 
       console.log('Creating store with data:', { 
@@ -174,7 +213,7 @@ export const useStoreStore = defineStore('store', () => {
           throw new Error('This store name is already taken. Please choose a different name.')
         } else if (createError.code === '23503') {
           // Foreign key constraint violation
-          throw new Error('Invalid user account. Please log out and log in again.')
+          throw new Error('Invalid user account or pack. Please log out and log in again.')
         } else if (createError.code === '42501') {
           // Permission denied
           throw new Error('Permission denied. Please ensure you have the necessary permissions to create a store.')
