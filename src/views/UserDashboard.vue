@@ -9,6 +9,17 @@
           </div>
           <div class="flex items-center space-x-4">
             <span class="text-sm text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</span>
+            <span 
+              v-if="authStore.userRole !== 'user'"
+              :class="[
+                'px-3 py-1 rounded-full text-xs font-medium',
+                authStore.userRole === 'admin' ? 'bg-red-100 text-red-800' :
+                authStore.userRole === 'employee' ? 'bg-blue-100 text-blue-800' :
+                'bg-gray-100 text-gray-800'
+              ]"
+            >
+              {{ authStore.userRole }}
+            </span>
           </div>
         </div>
       </div>
@@ -19,28 +30,18 @@
       <div class="w-full px-4 sm:px-6 lg:px-8">
         <nav class="flex space-x-8" aria-label="Dashboard Tabs">
           <button
-            @click="activeTab = 'buying'"
+            v-for="tab in availableTabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
             :class="[
               'py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200',
-              activeTab === 'buying'
+              activeTab === tab.id
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
-            <i class="fas fa-shopping-bag mr-2"></i>
-            {{ t('dashboard.buyingDashboard') }}
-          </button>
-          <button
-            @click="activeTab = 'selling'"
-            :class="[
-              'py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200',
-              activeTab === 'selling'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            ]"
-          >
-            <i class="fas fa-store mr-2"></i>
-            {{ t('dashboard.sellingDashboard') }}
+            <i :class="tab.icon + ' mr-2'"></i>
+            {{ tab.name }}
           </button>
         </nav>
       </div>
@@ -48,311 +49,101 @@
 
     <!-- Dashboard Content -->
     <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Buying Dashboard -->
-      <div v-if="activeTab === 'buying'" class="space-y-8">
-        <!-- Page Header -->
-        <div class="text-center">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ t('dashboard.buyingDashboard') }}</h2>
-          <p class="text-lg text-gray-600">{{ t('dashboard.buyingDescription') }}</p>
-        </div>
-
-        <!-- Dashboard Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Active Orders -->
-          <div class="card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ t('dashboard.activeOrders') }}</h3>
-            <div v-if="ordersStore.loading" class="text-center py-8">
-              <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
-              <p class="text-gray-600 mt-2">{{ t('common.loading') }}</p>
-            </div>
-            <div v-else-if="ordersStore.buyerOrders.length > 0" class="space-y-4">
-              <div 
-                v-for="order in ordersStore.buyerOrders.slice(0, 3)" 
-                :key="order.id"
-                class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
-              >
-                <div class="flex items-center space-x-4">
-                  <img 
-                    :src="order.product?.image_urls?.[0] || order.product?.image" 
-                    :alt="order.product?.name"
-                    class="w-16 h-16 rounded-lg object-cover shadow-md"
-                  />
-                  <div>
-                    <h4 class="font-semibold text-gray-900 text-lg">{{ order.product?.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ t('dashboard.quantity') }}: {{ order.quantity }}</p>
-                    <p class="text-sm text-gray-500">{{ t('common.price') }}: {{ order.total_price }} {{ t('common.currency') }}</p>
-                  </div>
-                </div>
-                <span class="badge" :class="getStatusBadgeClass(order.status)">
-                  {{ t(`orderStatus.${order.status}`) }}
-                </span>
-              </div>
-              <router-link :to="getLocalizedRoute('/dashboard/orders')" class="btn-outline w-full text-center">
-                {{ t('dashboard.viewAllOrders') }}
-              </router-link>
-            </div>
-            <div v-else class="text-center py-12">
-              <i class="fas fa-shopping-bag text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-2">{{ t('dashboard.noOrders') }}</p>
-              <p class="text-gray-500">{{ t('dashboard.noOrdersMessage') }}</p>
-              <router-link :to="getLocalizedRoute('/products')" class="btn-primary mt-4">
-                {{ t('dashboard.startShopping') }}
-              </router-link>
-            </div>
-          </div>
-
-          <!-- Wishlist -->
-          <div class="card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ t('wishlist.title') }}</h3>
-            <div v-if="wishlistStore.totalItems > 0" class="text-center py-8">
-              <i class="fas fa-heart text-red-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-4">{{ t('wishlist.totalItems', { count: wishlistStore.totalItems }) }}</p>
-              <router-link :to="getLocalizedRoute('/wishlist')" class="btn-outline">
-                {{ t('wishlist.browseProducts') }}
-              </router-link>
-            </div>
-            <div v-else class="text-center py-12">
-              <i class="fas fa-heart text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-2">{{ t('wishlist.empty') }}</p>
-              <p class="text-gray-500">{{ t('wishlist.emptyMessage') }}</p>
-              <router-link :to="getLocalizedRoute('/products')" class="btn-primary mt-4">
-                {{ t('dashboard.browseProducts') }}
-              </router-link>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.quickActions') }}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <router-link :to="getLocalizedRoute('/products')" class="btn-outline text-center py-4">
-              <i class="fas fa-shopping-bag text-2xl mb-2 block"></i>
-              {{ t('dashboard.browseProducts') }}
-            </router-link>
-            <router-link :to="getLocalizedRoute('/profile')" class="btn-primary text-center py-4">
-              <i class="fas fa-user text-2xl mb-2 block"></i>
-              {{ t('dashboard.editProfile') }}
-            </router-link>
-            <router-link :to="getLocalizedRoute('/wishlist')" class="btn-secondary text-center py-4">
-              <i class="fas fa-heart text-2xl mb-2 block"></i>
-              {{ t('wishlist.title') }}
-            </router-link>
-          </div>
-        </div>
-      </div>
-
-      <!-- Selling Dashboard -->
-      <div v-else-if="activeTab === 'selling'" class="space-y-8">
-        <!-- Page Header -->
-        <div class="text-center">
-          <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ t('dashboard.sellingDashboard') }}</h2>
-          <p class="text-lg text-gray-600">{{ t('dashboard.sellingDescription') }}</p>
-        </div>
-
-        <!-- Dashboard Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Pending Orders -->
-          <div class="card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ t('dashboard.pendingShipments') }}</h3>
-            <div v-if="ordersStore.loading" class="text-center py-8">
-              <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
-              <p class="text-gray-600 mt-2">{{ t('common.loading') }}</p>
-            </div>
-            <div v-else-if="ordersStore.sellerOrders.filter(o => o.status === 'pending').length > 0" class="space-y-4">
-              <div 
-                v-for="order in ordersStore.sellerOrders.filter(o => o.status === 'pending').slice(0, 3)" 
-                :key="order.id"
-                class="flex items-center justify-between p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition-colors duration-200"
-              >
-                <div class="flex items-center space-x-4">
-                  <img 
-                    :src="order.product?.image_urls?.[0] || order.product?.image" 
-                    :alt="order.product?.name"
-                    class="w-16 h-16 rounded-lg object-cover shadow-md"
-                  />
-                  <div>
-                    <h4 class="font-semibold text-gray-900 text-lg">{{ order.product?.name }}</h4>
-                    <p class="text-sm text-gray-600">{{ t('dashboard.quantity') }}: {{ order.quantity }}</p>
-                    <p class="text-sm text-gray-500">{{ t('common.price') }}: {{ order.total_price }} {{ t('common.currency') }}</p>
-                  </div>
-                </div>
-                <button 
-                  @click="updateOrderStatus(order.id, 'confirmed')"
-                  class="btn-primary text-sm px-4 py-2"
-                  :disabled="ordersStore.loading"
-                >
-                  {{ t('dashboard.confirmOrder') }}
-                </button>
-              </div>
-              <router-link :to="getLocalizedRoute('/dashboard/orders')" class="btn-outline w-full text-center">
-                {{ t('dashboard.viewAllOrders') }}
-              </router-link>
-            </div>
-            <div v-else class="text-center py-12">
-              <i class="fas fa-box text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-2">{{ t('dashboard.noPendingOrders') }}</p>
-              <p class="text-gray-500">{{ t('dashboard.noPendingOrdersMessage') }}</p>
-            </div>
-          </div>
-
-          <!-- Current Listings -->
-          <div class="card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ t('dashboard.currentListings') }}</h3>
-            <div v-if="userProducts.length > 0" class="text-center py-8">
-              <i class="fas fa-tag text-blue-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-4">{{ t('dashboard.totalProducts', { count: userProducts.length }) }}</p>
-              <router-link :to="getLocalizedRoute('/dashboard/products')" class="btn-outline">
-                {{ t('dashboard.manageProducts') }}
-              </router-link>
-            </div>
-            <div v-else class="text-center py-12">
-              <i class="fas fa-tag text-gray-400 text-5xl mb-4"></i>
-              <p class="text-gray-600 text-lg mb-2">{{ t('dashboard.noListings') }}</p>
-              <p class="text-gray-500">{{ t('dashboard.noListingsMessage') }}</p>
-              <router-link :to="getLocalizedRoute('/myannouncements/new')" class="btn-primary mt-4">
-                {{ t('dashboard.postFirstAnnouncement') }}
-              </router-link>
-            </div>
-          </div>
-        </div>
-
-        <!-- Maystro Integration -->
-        <MaystroIntegration />
-
-        <!-- Store Management -->
-        <div class="card">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.storeManagement') }}</h3>
-          <div v-if="storeStore.userStores.length > 0" class="space-y-6">
-            <div 
-              v-for="store in storeStore.userStores" 
-              :key="store.id"
-              class="border border-gray-200 rounded-xl p-6"
-            >
-              <!-- Store Header -->
-              <div class="flex items-start justify-between mb-4">
-                <div class="flex items-center space-x-4">
-                  <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center overflow-hidden">
-                    <img 
-                      v-if="store.logo_url" 
-                      :src="store.logo_url" 
-                      :alt="store.name"
-                      class="w-full h-full object-cover"
-                    />
-                    <i v-else class="fas fa-store text-white text-2xl"></i>
-                  </div>
-                  <div>
-                    <h4 class="text-xl font-bold text-gray-900">{{ store.name }}</h4>
-                    <p v-if="store.description" class="text-gray-600">{{ store.description }}</p>
-                    <p v-else class="text-gray-500 italic">{{ t('stores.noDescription') }}</p>
-                  </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="flex items-center space-x-3">
-                  <router-link 
-                    :to="getLocalizedRoute(`/dashboard/store/${store.id}`)"
-                    class="btn-primary text-sm px-4 py-2"
-                  >
-                    <i class="fas fa-cog mr-2"></i>
-                    {{ t('stores.manageStore') }}
-                  </router-link>
-                  <router-link 
-                    :to="getLocalizedRoute(`/stores/${store.id}`)"
-                    class="btn-outline text-sm px-4 py-2"
-                    target="_blank"
-                  >
-                    <i class="fas fa-external-link-alt mr-2"></i>
-                    {{ t('stores.viewPublicStore') }}
-                  </router-link>
-                </div>
-              </div>
-
-              <!-- Store Banner -->
-              <div v-if="store.banner_url" class="mb-4">
-                <img 
-                  :src="store.banner_url" 
-                  :alt="store.name"
-                  class="w-full h-32 object-cover rounded-lg"
-                />
-              </div>
-
-              <!-- Store Stats -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-primary">{{ getStoreProductCount(store.id) }}</div>
-                  <div class="text-sm text-gray-600">{{ t('stores.products') }}</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-green-600">{{ formatDate(store.created_at) }}</div>
-                  <div class="text-sm text-gray-600">{{ t('stores.createdOn') }}</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-blue-600">0</div>
-                  <div class="text-sm text-gray-600">{{ t('stores.storeViews') }}</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-purple-600">0</div>
-                  <div class="text-sm text-gray-600">{{ t('stores.totalSales') }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="text-center py-12">
-            <i class="fas fa-store text-gray-400 text-5xl mb-4"></i>
-            <p class="text-gray-600 text-lg mb-2">{{ t('stores.noStoresYet') }}</p>
-            <p class="text-gray-500 mb-4">{{ t('stores.noStoresYetMessage') }}</p>
-            <router-link :to="getLocalizedRoute('/dashboard/store/create')" class="btn-primary">
-              {{ t('stores.createFirstStore') }}
-            </router-link>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-          <h3 class="text-xl font-bold text-gray-900 mb-6">{{ t('dashboard.quickActions') }}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <router-link :to="getLocalizedRoute('/myannouncements/new')" class="btn-primary text-center py-4">
-              <i class="fas fa-plus text-2xl mb-2 block"></i>
-              {{ t('dashboard.postAnnouncement') }}
-            </router-link>
-            <router-link :to="getLocalizedRoute('/dashboard/products')" class="btn-outline text-center py-4">
-              <i class="fas fa-tag text-2xl mb-2 block"></i>
-              {{ t('dashboard.manageProducts') }}
-            </router-link>
-            <router-link :to="getLocalizedRoute('/dashboard/store/create')" class="btn-secondary text-center py-4">
-              <i class="fas fa-store text-2xl mb-2 block"></i>
-              {{ t('dashboard.createStore') }}
-            </router-link>
-          </div>
-        </div>
-      </div>
+      <!-- Buying Tab -->
+      <BuyingTab v-if="activeTab === 'buying'" />
+      
+      <!-- Selling Tab -->
+      <SellingTab v-else-if="activeTab === 'selling'" />
+      
+      <!-- Admin Tab -->
+      <AdminTab 
+        v-else-if="activeTab === 'admin'" 
+        @navigate-to="handleAdminNavigation"
+      />
+      
+      <!-- Employee Tab -->
+      <EmployeeTab 
+        v-else-if="activeTab === 'employee'" 
+        @navigate-to="handleEmployeeNavigation"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
-import { useProductStore } from '../stores/product'
-import { useWishlistStore } from '../stores/wishlist'
-import { useOrdersStore } from '../stores/orders'
-import { useStoreStore } from '../stores/store'
+import BuyingTab from '../components/dashboard/BuyingTab.vue'
+import SellingTab from '../components/dashboard/SellingTab.vue'
+import AdminTab from '../components/dashboard/AdminTab.vue'
+import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
-import MaystroIntegration from '../components/MaystroIntegration.vue'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const authStore = useAuthStore()
-const productStore = useProductStore()
-const wishlistStore = useWishlistStore()
-const ordersStore = useOrdersStore()
-const storeStore = useStoreStore()
 
-// Default to buying dashboard as requested
+// Default to buying dashboard
 const activeTab = ref('buying')
+
+// Available tabs based on user role
+const availableTabs = computed(() => {
+  const tabs = [
+    {
+      id: 'buying',
+      name: t('dashboard.buyingDashboard'),
+      icon: 'fas fa-shopping-bag',
+      roles: ['user', 'admin', 'employee']
+    },
+    {
+      id: 'selling',
+      name: t('dashboard.sellingDashboard'),
+      icon: 'fas fa-store',
+      roles: ['user', 'admin', 'employee']
+    }
+  ]
+
+  // Add admin tab for admins
+  if (authStore.userRole === 'admin') {
+    tabs.push({
+      id: 'admin',
+      name: t('admin.dashboard'),
+      icon: 'fas fa-crown',
+      roles: ['admin']
+    })
+  }
+
+  // Add employee tab for employees
+  if (authStore.userRole === 'employee') {
+    tabs.push({
+      id: 'employee',
+      name: t('employee.dashboard'),
+      icon: 'fas fa-user-tie',
+      roles: ['employee']
+    })
+  }
+
+  return tabs
+})
+
+// Handle admin navigation
+const handleAdminNavigation = (section) => {
+  // Navigate to admin section or show admin modal
+  console.log('Navigate to admin section:', section)
+  // This could open a modal or navigate to a different route
+  // For now, we'll just log it
+}
+
+// Handle employee navigation
+const handleEmployeeNavigation = (section) => {
+  // Navigate to employee section or show employee modal
+  console.log('Navigate to employee section:', section)
+  // This could open a modal or navigate to a different route
+  // For now, we'll just log it
+}
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -360,58 +151,40 @@ const getLocalizedRoute = (path) => {
   return getLocalizedPath(path, currentLocale)
 }
 
-// Get status badge class
-const getStatusBadgeClass = (status) => {
-  const statusClasses = {
-    'pending': 'badge-pending',
-    'confirmed': 'badge-confirmed',
-    'shipped': 'badge-shipped',
-    'delivered': 'badge-delivered',
-    'canceled': 'badge-canceled'
-  }
-  return statusClasses[status] || 'badge-pending'
+// Check if user has access to a specific tab
+const hasAccessToTab = (tabId) => {
+  const tab = availableTabs.value.find(t => t.id === tabId)
+  return tab && tab.roles.includes(authStore.userRole)
 }
 
-// Get user's products
-const userProducts = computed(() => {
-  return productStore.products.filter(product => product.seller_id === authStore.user?.id)
-})
-
-// Get store product count
-const getStoreProductCount = (storeId) => {
-  return productStore.products.filter(product => product.store_id === storeId).length
-}
-
-// Format date
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString()
-}
-
-// Update order status
-const updateOrderStatus = async (orderId, newStatus) => {
-  try {
-    await ordersStore.updateOrderStatus(orderId, newStatus)
-  } catch (error) {
-    console.error('Error updating order status:', error)
+// Redirect to appropriate tab if current tab is not accessible
+const validateTabAccess = () => {
+  if (!hasAccessToTab(activeTab.value)) {
+    // Redirect to first available tab
+    activeTab.value = availableTabs.value[0]?.id || 'buying'
   }
 }
 
-onMounted(async () => {
-  // Initialize orders store with current user
-  await ordersStore.initUser()
-  
-  // Fetch products and orders if not already loaded
-  if (productStore.products.length === 0) {
-    await productStore.fetchProducts()
-  }
-  
-  if (ordersStore.orders.length === 0) {
-    await ordersStore.fetchOrders()
-  }
+onMounted(() => {
+  // Validate tab access on mount
+  validateTabAccess()
 })
 </script>
 
 <style scoped>
-/* Component-specific styles */
-</style> 
+.card {
+  @apply bg-white rounded-xl shadow-soft p-6;
+}
+
+.btn-primary {
+  @apply px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors;
+}
+
+.btn-outline {
+  @apply px-6 py-3 border border-primary text-primary font-medium rounded-lg hover:bg-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors;
+}
+
+.btn-secondary {
+  @apply px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors;
+}
+</style>

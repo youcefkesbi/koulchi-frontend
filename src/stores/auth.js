@@ -16,6 +16,13 @@ export const useAuthStore = defineStore('auth', () => {
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
   const userRole = computed(() => user.value?.role || 'user')
+  
+  // Role-based access helpers
+  const isAdmin = computed(() => userRole.value === 'admin')
+  const isEmployee = computed(() => userRole.value === 'employee')
+  const isUser = computed(() => userRole.value === 'user')
+  const hasAdminAccess = computed(() => isAdmin.value)
+  const hasEmployeeAccess = computed(() => isEmployee.value || isAdmin.value)
 
   // Check if user is actually authenticated with Supabase
   const checkAuthStatus = async () => {
@@ -509,6 +516,11 @@ export const useAuthStore = defineStore('auth', () => {
     userEmail,
     userPhotoURL,
     userRole,
+    isAdmin,
+    isEmployee,
+    isUser,
+    hasAdminAccess,
+    hasEmployeeAccess,
     
     // Actions
     login,

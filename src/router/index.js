@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { environment } from '../config/environment'
 import i18n from '../i18n'
+import { authGuard, adminGuard, employeeGuard, storeOwnerGuard } from './guards'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
@@ -65,7 +66,8 @@ const baseRoutes = [
     path: '/dashboard',
     name: 'UserDashboard',
     component: UserDashboard,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    beforeEnter: authGuard
   },
   {
     path: '/profile',
@@ -123,7 +125,22 @@ const baseRoutes = [
     name: 'StoreDashboard',
     component: StoreDashboard,
     props: true,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    beforeEnter: storeOwnerGuard
+  },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('../views/AdminDashboard.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
+    path: '/employee',
+    name: 'EmployeeDashboard',
+    component: () => import('../views/EmployeeDashboard.vue'),
+    meta: { requiresAuth: true, requiresEmployee: true },
+    beforeEnter: employeeGuard
   }
 ]
 

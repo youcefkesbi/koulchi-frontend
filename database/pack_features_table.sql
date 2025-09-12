@@ -25,8 +25,12 @@ CREATE POLICY "Admins can manage pack features" ON public.pack_features
     FOR ALL USING (auth.jwt()->>'role' = 'admin');
 
 -- Grant necessary permissions
-GRANT ALL ON public.pack_features TO authenticated;
+-- All authenticated users can read (RLS still applies)
+GRANT SELECT ON public.pack_features TO authenticated;
+
+-- Anonymous users can only read (if you want your site visitors to see features)
 GRANT SELECT ON public.pack_features TO anon;
+
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS pack_features_pack_id_idx ON public.pack_features(pack_id);

@@ -17,17 +17,22 @@ CREATE TABLE IF NOT EXISTS public.packs (
 ALTER TABLE public.packs ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for secure access
+
+CREATE POLICY "Admins can manage packs"
+ON public.packs
+FOR ALL
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
 -- Anyone can view active packs
 CREATE POLICY "Anyone can view active packs" ON public.packs
     FOR SELECT USING (is_active = true);
 
--- Only admins can manage packs
-CREATE POLICY "Admins can manage packs" ON public.packs
-    FOR ALL USING (auth.jwt()->>'role' = 'admin');
-
 -- Grant necessary permissions
-GRANT ALL ON public.packs TO authenticated;
+REVOKE ALL ON public.packs FROM anon;
+REVOKE ALL ON public.packs FROM authenticated;
 GRANT SELECT ON public.packs TO anon;
+GRANT SELECT ON public.packs TO authenticated;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS packs_is_active_idx ON public.packs(is_active);
@@ -39,17 +44,16 @@ INSERT INTO public.packs (name, description, price, max_announcements, max_image
 ('Pro Pack', 'Premium pack with advanced features', 1000.00, 3000, 6000)
 ON CONFLICT (name) DO NOTHING;
 
--- Create the trigger function for updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
+-- Trigger for updated_at
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Add the trigger to packs table
 CREATE TRIGGER update_packs_updated_at 
-    BEFORE UPDATE ON packs 
+    BEFORE UPDATE ON public.packs 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+    EXECUTE FUNCTION public.update_updated_at_column();

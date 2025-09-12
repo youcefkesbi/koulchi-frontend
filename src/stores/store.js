@@ -545,6 +545,27 @@ export const useStoreStore = defineStore('store', () => {
     currentStore.value = null
   }
 
+  // Check if user owns a specific store
+  const checkStoreOwnership = async (storeId, userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('owner_id')
+        .eq('id', storeId)
+        .single()
+
+      if (error) {
+        console.error('Error checking store ownership:', error)
+        return false
+      }
+
+      return data && data.owner_id === userId
+    } catch (err) {
+      console.error('Error checking store ownership:', err)
+      return false
+    }
+  }
+
   return {
     // State
     stores,
@@ -569,6 +590,7 @@ export const useStoreStore = defineStore('store', () => {
     deleteStoreImage,
     updateStoreWithImages,
     clearError,
-    clearCurrentStore
+    clearCurrentStore,
+    checkStoreOwnership
   }
 })

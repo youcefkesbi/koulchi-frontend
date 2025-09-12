@@ -38,36 +38,31 @@
 -- FOR SELECT USING (bucket_id = 'verification-documents' AND auth.jwt()->>'role' IN ('admin', 'employee'));
 
 -- 9. Create a view for store information with pack details
-CREATE OR REPLACE VIEW store_details AS
-SELECT 
-    s.*,
-    p.name as pack_name,
+create view public.store_details with (security_invoker = on) as
+ SELECT s.id,
+    s.owner_id,
+    s.name,
+    s.description,
+    s.pack_id,
+    s.created_at,
+    s.updated_at,
+    p.name AS pack_name,
     p.max_announcements,
     p.max_images,
-    p.price as pack_price,
+    p.price AS pack_price,
     pf.features
-FROM public.stores s
-LEFT JOIN public.packs p ON s.pack_id = p.id
-LEFT JOIN (
-    SELECT 
-        pf.pack_id,
-        json_agg(
-            json_build_object(
-                'id', f.id,
-                'name', f.name,
-                'display_name', f.display_name,
-                'enabled', pf.is_enabled
-            )
-        ) as features
-    FROM public.pack_features pf
-    JOIN public.features f ON pf.feature_id = f.id
-    WHERE pf.is_enabled = true
-    GROUP BY pf.pack_id
-) pf ON s.pack_id = pf.pack_id;
+   FROM stores s
+     LEFT JOIN packs p ON s.pack_id = p.id
+     LEFT JOIN ( SELECT pf_1.pack_id,
+            json_agg(json_build_object('id', f.id, 'name', f.name, 'display_name', f.display_name, 'enabled', pf_1.is_enabled)) AS features
+           FROM pack_features pf_1
+             JOIN features f ON pf_1.feature_id = f.id
+          WHERE pf_1.is_enabled = true
+          GROUP BY pf_1.pack_id) pf ON s.pack_id = pf.pack_id;
 
--- Grant permissions on the view
-GRANT SELECT ON store_details TO authenticated;
-GRANT SELECT ON store_details TO anon;
+-- Grant access again
+GRANT SELECT ON public.store_details TO authenticated;
+GRANT SELECT ON public.store_details TO anon; -- optional
 
 -- 10. Create a function to get user's verification status
 CREATE OR REPLACE FUNCTION get_user_verification_status(p_user_id UUID)
@@ -114,21 +109,34 @@ BEGIN
     
     -- Define required verifications based on pack
     IF p_pack_name = 'Basic Pack' THEN
+        -- user needs at least one of these
         required_verifications := ARRAY['id_card', 'driving_license', 'passport'];
+        
+        -- Get user's approved verifications
+        SELECT ARRAY_AGG(verification_type)
+        INTO user_verifications
+        FROM public.verifications
+        WHERE user_id = p_user_id AND status = 'approved';
+        
+        -- Check if user has at least one
+        RETURN required_verifications && COALESCE(user_verifications, ARRAY[]::TEXT[]);
+        
     ELSIF p_pack_name = 'Pro Pack' THEN
-        required_verifications := ARRAY['id_card', 'driving_license', 'passport', 'commerce_register', 'payment_receipt'];
+        -- user needs BOTH of these
+        required_verifications := ARRAY['commerce_register', 'payment_receipt'];
+        
+        -- Get user's approved verifications
+        SELECT ARRAY_AGG(verification_type)
+        INTO user_verifications
+        FROM public.verifications
+        WHERE user_id = p_user_id AND status = 'approved';
+        
+        -- Check if user has all required verifications
+        RETURN required_verifications <@ COALESCE(user_verifications, ARRAY[]::TEXT[]);
+        
     ELSE
         RETURN false;
     END IF;
-    
-    -- Get user's approved verifications
-    SELECT ARRAY_AGG(verification_type)
-    INTO user_verifications
-    FROM public.verifications
-    WHERE user_id = p_user_id AND status = 'approved';
-    
-    -- Check if user has at least one required verification
-    RETURN required_verifications && COALESCE(user_verifications, ARRAY[]::TEXT[]);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -150,7 +158,7 @@ BEGIN
     IF p_pack_name = 'Basic Pack' THEN
         required_verifications := ARRAY['id_card', 'driving_license', 'passport'];
     ELSIF p_pack_name = 'Pro Pack' THEN
-        required_verifications := ARRAY['id_card', 'driving_license', 'passport', 'commerce_register', 'payment_receipt'];
+        required_verifications := ARRAY['commerce_register', 'payment_receipt'];
     ELSE
         RETURN;
     END IF;
@@ -184,6 +192,7 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION get_store_creation_requirements TO authenticated;
