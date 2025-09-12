@@ -40,18 +40,27 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  user_role_text TEXT;
   user_role_value user_role;
 BEGIN
   -- Fetch the role from app_metadata in auth.users
-  SELECT (raw_app_meta_data->>'role')::user_role
-  INTO user_role_value
+  SELECT raw_app_meta_data->>'role'
+  INTO user_role_text
   FROM auth.users
   WHERE id = new.id;
 
-  -- Default to "user" if role is null
-  IF user_role_value IS NULL THEN
-    user_role_value := 'user';
+  -- Default to "user" if role is null or empty
+  IF user_role_text IS NULL OR user_role_text = '' THEN
+    user_role_text := 'user';
   END IF;
+
+  -- Convert text to enum, with fallback to 'user' if invalid
+  BEGIN
+    user_role_value := user_role_text::user_role;
+  EXCEPTION
+    WHEN invalid_text_representation THEN
+      user_role_value := 'user';
+  END;
 
   -- Set the role column
   new.role := user_role_value;
@@ -66,3 +75,44 @@ CREATE TRIGGER sync_profile_role_trigger
 BEFORE INSERT ON profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.sync_profile_role();
+
+-- Function to manually set user role (for testing/admin purposes)
+CREATE OR REPLACE FUNCTION public.set_user_role(user_email TEXT, new_role user_role)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  user_id UUID;
+BEGIN
+  -- Get user ID from email
+  SELECT id INTO user_id
+  FROM auth.users
+  WHERE email = user_email;
+  
+  IF user_id IS NULL THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Update auth.users metadata
+  UPDATE auth.users
+  SET raw_app_meta_data = jsonb_set(
+    COALESCE(raw_app_meta_data, '{}'::jsonb),
+    '{role}',
+    to_jsonb(new_role::text)
+  )
+  WHERE id = user_id;
+  
+  -- Update or insert profile
+  INSERT INTO profiles (id, role)
+  VALUES (user_id, new_role)
+  ON CONFLICT (id) 
+  DO UPDATE SET role = new_role;
+  
+  RETURN TRUE;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.set_user_role TO authenticated;

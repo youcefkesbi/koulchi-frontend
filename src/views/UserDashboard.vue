@@ -65,13 +65,16 @@
       <EmployeeTab 
         v-else-if="activeTab === 'employee'" 
         @navigate-to="handleEmployeeNavigation"
-      />
-    </div>
+                />
+              </div>
+
+    <!-- Debug component (remove in production) -->
+    <RoleDebugger />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
@@ -79,6 +82,7 @@ import BuyingTab from '../components/dashboard/BuyingTab.vue'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
+import RoleDebugger from '../components/RoleDebugger.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
@@ -91,6 +95,9 @@ const activeTab = ref('buying')
 
 // Available tabs based on user role
 const availableTabs = computed(() => {
+  const userRole = authStore.userRole || 'user'
+  console.log('Computing availableTabs, userRole:', userRole, 'isAuthenticated:', authStore.isAuthenticated)
+  
   const tabs = [
     {
       id: 'buying',
@@ -107,7 +114,8 @@ const availableTabs = computed(() => {
   ]
 
   // Add admin tab for admins
-  if (authStore.userRole === 'admin') {
+  if (userRole === 'admin') {
+    console.log('Adding admin tab')
     tabs.push({
       id: 'admin',
       name: t('admin.dashboard'),
@@ -117,7 +125,8 @@ const availableTabs = computed(() => {
   }
 
   // Add employee tab for employees
-  if (authStore.userRole === 'employee') {
+  if (userRole === 'employee') {
+    console.log('Adding employee tab')
     tabs.push({
       id: 'employee',
       name: t('employee.dashboard'),
@@ -126,6 +135,7 @@ const availableTabs = computed(() => {
     })
   }
 
+  console.log('Final tabs:', tabs)
   return tabs
 })
 
@@ -165,6 +175,12 @@ const validateTabAccess = () => {
   }
 }
 
+// Watch for role changes and refresh tabs
+watch(() => authStore.userRole, (newRole, oldRole) => {
+  console.log('User role changed from', oldRole, 'to', newRole)
+  validateTabAccess()
+}, { immediate: true })
+
 onMounted(() => {
   // Validate tab access on mount
   validateTabAccess()
@@ -187,4 +203,4 @@ onMounted(() => {
 .btn-secondary {
   @apply px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors;
 }
-</style>
+</style> 

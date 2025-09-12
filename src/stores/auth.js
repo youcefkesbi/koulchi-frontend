@@ -425,6 +425,8 @@ export const useAuthStore = defineStore('auth', () => {
   // Simplified to avoid recursion - only loads basic profile info
   const loadUserWithProfile = async (authUser) => {
     try {
+      console.log('Loading user profile for:', authUser.email)
+      
       // Only load essential profile fields to avoid recursion
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -432,8 +434,11 @@ export const useAuthStore = defineStore('auth', () => {
         .eq('id', authUser.id)
         .single()
 
+      console.log('Profile data:', profile, 'Error:', profileError)
+
       if (profileError) {
         // No profile found or error, just use auth user
+        console.log('No profile found, using auth user')
         user.value = authUser
         return
       }
@@ -445,8 +450,10 @@ export const useAuthStore = defineStore('auth', () => {
           full_name: profile.full_name,
           role: profile.role
         }
+        console.log('User loaded with role:', profile.role)
       } else {
         user.value = authUser
+        console.log('No profile data, using auth user')
       }
     } catch (err) {
       // Error fetching profile, just use auth user
