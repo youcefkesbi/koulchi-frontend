@@ -427,12 +427,21 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       console.log('Loading user profile for:', authUser.email)
       
-      // Only load essential profile fields to avoid recursion
-      const { data: profile, error: profileError } = await supabase
+      // Add timeout to prevent hanging
+      const profilePromise = supabase
         .from('profiles')
         .select('id, full_name, role')
         .eq('id', authUser.id)
         .single()
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile loading timeout')), 10000)
+      )
+      
+      const { data: profile, error: profileError } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ])
 
       console.log('Profile data:', profile, 'Error:', profileError)
 
@@ -496,6 +505,9 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       // Error fetching profile, just use auth user
       console.warn('Could not load profile data:', err)
+      if (err.message === 'Profile loading timeout') {
+        console.warn('Profile loading timed out, using auth user without profile')
+      }
       user.value = authUser
     }
   }
