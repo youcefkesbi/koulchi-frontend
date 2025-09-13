@@ -426,66 +426,35 @@ export const useAuthStore = defineStore('auth', () => {
   const loadUserWithProfile = async (authUser) => {
     try {
       console.log('Loading user profile for:', authUser.email)
+      console.log('User ID:', authUser.id)
       
-      // Add timeout to prevent hanging
+      // Try to load profile with timeout
+      console.log('Starting profile query...')
+      
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile loading timeout after 5 seconds')), 5000)
+      )
+      
+      // Create the profile query promise
       const profilePromise = supabase
         .from('profiles')
-        .select('id, full_name, role')
+        .select('id, full_name, role, city')
         .eq('id', authUser.id)
         .single()
       
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 10000)
-      )
-      
+      // Race between the query and timeout
       const { data: profile, error: profileError } = await Promise.race([
         profilePromise,
         timeoutPromise
       ])
 
-      console.log('Profile data:', profile, 'Error:', profileError)
+      console.log('Profile query completed. Data:', profile, 'Error:', profileError)
 
       if (profileError) {
         // No profile found or error, just use auth user
-        console.log('No profile found, using auth user. Error:', profileError)
-        
-        // If it's a "not found" error, try to create the profile
-        if (profileError.code === 'PGRST116' || profileError.message?.includes('No rows found')) {
-          console.log('Profile not found, attempting to create one...')
-          try {
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                id: authUser.id,
-                full_name: authUser.user_metadata?.full_name || '',
-                role: 'user'
-              })
-            
-            if (insertError) {
-              console.error('Failed to create profile:', insertError)
-            } else {
-              console.log('Profile created successfully')
-              // Retry loading the profile
-              const { data: newProfile } = await supabase
-                .from('profiles')
-                .select('id, full_name, role')
-                .eq('id', authUser.id)
-                .single()
-              
-              if (newProfile) {
-                user.value = { 
-                  ...authUser, 
-                  full_name: newProfile.full_name,
-                  role: newProfile.role
-                }
-                return
-              }
-            }
-          } catch (createError) {
-            console.error('Error creating profile:', createError)
-          }
-        }
-        
+        console.log('Profile error:', profileError)
+        console.log('Using auth user without profile data')
         user.value = authUser
         return
       }
@@ -505,9 +474,10 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       // Error fetching profile, just use auth user
       console.warn('Could not load profile data:', err)
-      if (err.message === 'Profile loading timeout') {
+      if (err.message.includes('timeout')) {
         console.warn('Profile loading timed out, using auth user without profile')
       }
+      console.log('Setting user to auth user due to error')
       user.value = authUser
     }
   }
