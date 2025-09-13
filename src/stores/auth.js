@@ -438,7 +438,45 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (profileError) {
         // No profile found or error, just use auth user
-        console.log('No profile found, using auth user')
+        console.log('No profile found, using auth user. Error:', profileError)
+        
+        // If it's a "not found" error, try to create the profile
+        if (profileError.code === 'PGRST116' || profileError.message?.includes('No rows found')) {
+          console.log('Profile not found, attempting to create one...')
+          try {
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: authUser.id,
+                full_name: authUser.user_metadata?.full_name || '',
+                role: 'user'
+              })
+            
+            if (insertError) {
+              console.error('Failed to create profile:', insertError)
+            } else {
+              console.log('Profile created successfully')
+              // Retry loading the profile
+              const { data: newProfile } = await supabase
+                .from('profiles')
+                .select('id, full_name, role')
+                .eq('id', authUser.id)
+                .single()
+              
+              if (newProfile) {
+                user.value = { 
+                  ...authUser, 
+                  full_name: newProfile.full_name,
+                  role: newProfile.role
+                }
+                return
+              }
+            }
+          } catch (createError) {
+            console.error('Error creating profile:', createError)
+          }
+        }
+        
         user.value = authUser
         return
       }

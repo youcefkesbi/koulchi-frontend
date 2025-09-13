@@ -40,6 +40,7 @@ CREATE INDEX IF NOT EXISTS pack_features_enabled_idx ON public.pack_features(is_
 \i functions/store_limits.sql
 \i functions/verification_checks.sql
 \i functions/audit_logging.sql
+\i functions/create_profile_on_signup.sql
 
 -- 6. Create views
 \i views/store_details.sql
