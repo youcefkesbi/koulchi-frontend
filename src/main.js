@@ -18,4 +18,4 @@ app.use(i18n)
 // Make i18n instance globally available
 app.config.globalProperties.$i18n = i18n.global
 
-app.mount('#app') 
+app.mount('#app') // Force deployment Sat Sep 13 09:29:46 CEST 2025
