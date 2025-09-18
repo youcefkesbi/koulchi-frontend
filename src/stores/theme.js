@@ -25,6 +25,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   // Actions
   const toggleTheme = () => {
+    console.log('🎨 Toggling theme from', isDarkMode.value ? 'dark' : 'light', 'to', !isDarkMode.value ? 'dark' : 'light')
     isDarkMode.value = !isDarkMode.value
     systemPreference.value = isDarkMode.value ? 'dark' : 'light'
     applyTheme()
@@ -61,20 +62,29 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   const initializeTheme = () => {
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme-preference')
-    const savedSystemPreference = localStorage.getItem('system-preference')
+    // Check for saved theme preference from Pinia persistence
+    const savedThemeData = localStorage.getItem('pinia_theme')
     
-    if (savedSystemPreference) {
-      systemPreference.value = savedSystemPreference
+    if (savedThemeData) {
+      try {
+        const parsed = JSON.parse(savedThemeData)
+        if (parsed.isDarkMode !== undefined) {
+          isDarkMode.value = parsed.isDarkMode
+        }
+        if (parsed.systemPreference) {
+          systemPreference.value = parsed.systemPreference
+        }
+        console.log('🎨 Loaded saved theme:', parsed)
+      } catch (e) {
+        console.warn('Failed to parse saved theme data:', e)
+      }
     }
     
-    if (savedTheme) {
-      isDarkMode.value = savedTheme === 'dark'
-    } else {
-      // Default to system preference
-      systemPreference.value = 'system'
-      isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+    // If no saved preference, default to light mode
+    if (!savedThemeData) {
+      isDarkMode.value = false
+      systemPreference.value = 'light'
+      console.log('🎨 No saved theme, defaulting to light mode')
     }
     
     applyTheme()

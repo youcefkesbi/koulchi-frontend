@@ -42,7 +42,7 @@
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-700 py-2 z-50"
             >
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
                 <router-link
@@ -109,15 +109,15 @@
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-700 py-2 z-50"
               >
-                <router-link :to="getLocalizedRoute('/dashboard')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                <router-link :to="getLocalizedRoute('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                 </router-link>
-                <router-link :to="getLocalizedRoute('/profile')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                <router-link :to="getLocalizedRoute('/profile')" class="dropdown-item">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                 </router-link>
-                <router-link :to="getLocalizedRoute('/wishlist')" class="block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors">
+                <router-link :to="getLocalizedRoute('/wishlist')" class="dropdown-item">
                   <i class="fas fa-heart mr-3"></i>{{ t('wishlist.title') }}
                   <span v-if="wishlistStore.totalItems > 0" class="ml-2 bg-secondary text-white text-xs rounded-full px-2 py-1">
                     {{ wishlistStore.totalItems }}
@@ -125,7 +125,7 @@
                 </router-link>
                 <button
                   @click="handleLogout"
-                  class="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
+                  class="dropdown-item w-full text-left"
                 >
                   <i class="fas fa-sign-out-alt mr-3"></i>{{ t('header.logout') }}
                 </button>
