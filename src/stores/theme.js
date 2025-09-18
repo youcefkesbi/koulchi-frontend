@@ -20,7 +20,7 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   const isDark = computed(() => {
-    return currentTheme.value === 'dark'
+    return isDarkMode.value
   })
 
   // Actions
@@ -43,7 +43,7 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   const applyTheme = () => {
-    const theme = currentTheme.value
+    const theme = isDarkMode.value ? 'dark' : 'light'
     const root = document.documentElement
     
     // Remove existing theme classes
@@ -58,7 +58,7 @@ export const useThemeStore = defineStore('theme', () => {
       metaThemeColor.content = theme === 'dark' ? '#1f2937' : '#ffffff'
     }
     
-    console.log(`🎨 Theme applied: ${theme}`)
+    console.log(`🎨 Theme applied: ${theme} (isDarkMode: ${isDarkMode.value})`)
   }
 
   const initializeTheme = () => {

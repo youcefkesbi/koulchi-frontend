@@ -32,10 +32,10 @@
           <div class="relative categories-dropdown order-2 sm:order-3">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
-              class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50"
+              class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <i class="fas fa-layer-group text-lg"></i>
-              <span class="font-medium">{{ t('header.categories') }}</span>
+              <span class="font-medium text-gray-700 dark:text-gray-300">{{ t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
 
@@ -102,7 +102,7 @@
                   :alt="authStore.userDisplayName || authStore.userEmail"
                   class="w-8 h-8 rounded-full object-cover"
                 />
-                <span class="font-medium hidden sm:block">{{ authStore.userDisplayName || authStore.userEmail }}</span>
+                <span class="font-medium hidden sm:block text-gray-700 dark:text-gray-300">{{ authStore.userDisplayName || authStore.userEmail }}</span>
                 <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
