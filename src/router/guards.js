@@ -128,6 +128,34 @@ export const createRoleGuard = (allowedRoles) => {
 }
 
 /**
+ * Vendor guard - only allows vendor users or admins
+ * @param {Object} to - Route being navigated to
+ * @param {Object} from - Route being navigated from
+ * @param {Function} next - Navigation function
+ */
+export const vendorGuard = (to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Check if user is authenticated
+  if (!authStore.isAuthenticated) {
+    next('/login')
+    return
+  }
+  
+  // Check if user has vendor or admin role
+  if (!['vendor', 'admin'].includes(authStore.userRole)) {
+    // Redirect to dashboard with error message
+    next({
+      path: '/dashboard',
+      query: { error: 'access_denied', message: 'Vendor access required' }
+    })
+    return
+  }
+  
+  next()
+}
+
+/**
  * Store owner guard - only allows store owners or admins
  * @param {Object} to - Route being navigated to
  * @param {Object} from - Route being navigated from

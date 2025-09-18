@@ -365,7 +365,17 @@
     "next": "التالي",
     "loading": "جاري التحميل...",
     "price": "السعر",
-    "currency": "دج"
+    "currency": "دج",
+    "manage": "إدارة",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "viewAll": "عرض الكل"
+  },
+  "roles": {
+    "admin": "مدير",
+    "employee": "موظف", 
+    "customer": "عميل",
+    "vendor": "بائع"
   },
   "maystro": {
     "title": "تكامل Maystro للتوصيل",

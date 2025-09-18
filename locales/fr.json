@@ -386,7 +386,17 @@
     "next": "Suivant",
     "loading": "Chargement...",
     "price": "Prix",
-    "currency": "DZD"
+    "currency": "DZD",
+    "manage": "Gérer",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "viewAll": "Voir tout"
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "employee": "Employé", 
+    "customer": "Client",
+    "vendor": "Vendeur"
   },
   "maystro": {
     "title": "Intégration Maystro Delivery",

@@ -267,7 +267,17 @@
     "next": "Next",
     "loading": "Loading...",
     "price": "Price",
-    "currency": "DZD"
+    "currency": "DZD",
+    "manage": "Manage",
+    "active": "Active",
+    "inactive": "Inactive",
+    "viewAll": "View All"
+  },
+  "roles": {
+    "admin": "Admin",
+    "employee": "Employee", 
+    "customer": "Customer",
+    "vendor": "Vendor"
   },
   "maystro": {
     "title": "Maystro Delivery Integration",
@@ -418,6 +428,7 @@
     "welcomeMessage": "Welcome back, {name}!",
     "buyingDashboard": "Buying Dashboard",
     "sellingDashboard": "Selling Dashboard",
+    "myStores": "My Stores",
     "buyingSection": "Buying",
     "sellingSection": "Selling",
     "buyingDescription": "Track your orders, manage your wishlist, and view your purchase history",

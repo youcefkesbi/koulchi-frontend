@@ -24,14 +24,16 @@ export const useAuthStore = defineStore('auth', () => {
   })
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
-  const userRole = computed(() => user.value?.role || 'user')
+  const userRole = computed(() => user.value?.role || 'customer')
   
   // Role-based access helpers
   const isAdmin = computed(() => userRole.value === 'admin')
   const isEmployee = computed(() => userRole.value === 'employee')
-  const isUser = computed(() => userRole.value === 'user')
+  const isCustomer = computed(() => userRole.value === 'customer')
+  const isVendor = computed(() => userRole.value === 'vendor')
   const hasAdminAccess = computed(() => isAdmin.value)
   const hasEmployeeAccess = computed(() => isEmployee.value || isAdmin.value)
+  const hasVendorAccess = computed(() => isVendor.value || isAdmin.value)
 
   // Check if user is actually authenticated with Supabase
   const checkAuthStatus = async () => {
@@ -181,7 +183,7 @@ export const useAuthStore = defineStore('auth', () => {
           .insert({
             id: data.user.id,
             full_name: userData.full_name || 'User',
-            role: 'user'
+            role: 'customer'
           })
 
         if (profileError) {
@@ -314,7 +316,7 @@ export const useAuthStore = defineStore('auth', () => {
         const profileData = {
           user_id: user.value.id,
           full_name: userData.full_name || null,
-          role: 'user'
+          role: 'customer'
         }
 
         const { data: newProfile, error: createError } = await supabase
@@ -561,9 +563,11 @@ export const useAuthStore = defineStore('auth', () => {
     userRole,
     isAdmin,
     isEmployee,
-    isUser,
+    isCustomer,
+    isVendor,
     hasAdminAccess,
     hasEmployeeAccess,
+    hasVendorAccess,
     
     // Actions
     login,

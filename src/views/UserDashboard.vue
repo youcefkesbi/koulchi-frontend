@@ -10,11 +10,12 @@
           <div class="flex items-center space-x-4">
             <span class="text-sm text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</span>
             <span 
-              v-if="authStore.userRole !== 'user'"
+              v-if="authStore.userRole !== 'customer'"
               :class="[
                 'px-3 py-1 rounded-full text-xs font-medium',
                 authStore.userRole === 'admin' ? 'bg-red-100 text-red-800' :
                 authStore.userRole === 'employee' ? 'bg-blue-100 text-blue-800' :
+                authStore.userRole === 'vendor' ? 'bg-green-100 text-green-800' :
                 'bg-gray-100 text-gray-800'
               ]"
             >
@@ -95,7 +96,7 @@ const activeTab = ref('buying')
 
 // Available tabs based on user role
 const availableTabs = computed(() => {
-  const userRole = authStore.userRole || 'user'
+  const userRole = authStore.userRole || 'customer'
   console.log('Computing availableTabs, userRole:', userRole, 'isAuthenticated:', authStore.isAuthenticated)
   
   const tabs = [
@@ -103,13 +104,13 @@ const availableTabs = computed(() => {
       id: 'buying',
       name: t('dashboard.buyingDashboard'),
       icon: 'fas fa-shopping-bag',
-      roles: ['user', 'admin', 'employee']
+      roles: ['customer', 'admin', 'employee', 'vendor']
     },
     {
       id: 'selling',
       name: t('dashboard.sellingDashboard'),
       icon: 'fas fa-store',
-      roles: ['user', 'admin', 'employee']
+      roles: ['customer', 'admin', 'employee', 'vendor']
     }
   ]
 

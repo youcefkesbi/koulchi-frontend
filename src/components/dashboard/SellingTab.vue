@@ -113,8 +113,8 @@
       </div>
     </div>
 
-    <!-- Store Management -->
-    <div v-if="userStores.length > 0" class="card">
+    <!-- Store Management - Show for vendors or users with stores -->
+    <div v-if="(authStore.isVendor || userStores.length > 0)" class="card">
       <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('dashboard.myStores') }}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div 
@@ -183,6 +183,7 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
 import { useOrdersStore } from '../../stores/orders'
 import { useProductStore } from '../../stores/product'
 import { useStoreStore } from '../../stores/store'
@@ -190,6 +191,7 @@ import { getLocalizedPath } from '../../lib/i18n-utils'
 
 const { t: $t } = useI18n()
 const route = useRoute()
+const authStore = useAuthStore()
 const ordersStore = useOrdersStore()
 const productStore = useProductStore()
 const storeStore = useStoreStore()
