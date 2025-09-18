@@ -81,6 +81,7 @@
 
     <!-- Debug component (remove in production) -->
     <RoleDebugger />
+    <RoleTest />
   </div>
 </template>
 
@@ -94,6 +95,7 @@ import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import RoleDebugger from '../components/RoleDebugger.vue'
+import RoleTest from '../components/RoleTest.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
@@ -112,6 +114,7 @@ const availableTabs = computed(() => {
   console.log('  - isAuthenticated:', authStore.isAuthenticated)
   console.log('  - profileLoading:', authStore.profileLoading)
   console.log('  - user object:', authStore.user)
+  console.log('  - user.role from object:', authStore.user?.role)
   
   const tabs = [
     {
@@ -130,24 +133,28 @@ const availableTabs = computed(() => {
 
   // Add admin tab for admins
   if (userRole === 'admin') {
-    console.log('Adding admin tab')
+    console.log('✅ Adding admin tab - userRole is admin')
     tabs.push({
       id: 'admin',
       name: t('admin.dashboard'),
       icon: 'fas fa-crown',
       roles: ['admin']
     })
+  } else {
+    console.log('❌ Not adding admin tab - userRole is:', userRole)
   }
 
   // Add employee tab for employees
   if (userRole === 'employee') {
-    console.log('Adding employee tab')
+    console.log('✅ Adding employee tab - userRole is employee')
     tabs.push({
       id: 'employee',
       name: t('employee.dashboard'),
       icon: 'fas fa-user-tie',
       roles: ['employee']
     })
+  } else {
+    console.log('❌ Not adding employee tab - userRole is:', userRole)
   }
 
   console.log('Final tabs:', tabs)
@@ -196,7 +203,13 @@ watch(() => authStore.userRole, (newRole, oldRole) => {
   validateTabAccess()
 }, { immediate: true })
 
-onMounted(() => {
+onMounted(async () => {
+  // Force role refresh on dashboard mount to ensure fresh data
+  if (authStore.isAuthenticated) {
+    console.log('🔄 Dashboard mounted, ensuring fresh role data...')
+    await authStore.forceRoleRefresh()
+  }
+  
   // Validate tab access on mount
   validateTabAccess()
 })

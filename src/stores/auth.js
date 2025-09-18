@@ -11,6 +11,11 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
   const authSubscription = ref(null)
 
+  // Persistence configuration
+  const persist = {
+    paths: ['user'] // Only persist the user object
+  }
+
   // Getters
   const isAuthenticated = computed(() => !!user.value)
   const userDisplayName = computed(() => {
@@ -90,6 +95,47 @@ export const useAuthStore = defineStore('auth', () => {
       return true
     } catch (err) {
       console.error('Error refreshing profile:', err)
+      return false
+    }
+  }
+
+  // Force role refresh from Supabase
+  const forceRoleRefresh = async () => {
+    try {
+      console.log('🔄 Force refreshing role from Supabase...')
+      
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        console.warn('No active session for role refresh')
+        return false
+      }
+
+      // Force fresh profile query
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, role, city')
+        .eq('id', session.user.id)
+        .single()
+
+      if (profileError) {
+        console.error('Error fetching fresh profile:', profileError)
+        return false
+      }
+
+      if (profile) {
+        // Update user with fresh role data
+        user.value = {
+          ...user.value,
+          role: profile.role?.toLowerCase() || 'customer'
+        }
+        console.log('✅ Role refreshed from Supabase:', profile.role)
+        return true
+      }
+
+      return false
+    } catch (err) {
+      console.error('Error force refreshing role:', err)
       return false
     }
   }
@@ -534,6 +580,8 @@ export const useAuthStore = defineStore('auth', () => {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session?.user) {
+        // Always reload profile from Supabase to ensure fresh role data
+        console.log('🔄 Initializing auth with fresh profile data...')
         await loadUserWithProfile(session.user)
         
         // Double-check role loading after a short delay
@@ -590,6 +638,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     profileLoading,
     error,
+    persist,
     
     // Getters
     isAuthenticated,
@@ -622,6 +671,7 @@ export const useAuthStore = defineStore('auth', () => {
     cleanup,
     checkAuthStatus,
     refreshAuth,
-    refreshProfile
+    refreshProfile,
+    forceRoleRefresh
   }
 })

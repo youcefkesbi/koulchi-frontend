@@ -27,6 +27,12 @@
       Refresh Profile
     </button>
     <button 
+      @click="forceRoleRefresh" 
+      class="mt-2 ml-2 px-3 py-1 bg-purple-600 text-white rounded text-xs"
+    >
+      Force Role Refresh
+    </button>
+    <button 
       @click="showDebugger = false" 
       class="mt-2 ml-2 px-3 py-1 bg-red-600 text-white rounded text-xs"
     >
@@ -120,6 +126,21 @@ const refreshProfile = async () => {
   } catch (err) {
     console.error('Error refreshing profile:', err)
     alert('Error refreshing profile: ' + err.message)
+  }
+}
+
+const forceRoleRefresh = async () => {
+  try {
+    console.log('Force refreshing role...')
+    const success = await authStore.forceRoleRefresh()
+    if (success) {
+      alert('Role force refreshed! Check the debug info.')
+    } else {
+      alert('Failed to force refresh role. Check console for details.')
+    }
+  } catch (err) {
+    console.error('Error force refreshing role:', err)
+    alert('Error force refreshing role: ' + err.message)
   }
 }
 </script>
