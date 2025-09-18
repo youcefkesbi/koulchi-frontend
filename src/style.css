@@ -18,13 +18,37 @@
   --color-white: #ffffff;
 }
 
+/* Dark mode CSS variables */
+.dark {
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+  --color-primary-light: #34d399;
+  --color-secondary: #f97316;
+  --color-secondary-dark: #ea580c;
+  --color-secondary-light: #fb923c;
+  --color-accent: #f59e0b;
+  --color-accent-dark: #d97706;
+  --color-accent-light: #fbbf24;
+  --color-dark: #f9fafb;
+  --color-light-gray: #1f2937;
+  --color-white: #111827;
+}
+
 /* Shadow utilities */
 .shadow-soft {
   box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
 }
 
+.dark .shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.3), 0 10px 20px -2px rgba(0, 0, 0, 0.2);
+}
+
 .shadow-glow {
   box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.dark .shadow-glow {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 /* Enhanced component styles */
@@ -348,4 +372,53 @@
 
 .focus-ring-secondary {
   @apply focus:outline-none focus:ring-4 focus:ring-secondary/20 focus:ring-offset-2;
+}
+
+/* Dark mode specific styles */
+@layer components {
+  /* Dark mode card styles */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-soft p-6 border border-gray-100 dark:border-gray-700;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer;
+  }
+
+  /* Dark mode text styles */
+  .text-primary {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-300;
+  }
+
+  .text-muted {
+    @apply text-gray-500 dark:text-gray-400;
+  }
+
+  /* Dark mode background styles */
+  .bg-primary {
+    @apply bg-white dark:bg-gray-900;
+  }
+
+  .bg-secondary {
+    @apply bg-gray-50 dark:bg-gray-800;
+  }
+
+  /* Dark mode border styles */
+  .border-primary {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+
+  /* Dark mode input styles */
+  .input-primary {
+    @apply bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400;
+  }
+
+  /* Dark mode button styles */
+  .btn-dark {
+    @apply bg-gray-800 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600;
+  }
 } 

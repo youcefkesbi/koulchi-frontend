@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
+  <header class="bg-white dark:bg-gray-900 shadow-soft sticky top-0 z-50 border-b border-gray-100 dark:border-gray-700">
     <div class="container mx-auto px-4">
       <!-- Main header -->
       <div class="py-4 sm:py-6">
@@ -10,7 +10,7 @@
               <i class="fas fa-shopping-bag text-white text-xl"></i>
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-primary">{{ t('header.brandName') }}</h1>
+              <h1 class="text-2xl font-bold text-primary dark:text-primary">{{ t('header.brandName') }}</h1>
             </div>
           </router-link>
 
@@ -22,7 +22,7 @@
                 @input="handleSearch"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
-                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
+                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-primary transition-colors"></i>
             </div>
@@ -87,6 +87,9 @@
 
             <!-- Language Switcher -->
             <LanguageSwitcher />
+
+            <!-- Theme Toggle -->
+            <ThemeToggle />
 
             <!-- User Menu -->
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
@@ -162,6 +165,7 @@ import { useWishlistStore } from '../stores/wishlist'
 import { useProductStore } from '../stores/product'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
+import ThemeToggle from './ThemeToggle.vue'
 
 const { t } = useI18n()
 const router = useRouter()

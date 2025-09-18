@@ -720,15 +720,6 @@ const formatDate = (dateString) => {
   })
 }
 
-onMounted(async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    console.log("Current user UUID:", user.id)
-  } else {
-    console.log("No user is signed in")
-  }
-})
-
 // Lifecycle
 onMounted(() => {
   fetchUsers()

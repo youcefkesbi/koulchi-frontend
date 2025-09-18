@@ -3,7 +3,7 @@
     id="app" 
     :dir="currentDir"
     :lang="currentLocale"
-    class="min-h-screen bg-gradient-to-br from-light-gray to-white"
+    class="min-h-screen bg-gradient-to-br from-light-gray to-white dark:from-gray-900 dark:to-gray-800"
   >
     <Header />
     <main class="flex-1">
@@ -79,7 +79,7 @@ onUnmounted(() => {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-gray-100 dark:bg-gray-800;
 }
 
 ::-webkit-scrollbar-thumb {
