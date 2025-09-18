@@ -12,7 +12,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isAuthenticated = computed(() => !!user.value)
-  const userDisplayName = computed(() => user.value?.full_name || user.value?.email || 'User')
+  const userDisplayName = computed(() => {
+    if (!user.value) return 'User'
+    
+    // Try different sources for the full name
+    const fullName = user.value?.full_name || 
+                    user.value?.user_metadata?.full_name || 
+                    user.value?.raw_user_meta_data?.full_name
+    
+    return fullName || user.value?.email || 'User'
+  })
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
   const userRole = computed(() => user.value?.role || 'user')
@@ -463,13 +472,17 @@ export const useAuthStore = defineStore('auth', () => {
         // Merge profile data with auth user, keeping email from auth
         user.value = { 
           ...authUser, 
-          full_name: profile.full_name,
+          full_name: profile.full_name || authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
           role: profile.role
         }
-        console.log('User loaded with role:', profile.role)
+        console.log('User loaded with role:', profile.role, 'and full_name:', user.value.full_name)
       } else {
-        user.value = authUser
-        console.log('No profile data, using auth user')
+        // No profile found, use auth user with full name from metadata
+        user.value = {
+          ...authUser,
+          full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name
+        }
+        console.log('No profile data, using auth user with full_name:', user.value.full_name)
       }
     } catch (err) {
       // Error fetching profile, just use auth user
@@ -478,7 +491,10 @@ export const useAuthStore = defineStore('auth', () => {
         console.warn('Profile loading timed out, using auth user without profile')
       }
       console.log('Setting user to auth user due to error')
-      user.value = authUser
+      user.value = {
+        ...authUser,
+        full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name
+      }
     }
   }
 

@@ -20,3 +20,4 @@ app.config.globalProperties.$i18n = i18n.global
 
 app.mount('#app') // Force deployment Sat Sep 13 09:29:46 CEST 2025
 // Force deployment 1757751061
+// Fix Git email configuration for Vercel deployment
