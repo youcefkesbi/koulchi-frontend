@@ -274,6 +274,7 @@
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
     "buyingDashboard": "لوحة تحكم الشراء",
     "sellingDashboard": "لوحة تحكم البيع",
+    "loadingProfile": "جاري تحميل ملفك الشخصي...",
     "buyingSection": "الشراء",
     "sellingSection": "البيع",
     "buyingDescription": "تتبع طلباتك، وأدر قائمة أمنياتك، واعرض سجل مشترياتك",

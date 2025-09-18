@@ -543,6 +543,7 @@
     "welcomeMessage": "Bon retour, {name} !",
     "buyingDashboard": "Tableau de Bord d'Achat",
     "sellingDashboard": "Tableau de Bord de Vente",
+    "loadingProfile": "Chargement de votre profil...",
     "buyingSection": "Achat",
     "sellingSection": "Vente",
     "buyingDescription": "Suivez vos commandes, gérez votre liste de souhaits et consultez votre historique d'achat",

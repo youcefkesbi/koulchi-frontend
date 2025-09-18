@@ -21,6 +21,12 @@
       Set Employee Role
     </button>
     <button 
+      @click="refreshProfile" 
+      class="mt-2 ml-2 px-3 py-1 bg-yellow-600 text-white rounded text-xs"
+    >
+      Refresh Profile
+    </button>
+    <button 
       @click="showDebugger = false" 
       class="mt-2 ml-2 px-3 py-1 bg-red-600 text-white rounded text-xs"
     >
@@ -45,7 +51,7 @@ const authStore = useAuthStore()
 const showDebugger = ref(false)
 
 const availableTabs = computed(() => {
-  const userRole = authStore.userRole || 'user'
+  const userRole = authStore.userRole || 'customer'
   const tabs = ['buying', 'selling']
   
   if (userRole === 'admin') {
@@ -99,6 +105,21 @@ const setEmployeeRole = async () => {
   } catch (err) {
     console.error('Error setting employee role:', err)
     alert('Error setting employee role: ' + err.message)
+  }
+}
+
+const refreshProfile = async () => {
+  try {
+    console.log('Refreshing profile...')
+    const success = await authStore.refreshProfile()
+    if (success) {
+      alert('Profile refreshed! Check the debug info.')
+    } else {
+      alert('Failed to refresh profile. Check console for details.')
+    }
+  } catch (err) {
+    console.error('Error refreshing profile:', err)
+    alert('Error refreshing profile: ' + err.message)
   }
 }
 </script>

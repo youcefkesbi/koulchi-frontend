@@ -7,6 +7,7 @@ import { getPasswordResetRedirectUrl } from '../config/environment.js'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(false)
+  const profileLoading = ref(false)
   const error = ref(null)
   const authSubscription = ref(null)
 
@@ -24,7 +25,11 @@ export const useAuthStore = defineStore('auth', () => {
   })
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
-  const userRole = computed(() => user.value?.role || 'customer')
+  const userRole = computed(() => {
+    const role = user.value?.role || 'customer'
+    // Normalize role to lowercase for case-insensitive comparison
+    return role?.toLowerCase() || 'customer'
+  })
   
   // Role-based access helpers
   const isAdmin = computed(() => userRole.value === 'admin')
@@ -68,6 +73,23 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       console.error('Error refreshing auth:', err)
       user.value = null
+      return false
+    }
+  }
+
+  // Manual profile refresh for debugging
+  const refreshProfile = async () => {
+    if (!user.value?.id) {
+      console.warn('No user ID available for profile refresh')
+      return false
+    }
+    
+    try {
+      console.log('🔄 Manually refreshing profile for user:', user.value.id)
+      await loadUserWithProfile(user.value)
+      return true
+    } catch (err) {
+      console.error('Error refreshing profile:', err)
       return false
     }
   }
@@ -436,6 +458,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Simplified to avoid recursion - only loads basic profile info
   const loadUserWithProfile = async (authUser) => {
     try {
+      profileLoading.value = true
       console.log('Loading user profile for:', authUser.email)
       console.log('User ID:', authUser.id)
       
@@ -475,16 +498,17 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = { 
           ...authUser, 
           full_name: profile.full_name || authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
-          role: profile.role
+          role: profile.role?.toLowerCase() || 'customer' // Normalize role to lowercase
         }
-        console.log('User loaded with role:', profile.role, 'and full_name:', user.value.full_name)
+        console.log('✅ User loaded with role:', profile.role, '-> normalized to:', user.value.role, 'and full_name:', user.value.full_name)
       } else {
         // No profile found, use auth user with full name from metadata
         user.value = {
           ...authUser,
-          full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name
+          full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
+          role: 'customer' // Default role when no profile found
         }
-        console.log('No profile data, using auth user with full_name:', user.value.full_name)
+        console.log('⚠️ No profile data, using auth user with default role "customer" and full_name:', user.value.full_name)
       }
     } catch (err) {
       // Error fetching profile, just use auth user
@@ -495,8 +519,11 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('Setting user to auth user due to error')
       user.value = {
         ...authUser,
-        full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name
+        full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
+        role: 'customer' // Default role when profile loading fails
       }
+    } finally {
+      profileLoading.value = false
     }
   }
 
@@ -508,6 +535,14 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (session?.user) {
         await loadUserWithProfile(session.user)
+        
+        // Double-check role loading after a short delay
+        setTimeout(async () => {
+          if (user.value && (!user.value.role || user.value.role === 'customer')) {
+            console.log('🔄 Double-checking role loading...')
+            await loadUserWithProfile(session.user)
+          }
+        }, 1000)
       } else {
         // No valid session, ensure user state is cleared
         user.value = null
@@ -553,6 +588,7 @@ export const useAuthStore = defineStore('auth', () => {
     // State
     user,
     loading,
+    profileLoading,
     error,
     
     // Getters
@@ -585,6 +621,7 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     cleanup,
     checkAuthStatus,
-    refreshAuth
+    refreshAuth,
+    refreshProfile
   }
 })

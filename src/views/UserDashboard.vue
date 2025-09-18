@@ -50,24 +50,34 @@
 
     <!-- Dashboard Content -->
     <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Buying Tab -->
-      <BuyingTab v-if="activeTab === 'buying'" />
+      <!-- Loading State -->
+      <div v-if="authStore.profileLoading" class="text-center py-12">
+        <i class="fas fa-spinner fa-spin text-primary text-3xl mb-4"></i>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('common.loading') }}</h3>
+        <p class="text-gray-600">{{ t('dashboard.loadingProfile') }}</p>
+      </div>
       
-      <!-- Selling Tab -->
-      <SellingTab v-else-if="activeTab === 'selling'" />
-      
-      <!-- Admin Tab -->
-      <AdminTab 
-        v-else-if="activeTab === 'admin'" 
-        @navigate-to="handleAdminNavigation"
-      />
-      
-      <!-- Employee Tab -->
-      <EmployeeTab 
-        v-else-if="activeTab === 'employee'" 
-        @navigate-to="handleEmployeeNavigation"
-                />
-              </div>
+      <!-- Dashboard Tabs -->
+      <template v-else>
+        <!-- Buying Tab -->
+        <BuyingTab v-if="activeTab === 'buying'" />
+        
+        <!-- Selling Tab -->
+        <SellingTab v-else-if="activeTab === 'selling'" />
+        
+        <!-- Admin Tab -->
+        <AdminTab 
+          v-else-if="activeTab === 'admin'" 
+          @navigate-to="handleAdminNavigation"
+        />
+        
+        <!-- Employee Tab -->
+        <EmployeeTab 
+          v-else-if="activeTab === 'employee'" 
+          @navigate-to="handleEmployeeNavigation"
+        />
+      </template>
+    </div>
 
     <!-- Debug component (remove in production) -->
     <RoleDebugger />
@@ -97,7 +107,11 @@ const activeTab = ref('buying')
 // Available tabs based on user role
 const availableTabs = computed(() => {
   const userRole = authStore.userRole || 'customer'
-  console.log('Computing availableTabs, userRole:', userRole, 'isAuthenticated:', authStore.isAuthenticated)
+  console.log('🔍 Computing availableTabs:')
+  console.log('  - userRole:', userRole)
+  console.log('  - isAuthenticated:', authStore.isAuthenticated)
+  console.log('  - profileLoading:', authStore.profileLoading)
+  console.log('  - user object:', authStore.user)
   
   const tabs = [
     {
