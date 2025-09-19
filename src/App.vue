@@ -3,7 +3,7 @@
     id="app" 
     :dir="currentDir"
     :lang="currentLocale"
-    class="min-h-screen bg-gradient-to-br from-light-gray to-white dark:from-gray-900 dark:to-gray-800"
+    class="min-h-screen bg-white dark:bg-gray-900"
   >
     <Header />
     <main class="flex-1">
@@ -79,15 +79,20 @@ onUnmounted(() => {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  background-color: #f3f4f6;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: #374151;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary rounded-full;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary-dark;
+  background-color: var(--color-primary-dark);
 }
 
 /* Smooth transitions */

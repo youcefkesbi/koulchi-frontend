@@ -2,6 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global background styles for proper theme switching */
+html, body {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.dark html, .dark body {
+  background-color: #111827;
+}
+
+/* Ensure the app container has proper background */
+#app {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.dark #app {
+  background-color: #111827;
+}
+
+/* Ensure all main content areas have proper background switching */
+main {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.dark main {
+  background-color: #111827;
+}
+
+/* Ensure sections and cards have proper background switching */
+section, .card, .bg-white {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.dark section, .dark .card, .dark .bg-white {
+  background-color: #1f2937;
+}
+
+/* Ensure gray backgrounds switch properly */
+.bg-gray-50 {
+  background-color: #f9fafb;
+  transition: background-color 0.3s ease;
+}
+
+.dark .bg-gray-50 {
+  background-color: #111827;
+}
+
 /* CSS Variables for the new color palette */
 :root {
   --color-primary: #10b981;
@@ -704,20 +754,39 @@
 
 /* Hover effects */
 .hover-lift {
-  @apply transform hover:scale-105 transition-all duration-300;
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: scale(1.05);
 }
 
 .hover-glow {
-  @apply hover:shadow-glow transition-shadow duration-300;
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 /* Focus states */
 .focus-ring {
-  @apply focus:outline-none focus:ring-4 focus:ring-primary/20 focus:ring-offset-2;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.focus-ring:focus {
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
 .focus-ring-secondary {
-  @apply focus:outline-none focus:ring-4 focus:ring-secondary/20 focus:ring-offset-2;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.focus-ring-secondary:focus {
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2), 0 0 0 2px rgba(249, 115, 22, 0.1);
 }
 
 /* Dark mode specific styles */

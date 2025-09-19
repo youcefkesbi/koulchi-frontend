@@ -130,7 +130,7 @@
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="bg-gradient-to-br from-light-gray to-white rounded-3xl p-12 shadow-soft my-slide-up">
+    <section class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-soft my-slide-up">
       <h2 class="text-4xl font-bold text-dark mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div class="space-y-6">
