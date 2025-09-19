@@ -6,8 +6,6 @@ import App from './App.vue'
 import './style.css'
 import { piniaPersist } from './plugins/piniaPersist.js'
 
-// Import environment utilities for development
-import './utils/environment-test.js'
 
 const app = createApp(App)
 const pinia = createPinia()
