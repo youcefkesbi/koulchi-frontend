@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white dark:bg-gray-900 shadow-soft sticky top-0 z-50 border-b border-gray-100 dark:border-gray-700">
+  <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
     <div class="container mx-auto px-4">
       <!-- Main header -->
       <div class="py-4 sm:py-6">
@@ -17,7 +17,7 @@
                 @input="handleSearch"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
-                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-gray-900 placeholder-gray-500"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-primary transition-colors"></i>
             </div>
@@ -27,17 +27,17 @@
           <div class="relative categories-dropdown order-2 sm:order-3">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
-              class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 dark:text-gray-300 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700"
+              class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-gray-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-gray-50"
             >
               <i class="fas fa-layer-group text-lg"></i>
-              <span class="font-medium text-gray-700 dark:text-gray-300">{{ t('header.categories') }}</span>
+              <span class="font-medium text-gray-700">{{ t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
 
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-700 py-2 z-50"
+              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
             >
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
                 <router-link
@@ -83,9 +83,6 @@
             <!-- Language Switcher -->
             <LanguageSwitcher />
 
-            <!-- Theme Toggle -->
-            <ThemeToggle />
-
             <!-- User Menu -->
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
@@ -97,14 +94,14 @@
                   :alt="authStore.userDisplayName || authStore.userEmail"
                   class="w-8 h-8 rounded-full object-cover"
                 />
-                <span class="font-medium hidden sm:block text-gray-700 dark:text-gray-300">{{ authStore.userDisplayName || authStore.userEmail }}</span>
+                <span class="font-medium hidden sm:block text-gray-700">{{ authStore.userDisplayName || authStore.userEmail }}</span>
                 <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-700 py-2 z-50"
+                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
                 <router-link :to="getLocalizedRoute('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
@@ -160,7 +157,6 @@ import { useWishlistStore } from '../stores/wishlist'
 import { useProductStore } from '../stores/product'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
-import ThemeToggle from './ThemeToggle.vue'
 import Logo from './Logo.vue'
 
 const { t } = useI18n()
