@@ -96,8 +96,6 @@ import BuyingTab from '../components/dashboard/BuyingTab.vue'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
-import RoleDebugger from '../components/RoleDebugger.vue'
-import RoleTest from '../components/RoleTest.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
