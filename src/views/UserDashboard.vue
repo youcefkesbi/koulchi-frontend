@@ -98,8 +98,6 @@ import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import RoleDebugger from '../components/RoleDebugger.vue'
 import RoleTest from '../components/RoleTest.vue'
-import ThemeTest from '../components/ThemeTest.vue'
-import ThemeDebugger from '../components/ThemeDebugger.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
