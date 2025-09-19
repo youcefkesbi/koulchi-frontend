@@ -34,7 +34,7 @@ const props = defineProps({
   },
   showBrandName: {
     type: Boolean,
-    default: true
+    default: false
   },
   variant: {
     type: String,
@@ -53,22 +53,22 @@ const logoMapping = {
 // Fallback logo (default to English/French)
 const fallbackLogo = 'Logo English:French Black.png'
 
-// Size configurations
+// Size configurations with responsive sizing
 const sizeConfig = {
   small: {
-    container: 'w-8 h-8',
-    image: 'w-6 h-6',
-    text: 'text-lg'
+    container: 'w-8 h-8 sm:w-10 sm:h-10',
+    image: 'w-6 h-6 sm:w-8 sm:h-8',
+    text: 'text-sm sm:text-lg'
   },
   default: {
-    container: 'w-12 h-12',
-    image: 'w-8 h-8',
-    text: 'text-2xl'
+    container: 'w-12 h-12 sm:w-14 sm:h-14',
+    image: 'w-8 h-8 sm:w-10 sm:h-10',
+    text: 'text-xl sm:text-2xl'
   },
   large: {
-    container: 'w-16 h-16',
-    image: 'w-12 h-12',
-    text: 'text-3xl'
+    container: 'w-16 h-16 sm:w-20 sm:h-20',
+    image: 'w-12 h-12 sm:w-16 sm:h-16',
+    text: 'text-2xl sm:text-3xl'
   }
 }
 
@@ -79,7 +79,13 @@ const logoSrc = computed(() => {
 })
 
 const logoAlt = computed(() => {
-  return `Koulchi Logo - ${locale.value.toUpperCase()}`
+  const languageNames = {
+    'en': 'English',
+    'fr': 'French', 
+    'ar': 'Arabic'
+  }
+  const languageName = languageNames[locale.value] || locale.value.toUpperCase()
+  return `Koulchi - ${languageName} Logo`
 })
 
 const brandName = computed(() => {
@@ -89,6 +95,11 @@ const brandName = computed(() => {
 
 // Computed classes based on props
 const containerClass = computed(() => {
+  if (!props.showBrandName) {
+    // When no brand name, just center the logo
+    return 'flex items-center justify-center group'
+  }
+  
   const baseClasses = 'flex items-center space-x-3 space-x-reverse group'
   
   if (props.variant === 'minimal') {
@@ -100,17 +111,22 @@ const containerClass = computed(() => {
 
 const logoContainerClass = computed(() => {
   const sizeClasses = sizeConfig[props.size]
-  const baseClasses = `${sizeClasses.container} rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105 overflow-hidden`
+  let baseClasses = `${sizeClasses.container} rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105 overflow-hidden`
   
   if (props.variant === 'footer') {
-    return baseClasses.replace('bg-white dark:bg-gray-800', 'bg-primary')
+    baseClasses = baseClasses.replace('bg-white dark:bg-gray-800', 'bg-primary')
+  } else if (props.variant === 'minimal') {
+    baseClasses = baseClasses.replace('rounded-2xl shadow-soft group-hover:shadow-glow group-hover:scale-105', 'rounded-lg')
+  } else {
+    baseClasses = `${baseClasses} bg-white dark:bg-gray-800`
   }
   
-  if (props.variant === 'minimal') {
-    return baseClasses.replace('rounded-2xl shadow-soft group-hover:shadow-glow group-hover:scale-105', 'rounded-lg')
+  // Add extra padding when no brand name is shown for better visual balance
+  if (!props.showBrandName) {
+    baseClasses += ' p-1'
   }
   
-  return `${baseClasses} bg-white dark:bg-gray-800`
+  return baseClasses
 })
 
 const logoImageClass = computed(() => {
