@@ -215,26 +215,34 @@ onMounted(async () => {
 
 <style scoped>
 .badge {
-  @apply px-3 py-1 rounded-full text-xs font-semibold;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .badge-pending {
-  @apply bg-yellow-100 text-yellow-800;
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
 .badge-confirmed {
-  @apply bg-blue-100 text-blue-800;
+  background-color: #dbeafe;
+  color: #1e40af;
 }
 
 .badge-shipped {
-  @apply bg-purple-100 text-purple-800;
+  background-color: #e9d5ff;
+  color: #6b21a8;
 }
 
 .badge-delivered {
-  @apply bg-green-100 text-green-800;
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .badge-canceled {
-  @apply bg-red-100 text-red-800;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 </style> 
