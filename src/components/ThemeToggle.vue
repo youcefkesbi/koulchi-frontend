@@ -1,43 +1,31 @@
 <template>
-  <div class="flex items-center space-x-3">
-    <!-- Light mode icon -->
-    <i 
-      v-if="!themeStore.isDark" 
-      class="fas fa-sun text-yellow-500 text-lg transition-all duration-300"
-    ></i>
-    
-    <!-- Toggle switch -->
+  <div class="flex items-center">
+    <!-- Simple toggle switch -->
     <button
       @click="themeStore.toggleTheme"
       :class="[
-        'relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 hover:scale-105 active:scale-95',
+        'relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
         themeStore.isDark 
-          ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg' 
-          : 'bg-gradient-to-r from-yellow-400 to-orange-400 shadow-lg'
+          ? 'bg-gray-600' 
+          : 'bg-gray-300'
       ]"
       :aria-pressed="themeStore.isDark"
       aria-label="Toggle dark mode"
     >
       <span
         :class="[
-          'h-5 w-5 transform rounded-full bg-white shadow-lg transition-all duration-300 flex items-center justify-center',
+          'h-4 w-4 transform rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center',
           themeStore.isDark ? 'translate-x-6' : 'translate-x-1'
         ]"
       >
         <i 
           :class="[
             'text-xs transition-all duration-300',
-            themeStore.isDark ? 'fas fa-moon text-blue-600' : 'fas fa-sun text-yellow-500'
+            themeStore.isDark ? 'fas fa-moon text-gray-600' : 'fas fa-sun text-yellow-500'
           ]"
         ></i>
       </span>
     </button>
-    
-    <!-- Dark mode icon -->
-    <i 
-      v-if="themeStore.isDark" 
-      class="fas fa-moon text-blue-400 text-lg transition-all duration-300"
-    ></i>
   </div>
 </template>
 

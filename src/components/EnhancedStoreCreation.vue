@@ -24,13 +24,13 @@
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto">
         <!-- Authentication Loading State -->
-        <div v-if="!isAuthenticated && !user" class="bg-white rounded-2xl shadow-soft p-8 text-center">
+        <div v-if="!isAuthenticated && !user" class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-8 text-center">
           <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p class="text-gray-600">{{ $t('common.loading') || 'Loading...' }}</p>
+          <p class="text-gray-600 dark:text-gray-300">{{ $t('common.loading') || 'Loading...' }}</p>
         </div>
         
         <!-- Main Form (only show when authenticated) -->
-        <div v-else class="bg-white rounded-2xl shadow-soft p-8">
+        <div v-else class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-8">
           <!-- Progress Steps -->
           <div class="mb-8">
             <div class="flex items-center justify-center space-x-8">

@@ -17,7 +17,7 @@
           {{ t('hero.subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
-          <button @click="scrollToMostSoldProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
+          <button @click="scrollToMostSoldProducts" class="bg-white dark:bg-gray-800 text-slate-800 dark:text-white font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50 dark:hover:bg-gray-700">
             <i class="fas fa-shopping-bag ml-1 sm:ml-2"></i>
             {{ t('hero.shopNow') }}
           </button>

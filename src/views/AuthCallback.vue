@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-light-gray to-white flex items-center justify-center">
     <div class="max-w-md w-full mx-auto">
-      <div class="bg-white rounded-3xl shadow-soft p-8 text-center">
+      <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-soft p-8 text-center">
         <!-- Loading State -->
         <div v-if="loading" class="space-y-4">
           <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">

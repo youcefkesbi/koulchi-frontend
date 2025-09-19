@@ -38,13 +38,13 @@
           <div v-if="product.image_urls && product.image_urls.length > 1" class="absolute inset-0 flex items-center justify-between p-4">
             <button
               @click="previousImage"
-              class="bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              class="bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               <i class="fas fa-chevron-right"></i>
             </button>
             <button
               @click="nextImage"
-              class="bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              class="bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 text-gray-800 dark:text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               <i class="fas fa-chevron-left"></i>
             </button>
