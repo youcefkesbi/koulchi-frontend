@@ -1,22 +1,22 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-white">
     <!-- Dashboard Header -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="bg-white shadow-sm border-b border-gray-200">
       <div class="w-full px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center">
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ t('dashboard.userDashboard') }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{{ t('dashboard.userDashboard') }}</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-600 dark:text-gray-300">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</span>
+            <span class="text-sm text-gray-600">{{ t('dashboard.welcomeMessage', { name: authStore.userDisplayName || authStore.userEmail }) }}</span>
             <span 
               v-if="authStore.userRole !== 'customer'"
               :class="[
                 'px-3 py-1 rounded-full text-xs font-medium',
-                authStore.userRole === 'admin' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
-                authStore.userRole === 'employee' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' :
-                authStore.userRole === 'vendor' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                authStore.userRole === 'admin' ? 'bg-red-100 text-red-800' :
+                authStore.userRole === 'employee' ? 'bg-blue-100 text-blue-800' :
+                authStore.userRole === 'vendor' ? 'bg-green-100 text-green-800' :
+                'bg-gray-100 text-gray-800'
               ]"
             >
               {{ authStore.userRole }}
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Tab Navigation -->
-    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="bg-white border-b border-gray-200">
       <div class="w-full px-4 sm:px-6 lg:px-8">
         <nav class="flex space-x-8" aria-label="Dashboard Tabs">
           <button
@@ -38,7 +38,7 @@
               'py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200',
               activeTab === tab.id
                 ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
             <i :class="tab.icon + ' mr-2'"></i>
