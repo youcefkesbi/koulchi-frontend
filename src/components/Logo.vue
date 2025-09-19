@@ -1,14 +1,12 @@
 <template>
   <div :class="containerClass">
     <!-- Logo Image -->
-    <div :class="logoContainerClass">
-      <img 
-        :src="logoSrc" 
-        :alt="logoAlt"
-        :class="logoImageClass"
-        @error="handleImageError"
-      />
-    </div>
+    <img 
+      :src="logoSrc" 
+      :alt="logoAlt"
+      :class="logoImageClass"
+      @error="handleImageError"
+    />
     
     <!-- Brand Name -->
     <div v-if="showBrandName">
@@ -53,21 +51,18 @@ const logoMapping = {
 // Fallback logo (default to English/French)
 const fallbackLogo = 'Logo English:French Black.png'
 
-// Size configurations with responsive sizing
+// Size configurations with responsive sizing - increased sizes for better visibility
 const sizeConfig = {
   small: {
-    container: 'w-8 h-8 sm:w-10 sm:h-10',
-    image: 'w-6 h-6 sm:w-8 sm:h-8',
+    image: 'w-12 h-12 sm:w-16 sm:h-16',
     text: 'text-sm sm:text-lg'
   },
   default: {
-    container: 'w-12 h-12 sm:w-14 sm:h-14',
-    image: 'w-8 h-8 sm:w-10 sm:h-10',
+    image: 'w-16 h-16 sm:w-20 sm:h-20',
     text: 'text-xl sm:text-2xl'
   },
   large: {
-    container: 'w-16 h-16 sm:w-20 sm:h-20',
-    image: 'w-12 h-12 sm:w-16 sm:h-16',
+    image: 'w-20 h-20 sm:w-24 sm:h-24',
     text: 'text-2xl sm:text-3xl'
   }
 }
@@ -97,10 +92,10 @@ const brandName = computed(() => {
 const containerClass = computed(() => {
   if (!props.showBrandName) {
     // When no brand name, just center the logo
-    return 'flex items-center justify-center group'
+    return 'flex items-center justify-center'
   }
   
-  const baseClasses = 'flex items-center space-x-3 space-x-reverse group'
+  const baseClasses = 'flex items-center space-x-3 space-x-reverse'
   
   if (props.variant === 'minimal') {
     return baseClasses.replace('space-x-3', 'space-x-2')
@@ -109,34 +104,14 @@ const containerClass = computed(() => {
   return baseClasses
 })
 
-const logoContainerClass = computed(() => {
-  const sizeClasses = sizeConfig[props.size]
-  let baseClasses = `${sizeClasses.container} rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105 overflow-hidden`
-  
-  if (props.variant === 'footer') {
-    baseClasses = baseClasses.replace('bg-white dark:bg-gray-800', 'bg-primary')
-  } else if (props.variant === 'minimal') {
-    baseClasses = baseClasses.replace('rounded-2xl shadow-soft group-hover:shadow-glow group-hover:scale-105', 'rounded-lg')
-  } else {
-    baseClasses = `${baseClasses} bg-white dark:bg-gray-800`
-  }
-  
-  // Add extra padding when no brand name is shown for better visual balance
-  if (!props.showBrandName) {
-    baseClasses += ' p-1'
-  }
-  
-  return baseClasses
-})
-
 const logoImageClass = computed(() => {
   const sizeClasses = sizeConfig[props.size]
-  return `${sizeClasses.image} object-contain transition-all duration-300`
+  return `${sizeClasses.image} object-contain`
 })
 
 const brandNameClass = computed(() => {
   const sizeClasses = sizeConfig[props.size]
-  const baseClasses = `${sizeClasses.text} font-bold text-primary dark:text-primary transition-colors duration-300`
+  const baseClasses = `${sizeClasses.text} font-bold text-primary dark:text-primary`
   
   if (props.variant === 'footer') {
     return baseClasses.replace('text-primary dark:text-primary', 'text-primary')
