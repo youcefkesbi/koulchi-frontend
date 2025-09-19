@@ -3,10 +3,10 @@
     <!-- Store Management Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
       <div>
-        <h2 class="text-2xl font-bold text-dark mb-2">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           {{ $t('stores.manageStores') }}
         </h2>
-        <p class="text-gray-600">{{ $t('stores.manageStoresDescription') }}</p>
+        <p class="text-gray-600 dark:text-gray-400">{{ $t('stores.manageStoresDescription') }}</p>
       </div>
       
       <button
@@ -23,7 +23,7 @@
       <div 
         v-for="store in storeStore.userStores" 
         :key="store.id"
-        class="bg-white rounded-2xl shadow-soft p-6 hover:shadow-glow transition-all duration-300"
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6 hover:shadow-glow transition-all duration-300"
       >
         <!-- Store Header -->
         <div class="flex items-start justify-between mb-4">
@@ -138,7 +138,7 @@
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <!-- Store Name -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {{ $t('stores.storeName') }} *
               </label>
               <input
@@ -152,7 +152,7 @@
 
             <!-- Store Description -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {{ $t('stores.storeDescription') }}
               </label>
               <textarea
@@ -169,7 +169,7 @@
               <button
                 type="button"
                 @click="closeModal"
-                class="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                class="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 {{ $t('common.cancel') }}
               </button>

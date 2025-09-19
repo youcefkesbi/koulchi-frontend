@@ -1,7 +1,7 @@
 <template>
-  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
     <!-- Product Image Container -->
-    <div class="relative overflow-hidden bg-gray-50">
+    <div class="relative overflow-hidden bg-gray-50 dark:bg-gray-700">
       <img 
         v-if="productImage" 
         :src="productImage" 
@@ -12,7 +12,7 @@
       
       <!-- No Image Placeholder -->
       <div v-else class="w-full h-48 sm:h-56 flex items-center justify-center">
-        <div class="text-center text-gray-400">
+        <div class="text-center text-gray-400 dark:text-gray-500">
           <i class="fas fa-image text-5xl mb-3 opacity-50"></i>
           <p class="text-sm font-medium">{{ $t('product.noImage') }}</p>
         </div>
@@ -39,8 +39,8 @@
       <!-- Wishlist Button (Floating) -->
       <button
         @click="toggleWishlist"
-        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-        :class="{ 'text-red-500': isInWishlist, 'text-gray-600': !isInWishlist }"
+        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+        :class="{ 'text-red-500': isInWishlist, 'text-gray-600 dark:text-gray-300': !isInWishlist }"
         :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
       >
         <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isInWishlist }"></i>
@@ -50,17 +50,17 @@
     <!-- Product Info Container -->
     <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
       <!-- Title -->
-      <h3 class="font-bold text-base sm:text-lg text-gray-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
+      <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
         {{ product.name }}
       </h3>
 
       <!-- Stock Status -->
       <div class="flex items-center space-x-2 space-x-reverse">
-        <div class="flex items-center bg-gray-50 px-3 py-2 rounded-lg">
+        <div class="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
           <i class="fas fa-box text-primary text-sm ml-2"></i>
-          <span class="text-sm font-medium text-gray-700">{{ product.stock_quantity || 0 }}</span>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ product.stock_quantity || 0 }}</span>
         </div>
-        <span class="text-sm text-gray-600 font-medium">متوفر</span>
+        <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">متوفر</span>
       </div>
 
       <!-- Price -->
@@ -68,7 +68,7 @@
         <span class="text-xl sm:text-2xl font-bold text-primary">
           {{ formatPrice(product.price) }} {{ $t('product.currency') }}
         </span>
-        <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 line-through">
+        <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
           {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
         </span>
       </div>

@@ -2,58 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global background styles for proper theme switching */
-html, body {
-  background-color: #ffffff;
-  transition: background-color 0.3s ease;
+/* Global theme transitions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-.dark html, .dark body {
-  background-color: #111827;
-}
-
-/* Ensure the app container has proper background */
-#app {
-  background-color: #ffffff;
-  transition: background-color 0.3s ease;
-}
-
-.dark #app {
-  background-color: #111827;
-}
-
-/* Ensure all main content areas have proper background switching */
-main {
-  background-color: #ffffff;
-  transition: background-color 0.3s ease;
-}
-
-.dark main {
-  background-color: #111827;
-}
-
-/* Ensure sections and cards have proper background switching */
-section, .card, .bg-white {
-  background-color: #ffffff;
-  transition: background-color 0.3s ease;
-}
-
-.dark section, .dark .card, .dark .bg-white {
-  background-color: #1f2937;
-}
-
-/* Ensure gray backgrounds switch properly */
-.bg-gray-50 {
-  background-color: #f9fafb;
-  transition: background-color 0.3s ease;
-}
-
-.dark .bg-gray-50 {
-  background-color: #111827;
-}
-
-/* CSS Variables for the new color palette */
+/* CSS Variables for comprehensive theme system */
 :root {
+  /* Brand Colors */
   --color-primary: #10b981;
   --color-primary-dark: #059669;
   --color-primary-light: #34d399;
@@ -63,13 +19,25 @@ section, .card, .bg-white {
   --color-accent: #f59e0b;
   --color-accent-dark: #d97706;
   --color-accent-light: #fbbf24;
-  --color-dark: #1f2937;
-  --color-light-gray: #f8fafc;
-  --color-white: #ffffff;
+  
+  /* Theme Colors - Light Mode */
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f3f4f6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+  --color-text-inverse: #ffffff;
+  --color-border: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-soft: rgba(0, 0, 0, 0.07);
 }
 
 /* Dark mode CSS variables */
 .dark {
+  /* Brand Colors (same as light) */
   --color-primary: #10b981;
   --color-primary-dark: #059669;
   --color-primary-light: #34d399;
@@ -79,18 +47,25 @@ section, .card, .bg-white {
   --color-accent: #f59e0b;
   --color-accent-dark: #d97706;
   --color-accent-light: #fbbf24;
-  --color-dark: #f9fafb;
-  --color-light-gray: #1f2937;
-  --color-white: #111827;
+  
+  /* Theme Colors - Dark Mode */
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-surface-secondary: #374151;
+  --color-surface-tertiary: #4b5563;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-text-inverse: #111827;
+  --color-border: #374151;
+  --color-border-secondary: #4b5563;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-shadow-soft: rgba(0, 0, 0, 0.2);
 }
 
-/* Shadow utilities */
+/* Shadow utilities using CSS variables */
 .shadow-soft {
-  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
-}
-
-.dark .shadow-soft {
-  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.3), 0 10px 20px -2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 15px -3px var(--color-shadow-soft), 0 10px 20px -2px var(--color-shadow-soft);
 }
 
 .shadow-glow {
