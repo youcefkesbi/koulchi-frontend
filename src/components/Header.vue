@@ -5,13 +5,8 @@
       <div class="py-4 sm:py-6">
         <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <!-- Logo -->
-          <router-link :to="getLocalizedRoute('/')" class="flex items-center space-x-3 space-x-reverse group">
-            <div class="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 group-hover:scale-105">
-              <i class="fas fa-shopping-bag text-white text-xl"></i>
-            </div>
-            <div>
-              <h1 class="text-2xl font-bold text-primary dark:text-primary">{{ t('header.brandName') }}</h1>
-            </div>
+          <router-link :to="getLocalizedRoute('/')" class="group">
+            <Logo />
           </router-link>
 
           <!-- Search bar -->
@@ -166,6 +161,7 @@ import { useProductStore } from '../stores/product'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 import ThemeToggle from './ThemeToggle.vue'
+import Logo from './Logo.vue'
 
 const { t } = useI18n()
 const router = useRouter()

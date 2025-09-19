@@ -4,14 +4,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
         <!-- Company Info -->
         <div class="space-y-4">
-          <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-2xl flex items-center justify-center shadow-soft">
-              <i class="fas fa-shopping-bag text-white text-base sm:text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-lg sm:text-xl font-bold text-primary">{{ $t('footer.brandName') }}</h3>
-            </div>
-          </div>
+          <Logo variant="footer" size="default" />
           <p class="text-gray-300 leading-relaxed text-xs sm:text-sm">
             {{ $t('footer.description') }}
           </p>
@@ -130,6 +123,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import Logo from './Logo.vue'
 
 const { t } = useI18n()
 </script> 
