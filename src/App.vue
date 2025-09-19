@@ -3,7 +3,7 @@
     id="app" 
     :dir="currentDir"
     :lang="currentLocale"
-    class="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+    class="min-h-screen bg-white text-gray-900"
   >
     <Header />
     <main class="flex-1">
@@ -80,10 +80,6 @@ onUnmounted(() => {
 
 ::-webkit-scrollbar-track {
   background-color: #f3f4f6;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background-color: #374151;
 }
 
 ::-webkit-scrollbar-thumb {

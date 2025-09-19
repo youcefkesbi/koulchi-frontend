@@ -111,10 +111,10 @@ const logoImageClass = computed(() => {
 
 const brandNameClass = computed(() => {
   const sizeClasses = sizeConfig[props.size]
-  const baseClasses = `${sizeClasses.text} font-bold text-primary dark:text-primary`
+  const baseClasses = `${sizeClasses.text} font-bold text-primary`
   
   if (props.variant === 'footer') {
-    return baseClasses.replace('text-primary dark:text-primary', 'text-primary')
+    return baseClasses
   }
   
   return baseClasses

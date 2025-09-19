@@ -24,14 +24,11 @@ app.config.globalProperties.$i18n = i18n.global
 
 // Initialize stores after Pinia is set up
 import { useAuthStore } from './stores/auth.js'
-import { useThemeStore } from './stores/theme.js'
 
 const authStore = useAuthStore()
-const themeStore = useThemeStore()
 
 // Initialize stores
 authStore.initAuth()
-themeStore.initializeTheme()
 
 app.mount('#app') // Force deployment Sat Sep 13 09:29:46 CEST 2025
 // Force deployment 1757751061
