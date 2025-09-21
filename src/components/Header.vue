@@ -6,7 +6,7 @@
         <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <!-- Logo -->
           <router-link :to="getLocalizedRoute('/')" class="group">
-            <Logo />
+            <Logo size="large" />
           </router-link>
 
           <!-- Search bar -->

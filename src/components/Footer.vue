@@ -4,7 +4,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
         <!-- Company Info -->
         <div class="space-y-4">
-          <Logo variant="footer" size="default" />
+          <Logo variant="footer" size="large" />
           <p class="text-gray-300 leading-relaxed text-xs sm:text-sm">
             {{ $t('footer.description') }}
           </p>

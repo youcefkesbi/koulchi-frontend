@@ -54,16 +54,16 @@ const fallbackLogo = 'Logo English:French Black.png'
 // Size configurations with responsive sizing - increased sizes for better visibility
 const sizeConfig = {
   small: {
-    image: 'w-12 h-12 sm:w-16 sm:h-16',
-    text: 'text-sm sm:text-lg'
+    image: 'w-16 h-16 sm:w-20 sm:h-20',
+    text: 'text-lg sm:text-xl'
   },
   default: {
-    image: 'w-16 h-16 sm:w-20 sm:h-20',
-    text: 'text-xl sm:text-2xl'
-  },
-  large: {
     image: 'w-20 h-20 sm:w-24 sm:h-24',
     text: 'text-2xl sm:text-3xl'
+  },
+  large: {
+    image: 'w-24 h-24 sm:w-28 sm:h-28',
+    text: 'text-3xl sm:text-4xl'
   }
 }
 
