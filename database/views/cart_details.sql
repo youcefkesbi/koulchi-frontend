@@ -1,4 +1,4 @@
--- Cart details view
+-- -Cart details view
 
 CREATE OR REPLACE VIEW cart_details AS
 SELECT 
