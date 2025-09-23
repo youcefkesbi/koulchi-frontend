@@ -1,146 +1,31 @@
-CREATE TABLE public.stores (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- ================================
+-- Stores Table
+-- ================================
 
-  owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE, -- store owner
-  name TEXT NOT NULL,
-  description TEXT,
-  logo_url TEXT,
-  banner_url TEXT,
-
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+CREATE TABLE IF NOT EXISTS public.stores (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE, -- store owner
+    name TEXT NOT NULL,
+    description TEXT,
+    logo_url TEXT,
+    banner_url TEXT,
+    pack_id UUID REFERENCES public.packs(id) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    reviewed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMPTZ,
+    rejection_reason TEXT,
+    location TEXT,
+    external_buttons JSONB DEFAULT '[]',
+    customization_settings JSONB DEFAULT '{}',
+    shipping_account_id TEXT,
+    current_announcements INTEGER DEFAULT 0,
+    current_images INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
--- Enable Row Level Security --
-ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
-
-create policy "users can insert their own store"
-on stores
-for insert
-to authenticated
-with check (owner_id = auth.uid());
-
-create policy "users can update their own store"
-on stores
-for update
-to authenticated
-using (owner_id = auth.uid())
-with check (owner_id = auth.uid());
-
-create policy "users can delete their own store"
-on stores
-for delete
-to authenticated
-using (owner_id = auth.uid());
-
-create policy "everyone can view stores"
-on stores
-for select
-to public
-using (true);  -- all rows are visible
-
--- Create the trigger function (if it doesn't exist)
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Add the trigger to your stores table
-CREATE TRIGGER update_stores_updated_at 
-    BEFORE UPDATE ON stores 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
--- ================================
--- Stores Migration with Packs & Verification
--- ================================
-
--- Drop old policies
-DROP POLICY IF EXISTS "users can insert their own store" ON stores;
-DROP POLICY IF EXISTS "users can update their own store" ON stores;
-DROP POLICY IF EXISTS "users can delete their own store" ON stores;
-DROP POLICY IF EXISTS "everyone can view stores" ON stores;
-
--- Add new columns to stores
-ALTER TABLE public.stores 
-ADD COLUMN IF NOT EXISTS pack_id UUID REFERENCES public.packs(id) ON DELETE SET NULL,
-ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
-ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ,
-ADD COLUMN IF NOT EXISTS rejection_reason TEXT,
-ADD COLUMN IF NOT EXISTS location TEXT,
-ADD COLUMN IF NOT EXISTS external_buttons JSONB DEFAULT '[]',
-ADD COLUMN IF NOT EXISTS customization_settings JSONB DEFAULT '{}',
-ADD COLUMN IF NOT EXISTS shipping_account_id TEXT,
-ADD COLUMN IF NOT EXISTS current_announcements INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS current_images INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
-
--- ================================
--- Policies
--- ================================
--- Users can insert their own store
-CREATE POLICY "users can insert their own store"
-ON stores
-FOR INSERT
-TO authenticated
-WITH CHECK (owner_id = auth.uid());
-
--- Users can update their own store (pending or approved only)
-CREATE POLICY "users can update their own store"
-ON stores
-FOR UPDATE
-TO authenticated
-USING (owner_id = auth.uid() AND status IN ('pending','approved'))
-WITH CHECK (owner_id = auth.uid());
-
--- Users can delete their own store (pending only)
-CREATE POLICY "users can delete their own store"
-ON stores
-FOR DELETE
-TO authenticated
-USING (owner_id = auth.uid() AND status = 'pending');
-
--- Everyone can view approved stores
-CREATE POLICY "everyone can view approved stores"
-ON stores
-FOR SELECT
-TO anon
-USING (status = 'approved');
-
--- Authenticated users can view their own stores
-CREATE POLICY "users can view own stores"
-ON stores
-FOR SELECT
-TO authenticated
-USING (owner_id = auth.uid());
-
--- Employees and admins can view all stores
-CREATE POLICY "employees can view all stores"
-ON stores
-FOR SELECT
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role IN ('admin','employee')
-  )
-);
-
--- Employees and admins can update store status
-CREATE POLICY "employees can update store status"
-ON stores
-FOR UPDATE
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND role IN ('admin','employee')
-  )
-);
+ALTER TABLE public.stores
+  ADD CONSTRAINT stores_owner_id_unique UNIQUE (owner_id);
 
 -- ================================
 -- Indexes
@@ -149,6 +34,110 @@ CREATE INDEX IF NOT EXISTS stores_pack_id_idx ON public.stores(pack_id);
 CREATE INDEX IF NOT EXISTS stores_status_idx ON public.stores(status);
 CREATE INDEX IF NOT EXISTS stores_reviewed_by_idx ON public.stores(reviewed_by);
 CREATE INDEX IF NOT EXISTS stores_owner_id_idx ON public.stores(owner_id);
+
+
+-- ================================
+-- Policies
+-- ================================
+-- Enable Row Level Security
+ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
+
+-- Admin can manage all stores
+CREATE POLICY "Admin can manage all stores"
+ON public.stores FOR ALL TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+);
+
+-------- INSERT --------
+DROP POLICY IF EXISTS "Customer can insert his own store" ON public.stores;
+CREATE POLICY "Customer can insert his own store"
+ON public.stores FOR INSERT TO authenticated
+WITH CHECK (
+    owner_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'customer'
+    )
+);
+
+-------- SELECT --------
+-- Anyone can view all stores --
+CREATE POLICY "Anyone can view all stores"
+ON public.stores FOR SELECT
+USING (is_active = true);
+
+
+-------- UPDATE --------
+-- Vendor can update their own stores --
+CREATE POLICY "Vendor can update own stores"
+ON public.stores FOR UPDATE TO authenticated
+USING (
+    owner_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+)
+WITH CHECK (
+    owner_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+);
+
+-- Employees can update store Limited --
+CREATE POLICY "Employees can update store status"
+ON public.stores FOR UPDATE TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+);
+
+
+-------- DELETE --------
+-- Vendor can delete their own store --
+CREATE POLICY "Vendor can delete their own store"
+ON public.stores FOR DELETE TO authenticated
+USING (
+    owner_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+);
+
+
+GRANT SELECT ON public.stores TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.stores TO authenticated;
+
+-- ================================
+-- Triggers
+-- ================================
+
+CREATE TRIGGER update_stores_updated_at 
+BEFORE UPDATE ON public.stores 
+FOR EACH ROW 
+EXECUTE FUNCTION update_updated_at_column();
+
 
 -- ================================
 -- Functions
@@ -165,169 +154,34 @@ DECLARE
     current_announcements INTEGER;
     current_images INTEGER;
 BEGIN
-    -- Get pack information
-    SELECT max_announcements, max_images
-    INTO pack_info
-    FROM public.packs
-    WHERE id = p_pack_id;
-
-    IF NOT FOUND THEN
-        RETURN false;
-    END IF;
-
-    -- Get current counts for the store
-    SELECT 
-        COALESCE(current_announcements, 0),
-        COALESCE(current_images, 0)
-    INTO current_announcements, current_images
-    FROM public.stores
-    WHERE id = p_store_id;
-
-    -- Check limits
-    IF (current_announcements + p_announcement_count) > pack_info.max_announcements THEN
-        RETURN false;
-    END IF;
-
-    IF (current_images + p_image_count) > pack_info.max_images THEN
-        RETURN false;
-    END IF;
-
-    RETURN true;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION update_store_counts(
-    p_store_id UUID,
-    p_announcement_delta INTEGER DEFAULT 0,
-    p_image_delta INTEGER DEFAULT 0
-)
-RETURNS VOID AS $$
-BEGIN
-    UPDATE public.stores
-    SET 
-        current_announcements = GREATEST(0, current_announcements + p_announcement_delta),
-        current_images = GREATEST(0, current_images + p_image_delta),
-        updated_at = now()
-    WHERE id = p_store_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Grant permissions
-GRANT EXECUTE ON FUNCTION check_pack_limits TO authenticated;
-GRANT EXECUTE ON FUNCTION update_store_counts TO authenticated;
-
--- RLS Policies for stores table
-
--- Enable Row Level Security
-ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
-
--- Drop existing policies
-DROP POLICY IF EXISTS "users can insert their own store" ON stores;
-DROP POLICY IF EXISTS "users can update their own store" ON stores;
-DROP POLICY IF EXISTS "users can delete their own store" ON stores;
-DROP POLICY IF EXISTS "everyone can view stores" ON stores;
-DROP POLICY IF EXISTS "users can view own stores" ON stores;
-DROP POLICY IF EXISTS "employees can view all stores" ON stores;
-DROP POLICY IF EXISTS "employees can update store status" ON stores;
-
--- Users can insert their own store
-CREATE POLICY "users can insert their own store"
-ON stores
-FOR insert
-TO authenticated
-WITH CHECK (owner_id = auth.uid());
-
--- Users can update their own store (only if pending or approved)
-CREATE POLICY "users can update their own store"
-ON stores
-FOR update
-TO authenticated
-USING (owner_id = auth.uid() AND status IN ('pending', 'approved'))
-WITH CHECK (owner_id = auth.uid());
-
--- Users can delete their own store (only if pending)
-CREATE POLICY "users can delete their own store"
-ON stores
-FOR delete
-TO authenticated
-USING (owner_id = auth.uid() AND status = 'pending');
-
--- Everyone can view approved stores
-CREATE POLICY "everyone can view approved stores"
-ON stores
-FOR select
-TO public
-USING (status = 'approved');
-
--- Users can view their own stores regardless of status
-CREATE POLICY "users can view own stores"
-ON stores
-FOR select
-TO authenticated
-USING (owner_id = auth.uid());
-
--- Employees and admins can view all stores
-CREATE POLICY "employees can view all stores"
-ON stores
-FOR select
-TO authenticated
-USING (auth.jwt()->>'role' IN ('admin', 'employee'));
-
--- Employees and admins can update store status
-CREATE POLICY "employees can update store status"
-ON stores
-FOR update
-TO authenticated
-USING (auth.jwt()->>'role' IN ('admin', 'employee'));
-
--- Store limit checking functions
--- These functions help enforce pack limits and check store creation requirements
-
--- Function to check pack limits
-CREATE OR REPLACE FUNCTION check_pack_limits(
-    p_store_id UUID,
-    p_pack_id UUID,
-    p_announcement_count INTEGER DEFAULT 0,
-    p_image_count INTEGER DEFAULT 0
-)
-RETURNS BOOLEAN AS $$
-DECLARE
-    pack_info RECORD;
-    current_announcements INTEGER;
-    current_images INTEGER;
-BEGIN
-    -- Get pack information
     SELECT max_announcements, max_images
     INTO pack_info
     FROM public.packs
     WHERE id = p_pack_id AND is_active = true;
-    
+
     IF NOT FOUND THEN
         RETURN false;
     END IF;
-    
-    -- Get current counts for the store
+
     SELECT 
         COALESCE(current_announcements, 0),
         COALESCE(current_images, 0)
     INTO current_announcements, current_images
     FROM public.stores
     WHERE id = p_store_id;
-    
-    -- Check limits
+
     IF (current_announcements + p_announcement_count) > pack_info.max_announcements THEN
         RETURN false;
     END IF;
-    
+
     IF (current_images + p_image_count) > pack_info.max_images THEN
         RETURN false;
     END IF;
-    
+
     RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to update store counts
 CREATE OR REPLACE FUNCTION update_store_counts(
     p_store_id UUID,
     p_announcement_delta INTEGER DEFAULT 0,

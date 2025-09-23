@@ -1,19 +1,128 @@
--- Create ENUM for order statuses
-CREATE TYPE order_status AS ENUM (
+-- ================================
+-- ENUMS
+-- ================================
+CREATE TYPE IF NOT EXISTS order_status AS ENUM (
   'pending',
   'confirmed',
   'shipped',
   'delivered',
   'canceled'
 );
--- Orders table
-create table orders (
-  id uuid default gen_random_uuid() primary key,
-  user_id uuid not null references profiles(id) on delete cascade, -- buyer
-  status order_status default 'pending' not null,
-  total_amount numeric(10,2) not null default 0,
+
+CREATE TABLE IF NOT EXISTS public.orders (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE, -- buyer
+  status order_status DEFAULT 'pending' NOT NULL,
+  total_amount numeric(10,2) NOT NULL DEFAULT 0,
   shipping_address text,
   notes text,                        -- buyer notes
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
+
+-- ================================
+-- Indexes
+-- ================================
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON public.orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders(status);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders(created_at);
+
+-- ================================
+-- Policies
+-- ================================
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+
+-- Admin can manage all orders
+CREATE POLICY "Admin can manage all orders"
+ON public.orders FOR ALL TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+  )
+);
+
+-------- INSERT --------
+-- Customer can insert his own orders
+CREATE POLICY "Customer can insert his own orders"
+ON public.orders FOR INSERT TO authenticated
+WITH CHECK (
+  user_id = auth.uid() AND
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'customer'
+  )
+);
+-------- SELECT --------
+-- Vendor and Customer can view their own orders
+CREATE POLICY "Vendor and Customer can view their own orders"
+ON public.orders FOR SELECT TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM public.orders o
+    JOIN user_roles ur ON ur.user_id = auth.uid()
+    WHERE o.id = orders.id
+      AND (
+        (o.user_id = auth.uid() AND ur.role = 'customer')
+        OR
+        (o.user_id = auth.uid() AND ur.role = 'vendor')
+      )
+  )
+);
+
+-- Employee can view all orders
+CREATE POLICY "Employee can view all orders"
+ON public.orders FOR SELECT TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+  )
+);
+-------- UPDATE --------
+-- Vendor can update status of his own orders
+CREATE POLICY "Vendor can update status of his own orders"
+ON public.orders FOR UPDATE TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+  )
+);
+
+-- Employee can update all orders
+CREATE POLICY "Employee can update all orders"
+ON public.orders FOR UPDATE TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+  )
+);
+
+-- ================================
+-- Triggers
+-- ================================
+CREATE TRIGGER set_orders_updated_at
+BEFORE UPDATE ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

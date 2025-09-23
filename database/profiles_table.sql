@@ -1,134 +1,146 @@
--- Complete Profiles table structure for Supabase
--- This table stores user profile information
-
+-- ================================
+-- Profiles table structure for Supabase
+-- ================================
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
     city TEXT,
-    role TEXT NOT NULL DEFAULT 'user',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create clean minimal policies
+-- ================================
+-- Indexes
+-- ================================
+CREATE INDEX IF NOT EXISTS profiles_full_name_idx ON public.profiles(full_name);
 
--- Allow users to insert their own profile
-CREATE POLICY "Users can insert their own profile"
-ON profiles
-FOR INSERT
-WITH CHECK (auth.uid() = id);
-
--- Allow users to select their own profile
-CREATE POLICY "Users can view own profile"
-ON profiles
-FOR SELECT
-USING (auth.uid() = id);
-
--- Allow users to update their own profile
-CREATE POLICY "Users can update own profile"
-ON profiles
-FOR UPDATE
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
-
--- Allow users to delete their own profile
-CREATE POLICY "Users can delete own profile"
-ON profiles
-FOR DELETE
-USING (auth.uid() = id);
-
--- Admins full access (using JWT metadata)
-create policy "Admins full access"
-on profiles
-for all
-using (auth.jwt()->>'role' = 'admin');
-
--- RLS Policies for profiles table
-
--- Enable Row Level Security
+-- ================================
+-- Policies
+-- ================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies
-DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can delete own profile" ON profiles;
-DROP POLICY IF EXISTS "Admins full access" ON profiles;
+-- Admin can manage all profiles
+CREATE POLICY "Admin can manage all profiles"
+ON public.profiles FOR ALL TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+);
+-------- SELECT --------
+-- Customer and vendor can view their own profile
+CREATE POLICY "Customer and vendor can view own profile"
+ON public.profiles FOR SELECT TO authenticated
+USING (
+    id = auth.uid() AND EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role IN ('customer','vendor')
+    )
+);
 
--- Allow users to insert their own profile
-CREATE POLICY "Users can insert their own profile"
-ON profiles
-FOR INSERT
-WITH CHECK (auth.uid() = id);
+-- Employee can view all profiles
+CREATE POLICY "Employee can view all profiles"
+ON public.profiles FOR SELECT TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+);
 
--- Allow users to select their own profile
-CREATE POLICY "Users can view own profile"
-ON profiles
-FOR SELECT
-USING (auth.uid() = id);
+-------- UPDATE --------
+-- Customer and vendor can update their profiles --
+CREATE POLICY "Customer and vendor can update own profile"
+ON public.profiles FOR UPDATE TO authenticated
+WITH CHECK (
+    id = auth.uid() AND EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role IN ('customer','vendor')
+    )
+)
+USING (
+    id = auth.uid() AND EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role IN ('customer','vendor')
+    )
+)
+-- Employee can update all profiles limited --
+CREATE POLICY "Employee can update all profiles"
+ON public.profiles FOR UPDATE TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+)
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+);
 
--- Allow users to update their own profile
-CREATE POLICY "Users can update own profile"
-ON profiles
-FOR UPDATE
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
+-- ================================
+-- Triggers
+-- ================================
+CREATE TRIGGER set_profiles_updated_at
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
--- Allow users to delete their own profile
-CREATE POLICY "Users can delete own profile"
-ON profiles
-FOR DELETE
-USING (auth.uid() = id);
 
--- Admins and employees can view all profiles
-CREATE POLICY "Admins and employees can view all profiles"
-ON profiles
-FOR SELECT
-USING (auth.jwt()->>'role' IN ('admin', 'employee'));
+-- ================================
+-- Functions
+-- ================================
 
--- Admins can manage all profiles
-CREATE POLICY "Admins can manage all profiles"
-ON profiles
-FOR ALL
-USING (auth.jwt()->>'role' = 'admin');
-
--- Function to automatically create a profile when a new user signs up
--- This should be called by a trigger on auth.users
-
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
+CREATE OR REPLACE FUNCTION public.update_profiles_updated_at()
+RETURNS TRIGGER AS $$
 BEGIN
-  -- Insert a new profile for the user
-  -- Try to get full_name from user_metadata, fallback to empty string
-  INSERT INTO public.profiles (id, full_name, role)
-  VALUES (
-    NEW.id,
-    COALESCE(
-      NEW.raw_user_meta_data->>'full_name',
-      NEW.raw_user_meta_data->>'name',
-      ''
-    ),
-    'user'::user_role
-  );
-  
-  RETURN NEW;
-EXCEPTION
-  WHEN OTHERS THEN
-    -- Log the error but don't fail the user creation
-    RAISE WARNING 'Failed to create profile for user %: %', NEW.id, SQLERRM;
+    NEW.updated_at = now();
     RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
--- Create trigger to automatically create profile on user signup
+DROP TRIGGER IF EXISTS set_profiles_updated_at ON public.profiles;
+CREATE TRIGGER set_profiles_updated_at
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.update_profiles_updated_at();
+
+-- Automatically create profile when a new user signs up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, full_name)
+    VALUES (
+        NEW.id,
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            ''
+        )
+    );
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING 'Failed to create profile for user %: %', NEW.id, SQLERRM;
+        RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Grant necessary permissions
+-- ================================
+-- Permissions
+-- ================================
 GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
-GRANT ALL ON public.profiles TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO postgres, anon, authenticated, service_role;
+

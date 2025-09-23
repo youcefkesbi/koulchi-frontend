@@ -18,63 +18,15 @@ CREATE TABLE IF NOT EXISTS public.verifications (
     UNIQUE(user_id, verification_type)
 );
 
--- Enable Row Level Security
-ALTER TABLE public.verifications ENABLE ROW LEVEL SECURITY;
-
--- ================================
--- Policies
--- ================================
--- Users can view their own verifications
-CREATE POLICY "Users can view own verifications"
-ON public.verifications
-FOR SELECT
-TO authenticated
-USING (auth.uid() = user_id);
-
--- Users can insert their own verifications
-CREATE POLICY "Users can insert own verifications"
-ON public.verifications
-FOR INSERT
-TO authenticated
-WITH CHECK (auth.uid() = user_id);
-
--- Users can update their own verifications (only if pending)
-CREATE POLICY "Users can update own pending verifications"
-ON public.verifications
-FOR UPDATE
-TO authenticated
-USING (auth.uid() = user_id AND status = 'pending')
-WITH CHECK (auth.uid() = user_id);
-
--- Employees and admins can view all verifications
-CREATE POLICY "Employees can view all verifications"
-ON public.verifications
-FOR SELECT
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role IN ('admin','employee')
-  )
-);
-
--- Employees and admins can update verification status
-CREATE POLICY "Employees can update verification status"
-ON public.verifications
-FOR UPDATE
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role IN ('admin','employee')
-  )
-);
-
 -- ================================
 -- Grants
 -- ================================
 GRANT SELECT, INSERT, UPDATE ON public.verifications TO authenticated;
 GRANT SELECT ON public.verifications TO anon;
+GRANT EXECUTE ON FUNCTION get_user_verification_status TO authenticated;
+GRANT EXECUTE ON FUNCTION can_user_create_store TO authenticated;
+GRANT EXECUTE ON FUNCTION get_store_creation_requirements TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.verifications TO authenticated;
 
 -- ================================
 -- Indexes
@@ -85,53 +37,134 @@ CREATE INDEX IF NOT EXISTS verifications_type_idx ON public.verifications(verifi
 CREATE INDEX IF NOT EXISTS verifications_reviewed_by_idx ON public.verifications(reviewed_by);
 
 -- ================================
--- Trigger for updated_at
+-- Triggers
 -- ================================
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_verifications_updated_at 
     BEFORE UPDATE ON public.verifications 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
--- RLS Policies for verifications table
+-- ================================
+-- Policies
+-- ================================
 
 -- Enable Row Level Security
 ALTER TABLE public.verifications ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies
-DROP POLICY IF EXISTS "Users can view own verifications" ON verifications;
-DROP POLICY IF EXISTS "Users can insert own verifications" ON verifications;
-DROP POLICY IF EXISTS "Users can update own pending verifications" ON verifications;
-DROP POLICY IF EXISTS "Employees can view all verifications" ON verifications;
-DROP POLICY IF EXISTS "Employees can update verification status" ON verifications;
 
--- Users can view their own verifications
-CREATE POLICY "Users can view own verifications" ON public.verifications
-    FOR SELECT USING (auth.uid() = user_id);
+-- Admin can manage all verifications
+CREATE POLICY "Admin can manage all verifications"
+ON public.verifications FOR ALL TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
+    )
+);
 
--- Users can insert their own verifications
-CREATE POLICY "Users can insert own verifications" ON public.verifications
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
+-------- INSERT --------
+-- Vendor can insert own verifications
+CREATE POLICY "Vendor can insert own verifications"
+ON public.verifications FOR INSERT TO authenticated
+WITH CHECK (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role ='vendor'
+    )
+);
+-- Employee can insert own verifications
+CREATE POLICY "Employee can insert own verifications"
+ON public.verifications FOR INSERT TO authenticated
+WITH CHECK (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role ='employee'
+    )
+);
 
--- Users can update their own verifications (only if pending)
-CREATE POLICY "Users can update own pending verifications" ON public.verifications
-    FOR UPDATE USING (auth.uid() = user_id AND status = 'pending')
-    WITH CHECK (auth.uid() = user_id);
+-------- SELECT --------
+-- Vendor can view own verifications
+CREATE POLICY "Vendor can view own verifications"
+ON public.verifications FOR SELECT TO authenticated
+USING (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+);
 
--- Employees and admins can view all verifications
-CREATE POLICY "Employees can view all verifications" ON public.verifications
-    FOR SELECT USING (auth.jwt()->>'role' IN ('admin', 'employee'));
+-- Employee can view all verifications
+CREATE POLICY "Employee can view all verifications"
+ON public.verifications FOR SELECT TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+);
 
--- Employees and admins can update verification status
-CREATE POLICY "Employees can update verification status" ON public.verifications
-    FOR UPDATE USING (auth.jwt()->>'role' IN ('admin', 'employee'));
+-------- UPDATE --------
+-- Vendor can update own verifications
+CREATE POLICY "Vendor can update own verifications"
+ON public.verifications FOR UPDATE TO authenticated
+USING (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+)
+WITH CHECK (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    )
+);
+
+-- Employee can update verifications (only approved)
+CREATE POLICY "Employee can update verifications"
+ON public.verifications FOR UPDATE TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
+    )
+    AND status = 'approved'
+);
+
+-------- DELETE --------
+-- Customer and vendor can delete own verifications
+CREATE POLICY "Customer and vendor can delete own verifications"
+ON public.verifications FOR DELETE TO authenticated
+USING (
+    user_id = auth.uid() AND
+    EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role IN ('customer','vendor')
+    )
+);
+
+
+-- ================================
+-- Functions
+-- ================================
 
 -- Verification checking functions
 -- These functions help check verification requirements and user eligibility
@@ -246,7 +279,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Grant execute permissions
-GRANT EXECUTE ON FUNCTION get_user_verification_status TO authenticated;
-GRANT EXECUTE ON FUNCTION can_user_create_store TO authenticated;
-GRANT EXECUTE ON FUNCTION get_store_creation_requirements TO authenticated;
+
