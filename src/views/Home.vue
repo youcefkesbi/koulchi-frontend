@@ -82,8 +82,50 @@
     <section class="my-slide-up">
       <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
       
+      <!-- Loading State for Categories -->
+      <div v-if="!categoriesLoaded" class="text-center py-12">
+        <div class="inline-flex items-center space-x-2 space-x-reverse">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span class="text-gray-600">{{ t('common.loading') }}</span>
+        </div>
+      </div>
+      
+      <!-- Error State for Categories -->
+      <div v-else-if="categories.length === 0" class="text-center py-12">
+        <div class="text-gray-500 text-lg mb-4">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          {{ t('sections.noCategoriesAvailable') }}
+        </div>
+        <button @click="retryCategoryLoading" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+          {{ t('common.retry') }}
+        </button>
+        
+        <!-- Fallback: Show a message that categories are being loaded -->
+        <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+          <p class="text-gray-600 mb-4">{{ t('sections.categoriesLoadingFallback') }}</p>
+          <div class="flex justify-center space-x-4">
+            <router-link to="/products" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+              {{ t('sections.browseAllProducts') }}
+            </router-link>
+          </div>
+        </div>
+      </div>
+      
       <!-- Category Products -->
-      <div v-for="category in categories" :key="category.id" class="mb-12">
+      <div v-else>
+        <!-- Debug info for production troubleshooting -->
+        <div v-if="process.env.NODE_ENV === 'development'" class="text-xs text-gray-400 mb-4">
+          Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
+        </div>
+        
+        <!-- Production debug info -->
+        <div v-if="process.env.NODE_ENV === 'production'" class="text-xs text-gray-400 mb-4">
+          <div>Categories loaded: {{ categories.length }}</div>
+          <div>Categories loaded flag: {{ categoriesLoaded }}</div>
+          <div>Product store categories: {{ productStore.categories.length }}</div>
+          <div>Category products: {{ Object.keys(categoryProducts).length }}</div>
+        </div>
+        <div v-for="category in categories" :key="category.id" class="mb-12">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
           <h3 class="text-xl sm:text-2xl font-bold text-dark">{{ getCategoryName(category.id) }}</h3>
           <router-link :to="`/category/${category.id}`" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
@@ -127,6 +169,7 @@
             <i class="fas fa-box-open mr-2"></i>
             {{ t('sections.noProductsInCategory', { category: getCategoryName(category.id) }) }}
           </div>
+        </div>
         </div>
       </div>
     </section>
@@ -248,8 +291,12 @@ const error = ref(null)
 const categoryProducts = ref({})
 const categoryLoading = ref({})
 const categoryErrors = ref({})
+const categoriesLoaded = ref(false)
 
 const categories = computed(() => {
+  if (!productStore.categories || !Array.isArray(productStore.categories)) {
+    return []
+  }
   return productStore.categories.filter(cat => cat.id !== 'all')
 })
 
@@ -293,11 +340,32 @@ const loadCategoryProducts = async (categoryId) => {
   
   try {
     const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
-    categoryProducts.value[categoryId] = products
+    categoryProducts.value[categoryId] = products || []
   } catch (err) {
+    console.error(`Error loading products for category ${categoryId}:`, err)
     categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
+    categoryProducts.value[categoryId] = []
   } finally {
     categoryLoading.value[categoryId] = false
+  }
+}
+
+const retryCategoryLoading = async () => {
+  categoriesLoaded.value = false
+  try {
+    await productStore.fetchCategories()
+    categoriesLoaded.value = true
+    
+    // Reload category products
+    if (categories.value && categories.value.length > 0) {
+      const categoryPromises = categories.value.map(category => 
+        loadCategoryProducts(category.id)
+      )
+      await Promise.allSettled(categoryPromises)
+    }
+  } catch (error) {
+    console.error('Retry failed:', error)
+    categoriesLoaded.value = true
   }
 }
 
@@ -309,17 +377,56 @@ const scrollToMostSoldProducts = () => {
 }
 
 onMounted(async () => {
-  // Load categories if not already loaded
-  if (productStore.categories.length === 0) {
-    await productStore.fetchCategories()
-  }
+  // Always ensure the section renders by setting a minimum timeout
+  const minTimeout = setTimeout(() => {
+    console.log('Minimum timeout reached - ensuring section renders')
+    categoriesLoaded.value = true
+  }, 3000) // 3 second minimum timeout
   
-  // Load best-selling products
-  await loadBestSellingProducts()
-  
-  // Load category products for each category
-  for (const category of categories.value) {
-    await loadCategoryProducts(category.id)
+  try {
+    // Set a timeout to ensure the section renders even if there are issues
+    const timeoutId = setTimeout(() => {
+      console.warn('Homepage data loading timeout - rendering with available data')
+      categoriesLoaded.value = true
+    }, 10000) // 10 second timeout
+    
+    // Load categories if not already loaded
+    if (productStore.categories.length === 0) {
+      try {
+        await productStore.fetchCategories()
+        console.log('Categories loaded successfully:', productStore.categories.length)
+      } catch (categoryError) {
+        console.error('Failed to load categories:', categoryError)
+        // Continue with empty categories
+      }
+    }
+    categoriesLoaded.value = true
+    clearTimeout(timeoutId)
+    clearTimeout(minTimeout)
+    
+    // Load best-selling products
+    try {
+      await loadBestSellingProducts()
+    } catch (bestSellingError) {
+      console.error('Failed to load best-selling products:', bestSellingError)
+    }
+    
+    // Load category products for each category
+    if (categories.value && categories.value.length > 0) {
+      console.log('Loading products for categories:', categories.value.map(c => c.id))
+      // Load category products in parallel for better performance
+      const categoryPromises = categories.value.map(category => 
+        loadCategoryProducts(category.id)
+      )
+      await Promise.allSettled(categoryPromises)
+    } else {
+      console.warn('No categories available to load products for')
+    }
+  } catch (error) {
+    console.error('Error loading homepage data:', error)
+    // Ensure categoriesLoaded is set even if there's an error
+    categoriesLoaded.value = true
+    clearTimeout(minTimeout)
   }
 })
 </script>

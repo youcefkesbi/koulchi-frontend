@@ -397,7 +397,10 @@
     "browseByCategory": "Browse by Category",
     "whyChooseUs": "Why Choose Koulchi?",
     "noBestSellingProducts": "No best-selling products available at the moment.",
-    "noProductsInCategory": "No products available in {category} category."
+    "noProductsInCategory": "No products available in {category} category.",
+    "noCategoriesAvailable": "No categories available at the moment.",
+    "categoriesLoadingFallback": "Categories are being loaded. You can browse all products in the meantime.",
+    "browseAllProducts": "Browse All Products"
   },
   "benefits": {
     "securePayment": "Secure Cash on Delivery",

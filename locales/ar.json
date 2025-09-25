@@ -243,7 +243,10 @@
     "browseByCategory": "تصفح حسب الفئة",
     "whyChooseUs": "لماذا تختار كولشي؟",
     "noBestSellingProducts": "لا توجد أفضل المنتجات مبيعاً متاحة في الوقت الحالي.",
-    "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}."
+    "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}.",
+    "noCategoriesAvailable": "لا توجد فئات متاحة في الوقت الحالي.",
+    "categoriesLoadingFallback": "يتم تحميل الفئات. يمكنك تصفح جميع المنتجات في الوقت الحالي.",
+    "browseAllProducts": "تصفح جميع المنتجات"
   },
   "benefits": {
     "securePayment": "دفع آمن عند الاستلام",
