@@ -159,69 +159,69 @@
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-soft my-slide-up">
-      <h2 class="text-4xl font-bold text-dark mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div class="space-y-6">
+    <section class="bg-white rounded-3xl p-8 sm:p-12 shadow-soft my-slide-up border border-gray-100">
+      <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-8 sm:mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
+        <div class="space-y-8">
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-dark mb-2">{{ t('benefits.securePayment') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.securePaymentDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.securePayment') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.securePaymentDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.originalProducts') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.originalProductsDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.originalProducts') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.originalProductsDesc') }}</p>
             </div>
           </div>
         </div>
         
-        <div class="space-y-6">
+        <div class="space-y-8">
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.competitivePrices') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.competitivePricesDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.competitivePrices') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.competitivePricesDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.customerService') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.customerServiceDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.customerService') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.customerServiceDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.easyOrdering') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.easyOrderingDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.easyOrdering') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.easyOrderingDesc') }}</p>
             </div>
           </div>
         </div>
