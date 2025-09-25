@@ -192,7 +192,7 @@ const getStatusBadgeClass = (status) => {
     'confirmed': 'bg-blue-100 text-blue-800',
     'shipped': 'bg-purple-100 text-purple-800',
     'delivered': 'bg-green-100 text-green-800',
-    'canceled': 'bg-red-100 text-red-800'
+    'cancelled': 'bg-red-100 text-red-800'
   }
   return statusClasses[status] || 'bg-gray-100 text-gray-800'
 }
@@ -241,7 +241,7 @@ onMounted(async () => {
   color: #065f46;
 }
 
-.badge-canceled {
+.badge-cancelled {
   background-color: #fee2e2;
   color: #991b1b;
 }

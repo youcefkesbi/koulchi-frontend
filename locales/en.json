@@ -160,7 +160,7 @@
     "confirmed": "Confirmed",
     "shipped": "Shipped",
     "delivered": "Delivered",
-    "canceled": "Canceled"
+    "cancelled": "Cancelled"
   },
   "categoryPage": {
     "resultsCount": "Showing {count} of {total} products",

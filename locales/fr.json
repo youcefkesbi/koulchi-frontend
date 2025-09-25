@@ -155,7 +155,7 @@
     "confirmed": "Confirmée",
     "shipped": "Expédiée",
     "delivered": "Livrée",
-    "canceled": "Annulée"
+    "cancelled": "Annulée"
   },
   "categoryPage": {
     "resultsCount": "Affichage de {count} sur {total} produits",

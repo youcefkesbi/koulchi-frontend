@@ -1,18 +1,7 @@
--- ================================
--- ENUMS
--- ================================
-CREATE TYPE IF NOT EXISTS order_status AS ENUM (
-  'pending',
-  'confirmed',
-  'shipped',
-  'delivered',
-  'canceled'
-);
-
 CREATE TABLE IF NOT EXISTS public.orders (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE, -- buyer
-  status order_status DEFAULT 'pending' NOT NULL,
+  status text NOT NULL CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled')),
   total_amount numeric(10,2) NOT NULL DEFAULT 0,
   shipping_address text,
   notes text,                        -- buyer notes
@@ -126,3 +115,23 @@ CREATE TRIGGER set_orders_updated_at
 BEFORE UPDATE ON public.orders
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+
+
+-- New - by Youcef - 2025-09-25
+
+-- Drop any existing ENUM type if it exists
+DROP TYPE IF EXISTS order_status_enum CASCADE;
+
+-- Ensure the CHECK constraint is properly set
+ALTER TABLE public.orders 
+DROP CONSTRAINT IF EXISTS orders_status_check;
+
+ALTER TABLE public.orders 
+ADD CONSTRAINT orders_status_check 
+CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'cancelled'));
+
+-- (Standardize on 'cancelled' instead of 'canceled')
+UPDATE public.orders 
+SET status = 'cancelled' 
+WHERE status = 'canceled';

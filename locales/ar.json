@@ -590,7 +590,7 @@
     "confirmed": "مؤكد",
     "shipped": "تم الشحن",
     "delivered": "تم التوصيل",
-    "canceled": "ملغي"
+    "cancelled": "ملغي"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",
