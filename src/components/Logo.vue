@@ -43,13 +43,13 @@ const props = defineProps({
 
 // Logo mapping configuration
 const logoMapping = {
-  'en': 'Logo English:French Black.png',
-  'fr': 'Logo English:French Black.png', 
-  'ar': 'Logo Arabic Black.png'
+  'en': 'Logo-English-French-Black.png',
+  'fr': 'Logo-English-French-Black.png', 
+  'ar': 'Logo-Arabic-Black.png'
 }
 
 // Fallback logo (default to English/French)
-const fallbackLogo = 'Logo English:French Black.png'
+const fallbackLogo = 'Logo-English-French-Black.png'
 
 // Size configurations with responsive sizing - increased sizes for better visibility
 const sizeConfig = {
