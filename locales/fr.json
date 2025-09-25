@@ -200,7 +200,7 @@
     "createFirstStore": "Créer Votre Premier Magasin",
     "storeName": "Nom du Magasin",
     "storeNamePlaceholder": "Entrez le nom de votre magasin",
-    "storeDescription": "Description du Magasin",
+    "storeDescription": "Description du magasin (Optionnel)",
     "storeDescriptionPlaceholder": "Décrivez votre magasin et ce que vous proposez",
     "storeLogo": "Logo du Magasin",
     "storeBanner": "Bannière du Magasin",
@@ -251,7 +251,18 @@
     "authenticationError": "Veuillez vous connecter pour créer un magasin",
     "permissionError": "Permission refusée. Veuillez vérifier les permissions de votre compte.",
     "storeAlreadyExists": "Vous avez déjà un magasin. Chaque utilisateur ne peut créer qu'un seul magasin.",
-    "networkError": "Erreur réseau. Veuillez vérifier votre connexion internet et réessayer."
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion internet et réessayer.",
+    "choosePlan": "Choisir un plan",
+    "identityDoc":"Carte d'identité / Passeport / Permis de conduire",
+    "businessRegister":"Registre de commerce",
+    "uploadDocs":"Télécharger les documents",
+    "personalDocuments": "Cliquez pour télécharger (PDF, JPG, PNG)",
+    "uploadImg":  "Cliquez pour télécharger (PNG, JPG, JPEG)",
+    "brandingInfo": "Informations de marque",
+    "selectedPlan": "Plan sélectionnée",
+    "storeInfo": "Informations sur le magasin",
+    "branding": "Image de marque",
+    "documents": "Documents"
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",
@@ -436,7 +447,7 @@
     "food": "Alimentation & Boissons"
   },
   "seller": {
-    "becomeSeller": "Devenir Vendeur",
+    "becomeSeller": "Créer une boutique",
     "dashboard": "Tableau de Bord Vendeur",
     "welcomeMessage": "Bon retour, {name} !",
     "cars": "Voitures",
@@ -509,6 +520,32 @@
     "isNew": "Marquer comme nouveau",
     "isOnSale": "Marquer comme en promotion"
   },
+  "pack": {
+  "basic": {
+    "title": "Forfait Basique",
+    "price": "Gratuit",
+    "features": [
+      "Suivi des ventes via un tableau de bord dynamique",
+      "Création de promotions",
+      "Affichage de la localisation du magasin",
+      "Rassembler tous les produits en un seul endroit",
+      "Liens limités vers les réseaux sociaux (un au choix)"
+    ]
+  },
+  "pro": {
+    "title": "Forfait Pro",
+    "price": "2000 DZD",
+    "features": [
+      "Logo personnalisé",
+      "Bannière personnalisée",
+      "Nom de magasin personnalisé (branding)",
+      "Contrôler l’interface du magasin en adaptant les couleurs au branding",
+      "Liens illimités vers les réseaux sociaux",
+      "Tableau de bord avancé"
+    ]
+  }
+}
+,
   "footer": {
     "description": "Plateforme e-commerce leader en Algérie - Tout ce dont vous avez besoin, en un seul endroit. Trouvez-le. Aimez-le. Obtenez-le.",
     "quickLinks": "Liens rapides",

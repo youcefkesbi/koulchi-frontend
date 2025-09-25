@@ -2,16 +2,17 @@
 -- Seller Shipping Table
 -- ================================
 
-CREATE TABLE IF NOT EXISTS public.seller_shipping (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    provider TEXT NOT NULL,
-    account_id TEXT,
-    settings JSONB DEFAULT '{}'::jsonb,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
+create table if not exists public.seller_shipping (
+  id uuid primary key default gen_random_uuid(),
+  seller_id uuid not null references public.profiles(id) on delete cascade on update cascade,
+  provider text not null,
+  account_id text,
+  access_token text,
+  refresh_token text,
+  expires_at timestamptz,
+  enabled boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- ================================

@@ -43,8 +43,8 @@ const props = defineProps({
 
 // Logo mapping configuration
 const logoMapping = {
-  'en': 'Logo English:French Black.png',
-  'fr': 'Logo English:French Black.png', 
+  'en': 'Logo English-French Black.png',
+  'fr': 'Logo English-French Black.png', 
   'ar': 'Logo Arabic Black.png'
 }
 

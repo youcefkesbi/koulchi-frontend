@@ -35,7 +35,7 @@
             </button>
 
             <!-- Categories Dropdown Menu -->
-            <div 
+            <div
               v-if="categoriesMenuOpen"
               class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
             >
@@ -80,10 +80,21 @@
               <span class="sm:hidden">Post</span>
             </button>
 
-            <!-- Language Switcher -->
-            <LanguageSwitcher />
+            <!-- Switch to Vendor Button (auth only) -->
+            <button
+              v-if="authStore.isAuthenticated"
+              @click="handleSwitchToVendor"
+              class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
+            >
+              <i class="fas fa-store mr-1"></i>
+              <span class="hidden sm:inline">{{ t('seller.becomeSeller') }}</span>
+              <span class="sm:hidden">Store</span>
+            </button>
 
-            <!-- User Menu -->
+            <!-- Language Switcher (always visible, compact) -->
+            <LanguageSwitcher :compact="true" />
+
+            <!-- User Menu (auth) -->
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
                 @click="userMenuOpen = !userMenuOpen"
@@ -99,7 +110,7 @@
               </button>
 
               <!-- User Dropdown Menu -->
-              <div 
+              <div
                 v-if="userMenuOpen"
                 class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
@@ -123,8 +134,6 @@
                 </button>
               </div>
             </div>
-
-            <!-- Auth Buttons -->
             <div v-else class="flex items-center space-x-4 space-x-reverse">
               <button
                 @click="handleLoginClick"
@@ -139,11 +148,11 @@
         </div>
       </div>
     </div>
-
     <!-- Login Modal -->
     <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
   </header>
 </template>
+
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
@@ -266,7 +275,10 @@ const handleLogout = async () => {
     console.error('Logout error:', error)
   }
 }
-
+//Navigate to the store creation page
+const handleSwitchToVendor = () => {
+  router.push(getLocalizedRoute('/dashboard/store/create'))
+}
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
