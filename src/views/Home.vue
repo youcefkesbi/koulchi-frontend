@@ -57,6 +57,13 @@
         <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
+        
+        <!-- Production fallback message -->
+        <div v-if="process.env.NODE_ENV === 'production'" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-yellow-800 text-sm">
+            {{ t('sections.productionDataIssue') }}
+          </p>
+        </div>
       </div>
       
       <!-- Products Grid - 2 rows × 5 products per row -->
@@ -326,9 +333,12 @@ const loadBestSellingProducts = async () => {
   
   try {
     const products = await productStore.fetchMostSoldProducts(10)
-    bestSellingProducts.value = products
+    bestSellingProducts.value = products || []
+    console.log('Best-selling products loaded:', products?.length || 0)
   } catch (err) {
+    console.error('Error loading best-selling products:', err)
     error.value = err.message || 'Failed to load best-selling products'
+    bestSellingProducts.value = []
   } finally {
     loading.value = false
   }
@@ -397,7 +407,17 @@ onMounted(async () => {
         console.log('Categories loaded successfully:', productStore.categories.length)
       } catch (categoryError) {
         console.error('Failed to load categories:', categoryError)
-        // Continue with empty categories
+        // In production, if categories fail to load, try to use fallback categories
+        if (process.env.NODE_ENV === 'production') {
+          console.log('Using fallback categories for production')
+          productStore.categories = [
+            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
+            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
+            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
+            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
+            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
+          ]
+        }
       }
     }
     categoriesLoaded.value = true

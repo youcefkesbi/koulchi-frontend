@@ -400,7 +400,8 @@
     "noProductsInCategory": "No products available in {category} category.",
     "noCategoriesAvailable": "No categories available at the moment.",
     "categoriesLoadingFallback": "Categories are being loaded. You can browse all products in the meantime.",
-    "browseAllProducts": "Browse All Products"
+    "browseAllProducts": "Browse All Products",
+    "productionDataIssue": "Data loading issue in production. Please try refreshing the page or contact support if the problem persists."
   },
   "benefits": {
     "securePayment": "Secure Cash on Delivery",

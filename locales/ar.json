@@ -246,7 +246,8 @@
     "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}.",
     "noCategoriesAvailable": "لا توجد فئات متاحة في الوقت الحالي.",
     "categoriesLoadingFallback": "يتم تحميل الفئات. يمكنك تصفح جميع المنتجات في الوقت الحالي.",
-    "browseAllProducts": "تصفح جميع المنتجات"
+    "browseAllProducts": "تصفح جميع المنتجات",
+    "productionDataIssue": "مشكلة في تحميل البيانات في الإنتاج. يرجى المحاولة مرة أخرى أو الاتصال بالدعم إذا استمرت المشكلة."
   },
   "benefits": {
     "securePayment": "دفع آمن عند الاستلام",
