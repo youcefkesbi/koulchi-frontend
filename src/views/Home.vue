@@ -29,18 +29,18 @@
       </div>
     </section>
 
-    <!-- Most Sold Products Section -->
-    <section id="most-sold-products" class="my-slide-up">
+    <!-- Best-selling Products Section -->
+    <section id="best-selling-products" class="my-slide-up">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.mostSoldProducts') }}</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.bestSellingProducts') }}</h2>
         <router-link to="/products" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
           {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
         </router-link>
       </div>
       
       <!-- Loading State -->
-      <div v-if="loading" class="grid-responsive">
-        <div v-for="i in 8" :key="i" class="card animate-pulse">
+      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div v-for="i in 10" :key="i" class="card animate-pulse">
           <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
           <div class="h-4 bg-gray-200 rounded mb-2"></div>
           <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -54,51 +54,80 @@
           <i class="fas fa-exclamation-triangle mr-2"></i>
           {{ error }}
         </div>
-        <button @click="loadMostSoldProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+        <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
       </div>
       
-      <!-- Products Grid -->
-      <div v-else class="grid-responsive">
+      <!-- Products Grid - 2 rows × 5 products per row -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         <ProductCard
-          v-for="product in mostSoldProducts"
+          v-for="product in bestSellingProducts"
           :key="product.id"
           :product="product"
         />
       </div>
       
       <!-- Empty State -->
-      <div v-if="!loading && !error && mostSoldProducts.length === 0" class="text-center py-12">
+      <div v-if="!loading && !error && bestSellingProducts.length === 0" class="text-center py-12">
         <div class="text-gray-500 text-lg mb-4">
           <i class="fas fa-box-open mr-2"></i>
-          {{ t('sections.noMostSoldProducts') }}
+          {{ t('sections.noBestSellingProducts') }}
         </div>
       </div>
 
     </section>
 
-          <!-- Categories Section -->
-      <section class="my-slide-up">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        <router-link
-          v-for="category in categories"
-          :key="category.id"
-          :to="`/category/${category.id}`"
-          class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
-        >
-          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
-            <img 
-              v-if="category.icon_url" 
-              :src="category.icon_url" 
-              :alt="getCategoryName(category.id)"
-              class="w-12 h-12 object-contain"
-            />
-            <i v-else class="fas fa-box text-white text-2xl"></i>
+    <!-- Browse by Category Section -->
+    <section class="my-slide-up">
+      <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
+      
+      <!-- Category Products -->
+      <div v-for="category in categories" :key="category.id" class="mb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
+          <h3 class="text-xl sm:text-2xl font-bold text-dark">{{ getCategoryName(category.id) }}</h3>
+          <router-link :to="`/category/${category.id}`" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
+            {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
+          </router-link>
+        </div>
+        
+        <!-- Loading State for Category -->
+        <div v-if="categoryLoading[category.id]" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div v-for="i in 10" :key="i" class="card animate-pulse">
+            <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div class="h-6 bg-gray-200 rounded w-1/2"></div>
           </div>
-          <h3 class="font-bold text-lg text-dark mb-2">{{ getCategoryName(category.id) }}</h3>
-        </router-link>
+        </div>
+        
+        <!-- Error State for Category -->
+        <div v-else-if="categoryErrors[category.id]" class="text-center py-8">
+          <div class="text-red-500 text-lg mb-4">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            {{ categoryErrors[category.id] }}
+          </div>
+          <button @click="loadCategoryProducts(category.id)" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+            {{ t('common.retry') }}
+          </button>
+        </div>
+        
+        <!-- Category Products Grid - 2 rows × 5 products per row -->
+        <div v-else-if="categoryProducts[category.id] && categoryProducts[category.id].length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          <ProductCard
+            v-for="product in categoryProducts[category.id]"
+            :key="product.id"
+            :product="product"
+          />
+        </div>
+        
+        <!-- Empty State for Category -->
+        <div v-else class="text-center py-8">
+          <div class="text-gray-500 text-lg mb-4">
+            <i class="fas fa-box-open mr-2"></i>
+            {{ t('sections.noProductsInCategory', { category: getCategoryName(category.id) }) }}
+          </div>
+        </div>
       </div>
     </section>
 
@@ -210,10 +239,15 @@ import ProductCard from '../components/ProductCard.vue'
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
-// State for most sold products
-const mostSoldProducts = ref([])
+// State for best-selling products
+const bestSellingProducts = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+// State for category products
+const categoryProducts = ref({})
+const categoryLoading = ref({})
+const categoryErrors = ref({})
 
 const categories = computed(() => {
   return productStore.categories.filter(cat => cat.id !== 'all')
@@ -239,17 +273,31 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const loadMostSoldProducts = async () => {
+const loadBestSellingProducts = async () => {
   loading.value = true
   error.value = null
   
   try {
     const products = await productStore.fetchMostSoldProducts(10)
-    mostSoldProducts.value = products
+    bestSellingProducts.value = products
   } catch (err) {
-    error.value = err.message || 'Failed to load most sold products'
+    error.value = err.message || 'Failed to load best-selling products'
   } finally {
     loading.value = false
+  }
+}
+
+const loadCategoryProducts = async (categoryId) => {
+  categoryLoading.value[categoryId] = true
+  categoryErrors.value[categoryId] = null
+  
+  try {
+    const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
+    categoryProducts.value[categoryId] = products
+  } catch (err) {
+    categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
+  } finally {
+    categoryLoading.value[categoryId] = false
   }
 }
 
@@ -266,7 +314,12 @@ onMounted(async () => {
     await productStore.fetchCategories()
   }
   
-  // Load most sold products
-  await loadMostSoldProducts()
+  // Load best-selling products
+  await loadBestSellingProducts()
+  
+  // Load category products for each category
+  for (const category of categories.value) {
+    await loadCategoryProducts(category.id)
+  }
 })
 </script>

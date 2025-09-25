@@ -237,12 +237,13 @@
   },
   "sections": {
     "newProducts": "المنتجات الجديدة",
-    "mostSoldProducts": "المنتجات الأكثر مبيعاً",
+    "bestSellingProducts": "أفضل المنتجات مبيعاً",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
     "browseByCategory": "تصفح حسب الفئة",
     "whyChooseUs": "لماذا تختار كولشي؟",
-    "noMostSoldProducts": "لا توجد منتجات أكثر مبيعاً متاحة في الوقت الحالي."
+    "noBestSellingProducts": "لا توجد أفضل المنتجات مبيعاً متاحة في الوقت الحالي.",
+    "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}."
   },
   "benefits": {
     "securePayment": "دفع آمن عند الاستلام",

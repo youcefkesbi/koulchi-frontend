@@ -296,12 +296,13 @@
   },
   "sections": {
     "newProducts": "Nouveaux produits",
-    "mostSoldProducts": "Produits les Plus Vendus",
+    "bestSellingProducts": "Meilleurs Produits",
     "saleProducts": "Produits en promotion",
     "viewAll": "Voir tout",
     "browseByCategory": "Parcourir par catégorie",
     "whyChooseUs": "Pourquoi choisir Koulchi ?",
-    "noMostSoldProducts": "Aucun produit le plus vendu disponible pour le moment."
+    "noBestSellingProducts": "Aucun meilleur produit disponible pour le moment.",
+    "noProductsInCategory": "Aucun produit disponible dans la catégorie {category}."
   },
   "benefits": {
     "securePayment": "Paiement sécurisé à la livraison",

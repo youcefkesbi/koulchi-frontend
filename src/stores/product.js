@@ -64,6 +64,29 @@ export const useProductStore = defineStore('product', () => {
     }
   };
 
+  const fetchBestSellingProductsByCategory = async (categoryId, limit = 10) => {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category_id', categoryId)
+        .order('sold_count', { ascending: false })
+        .limit(limit);
+      
+      if (supabaseError) throw supabaseError;
+      
+      return data || [];
+    } catch (err) {
+      error.value = err.message || 'Failed to fetch best-selling products by category';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const fetchProduct = async (id) => {
     loading.value = true;
     error.value = null;
@@ -355,6 +378,7 @@ export const useProductStore = defineStore('product', () => {
     // Actions
     fetchProducts,
     fetchMostSoldProducts,
+    fetchBestSellingProductsByCategory,
     fetchProduct,
     fetchProductById,
     createProduct,
