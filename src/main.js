@@ -5,6 +5,8 @@ import i18n from './i18n'
 import App from './App.vue'
 import './style.css'
 import { piniaPersist } from './plugins/piniaPersist.js'
+// Initialize stores after Pinia is set up
+import { useAuthStore } from './stores/auth.js'
 
 // Error handling for app initialization
 try {
@@ -20,9 +22,6 @@ try {
 
   // Make i18n instance globally available
   app.config.globalProperties.$i18n = i18n.global
-
-  // Initialize stores after Pinia is set up
-  import { useAuthStore } from './stores/auth.js'
 
   const authStore = useAuthStore()
 
