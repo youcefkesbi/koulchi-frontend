@@ -43,15 +43,9 @@ const props = defineProps({
 
 // Logo mapping configuration
 const logoMapping = {
-<<<<<<< HEAD
   'en': 'Logo English-French Black.png',
   'fr': 'Logo English-French Black.png', 
   'ar': 'Logo Arabic Black.png'
-=======
-  'en': 'Logo-English-French-Black.png',
-  'fr': 'Logo-English-French-Black.png', 
-  'ar': 'Logo-Arabic-Black.png'
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
 }
 
 // Fallback logo (default to English/French)

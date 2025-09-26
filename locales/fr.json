@@ -452,11 +452,8 @@
     "food": "Alimentation & Boissons"
   },
   "seller": {
-<<<<<<< HEAD
     "becomeSeller": "Créer une boutique",
-=======
     "createStore": "Créer une boutique",
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "dashboard": "Tableau de Bord Vendeur",
     "welcomeMessage": "Bon retour, {name} !",
     "cars": "Voitures",
@@ -553,12 +550,7 @@
       "Tableau de bord avancé"
     ]
   }
-<<<<<<< HEAD
-}
-,
-=======
 },
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
   "footer": {
     "description": "Plateforme e-commerce leader en Algérie - Tout ce dont vous avez besoin, en un seul endroit. Trouvez-le. Aimez-le. Obtenez-le.",
     "quickLinks": "Liens rapides",

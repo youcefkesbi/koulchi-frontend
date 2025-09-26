@@ -87,11 +87,8 @@
               class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
               <i class="fas fa-store mr-1"></i>
-<<<<<<< HEAD
               <span class="hidden sm:inline">{{ t('seller.becomeSeller') }}</span>
-=======
               <span class="hidden sm:inline">{{ t('seller.createStore') }}</span>
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
               <span class="sm:hidden">Store</span>
             </button>
 
@@ -138,10 +135,6 @@
                 </button>
               </div>
             </div>
-<<<<<<< HEAD
-=======
-
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
             <div v-else class="flex items-center space-x-4 space-x-reverse">
               <button
                 @click="handleLoginClick"
@@ -283,18 +276,12 @@ const handleLogout = async () => {
     console.error('Logout error:', error)
   }
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
 //Navigate to the store creation page
 const handleSwitchToVendor = () => {
   router.push(getLocalizedRoute('/dashboard/store/create'))
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })

@@ -136,11 +136,7 @@
     "createFirstStore": "أنشئ متجرك الأول",
     "storeName": "اسم المتجر",
     "storeNamePlaceholder": "أدخل اسم متجرك",
-<<<<<<< HEAD
     "storeDescription": "وصف المتجر (اختياري)",
-=======
-    "storeDescription": "(اختياري) وصف المتجر",
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "storeDescriptionPlaceholder": "صف متجرك وما تقدمه",
     "storeLogo": "شعار المتجر",
     "storeBanner": "لافتة المتجر",
@@ -437,11 +433,8 @@
     "food": "الطعام والمشروبات"
   },
   "seller": {
-<<<<<<< HEAD
     "becomeSeller": "أنشئ متجر",
-=======
     "createStore": "أنشئ متجر",
->>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "dashboard": "لوحة تحكم البائع",
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
     "cars": "السيارات",
