@@ -605,7 +605,7 @@
     }
   },
   "seller": {
-    "becomeSeller": "Create a Store",
+    "createStore": "Create a Store",
     "dashboard": "Seller Dashboard",
     "welcomeMessage": "Welcome back, {name}!",
     "cars": "Cars",

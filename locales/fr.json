@@ -62,7 +62,7 @@
     "noSessionFound": "Aucune session trouvée après le rappel OAuth",
     "userNotAuthenticated": "Utilisateur non authentifié"
   },
-  "becomeASeller": "Devenir Vendeur",
+  "createStore": "Créer une boutique",
   "language": "Langue",
   "search": "Rechercher",
   "searchPlaceholder": "Rechercher des produits...",
@@ -452,7 +452,7 @@
     "food": "Alimentation & Boissons"
   },
   "seller": {
-    "becomeSeller": "Créer une boutique",
+    "createStore": "Créer une boutique",
     "dashboard": "Tableau de Bord Vendeur",
     "welcomeMessage": "Bon retour, {name} !",
     "cars": "Voitures",

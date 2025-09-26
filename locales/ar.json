@@ -433,7 +433,7 @@
     "food": "الطعام والمشروبات"
   },
   "seller": {
-    "becomeSeller": "أنشئ متجر",
+    "createStore": "أنشئ متجر",
     "dashboard": "لوحة تحكم البائع",
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
     "cars": "السيارات",
