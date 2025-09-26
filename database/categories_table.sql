@@ -10,6 +10,15 @@ CREATE TABLE IF NOT EXISTS public.categories (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+
+ALTER TABLE public.packs
+ADD COLUMN name_en TEXT NOT NULL DEFAULT '',  
+ADD COLUMN name_ar TEXT DEFAULT NULL,        
+ADD COLUMN name_fr TEXT DEFAULT NULL,        
+ADD COLUMN description_en TEXT DEFAULT NULL,
+ADD COLUMN description_ar TEXT DEFAULT NULL, 
+ADD COLUMN description_fr TEXT DEFAULT NULL; 
+
 -- ================================
 -- Indexes
 -- ================================

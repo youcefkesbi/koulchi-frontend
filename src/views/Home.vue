@@ -59,7 +59,7 @@
         </button>
         
         <!-- Production fallback message -->
-        <div v-if="process.env.NODE_ENV === 'production'" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div v-if="isProd" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p class="text-yellow-800 text-sm">
             {{ t('sections.productionDataIssue') }}
           </p>
@@ -121,12 +121,12 @@
       <!-- Category Products -->
       <div v-else>
         <!-- Debug info for production troubleshooting -->
-        <div v-if="process.env.NODE_ENV === 'development'" class="text-xs text-gray-400 mb-4">
+        <div v-if="isDev" class="text-xs text-gray-400 mb-4">
           Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
         </div>
         
         <!-- Production debug info -->
-        <div v-if="process.env.NODE_ENV === 'production'" class="text-xs text-gray-400 mb-4">
+        <div v-if="isProd" class="text-xs text-gray-400 mb-4">
           <div>Categories loaded: {{ categories.length }}</div>
           <div>Categories loaded flag: {{ categoriesLoaded }}</div>
           <div>Product store categories: {{ productStore.categories.length }}</div>
@@ -289,6 +289,11 @@ import ProductCard from '../components/ProductCard.vue'
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
+
+const isProd = process.env.NODE_ENV === 'production'
+const isDev = process.env.NODE_ENV === 'development'
+
+
 // State for best-selling products
 const bestSellingProducts = ref([])
 const loading = ref(false)
@@ -345,6 +350,8 @@ const loadBestSellingProducts = async () => {
 }
 
 const loadCategoryProducts = async (categoryId) => {
+   debugger  // execution will pause here
+  console.log('Mounted running...')
   categoryLoading.value[categoryId] = true
   categoryErrors.value[categoryId] = null
   
@@ -449,4 +456,6 @@ onMounted(async () => {
     clearTimeout(minTimeout)
   }
 })
+
+"development === 'production'"
 </script>

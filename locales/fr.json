@@ -262,7 +262,9 @@
     "selectedPlan": "Plan sélectionnée",
     "storeInfo": "Informations sur le magasin",
     "branding": "Image de marque",
-    "documents": "Documents"
+    "documents": "Documents",
+    "paymentReceipt": "Reçu de paiement",
+    "validationError": "Veuillez corriger les erreurs de validation avant de continuer."
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",

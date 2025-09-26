@@ -264,7 +264,8 @@
     "selectedPlan": "Selected Plan",
     "storeInfo": "Store Information",
     "branding": "Branding",
-    "documents": "Documents"
+    "documents": "Documents",
+    "validationError":"Please fix the validation errors before proceeding."
   },
   "pack": {
   "basic": {

@@ -16,7 +16,7 @@
     <!-- Main Form -->
     <div class="container mx-auto px-4 py-8 ">
       <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-soft p-8">
-
+       <form @submit.prevent="handleSubmit">
         <!-- Stepper -->
         <div class="mb-8">
           <div class="flex items-center justify-center space-x-8">
@@ -42,36 +42,31 @@
           </div>
         </div>
 
-        <!-- Pack Selection Grid -->
-<div  v-if="currentStep === 1">
+<!-- Pack Selection Grid -->
+<div v-if="currentStep === 1">
   <h3 class="text-lg font-semibold text-gray-800 mb-4">
     {{ $t('stores.choosePlan') }}
   </h3>
 
-  <!-- 2-column grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div
-      v-for="(plan, key) in $tm('pack')" 
-      :key="key"
-      @click="formData.selectedPack = key"
+      v-for="pack in packs"
+      :key="pack.id"
+      @click="formData.selectedPack = pack.id"
       :class="[
         'cursor-pointer p-6 rounded-2xl border shadow-soft transition-all',
-        formData.selectedPack === key
+        formData.selectedPack === pack.id
           ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
           : 'border-gray-200 hover:border-primary/40 hover:shadow-md'
       ]"
     >
       <div class="flex items-center justify-between mb-4">
-        <h4 class="text-xl font-bold text-gray-800">{{ plan.title }}</h4>
-        <p class="text-primary font-semibold">{{ plan.price }}</p>
+        <h4 class="text-xl font-bold text-gray-800">{{ pack.title }}</h4>
+        <p class="text-primary font-semibold">{{ pack.price }}</p>
       </div>
 
       <ul class="space-y-2 text-sm text-gray-600">
-        <li
-          v-for="(feature, i) in plan.features"
-          :key="i"
-          class="flex items-start space-x-3"
-        >
+        <li v-for="(feature, i) in pack.features" :key="i" class="flex items-start space-x-3">
           <i class="fas fa-check text-green-500 mt-1"></i>
           <span class="leading-tight">{{ feature }}</span>
         </li>
@@ -79,6 +74,8 @@
     </div>
   </div>
 </div>
+
+
 
 <!-- Step 2: Basic / Pro Form -->
 <div v-if="currentStep === 2">
@@ -100,19 +97,12 @@
         {{ formData.identityDoc ? formData.identityDoc.name : $t('stores.personalDocuments') }}
       </span>
       <input
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        @change="e => {
-          const file = e.target.files[0]
-          if (file) {
-            formData.identityDoc = file
-            if (file.type.startsWith('image/')) {
-              formData.identityDocPreview = URL.createObjectURL(file)
-            }
-          }
-        }"
-        class="hidden"
-      />
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'identityDoc', 'identityDocPreview')"
+  class="hidden"
+/>
+
     </label>
     <!-- Image preview if it's a picture -->
     <img
@@ -135,20 +125,13 @@
       <span class="text-sm text-gray-600">
         {{ formData.businessRegister ? formData.businessRegister.name : $t('stores.personalDocuments') }}
       </span>
-      <input
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        @change="e => {
-          const file = e.target.files[0]
-          if (file) {
-            formData.businessRegister = file
-            if (file.type.startsWith('image/')) {
-              formData.businessRegisterPreview = URL.createObjectURL(file)
-            }
-          }
-        }"
-        class="hidden"
-      />
+       <input
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'businessRegister', 'businessRegisterPreview')"
+  class="hidden"
+/>
+
     </label>
     <img
       v-if="formData.businessRegisterPreview"
@@ -171,19 +154,12 @@
         {{ formData.paymentReceipt ? formData.paymentReceipt.name : $t('stores.personalDocuments') }}
       </span>
       <input
-        type="file"
-        accept=".pdf,.jpg,.jpeg,.png"
-        @change="e => {
-          const file = e.target.files[0]
-          if (file) {
-            formData.paymentReceipt = file
-            if (file.type.startsWith('image/')) {
-              formData.paymentReceiptPreview = URL.createObjectURL(file)
-            }
-          }
-        }"
-        class="hidden"
-      />
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'paymentReceipt', 'paymentReceiptPreview')"
+  class="hidden"
+/>
+
     </label>
     <img
       v-if="formData.paymentReceiptPreview"
@@ -242,19 +218,14 @@
     <span class="text-sm text-gray-600">
       {{ formData.logo ? formData.logo.name : $t('stores.uploadImg') }}
     </span>
-    <input
-      type="file"
-      accept=".jpg,.jpeg,.png"
-      required
-      @change="e => {
-        const file = e.target.files[0]
-        if (file) {
-          formData.logo = file
-          formData.logoPreview = URL.createObjectURL(file)
-        }
-      }"
-      class="hidden"
-    />
+     <input
+  type="file"
+  accept=".jpg,.jpeg,.png"
+  required
+  @change="e => handleFileChange(e, 'logo', 'logoPreview')"
+  class="hidden"
+/>
+
   </label>
   <p class="text-xs text-gray-500 mt-1">{{ $t('stores.logoHelp') }}</p>
 
@@ -281,18 +252,13 @@
       {{ formData.banner ? formData.banner.name : $t('stores.uploadImg') }}
     </span>
     <input
-      type="file"
-      accept=".jpg,.jpeg,.png"
-      required
-      @change="e => {
-        const file = e.target.files[0]
-        if (file) {
-          formData.banner = file
-          formData.bannerPreview = URL.createObjectURL(file)
-        }
-      }"
-      class="hidden"
-    />
+  type="file"
+  accept=".jpg,.jpeg,.png"
+  required
+  @change="e => handleFileChange(e, 'banner', 'bannerPreview')"
+  class="hidden"
+/>
+
   </label>
   <p class="text-xs text-gray-500 mt-1">{{ $t('stores.bannerHelp') }}</p>
 
@@ -388,6 +354,8 @@
       </li>
     </ul>
   </div>
+
+
 </div>
 
 
@@ -399,24 +367,95 @@
           <button v-if="currentStep < totalSteps" @click="nextStep" type="button" class="px-6 py-3 bg-primary text-white rounded-lg">
             {{ $t('common.next') }}
           </button>
-          <button v-if="currentStep === totalSteps" type="submit" class="px-6 py-3 bg-green-600 text-white rounded-lg">
-            {{ $t('stores.createStore') }}
-          </button>
+           <button
+  v-if="currentStep === totalSteps"
+  type="submit"
+  class="px-6 py-3 bg-green-600 text-white rounded-lg"
+>
+  {{ $t('stores.createStore') }}
+</button>
+        <p v-if="errorMessage" class="mt-4 text-red-600 text-sm">
+  {{ errorMessage }}
+</p>
+<p v-if="successMessage" class="mt-4 text-green-600 text-sm">
+  {{ successMessage }}
+</p>
+
         </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 
+
+
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted , onUnmounted  } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
-
+const user = ref(null)          // <-- add this
+const isAuthenticated = ref(false)
+const authSubscription = ref(null)
 const router = useRouter()
-const { t: $t } = useI18n()
+const session = ref(null) 
+const { t: $t, locale } = useI18n() // locale reactive
+const packs = ref([]) // fetched packs
+const loadingPacks = ref(false)
+const fetchError = ref(null)
+
+const fetchPacks = async () => {
+  try {
+    loadingPacks.value = true
+    fetchError.value = null
+
+    const { data, error } = await supabase
+      .from('packs')
+      .select('*')
+      .eq('is_active', true)
+
+    if (error) throw error
+
+    // Map to frontend-friendly structure
+    packs.value = data.map(pack => ({
+      id: pack.id,
+      title:
+        locale.value === 'fr'
+          ? pack.name_fr || pack.name_en
+          : locale.value === 'ar'
+          ? pack.name_ar || pack.name_en
+          : pack.name_en,
+      price: pack.price,
+      maxAnnouncements: pack.max_announcements,
+      maxImages: pack.max_images,
+      features:
+        locale.value === 'fr'
+          ? JSON.parse(pack.features_fr || '[]')
+          : locale.value === 'ar'
+          ? JSON.parse(pack.features_ar || '[]')
+          : JSON.parse(pack.features_en || '[]')
+    }))
+  } catch (err) {
+    console.error('Failed to fetch packs:', err)
+    fetchError.value = err.message || 'Failed to load packs'
+  } finally {
+    loadingPacks.value = false
+  }
+}
+
+
+// Computed packs localized by current locale
+const localizedPacks = computed(() => {
+  return packs.value.map(pack => ({
+    id: pack.id,
+    title: pack[`title_${locale.value}`] || pack.title_en,
+    price: pack[`price_${locale.value}`] || pack.price_en,
+    features: pack[`features_${locale.value}`] || pack.features_en
+  }))
+})
+
 
 // Step management
 const currentStep = ref(1)
@@ -457,66 +496,36 @@ const totalSteps = computed(() => {
   return formData.selectedPack === 'pro' ? 4 : 3
 })
 
-// ---- Validation ----
-const validatePackSelection = () => !!formData.selectedPack
-
-const validateBasicOrProForm = () => {
-  const errors = { name: '', description: '' }
-  if (!formData.name.trim()) {
-    errors.name = $t('stores.storeNameRequired') || 'Store name is required'
-  }
-  if (formData.description && formData.description.length > 500) {
-    errors.description = $t('stores.storeDescriptionTooLong') || 'Description too long'
-  }
-  Object.assign(validationErrors, errors)
-  return !Object.values(errors).some(e => e !== '')
-}
-
-const validateBasicInfo = () => {
-  if (formData.selectedPack === 'pro') {
-    // Example validation for branding step
-    return !!formData.logo || !!formData.banner || !!formData.color
-  }
-  return true
-}
 
 // ---- Step Validation ----
 const isStepValid = computed(() => {
+  if (!formData.selectedPack) return false;
+
+  const selectedPack = localizedPacks.find(p => p.id === formData.selectedPack);
+  if (!selectedPack) return false;
+
   switch (currentStep.value) {
     case 1:
-      // Pack selection is mandatory
-      return !!formData.selectedPack
+      return true; // pack selection step
 
     case 2:
-      if (formData.selectedPack === 'basic') {
-        return !!formData.identityDoc
+      return !!formData.identityDoc && (selectedPack.key === 'pro' ? !!formData.businessRegister : true);
+
+    case 3:
+      if (selectedPack.key === 'pro') {
+        return formData.name?.trim() && formData.logo && formData.banner;
       }
-      if (formData.selectedPack === 'pro') {
-        return !!formData.identityDoc && !!formData.businessRegister
-      }
-      return false
-
-   case 3:
-  if (formData.selectedPack === 'pro') {
-    return (
-      formData.name &&
-      formData.name.trim() !== '' &&
-      formData.logo &&
-      formData.banner
-    )
-  }
-
-  return true
-
+      return true;
 
     case 4:
-      // Review step is always valid
-      return true
+      return true; // review step
 
     default:
-      return false
+      return false;
   }
-})
+});
+
+
 // ---- Navigation ----
 const nextStep = () => {
   if (isStepValid.value && currentStep.value < totalSteps.value) {
@@ -533,15 +542,29 @@ const previousStep = () => {
   if (currentStep.value > 1) currentStep.value--
 }
 
+// Handle filechange
+function handleFileChange(e, key, previewKey) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  formData[key] = file
+  if (file.type.startsWith('image/')) {
+    formData[previewKey] = URL.createObjectURL(file)
+  } else {
+    formData[previewKey] = null
+  }
+}
+
 // Upload helper
-const uploadFile = async (file, pathPrefix) => {
+// Upload helper
+const uploadFile = async (file, bucketName) => {
   if (!file) return null
 
   const ext = file.name.split('.').pop()
-  const fileName = `${pathPrefix}/${crypto.randomUUID()}.${ext}`
+  const fileName = `${crypto.randomUUID()}.${ext}`
 
   const { error: uploadError } = await supabase.storage
-    .from('stores') // bucket name
+    .from(bucketName) // 👈 correct bucket name
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: false
@@ -549,26 +572,28 @@ const uploadFile = async (file, pathPrefix) => {
 
   if (uploadError) {
     console.error('File upload error:', uploadError)
-    throw new Error(`Failed to upload ${pathPrefix}`)
+    throw new Error(`Failed to upload to bucket ${bucketName}`)
   }
 
   // Build public URL
   const { data: { publicUrl } } = supabase.storage
-    .from('stores')
+    .from(bucketName)
     .getPublicUrl(fileName)
 
   return publicUrl
 }
 
 
+
 // Store creation function using RPC
 const createStore = async (storeData) => {
   try {
-    const currentSession = await requireAuth()
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error || !session) throw new Error('Not authenticated')
 
     // Prepare payload for SQL function
     const payload = {
-      p_owner_id: currentSession.user.id,
+      p_owner_id: session.user.id,  
       p_name: storeData.name,
       p_description: storeData.description,
       p_logo_url: storeData.logo || null,
@@ -592,58 +617,99 @@ const createStore = async (storeData) => {
   }
 }
 
+// Data validation function
+const validateForm = () => {
+  // Validate store name
+  if (!formData.name || formData.name.trim().length === 0) {
+    validationErrors.name = $t('stores.storeNameRequired') || 'Store name is required';
+    return false;
+  } else {
+    validationErrors.name = '';
+  }
+
+  // Validate pack selection
+  if (!formData.selectedPack) {
+    validationErrors.pack = $t('stores.packRequired') || 'Please select a plan';
+    return false;
+  } else {
+    validationErrors.pack = '';
+  }
+
+  // Find selected pack from the fetched packs
+  const selectedPack = packs.value.find(p => p.id === formData.selectedPack);
+  if (!selectedPack) {
+    validationErrors.pack = $t('stores.invalidPack') || 'Selected plan is invalid';
+    return false;
+  }
+
+  // Check if it’s Pro plan (based on title containing "Pro")
+  if (selectedPack.title.toLowerCase().includes('pro')) {
+    if (!formData.logo || !formData.banner) {
+      validationErrors.logo = $t('stores.logoRequired') || 'Logo is required for Pro plan';
+      validationErrors.banner = $t('stores.bannerRequired') || 'Banner is required for Pro plan';
+      return false;
+    } else {
+      validationErrors.logo = '';
+      validationErrors.banner = '';
+    }
+  }
+
+  return true;
+};
+
+
 
 // Submit handler
 const handleSubmit = async () => {
   try {
-    loading.value = true
-    successMessage.value = ''
-    errorMessage.value = ''
+    loading.value = true;
+    successMessage.value = '';
+    errorMessage.value = '';
 
     if (!validateForm()) {
-      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.'
-      return
+      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.';
+      return;
     }
 
-    // Upload logo + banner
-    let logoUrl = null
-    let bannerUrl = null
+    // Upload files if present
+    let logoUrl = null;
+    let bannerUrl = null;
 
     if (formData.logo instanceof File) {
-      logoUrl = await uploadFile(formData.logo, 'logos')
+      logoUrl = await uploadFile(formData.logo, 'stores-logos');
     }
     if (formData.banner instanceof File) {
-      bannerUrl = await uploadFile(formData.banner, 'banners')
+      bannerUrl = await uploadFile(formData.banner, 'stores-banners');
     }
 
     const storeData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || null,
-      logo: logoUrl,
-      banner: bannerUrl,
-      pack_id: formData.selectedPack || null
-    }
+      logo_url: logoUrl,
+      banner_url: bannerUrl,
+      pack_id: formData.selectedPack, // UUID from DB
+    };
 
-    const newStore = await createStore(storeData)
+    const newStore = await createStore(storeData);
 
     if (!newStore?.id) {
-      throw new Error('Store creation failed: No ID returned')
+      throw new Error('Store creation failed: No ID returned');
     }
 
-    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!'
-    resetForm()
+    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
+    resetForm();
 
     setTimeout(() => {
-      router.push(`/dashboard/store/${newStore.id}`)
-    }, 1500)
-
+      router.push(`/dashboard/store/${newStore.id}`);
+    }, 1500);
   } catch (error) {
-    console.error('Error creating store:', error)
-    errorMessage.value = getErrorMessage(error)
+    console.error('Error creating store:', error);
+    errorMessage.value = getErrorMessage(error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
+
 
 // Error message helper
 const getErrorMessage = (error) => {
@@ -677,42 +743,50 @@ const resetForm = () => {
 }
 
 // Initialize authentication and set up auth state listener
+
 const initAuth = async () => {
   try {
-    // Get initial session
-    await validateSession()
-    
-    // Listen for auth changes
+    // 1. Get initial session
+    const { data, error } = await supabase.auth.getSession()
+    if (error) throw error
+
+    if (data.session) {
+      session.value = data.session
+      user.value = data.session.user
+      isAuthenticated.value = true
+    } else {
+      session.value = null
+      user.value = null
+      isAuthenticated.value = false
+    }
+
+    // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state change:', event, newSession?.user?.email)
-        
+
         if (newSession?.user) {
           session.value = newSession
           user.value = newSession.user
           isAuthenticated.value = true
-          
-          // Handle sign in
+
           if (event === 'SIGNED_IN') {
             console.log('User signed in:', newSession.user.email)
           }
         } else {
-          // User signed out or session expired
           console.log('User signed out or session expired')
           session.value = null
           user.value = null
           isAuthenticated.value = false
-          
-          // Redirect to login if user is not authenticated
+
           const currentLocale = router.currentRoute.value.meta?.locale || 'en'
           router.push(`/${currentLocale}/login`)
         }
       }
     )
-    
-    // Store the subscription for cleanup
+
+    // 3. Store subscription for cleanup
     authSubscription.value = subscription
-    
     return subscription
   } catch (err) {
     console.error('Auth initialization failed:', err)
@@ -732,6 +806,7 @@ onMounted(async () => {
     const currentLocale = router.currentRoute.value.meta?.locale || 'en'
     router.push(`/${currentLocale}/login`)
   }
+  fetchPacks()
 })
 
 onUnmounted(() => {

@@ -199,7 +199,8 @@
     "selectedPlan": "الخطة المختارة",
     "storeInfo": "معلومات المتجر",
     "branding": "العلامة التجارية",
-    "documents": "الوثائق"
+    "documents": "الوثائق",
+    "validationError": "يرجى تصحيح أخطاء التحقق قبل المتابعة."
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",
