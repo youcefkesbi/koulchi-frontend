@@ -73,7 +73,10 @@ WITH CHECK (
 -- Anyone can view all stores --
 CREATE POLICY "Anyone can view all stores"
 ON public.stores FOR SELECT
+<<<<<<< HEAD
 
+=======
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
 
 -------- UPDATE --------
 -- Vendor can update their own stores --
@@ -140,7 +143,10 @@ EXECUTE FUNCTION update_updated_at_column();
 -- ================================
 -- Functions
 -- ================================
+<<<<<<< HEAD
 
+=======
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
 create or replace function create_store(
   p_owner_id uuid,
   p_name text,

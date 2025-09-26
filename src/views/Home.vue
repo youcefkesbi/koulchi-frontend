@@ -29,18 +29,18 @@
       </div>
     </section>
 
-    <!-- Most Sold Products Section -->
-    <section id="most-sold-products" class="my-slide-up">
+    <!-- Best-selling Products Section -->
+    <section id="best-selling-products" class="my-slide-up">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.mostSoldProducts') }}</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.bestSellingProducts') }}</h2>
         <router-link to="/products" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
           {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
         </router-link>
       </div>
       
       <!-- Loading State -->
-      <div v-if="loading" class="grid-responsive">
-        <div v-for="i in 8" :key="i" class="card animate-pulse">
+      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div v-for="i in 10" :key="i" class="card animate-pulse">
           <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
           <div class="h-4 bg-gray-200 rounded mb-2"></div>
           <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
@@ -54,51 +54,130 @@
           <i class="fas fa-exclamation-triangle mr-2"></i>
           {{ error }}
         </div>
-        <button @click="loadMostSoldProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+        <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
+        
+        <!-- Production fallback message -->
+        <div v-if="process.env.NODE_ENV === 'production'" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p class="text-yellow-800 text-sm">
+            {{ t('sections.productionDataIssue') }}
+          </p>
+        </div>
       </div>
       
-      <!-- Products Grid -->
-      <div v-else class="grid-responsive">
+      <!-- Products Grid - 2 rows × 5 products per row -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         <ProductCard
-          v-for="product in mostSoldProducts"
+          v-for="product in bestSellingProducts"
           :key="product.id"
           :product="product"
         />
       </div>
       
       <!-- Empty State -->
-      <div v-if="!loading && !error && mostSoldProducts.length === 0" class="text-center py-12">
+      <div v-if="!loading && !error && bestSellingProducts.length === 0" class="text-center py-12">
         <div class="text-gray-500 text-lg mb-4">
           <i class="fas fa-box-open mr-2"></i>
-          {{ t('sections.noMostSoldProducts') }}
+          {{ t('sections.noBestSellingProducts') }}
         </div>
       </div>
 
     </section>
 
-          <!-- Categories Section -->
-      <section class="my-slide-up">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        <router-link
-          v-for="category in categories"
-          :key="category.id"
-          :to="`/category/${category.id}`"
-          class="card text-center cursor-pointer hover:shadow-glow transform hover:scale-105 transition-all duration-300 group"
-        >
-          <div class="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary transition-all duration-300 shadow-soft group-hover:shadow-glow overflow-hidden">
-            <img 
-              v-if="category.icon_url" 
-              :src="category.icon_url" 
-              :alt="getCategoryName(category.id)"
-              class="w-12 h-12 object-contain"
-            />
-            <i v-else class="fas fa-box text-white text-2xl"></i>
+    <!-- Browse by Category Section -->
+    <section class="my-slide-up">
+      <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
+      
+      <!-- Loading State for Categories -->
+      <div v-if="!categoriesLoaded" class="text-center py-12">
+        <div class="inline-flex items-center space-x-2 space-x-reverse">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span class="text-gray-600">{{ t('common.loading') }}</span>
+        </div>
+      </div>
+      
+      <!-- Error State for Categories -->
+      <div v-else-if="categories.length === 0" class="text-center py-12">
+        <div class="text-gray-500 text-lg mb-4">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          {{ t('sections.noCategoriesAvailable') }}
+        </div>
+        <button @click="retryCategoryLoading" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+          {{ t('common.retry') }}
+        </button>
+        
+        <!-- Fallback: Show a message that categories are being loaded -->
+        <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+          <p class="text-gray-600 mb-4">{{ t('sections.categoriesLoadingFallback') }}</p>
+          <div class="flex justify-center space-x-4">
+            <router-link to="/products" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+              {{ t('sections.browseAllProducts') }}
+            </router-link>
           </div>
-          <h3 class="font-bold text-lg text-dark mb-2">{{ getCategoryName(category.id) }}</h3>
-        </router-link>
+        </div>
+      </div>
+      
+      <!-- Category Products -->
+      <div v-else>
+        <!-- Debug info for production troubleshooting -->
+        <div v-if="process.env.NODE_ENV === 'development'" class="text-xs text-gray-400 mb-4">
+          Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
+        </div>
+        
+        <!-- Production debug info -->
+        <div v-if="process.env.NODE_ENV === 'production'" class="text-xs text-gray-400 mb-4">
+          <div>Categories loaded: {{ categories.length }}</div>
+          <div>Categories loaded flag: {{ categoriesLoaded }}</div>
+          <div>Product store categories: {{ productStore.categories.length }}</div>
+          <div>Category products: {{ Object.keys(categoryProducts).length }}</div>
+        </div>
+        <div v-for="category in categories" :key="category.id" class="mb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
+          <h3 class="text-xl sm:text-2xl font-bold text-dark">{{ getCategoryName(category.id) }}</h3>
+          <router-link :to="`/category/${category.id}`" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
+            {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
+          </router-link>
+        </div>
+        
+        <!-- Loading State for Category -->
+        <div v-if="categoryLoading[category.id]" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div v-for="i in 10" :key="i" class="card animate-pulse">
+            <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+        
+        <!-- Error State for Category -->
+        <div v-else-if="categoryErrors[category.id]" class="text-center py-8">
+          <div class="text-red-500 text-lg mb-4">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            {{ categoryErrors[category.id] }}
+          </div>
+          <button @click="loadCategoryProducts(category.id)" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+            {{ t('common.retry') }}
+          </button>
+        </div>
+        
+        <!-- Category Products Grid - 2 rows × 5 products per row -->
+        <div v-else-if="categoryProducts[category.id] && categoryProducts[category.id].length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+          <ProductCard
+            v-for="product in categoryProducts[category.id]"
+            :key="product.id"
+            :product="product"
+          />
+        </div>
+        
+        <!-- Empty State for Category -->
+        <div v-else class="text-center py-8">
+          <div class="text-gray-500 text-lg mb-4">
+            <i class="fas fa-box-open mr-2"></i>
+            {{ t('sections.noProductsInCategory', { category: getCategoryName(category.id) }) }}
+          </div>
+        </div>
+        </div>
       </div>
     </section>
 
@@ -130,69 +209,69 @@
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-soft my-slide-up">
-      <h2 class="text-4xl font-bold text-dark mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-        <div class="space-y-6">
+    <section class="bg-white rounded-3xl p-8 sm:p-12 shadow-soft my-slide-up border border-gray-100">
+      <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-8 sm:mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
+        <div class="space-y-8">
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-dark mb-2">{{ t('benefits.securePayment') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.securePaymentDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.securePayment') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.securePaymentDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.originalProducts') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.originalProductsDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.originalProducts') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.originalProductsDesc') }}</p>
             </div>
           </div>
         </div>
         
-        <div class="space-y-6">
+        <div class="space-y-8">
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.competitivePrices') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.competitivePricesDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.competitivePrices') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.competitivePricesDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.customerService') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.customerServiceDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.customerService') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.customerServiceDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-10 h-10 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-glow transition-all duration-300">
+            <div class="w-12 h-12 bg-gradient-to-br from-secondary to-secondary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="text-xl font-bold mb-2 text-dark">{{ t('benefits.easyOrdering') }}</h4>
-              <p class="text-gray-600 leading-relaxed">{{ t('benefits.easyOrderingDesc') }}</p>
+              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.easyOrdering') }}</h4>
+              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.easyOrderingDesc') }}</p>
             </div>
           </div>
         </div>
@@ -210,12 +289,21 @@ import ProductCard from '../components/ProductCard.vue'
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
-// State for most sold products
-const mostSoldProducts = ref([])
+// State for best-selling products
+const bestSellingProducts = ref([])
 const loading = ref(false)
 const error = ref(null)
 
+// State for category products
+const categoryProducts = ref({})
+const categoryLoading = ref({})
+const categoryErrors = ref({})
+const categoriesLoaded = ref(false)
+
 const categories = computed(() => {
+  if (!productStore.categories || !Array.isArray(productStore.categories)) {
+    return []
+  }
   return productStore.categories.filter(cat => cat.id !== 'all')
 })
 
@@ -239,17 +327,55 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const loadMostSoldProducts = async () => {
+const loadBestSellingProducts = async () => {
   loading.value = true
   error.value = null
   
   try {
     const products = await productStore.fetchMostSoldProducts(10)
-    mostSoldProducts.value = products
+    bestSellingProducts.value = products || []
+    console.log('Best-selling products loaded:', products?.length || 0)
   } catch (err) {
-    error.value = err.message || 'Failed to load most sold products'
+    console.error('Error loading best-selling products:', err)
+    error.value = err.message || 'Failed to load best-selling products'
+    bestSellingProducts.value = []
   } finally {
     loading.value = false
+  }
+}
+
+const loadCategoryProducts = async (categoryId) => {
+  categoryLoading.value[categoryId] = true
+  categoryErrors.value[categoryId] = null
+  
+  try {
+    const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
+    categoryProducts.value[categoryId] = products || []
+  } catch (err) {
+    console.error(`Error loading products for category ${categoryId}:`, err)
+    categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
+    categoryProducts.value[categoryId] = []
+  } finally {
+    categoryLoading.value[categoryId] = false
+  }
+}
+
+const retryCategoryLoading = async () => {
+  categoriesLoaded.value = false
+  try {
+    await productStore.fetchCategories()
+    categoriesLoaded.value = true
+    
+    // Reload category products
+    if (categories.value && categories.value.length > 0) {
+      const categoryPromises = categories.value.map(category => 
+        loadCategoryProducts(category.id)
+      )
+      await Promise.allSettled(categoryPromises)
+    }
+  } catch (error) {
+    console.error('Retry failed:', error)
+    categoriesLoaded.value = true
   }
 }
 
@@ -261,12 +387,66 @@ const scrollToMostSoldProducts = () => {
 }
 
 onMounted(async () => {
-  // Load categories if not already loaded
-  if (productStore.categories.length === 0) {
-    await productStore.fetchCategories()
-  }
+  // Always ensure the section renders by setting a minimum timeout
+  const minTimeout = setTimeout(() => {
+    console.log('Minimum timeout reached - ensuring section renders')
+    categoriesLoaded.value = true
+  }, 3000) // 3 second minimum timeout
   
-  // Load most sold products
-  await loadMostSoldProducts()
+  try {
+    // Set a timeout to ensure the section renders even if there are issues
+    const timeoutId = setTimeout(() => {
+      console.warn('Homepage data loading timeout - rendering with available data')
+      categoriesLoaded.value = true
+    }, 10000) // 10 second timeout
+    
+    // Load categories if not already loaded
+    if (productStore.categories.length === 0) {
+      try {
+        await productStore.fetchCategories()
+        console.log('Categories loaded successfully:', productStore.categories.length)
+      } catch (categoryError) {
+        console.error('Failed to load categories:', categoryError)
+        // In production, if categories fail to load, try to use fallback categories
+        if (process.env.NODE_ENV === 'production') {
+          console.log('Using fallback categories for production')
+          productStore.categories = [
+            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
+            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
+            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
+            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
+            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
+          ]
+        }
+      }
+    }
+    categoriesLoaded.value = true
+    clearTimeout(timeoutId)
+    clearTimeout(minTimeout)
+    
+    // Load best-selling products
+    try {
+      await loadBestSellingProducts()
+    } catch (bestSellingError) {
+      console.error('Failed to load best-selling products:', bestSellingError)
+    }
+    
+    // Load category products for each category
+    if (categories.value && categories.value.length > 0) {
+      console.log('Loading products for categories:', categories.value.map(c => c.id))
+      // Load category products in parallel for better performance
+      const categoryPromises = categories.value.map(category => 
+        loadCategoryProducts(category.id)
+      )
+      await Promise.allSettled(categoryPromises)
+    } else {
+      console.warn('No categories available to load products for')
+    }
+  } catch (error) {
+    console.error('Error loading homepage data:', error)
+    // Ensure categoriesLoaded is set even if there's an error
+    categoriesLoaded.value = true
+    clearTimeout(minTimeout)
+  }
 })
 </script>

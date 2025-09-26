@@ -37,8 +37,8 @@ export const environment = {
   })(),
 
   supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL,
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY
+    url: import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
   },
 
   oauth: {
@@ -71,8 +71,12 @@ export const validateEnvironment = () => {
   }
   
   if (errors.length > 0) {
-    console.error('Environment validation failed:', errors)
-    throw new Error(`Environment validation failed: ${errors.join(', ')}`)
+    console.warn('Environment validation failed:', errors)
+    console.warn('App will run in development mode with limited functionality')
+    // Don't throw error in development - just warn
+    if (environment.isProduction) {
+      throw new Error(`Environment validation failed: ${errors.join(', ')}`)
+    }
   }
   
   return true

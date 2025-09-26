@@ -160,7 +160,7 @@
     "confirmed": "Confirmed",
     "shipped": "Shipped",
     "delivered": "Delivered",
-    "canceled": "Canceled"
+    "cancelled": "Cancelled"
   },
   "categoryPage": {
     "resultsCount": "Showing {count} of {total} products",
@@ -290,8 +290,12 @@
       "Advanced dashboard"
     ]
   }
+<<<<<<< HEAD
 }
 ,  
+=======
+},
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
   "common": {
     "cancel": "Cancel",
     "saving": "Saving...",
@@ -427,12 +431,17 @@
   },
   "sections": {
     "newProducts": "New Products",
-    "mostSoldProducts": "Most Sold Products",
+    "bestSellingProducts": "Best-selling Products",
     "saleProducts": "Sale Products",
     "viewAll": "View All",
     "browseByCategory": "Browse by Category",
     "whyChooseUs": "Why Choose Koulchi?",
-    "noMostSoldProducts": "No most sold products available at the moment."
+    "noBestSellingProducts": "No best-selling products available at the moment.",
+    "noProductsInCategory": "No products available in {category} category.",
+    "noCategoriesAvailable": "No categories available at the moment.",
+    "categoriesLoadingFallback": "Categories are being loaded. You can browse all products in the meantime.",
+    "browseAllProducts": "Browse All Products",
+    "productionDataIssue": "Data loading issue in production. Please try refreshing the page or contact support if the problem persists."
   },
   "benefits": {
     "securePayment": "Secure Cash on Delivery",
@@ -600,7 +609,11 @@
     }
   },
   "seller": {
+<<<<<<< HEAD
     "becomeSeller": "Create a Store",
+=======
+    "createStore": "Create a Store",
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "dashboard": "Seller Dashboard",
     "welcomeMessage": "Welcome back, {name}!",
     "cars": "Cars",

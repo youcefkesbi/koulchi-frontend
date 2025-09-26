@@ -47,18 +47,55 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
+      // Use a simpler query that doesn't trigger user_roles policy
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('*')
+        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at')
+        .eq('is_active', true)
         .order('sold_count', { ascending: false })
         .limit(limit);
       
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        console.error('Supabase error in fetchMostSoldProducts:', supabaseError);
+        throw supabaseError;
+      }
       
       return data || [];
     } catch (err) {
+      console.error('Error in fetchMostSoldProducts:', err);
       error.value = err.message || 'Failed to fetch most sold products';
-      throw err;
+      // Return empty array instead of throwing to prevent app crashes
+      return [];
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const fetchBestSellingProductsByCategory = async (categoryId, limit = 10) => {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      // Use a simpler query that doesn't trigger user_roles policy
+      const { data, error: supabaseError } = await supabase
+        .from('products')
+        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at')
+        .eq('category_id', categoryId)
+        .eq('is_active', true)
+        .order('sold_count', { ascending: false })
+        .limit(limit);
+      
+      if (supabaseError) {
+        console.error('Supabase error in fetchBestSellingProductsByCategory:', supabaseError);
+        throw supabaseError;
+      }
+      
+      return data || [];
+    } catch (err) {
+      console.error('Error in fetchBestSellingProductsByCategory:', err);
+      error.value = err.message || 'Failed to fetch best-selling products by category';
+      // Return empty array instead of throwing to prevent app crashes
+      return [];
     } finally {
       loading.value = false;
     }
@@ -237,20 +274,27 @@ export const useProductStore = defineStore('product', () => {
 
   const fetchCategories = async () => {
     try {
-      // Fetch categories with multilingual names
+      // Fetch categories with multilingual names - use public access
       const { data, error: supabaseError } = await supabase
         .from('categories')
         .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
         .eq('is_active', true)
         .order('name_en');
       
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        console.error('Supabase error in fetchCategories:', supabaseError);
+        throw supabaseError;
+      }
       
+      console.log('Categories fetched successfully:', data?.length || 0);
       categories.value = data || [];
       return data;
     } catch (err) {
+      console.error('Error in fetchCategories:', err);
       error.value = err.message || 'Failed to fetch categories';
-      throw err;
+      // Return empty array instead of throwing to prevent app crashes
+      categories.value = [];
+      return [];
     }
   };
 
@@ -355,6 +399,7 @@ export const useProductStore = defineStore('product', () => {
     // Actions
     fetchProducts,
     fetchMostSoldProducts,
+    fetchBestSellingProductsByCategory,
     fetchProduct,
     fetchProductById,
     createProduct,

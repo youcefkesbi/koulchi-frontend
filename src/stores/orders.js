@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
+import { validateOrderStatus, isValidStatusTransition, sanitizeOrderData, ORDER_STATUSES } from '../utils/orderValidation'
 
 export const useOrdersStore = defineStore('orders', () => {
   const orders = ref([])
@@ -31,23 +32,23 @@ export const useOrdersStore = defineStore('orders', () => {
   )
   
   const pendingOrders = computed(() => 
-    orders.value.filter(order => order.status === 'pending')
+    orders.value.filter(order => order.status === ORDER_STATUSES.PENDING)
   )
   
   const confirmedOrders = computed(() => 
-    orders.value.filter(order => order.status === 'confirmed')
+    orders.value.filter(order => order.status === ORDER_STATUSES.CONFIRMED)
   )
   
   const shippedOrders = computed(() => 
-    orders.value.filter(order => order.status === 'shipped')
+    orders.value.filter(order => order.status === ORDER_STATUSES.SHIPPED)
   )
   
   const deliveredOrders = computed(() => 
-    orders.value.filter(order => order.status === 'delivered')
+    orders.value.filter(order => order.status === ORDER_STATUSES.DELIVERED)
   )
   
   const canceledOrders = computed(() => 
-    orders.value.filter(order => order.status === 'canceled')
+    orders.value.filter(order => order.status === ORDER_STATUSES.CANCELLED)
   )
 
   // Actions
@@ -186,12 +187,12 @@ export const useOrdersStore = defineStore('orders', () => {
 
       // Create the order first
       // RLS automatically sets user_id to auth.uid()
-      const orderPayload = {
+      const orderPayload = sanitizeOrderData({
         total_amount: orderData.total_amount,
-        status: 'pending',
+        status: ORDER_STATUSES.PENDING,
         shipping_address: orderData.shipping_address,
         notes: orderData.notes
-      }
+      })
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -256,6 +257,9 @@ export const useOrdersStore = defineStore('orders', () => {
       await initUser()
       if (!currentUser.value) throw new Error('User not authenticated')
 
+      // Validate the new status
+      validateOrderStatus(newStatus)
+
       // Verify the user is the seller of this order
       const order = orders.value.find(o => o.id === orderId)
       if (!order) throw new Error('Order not found')
@@ -263,6 +267,11 @@ export const useOrdersStore = defineStore('orders', () => {
       // Check if any of the order items belong to the current user's products
       const isSeller = order.order_items?.some(item => item.product?.seller_id === currentUser.value.id)
       if (!isSeller) throw new Error('Unauthorized to update this order')
+
+      // Validate status transition
+      if (!isValidStatusTransition(order.status, newStatus)) {
+        throw new Error(`Invalid status transition from ${order.status} to ${newStatus}`)
+      }
 
       const { data, error: updateError } = await supabase
         .from('orders')
@@ -305,14 +314,14 @@ export const useOrdersStore = defineStore('orders', () => {
       if (order.user_id !== currentUser.value.id) throw new Error('Unauthorized to cancel this order')
 
       // Only allow cancellation of pending orders
-      if (order.status !== 'pending') {
+      if (order.status !== ORDER_STATUSES.PENDING) {
         throw new Error('Only pending orders can be canceled')
       }
 
       const { data, error: updateError } = await supabase
         .from('orders')
         .update({ 
-          status: 'canceled',
+          status: ORDER_STATUSES.CANCELLED,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId)

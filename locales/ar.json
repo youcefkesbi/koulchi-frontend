@@ -136,7 +136,11 @@
     "createFirstStore": "أنشئ متجرك الأول",
     "storeName": "اسم المتجر",
     "storeNamePlaceholder": "أدخل اسم متجرك",
+<<<<<<< HEAD
     "storeDescription": "وصف المتجر (اختياري)",
+=======
+    "storeDescription": "(اختياري) وصف المتجر",
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "storeDescriptionPlaceholder": "صف متجرك وما تقدمه",
     "storeLogo": "شعار المتجر",
     "storeBanner": "لافتة المتجر",
@@ -249,12 +253,17 @@
   },
   "sections": {
     "newProducts": "المنتجات الجديدة",
-    "mostSoldProducts": "المنتجات الأكثر مبيعاً",
+    "bestSellingProducts": "أفضل المنتجات مبيعاً",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
     "browseByCategory": "تصفح حسب الفئة",
     "whyChooseUs": "لماذا تختار كولشي؟",
-    "noMostSoldProducts": "لا توجد منتجات أكثر مبيعاً متاحة في الوقت الحالي."
+    "noBestSellingProducts": "لا توجد أفضل المنتجات مبيعاً متاحة في الوقت الحالي.",
+    "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}.",
+    "noCategoriesAvailable": "لا توجد فئات متاحة في الوقت الحالي.",
+    "categoriesLoadingFallback": "يتم تحميل الفئات. يمكنك تصفح جميع المنتجات في الوقت الحالي.",
+    "browseAllProducts": "تصفح جميع المنتجات",
+    "productionDataIssue": "مشكلة في تحميل البيانات في الإنتاج. يرجى المحاولة مرة أخرى أو الاتصال بالدعم إذا استمرت المشكلة."
   },
   "benefits": {
     "securePayment": "دفع آمن عند الاستلام",
@@ -404,7 +413,7 @@
     "loginAccount": "تسجيل الدخول / ربط حساب موجود",
     "howToConnect": "كيفية الربط:",
     "connectionSteps": "1. انقر على أحد الأزرار أعلاه للذهاب إلى Maystro\n2. أنشئ حسابًا أو سجل دخولك للحصول على بيانات الاعتماد\n3. عد إلى هنا وأدخل تفاصيل حسابك",
-    "enterCredentials": "أدخل بيانات اعتماد Maystro",
+    "enterCredentials": "أدخل بيانات اعتئماد Maystro",
     "accountId": "معرف الحساب",
     "accountIdPlaceholder": "أدخل معرف حساب Maystro الخاص بك",
     "accessToken": "رمز الوصول",
@@ -428,7 +437,11 @@
     "food": "الطعام والمشروبات"
   },
   "seller": {
+<<<<<<< HEAD
     "becomeSeller": "أنشئ متجر",
+=======
+    "createStore": "أنشئ متجر",
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
     "dashboard": "لوحة تحكم البائع",
     "welcomeMessage": "مرحبًا بعودتك، {name}!",
     "cars": "السيارات",
@@ -623,7 +636,7 @@
     "confirmed": "مؤكد",
     "shipped": "تم الشحن",
     "delivered": "تم التوصيل",
-    "canceled": "ملغي"
+    "cancelled": "ملغي"
   },
   "wishlist": {
     "title": "قائمة الأمنيات",

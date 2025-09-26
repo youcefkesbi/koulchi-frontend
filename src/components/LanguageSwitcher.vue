@@ -5,7 +5,11 @@
       :title="`Language: ${currentLanguage.name}`"
       :class="buttonClass"
     >
+<<<<<<< HEAD
       <template v-if="compact">
+=======
+    <template v-if="compact">
+>>>>>>> 74cb925d752f6787f41f2cd7f7c06017d3e373ff
         <!-- Globe icon (compact) -->
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -21,7 +25,6 @@
         </svg>
       </template>
     </button>
-
     <!-- Dropdown Menu -->
     <div
       v-if="isOpen"
@@ -58,6 +61,13 @@ const router = useRouter()
 const route = useRoute()
 const { locale } = useI18n()
 const isOpen = ref(false)
+
+const buttonClass = computed(() => {
+  if (props.compact) {
+    return 'flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
+  }
+  return 'flex items-center space-x-1 sm:space-x-2 space-x-reverse px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
+})
 
 // Convert languages object to array for iteration
 const languagesArray = Object.keys(languages).map(code => ({
