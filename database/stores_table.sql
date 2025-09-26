@@ -59,7 +59,6 @@ WITH CHECK (
 );
 
 -------- INSERT --------
-DROP POLICY IF EXISTS "Customer can insert his own store" ON public.stores;
 CREATE POLICY "Customer can insert his own store"
 ON public.stores FOR INSERT TO authenticated
 WITH CHECK (
@@ -74,8 +73,6 @@ WITH CHECK (
 -- Anyone can view all stores --
 CREATE POLICY "Anyone can view all stores"
 ON public.stores FOR SELECT
-USING (is_active = true);
-
 
 -------- UPDATE --------
 -- Vendor can update their own stores --
@@ -142,6 +139,32 @@ EXECUTE FUNCTION update_updated_at_column();
 -- ================================
 -- Functions
 -- ================================
+create or replace function create_store(
+  p_owner_id uuid,
+  p_name text,
+  p_description text,
+  p_logo_url text,
+  p_banner_url text,
+  p_pack_id uuid
+) returns uuid
+language plpgsql as $$
+declare
+  new_id uuid;
+begin
+  -- Check if user already has a store
+  if exists (select 1 from public.stores where owner_id = p_owner_id) then
+    raise exception 'User already has a store';
+  end if;
+
+  -- Insert store
+  insert into public.stores (owner_id, name, description, logo_url, banner_url, pack_id, status)
+  values (p_owner_id, p_name, p_description, p_logo_url, p_banner_url, p_pack_id, 'pending')
+  returning id into new_id;
+
+  return new_id;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION check_pack_limits(
     p_store_id UUID,
     p_pack_id UUID,

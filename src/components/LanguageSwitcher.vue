@@ -2,15 +2,25 @@
   <div class="relative">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center space-x-1 sm:space-x-2 space-x-reverse px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+      :title="`Language: ${currentLanguage.name}`"
+      :class="buttonClass"
     >
-      <span class="text-blue-600 font-medium hidden sm:block">{{ currentLanguage.name }}</span>
-      <span class="text-blue-600 font-medium sm:hidden">{{ currentLanguage.code.toUpperCase() }}</span>
-      <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
+    <template v-if="compact">
+        <!-- Globe icon (compact) -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </template>
+      <template v-else>
+        <span class="text-blue-600 font-medium hidden sm:block">{{ currentLanguage.name }}</span>
+        <span class="text-blue-600 font-medium sm:hidden">{{ currentLanguage.code.toUpperCase() }}</span>
+        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </template>
     </button>
-
     <!-- Dropdown Menu -->
     <div
       v-if="isOpen"
@@ -35,6 +45,9 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  compact: { type: Boolean, default: false }
+})
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -44,6 +57,13 @@ const router = useRouter()
 const route = useRoute()
 const { locale } = useI18n()
 const isOpen = ref(false)
+
+const buttonClass = computed(() => {
+  if (props.compact) {
+    return 'flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
+  }
+  return 'flex items-center space-x-1 sm:space-x-2 space-x-reverse px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
+})
 
 // Convert languages object to array for iteration
 const languagesArray = Object.keys(languages).map(code => ({
