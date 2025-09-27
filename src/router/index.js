@@ -18,6 +18,7 @@ import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 import StoreDashboard from '../views/StoreDashboard.vue'
+import BestSellingPage from '../views/BestSellingPage.vue'
 import NotFound from '../views/NotFound.vue'
 
 // Supported locales configuration
@@ -40,6 +41,11 @@ const baseRoutes = [
     path: '/products',
     name: 'Products',
     component: Products
+  },
+  {
+    path: '/best-selling',
+    name: 'BestSelling',
+    component: BestSellingPage
   },
   {
     path: '/product/:id',

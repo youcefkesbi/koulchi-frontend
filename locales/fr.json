@@ -630,5 +630,22 @@
     "clearConfirm": "Êtes-vous sûr de vouloir vider votre liste de souhaits ?",
     "continueShopping": "Continuer les Achats",
     "browseProducts": "Parcourir les Produits"
+  },
+  "bestSelling": {
+    "title": "Produits les Plus Vendus",
+    "subtitle": "Découvrez nos produits les plus populaires",
+    "pageTitle": "Produits les Plus Vendus",
+    "pageSubtitle": "Découvrez les produits les plus populaires sur notre plateforme",
+    "loading": "Chargement des produits les plus vendus...",
+    "errorTitle": "Échec du chargement des produits",
+    "retry": "Réessayer",
+    "emptyTitle": "Aucun produit trouvé",
+    "emptyMessage": "Il n'y a pas de produits les plus vendus disponibles pour le moment.",
+    "allCategories": "Toutes les Catégories",
+    "soldBy": "Vendu par",
+    "sold": "Vendu",
+    "viewProduct": "Voir le Produit",
+    "loadMore": "Charger Plus",
+    "refresh": "Actualiser"
   }
 }

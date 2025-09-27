@@ -41,6 +41,10 @@ export const environment = {
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
   },
 
+  backend: {
+    url: import.meta.env.VITE_BACKEND_URL || 'https://koulchi-backend.onrender.com'
+  },
+
   oauth: {
     // Supabase handles OAuth callbacks through its own fixed endpoint
     // No custom callbackPath needed
