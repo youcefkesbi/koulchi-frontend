@@ -160,7 +160,7 @@
     "redirectingToStore": "جاري التوجيه إلى لوحة تحكم متجرك...",
     "storeDashboard": "لوحة تحكم المتجر",
     "manageDashboardDescription": "أدر متجرك ومنتجاتك واطلع على التحليلات",
-    "viewPublicStore": "عرض المتجر العام",
+    "viewPublicStore": "عرض المتاجر الأخرى",
     "createdOn": "تم الإنشاء في",
     "storeViews": "مشاهدات المتجر",
     "totalSales": "إجمالي المبيعات",
@@ -181,6 +181,8 @@
     "invalidFileType": "نوع ملف غير صالح. الصور فقط مسموحة.",
     "uploadSuccess": "تم الرفع بنجاح",
     "updateSuccess": "تم تحديث المتجر بنجاح",
+    "currency": "دج",
+    "free": "مجاني",
     "storeNameRequired": "اسم المتجر مطلوب",
     "storeNameTooLong": "يجب أن يكون اسم المتجر أقل من 100 حرف",
     "storeDescriptionTooLong": "يجب أن يكون وصف المتجر أقل من 500 حرف",
@@ -188,6 +190,13 @@
     "permissionError": "تم رفض الإذن. يرجى التحقق من أذونات حسابك.",
     "storeAlreadyExists": "لديك متجر بالفعل. يمكن لكل مستخدم إنشاء متجر واحد فقط.",
     "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+    "storeStatus": "حالة المتجر",
+    "statusPending": "قيد المراجعة",
+    "statusApproved": "موافق عليه",
+    "statusRejected": "مرفوض",
+    "pendingMessage": "متجرك قيد المراجعة حالياً. سيتم إشعارك بمجرد اكتمال المراجعة.",
+    "rejectedMessage": "تم رفض متجرك. يرجى مراجعة السبب أدناه وإجراء التغييرات اللازمة.",
+    "rejectionReason": "سبب الرفض",
     "choosePlan": "اختر خطة",
     "identityDoc":"بطاقة هوية / جواز سفر / رخصة ",
     "businessRegister":"السجل التجاري",
@@ -200,6 +209,8 @@
     "storeInfo": "معلومات المتجر",
     "branding": "العلامة التجارية",
     "documents": "الوثائق",
+    "announcements": "إعلانات",
+    "myStore": "متجري",
     "validationError": "يرجى تصحيح أخطاء التحقق قبل المتابعة."
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
@@ -507,6 +518,7 @@
     "productDescription": "وصف المنتج",
     "isNew": "علامة كمنتج جديد",
     "isOnSale": "علامة كمنتج مخفض"
+
   },
   "pack": {
   "basic": {

@@ -32,7 +32,7 @@
                 {{
                   n === 1 ? $t('stores.choosePlan') :
                   n === 2 ? $t('stores.uploadDocs')  :
-                  (formData.selectedPack === 'pro'
+                  (isProPack
                     ? (n === 3 ? $t('stores.brandingInfo') : $t('stores.review'))
                     : $t('stores.review'))
                 }}
@@ -50,7 +50,7 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div
-      v-for="pack in packs"
+      v-for="pack in localizedPacks"
       :key="pack.id"
       @click="formData.selectedPack = pack.id"
       :class="[
@@ -62,7 +62,10 @@
     >
       <div class="flex items-center justify-between mb-4">
         <h4 class="text-xl font-bold text-gray-800">{{ pack.title }}</h4>
-        <p class="text-primary font-semibold">{{ pack.price }}</p>
+        <div class="text-right">
+          <p class="text-primary font-semibold text-lg">{{ pack.price }}</p>
+          <p class="text-xs text-gray-500">{{ pack.maxAnnouncements }} {{ $t('stores.announcements') }}</p>
+        </div>
       </div>
 
       <ul class="space-y-2 text-sm text-gray-600">
@@ -80,7 +83,7 @@
 <!-- Step 2: Basic / Pro Form -->
 <div v-if="currentStep === 2">
   <h2 class="text-xl font-bold text-gray-800 mb-6">
-    {{ formData.selectedPack === 'pro' ? $tm('pack.pro.title') : $tm('pack.basic.title') }}
+    {{ selectedPackData?.title || $t('stores.uploadDocs') }}
   </h2>
 
   <div class="space-y-6">
@@ -114,7 +117,7 @@
   </div>
 
       <!-- Pro only: Business Register -->
-  <div v-if="formData.selectedPack === 'pro'">
+  <div v-if="isProPack">
     <label class="block text-sm font-medium text-gray-700 mb-2">
       {{ $t('stores.businessRegister') }}
     </label>
@@ -142,7 +145,7 @@
   </div>
 
       <!-- Pro only: Payment Receipt -->
-  <div class="mt-6" v-if="formData.selectedPack === 'pro'">
+  <div class="mt-6" v-if="isProPack">
     <label class="block text-sm font-medium text-gray-700 mb-2">
       {{ $t('stores.paymentReceipt') }}
     </label>
@@ -171,7 +174,7 @@
   </div>
 </div>
    <!-- Step 3: Branding Info (Pro only) -->
-<div v-if="currentStep === 3 && formData.selectedPack === 'pro'">
+<div v-if="currentStep === 3 && isProPack">
   <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.brandingInfo') }}</h2>
 
   <div class="space-y-6">
@@ -277,7 +280,7 @@
 
         <!-- Review Step -->
 <div
-  v-if="(currentStep === 3 && formData.selectedPack === 'basic') || (currentStep === 4 && formData.selectedPack === 'pro')"
+  v-if="(currentStep === 3 && !isProPack) || (currentStep === 4 && isProPack)"
   class="space-y-6"
 >
   <h2 class="text-2xl font-bold text-gray-800">{{ $t('stores.review') }}</h2>
@@ -286,12 +289,15 @@
   <div class="bg-white shadow rounded-lg p-6">
     <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.selectedPlan') }}</h3>
     <p class="text-gray-600">
-      {{ formData.selectedPack === 'pro' ? $t('pack.pro.title') : $t('pack.basic.title') }}
+      {{ selectedPackData?.title || 'No pack selected' }}
+    </p>
+    <p class="text-sm text-gray-500">
+      {{ selectedPackData?.price || 'Free' }}
     </p>
   </div>
 
   <!-- Store Info -->
-  <div class="bg-white shadow rounded-lg p-6">
+  <div v-if="isProPack" class="bg-white shadow rounded-lg p-6">
     <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.storeInfo') }}</h3>
     <p><span class="font-medium">{{ $t('stores.storeName') }}:</span> {{ formData.name }}</p>
     <p><span class="font-medium">{{ $t('stores.storeDescription') }}:</span> {{ formData.description || $t('stores.noDescription') }}</p>
@@ -299,7 +305,7 @@
 
   <!-- Branding (Pro only) -->
 <!-- Branding (Pro only) -->
-<div v-if="formData.selectedPack === 'pro'" class="bg-white shadow rounded-lg p-6">
+<div v-if="isProPack" class="bg-white shadow rounded-lg p-6">
   <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.branding') }}</h3>
   <div class="flex items-center space-x-12">
     <!-- Logo -->
@@ -343,16 +349,34 @@
   <!-- Uploaded Documents -->
   <div class="bg-white shadow rounded-lg p-6">
     <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.documents') }}</h3>
-    <ul class="space-y-2 text-gray-600">
-      <li>
-        <span class="font-medium">{{ $t('stores.identityDoc') }}:</span>
-        {{ formData.identityDoc ? formData.identityDoc.name : $t('common.notProvided') }}
-      </li>
-      <li v-if="formData.selectedPack === 'pro'">
-        <span class="font-medium">{{ $t('stores.businessRegister') }}:</span>
-        {{ formData.businessRegister ? formData.businessRegister.name : $t('common.notProvided') }}
-      </li>
-    </ul>
+    <div class="flex items-center space-x-4">
+      <!-- Identity Document -->
+      <div v-if="formData.identityDocPreview">
+        <img
+          :src="formData.identityDocPreview"
+          alt="Identity Document"
+          class="h-16 rounded border"
+        />
+      </div>
+
+      <!-- Business Register (Pro only) -->
+      <div v-if="isProPack && formData.businessRegisterPreview">
+        <img
+          :src="formData.businessRegisterPreview"
+          alt="Business Register"
+          class="h-16 rounded border"
+        />
+      </div>
+
+      <!-- Payment Receipt (Pro only) -->
+      <div v-if="isProPack && formData.paymentReceiptPreview">
+        <img
+          :src="formData.paymentReceiptPreview"
+          alt="Payment Receipt"
+          class="h-16 rounded border"
+        />
+      </div>
+    </div>
   </div>
 
 
@@ -374,13 +398,17 @@
 >
   {{ $t('stores.createStore') }}
 </button>
-        <p v-if="errorMessage" class="mt-4 text-red-600 text-sm">
-  {{ errorMessage }}
-</p>
-<p v-if="successMessage" class="mt-4 text-green-600 text-sm">
-  {{ successMessage }}
-</p>
 
+        </div>
+        
+        <!-- Error and Success Messages -->
+        <div v-if="errorMessage || successMessage" class="mt-4 text-center">
+          <p v-if="errorMessage" class="text-red-600 text-sm">
+            {{ errorMessage }}
+          </p>
+          <p v-if="successMessage" class="text-green-600 text-sm">
+            {{ successMessage }}
+          </p>
         </div>
         </form>
       </div>
@@ -402,7 +430,7 @@ const authSubscription = ref(null)
 const router = useRouter()
 const session = ref(null) 
 const { t: $t, locale } = useI18n() // locale reactive
-const packs = ref([]) // fetched packs
+const rawPacks = ref([]) // raw fetched packs from DB
 const loadingPacks = ref(false)
 const fetchError = ref(null)
 
@@ -415,28 +443,12 @@ const fetchPacks = async () => {
       .from('packs')
       .select('*')
       .eq('is_active', true)
+      .order('price', { ascending: true })
 
     if (error) throw error
 
-    // Map to frontend-friendly structure
-    packs.value = data.map(pack => ({
-      id: pack.id,
-      title:
-        locale.value === 'fr'
-          ? pack.name_fr || pack.name_en
-          : locale.value === 'ar'
-          ? pack.name_ar || pack.name_en
-          : pack.name_en,
-      price: pack.price,
-      maxAnnouncements: pack.max_announcements,
-      maxImages: pack.max_images,
-      features:
-        locale.value === 'fr'
-          ? JSON.parse(pack.features_fr || '[]')
-          : locale.value === 'ar'
-          ? JSON.parse(pack.features_ar || '[]')
-          : JSON.parse(pack.features_en || '[]')
-    }))
+    // Keep raw data and localize via computed for reactive locale updates
+    rawPacks.value = data || []
   } catch (err) {
     console.error('Failed to fetch packs:', err)
     fetchError.value = err.message || 'Failed to load packs'
@@ -448,12 +460,42 @@ const fetchPacks = async () => {
 
 // Computed packs localized by current locale
 const localizedPacks = computed(() => {
-  return packs.value.map(pack => ({
-    id: pack.id,
-    title: pack[`title_${locale.value}`] || pack.title_en,
-    price: pack[`price_${locale.value}`] || pack.price_en,
-    features: pack[`features_${locale.value}`] || pack.features_en
-  }))
+  return (rawPacks.value || []).map(pack => {
+    const features = pack.features || {}
+    const currentLocale = locale.value
+
+    return {
+      id: pack.id,
+      title:
+        currentLocale === 'fr'
+          ? pack.name_fr || pack.name_en
+          : currentLocale === 'ar'
+          ? pack.name_ar || pack.name_en
+          : pack.name_en,
+      description:
+        currentLocale === 'fr'
+          ? pack.description_fr || pack.description_en
+          : currentLocale === 'ar'
+          ? pack.description_ar || pack.description_en
+          : pack.description_en,
+      price: Number(pack.price) === 0 ? $t('stores.free') : `${pack.price} ${$t('stores.currency')}`,
+      maxAnnouncements: pack.max_announcements,
+      maxImages: pack.max_images,
+      features: features[currentLocale] || features['en'] || [],
+      rawPrice: Number(pack.price)
+    }
+  })
+})
+
+// Computed properties for selected pack
+const selectedPackData = computed(() => {
+  if (!formData.selectedPack) return null
+  return localizedPacks.value.find(p => p.id === formData.selectedPack)
+})
+
+const isProPack = computed(() => {
+  if (!selectedPackData.value) return false
+  return selectedPackData.value.rawPrice > 0
 })
 
 
@@ -493,7 +535,8 @@ const validationErrors = reactive({
 
 // ---- Dynamic step count ----
 const totalSteps = computed(() => {
-  return formData.selectedPack === 'pro' ? 4 : 3
+  if (!formData.selectedPack) return 3;
+  return isProPack.value ? 4 : 3;
 })
 
 
@@ -501,24 +544,21 @@ const totalSteps = computed(() => {
 const isStepValid = computed(() => {
   if (!formData.selectedPack) return false;
 
-  const selectedPack = localizedPacks.find(p => p.id === formData.selectedPack);
-  if (!selectedPack) return false;
-
   switch (currentStep.value) {
     case 1:
-      return true; // pack selection step
+      return !!formData.selectedPack; // pack selection step
 
     case 2:
-      return !!formData.identityDoc && (selectedPack.key === 'pro' ? !!formData.businessRegister : true);
+      return !!formData.identityDoc && (isProPack.value ? !!formData.businessRegister && !!formData.paymentReceipt : true);
 
     case 3:
-      if (selectedPack.key === 'pro') {
+      if (isProPack.value) {
         return formData.name?.trim() && formData.logo && formData.banner;
       }
-      return true;
+      return true; // For basic pack, step 3 is review
 
     case 4:
-      return true; // review step
+      return true; // review step for pro pack
 
     default:
       return false;
@@ -619,14 +659,6 @@ const createStore = async (storeData) => {
 
 // Data validation function
 const validateForm = () => {
-  // Validate store name
-  if (!formData.name || formData.name.trim().length === 0) {
-    validationErrors.name = $t('stores.storeNameRequired') || 'Store name is required';
-    return false;
-  } else {
-    validationErrors.name = '';
-  }
-
   // Validate pack selection
   if (!formData.selectedPack) {
     validationErrors.pack = $t('stores.packRequired') || 'Please select a plan';
@@ -636,14 +668,21 @@ const validateForm = () => {
   }
 
   // Find selected pack from the fetched packs
-  const selectedPack = packs.value.find(p => p.id === formData.selectedPack);
-  if (!selectedPack) {
+  if (!selectedPackData.value) {
     validationErrors.pack = $t('stores.invalidPack') || 'Selected plan is invalid';
     return false;
   }
 
-  // Check if it’s Pro plan (based on title containing "Pro")
-  if (selectedPack.title.toLowerCase().includes('pro')) {
+  // Check if it's Pro plan (price > 0)
+  if (isProPack.value) {
+    // Validate store name for Pro plan
+    if (!formData.name || formData.name.trim().length === 0) {
+      validationErrors.name = $t('stores.storeNameRequired') || 'Store name is required';
+      return false;
+    } else {
+      validationErrors.name = '';
+    }
+
     if (!formData.logo || !formData.banner) {
       validationErrors.logo = $t('stores.logoRequired') || 'Logo is required for Pro plan';
       validationErrors.banner = $t('stores.bannerRequired') || 'Banner is required for Pro plan';
@@ -651,6 +690,11 @@ const validateForm = () => {
     } else {
       validationErrors.logo = '';
       validationErrors.banner = '';
+    }
+  } else {
+    // For basic plan, store name is optional, use pack name as default
+    if (!formData.name || formData.name.trim().length === 0) {
+      formData.name = selectedPackData.value.title + ' Store';
     }
   }
 
@@ -685,8 +729,9 @@ const handleSubmit = async () => {
     const storeData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || null,
-      logo_url: logoUrl,
-      banner_url: bannerUrl,
+      // Keys aligned with create_store payload mapping in createStore()
+      logo: logoUrl,
+      banner: bannerUrl,
       pack_id: formData.selectedPack, // UUID from DB
     };
 
@@ -700,7 +745,8 @@ const handleSubmit = async () => {
     resetForm();
 
     setTimeout(() => {
-      router.push(`/dashboard/store/${newStore.id}`);
+      const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+      router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
     }, 1500);
   } catch (error) {
     console.error('Error creating store:', error);

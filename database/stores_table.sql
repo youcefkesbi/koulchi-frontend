@@ -24,8 +24,41 @@ CREATE TABLE IF NOT EXISTS public.stores (
     updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
 
+-- Drop the old strict constraint
 ALTER TABLE public.stores
-  ADD CONSTRAINT stores_owner_id_unique UNIQUE (owner_id);
+DROP CONSTRAINT IF EXISTS stores_owner_id_unique;
+
+-- Create a partial unique index
+-- This enforces that a user can only have one store if it's not rejected
+CREATE UNIQUE INDEX stores_one_non_rejected_per_owner
+ON public.stores (owner_id)
+WHERE status IN ('pending', 'approved');
+
+
+-- ================================
+-- Enum
+-- ================================
+-- 1. Create the enum type if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'store_status') THEN
+        CREATE TYPE store_status AS ENUM ('pending', 'approved', 'rejected');
+    END IF;
+END$$;
+
+-- 2. Drop the existing default
+ALTER TABLE public.stores
+ALTER COLUMN status DROP DEFAULT;
+
+-- 3. Alter column type using explicit cast
+ALTER TABLE public.stores
+ALTER COLUMN status TYPE store_status
+USING status::store_status;
+
+-- 4. Add the default back
+ALTER TABLE public.stores
+ALTER COLUMN status SET DEFAULT 'pending';
+
 
 -- ================================
 -- Indexes
@@ -151,8 +184,9 @@ language plpgsql as $$
 declare
   new_id uuid;
 begin
-  -- Check if user already has a store
-  if exists (select 1 from public.stores where owner_id = p_owner_id) then
+  -- Check if user already has a non-rejected store (pending or approved)
+  -- This matches the database constraint: stores_one_non_rejected_per_owner
+  if exists (select 1 from public.stores where owner_id = p_owner_id and status in ('pending', 'approved')) then
     raise exception 'User already has a store';
   end if;
 
@@ -224,3 +258,25 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION check_pack_limits TO authenticated;
 GRANT EXECUTE ON FUNCTION update_store_counts TO authenticated;
+
+-- Create an RPC function to get the authenticated user's store status
+create or replace function public.get_user_store_status(auth_uid uuid)
+returns table(
+    store_id uuid,
+    status store_status,
+    can_create boolean
+) as $$
+begin
+    return query
+    select
+        s.id,
+        s.status,
+        case 
+            when s.id is null then true  -- no store exists
+            when s.status = 'rejected' then true -- store rejected
+            else false
+        end as can_create
+    from public.stores s
+    where s.owner_id = auth_uid;
+end;
+$$ language plpgsql security definer;

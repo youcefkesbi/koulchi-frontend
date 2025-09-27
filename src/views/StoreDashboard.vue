@@ -27,14 +27,6 @@
               <i class="fas fa-eye mr-2"></i>
               {{ $t('stores.viewPublicStore') }}
             </router-link>
-            <!-- Edit Store -->
-            <button 
-              @click="showEditModal = true"
-              class="btn-primary"
-            >
-              <i class="fas fa-edit mr-2"></i>
-              {{ $t('stores.editStore') }}
-            </button>
           </div>
         </div>
       </div>
@@ -62,8 +54,53 @@
       </div>
     </div>
 
-    <!-- Store Dashboard Content -->
-    <div v-else-if="storeStore.currentStore" class="container mx-auto px-4 py-8">
+    <!-- Store Status Display -->
+    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status !== 'approved'" class="container mx-auto px-4 py-8">
+      <!-- Pending Status -->
+      <div v-if="storeStatus.status === 'pending'" class="text-center">
+        <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-clock text-yellow-600 text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ $t('stores.statusPending') }}</h2>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">{{ $t('stores.pendingMessage') }}</p>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+          <div class="flex items-center justify-center space-x-2">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+            <span class="text-yellow-800 font-medium">{{ $t('stores.storeStatus') }}: {{ $t('stores.statusPending') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejected Status -->
+      <div v-else-if="storeStatus.status === 'rejected'" class="text-center">
+        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-times-circle text-red-600 text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ $t('stores.statusRejected') }}</h2>
+        <p class="text-gray-600 mb-6 max-w-md mx-auto">{{ $t('stores.rejectedMessage') }}</p>
+        
+        <div v-if="storeStatus.rejection_reason" class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto mb-6">
+          <h3 class="text-lg font-semibold text-red-800 mb-3">{{ $t('stores.rejectionReason') }}</h3>
+          <p class="text-red-700 text-left">{{ storeStatus.rejection_reason }}</p>
+        </div>
+        
+      </div>
+
+      <!-- Unknown Status -->
+      <div v-else class="text-center">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-question-circle text-gray-600 text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">{{ $t('stores.storeStatus') }}</h2>
+        <p class="text-gray-600 mb-6">{{ $t('stores.errorTitle') }}</p>
+        <button @click="retryFetch" class="btn-primary">
+          {{ $t('stores.retry') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Store Dashboard Content (Only for approved stores) -->
+    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status === 'approved'" class="container mx-auto px-4 py-8">
       
       <!-- Store Overview -->
       <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
@@ -285,6 +322,8 @@ const showEditModal = ref(false)
 const showAnalytics = ref(false)
 const updateLoading = ref(false)
 const storeProducts = ref([])
+const storeStatus = ref(null)
+const statusLoading = ref(false)
 
 const editForm = reactive({
   name: '',
@@ -307,11 +346,25 @@ const fetchStoreProducts = async () => {
   }
 }
 
+const checkStoreStatus = async () => {
+  try {
+    statusLoading.value = true
+    const statusData = await storeStore.getStoreStatus(route.params.id)
+    storeStatus.value = statusData
+  } catch (err) {
+    console.error('Error checking store status:', err)
+    storeStatus.value = { status: 'unknown', rejection_reason: null }
+  } finally {
+    statusLoading.value = false
+  }
+}
+
 const retryFetch = async () => {
   storeStore.clearError()
   await Promise.all([
     storeStore.fetchStoreById(route.params.id),
-    fetchStoreProducts()
+    fetchStoreProducts(),
+    checkStoreStatus()
   ])
 }
 
@@ -355,7 +408,8 @@ const handleUpdateStore = async () => {
 onMounted(async () => {
   await Promise.all([
     storeStore.fetchStoreById(route.params.id),
-    fetchStoreProducts()
+    fetchStoreProducts(),
+    checkStoreStatus()
   ])
   
   // Initialize edit form with current store data
