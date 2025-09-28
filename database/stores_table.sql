@@ -187,6 +187,7 @@ begin
   -- Check if user already has a non-rejected store (pending or approved)
   -- This matches the database constraint: stores_one_non_rejected_per_owner
   if exists (select 1 from public.stores where owner_id = p_owner_id and status in ('pending', 'approved')) then
+
     raise exception 'User already has a store';
   end if;
 
