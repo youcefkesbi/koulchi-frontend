@@ -28,8 +28,7 @@ CREATE TABLE IF NOT EXISTS public.stores (
 ALTER TABLE public.stores
 DROP CONSTRAINT IF EXISTS stores_owner_id_unique;
 
--- Create a partial unique index
--- This enforces that a user can only have one store if it's not rejected
+
 CREATE UNIQUE INDEX stores_one_non_rejected_per_owner
 ON public.stores (owner_id)
 WHERE status IN ('pending', 'approved');

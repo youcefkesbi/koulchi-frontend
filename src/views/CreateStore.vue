@@ -401,6 +401,24 @@
 
         </div>
         
+        <!-- Verification Error Message -->
+        <div v-if="validationErrors.verification" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+            <div>
+              <h4 class="text-red-800 font-medium mb-2">{{ $t('stores.verificationRequired') }}</h4>
+              <p class="text-red-700 text-sm mb-3">{{ $t('stores.verificationRequiredMessage') }}</p>
+              <router-link 
+                :to="`/${$i18n.locale}/dashboard`"
+                class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <i class="fas fa-upload mr-2"></i>
+                {{ $t('stores.uploadVerification') }}
+              </router-link>
+            </div>
+          </div>
+        </div>
+        
         <!-- Error and Success Messages -->
         <div v-if="errorMessage || successMessage" class="mt-4 text-center">
           <p v-if="errorMessage" class="text-red-600 text-sm">
@@ -530,7 +548,9 @@ const errorMessage = ref('')
 // Validation
 const validationErrors = reactive({
   name: '',
-  description: ''
+  description: '',
+  pack: '',
+  verification: ''
 })
 
 // ---- Dynamic step count ----
@@ -657,8 +677,64 @@ const createStore = async (storeData) => {
   }
 }
 
+// Verification check function
+const checkUserVerifications = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      throw new Error('User not authenticated')
+    }
+
+    // Get user's approved verifications
+    const { data: verifications, error } = await supabase
+      .from('verifications')
+      .select('verification_type')
+      .eq('user_id', session.user.id)
+      .eq('status', 'approved')
+
+    if (error) throw error
+
+    const approvedTypes = verifications?.map(v => v.verification_type) || []
+    
+    // Get pack name for verification requirements
+    const packName = selectedPackData.value?.name || ''
+    
+    // Check verification requirements based on pack
+    if (packName === 'Basic Pack') {
+      // Basic Pack: Need at least one of: id_card, driving_license, passport
+      const basicVerifications = ['id_card', 'driving_license', 'passport']
+      const hasBasicVerification = basicVerifications.some(type => approvedTypes.includes(type))
+      
+      if (!hasBasicVerification) {
+        return {
+          canCreate: false,
+          missingTypes: basicVerifications.filter(type => !approvedTypes.includes(type)),
+          requiredTypes: basicVerifications
+        }
+      }
+    } else if (packName === 'Pro Pack') {
+      // Pro Pack: Need all: id_card, driving_license, passport, commerce_register, payment_receipt
+      const proVerifications = ['id_card', 'driving_license', 'passport', 'commerce_register', 'payment_receipt']
+      const missingTypes = proVerifications.filter(type => !approvedTypes.includes(type))
+      
+      if (missingTypes.length > 0) {
+        return {
+          canCreate: false,
+          missingTypes,
+          requiredTypes: proVerifications
+        }
+      }
+    }
+
+    return { canCreate: true, missingTypes: [], requiredTypes: [] }
+  } catch (error) {
+    console.error('Error checking verifications:', error)
+    return { canCreate: false, missingTypes: [], requiredTypes: [], error: error.message }
+  }
+}
+
 // Data validation function
-const validateForm = () => {
+const validateForm = async () => {
   // Validate pack selection
   if (!formData.selectedPack) {
     validationErrors.pack = $t('stores.packRequired') || 'Please select a plan';
@@ -671,6 +747,15 @@ const validateForm = () => {
   if (!selectedPackData.value) {
     validationErrors.pack = $t('stores.invalidPack') || 'Selected plan is invalid';
     return false;
+  }
+
+  // Check verification requirements
+  const verificationCheck = await checkUserVerifications()
+  if (!verificationCheck.canCreate) {
+    validationErrors.verification = $t('stores.verificationRequired') || 'Verification documents required';
+    return false;
+  } else {
+    validationErrors.verification = '';
   }
 
   // Check if it's Pro plan (price > 0)
@@ -710,7 +795,7 @@ const handleSubmit = async () => {
     successMessage.value = '';
     errorMessage.value = '';
 
-    if (!validateForm()) {
+    if (!(await validateForm())) {
       errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.';
       return;
     }
