@@ -204,7 +204,9 @@
     "storeDescriptionPlaceholder": "Décrivez votre magasin et ce que vous proposez",
     "storeLogo": "Logo du Magasin",
     "storeBanner": "Bannière du Magasin",
-
+    "currency": "DZD",
+    "free": "Gratuit",
+    "myStore": "Ma Boutique",
     "logoPreview": "Aperçu du Logo",
     "bannerPreview": "Aperçu de la Bannière",
     "products": "Produits",
@@ -224,7 +226,7 @@
     "redirectingToStore": "Redirection vers le tableau de bord de votre magasin...",
     "storeDashboard": "Tableau de Bord du Magasin",
     "manageDashboardDescription": "Gérez votre magasin, vos produits et consultez les analyses",
-    "viewPublicStore": "Voir le Magasin Public",
+    "viewPublicStore": "Voir les autres magasins",
     "createdOn": "Créé le",
     "storeViews": "Vues du Magasin",
     "totalSales": "Ventes Totales",
@@ -252,6 +254,13 @@
     "permissionError": "Permission refusée. Veuillez vérifier les permissions de votre compte.",
     "storeAlreadyExists": "Vous avez déjà un magasin. Chaque utilisateur ne peut créer qu'un seul magasin.",
     "networkError": "Erreur réseau. Veuillez vérifier votre connexion internet et réessayer.",
+    "storeStatus": "Statut du Magasin",
+    "statusPending": "En Attente d'Examen",
+    "statusApproved": "Approuvé",
+    "statusRejected": "Rejeté",
+    "pendingMessage": "Votre magasin est actuellement en cours d'examen. Vous serez notifié une fois l'examen terminé.",
+    "rejectedMessage": "Votre magasin a été rejeté. Veuillez examiner la raison ci-dessous et apporter les modifications nécessaires.",
+    "rejectionReason": "Raison du Rejet",
     "choosePlan": "Choisir un plan",
     "identityDoc":"Carte d'identité / Passeport / Permis de conduire",
     "businessRegister":"Registre de commerce",
@@ -262,7 +271,15 @@
     "selectedPlan": "Plan sélectionnée",
     "storeInfo": "Informations sur le magasin",
     "branding": "Image de marque",
-    "documents": "Documents"
+    "documents": "Documents",
+    "paymentReceipt": "Reçu de paiement",
+    "announcements": "annonces",
+    "validationError": "Veuillez corriger les erreurs de validation avant de continuer.",
+    "noPackSelected": "Aucun plan sélectionné",
+    "packRequired": "Veuillez sélectionner un plan",
+    "invalidPack": "Le plan sélectionné n'est pas valide",
+    "logoRequired": "Le logo est requis pour le plan Pro",
+    "bannerRequired": "La bannière est requise pour le plan Pro"
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",
@@ -406,7 +423,8 @@
     "manage": "Gérer",
     "active": "Actif",
     "inactive": "Inactif",
-    "viewAll": "Voir tout"
+    "viewAll": "Voir tout",
+    "notProvided": "Non fourni"
   },
   "roles": {
     "admin": "Administrateur",
@@ -452,6 +470,7 @@
     "food": "Alimentation & Boissons"
   },
   "seller": {
+    "becomeSeller": "Créer une boutique",
     "createStore": "Créer une boutique",
     "dashboard": "Tableau de Bord Vendeur",
     "welcomeMessage": "Bon retour, {name} !",

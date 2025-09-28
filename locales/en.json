@@ -207,7 +207,6 @@
     "storeDescriptionPlaceholder": "Describe your store and what you offer",
     "storeLogo": "Store Logo",
     "storeBanner": "Store Banner",
-
     "logoPreview": "Logo Preview",
     "bannerPreview": "Banner Preview",
     "products": "Products",
@@ -227,7 +226,7 @@
     "redirectingToStore": "Redirecting to your store dashboard...",
     "storeDashboard": "Store Dashboard",
     "manageDashboardDescription": "Manage your store, products, and view analytics",
-    "viewPublicStore": "View Public Store",
+    "viewPublicStore": "See other stores",
     "createdOn": "Created on",
     "storeViews": "Store Views",
     "totalSales": "Total Sales",
@@ -255,6 +254,13 @@
     "permissionError": "Permission denied. Please check your account permissions.",
     "storeAlreadyExists": "You already have a store. Each user can only create one store.",
     "networkError": "Network error. Please check your internet connection and try again.",
+    "storeStatus": "Store Status",
+    "statusPending": "Pending Review",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "pendingMessage": "Your store is currently under review. You will be notified once the review is complete.",
+    "rejectedMessage": "Your store has been rejected. Please review the reason below and make necessary changes.",
+    "rejectionReason": "Rejection Reason",
     "choosePlan":"Choose a plan",
     "identityDoc":"ID / Passport / Driver’s license",
     "businessRegister":"Commercial Register",
@@ -265,7 +271,17 @@
     "selectedPlan": "Selected Plan",
     "storeInfo": "Store Information",
     "branding": "Branding",
-    "documents": "Documents"
+    "documents": "Documents",
+    "validationError":"Please fix the validation errors before proceeding.",
+    "announcements": "announcements",
+    "currency": "DZD",
+    "free": "Free",
+    "myStore": "My Store",
+    "noPackSelected": "No pack selected",
+    "packRequired": "Please select a plan",
+    "invalidPack": "Selected plan is invalid",
+    "logoRequired": "Logo is required for Pro plan",
+    "bannerRequired": "Banner is required for Pro plan"
   },
   "pack": {
   "basic": {
@@ -307,7 +323,8 @@
     "manage": "Manage",
     "active": "Active",
     "inactive": "Inactive",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "notProvided": "Not provided"
   },
   "roles": {
     "admin": "Admin",
@@ -504,7 +521,6 @@
     "createStore": "Create Store",
     "viewAllWishlist": "View All Wishlist",
     "viewWishlist": "View Wishlist",
-    "myStores": "My Stores",
     "products": "Products",
     "stock": "Stock",
     "orderedOn": "Ordered on"

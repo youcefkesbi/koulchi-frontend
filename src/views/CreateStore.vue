@@ -1,233 +1,531 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 ">
     <!-- Header -->
     <div class="bg-white shadow-soft border-b border-gray-100">
-      <div class="container mx-auto px-4 py-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <router-link 
-              to="/dashboard" 
-              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <i class="fas fa-arrow-left text-xl"></i>
-            </router-link>
-            <div>
-              <h1 class="text-2xl font-bold text-gray-800">{{ $t('stores.createStore') }}</h1>
-              <p class="text-gray-600">{{ $t('stores.createStoreDescription') }}</p>
-            </div>
-          </div>
+      <div class="container mx-auto px-4 py-6 flex items-center space-x-4">
+        <router-link to="/dashboard" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+          <i class="fas fa-arrow-left text-xl"></i>
+        </router-link>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">{{ $t('stores.createStore') }}</h1>
+          <p class="text-gray-600">{{ $t('stores.createStoreDescription') }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Store Creation Form -->
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-4xl mx-auto">
-        <!-- Authentication Loading State -->
-        <div v-if="!isAuthenticated && !user" class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-8 text-center">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p class="text-gray-600 dark:text-gray-300">{{ $t('common.loading') || 'Loading...' }}</p>
-        </div>
-        
-        <!-- Main Form (only show when authenticated) -->
-        <div v-else class="bg-white rounded-2xl shadow-soft p-8">
-          <!-- Progress Steps -->
-          <div class="mb-8">
-            <div class="flex items-center justify-center space-x-8">
-              <div class="flex items-center space-x-3">
-                <div 
-                  :class="[
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
-                    currentStep >= 1 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
-                  ]"
-                >1</div>
-                <span 
-                  :class="[
-                    'text-sm font-medium',
-                    currentStep >= 1 ? 'text-gray-600' : 'text-gray-400'
-                  ]"
-                >{{ $t('stores.basicInfo') }}</span>
-              </div>
-              <div 
+    <!-- Main Form -->
+    <div class="container mx-auto px-4 py-8 ">
+      <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-soft p-8">
+       <form @submit.prevent="handleSubmit">
+        <!-- Stepper -->
+        <div class="mb-8">
+          <div class="flex items-center justify-center space-x-8">
+            <div v-for="n in totalSteps" :key="n" class="flex items-center space-x-3">
+              <div
                 :class="[
-                  'w-16 h-0.5',
-                  currentStep >= 2 ? 'bg-primary' : 'bg-gray-200'
+                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                  currentStep >= n ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
                 ]"
-              ></div>
-              <div class="flex items-center space-x-3">
-                <div 
-                  :class="[
-                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
-                    currentStep >= 2 ? 'bg-primary text-white' : 'bg-gray-200 text-gray-400'
-                  ]"
-                >2</div>
-                <span 
-                  :class="[
-                    'text-sm font-medium',
-                    currentStep >= 2 ? 'text-gray-600' : 'text-gray-400'
-                  ]"
-                >{{ $t('stores.review') }}</span>
-              </div>
+              >{{ n }}</div>
+              <span class="text-sm font-medium"
+                :class="currentStep >= n ? 'text-gray-600' : 'text-gray-400'">
+                {{
+                  n === 1 ? $t('stores.choosePlan') :
+                  n === 2 ? $t('stores.uploadDocs')  :
+                  (isProPack
+                    ? (n === 3 ? $t('stores.brandingInfo') : $t('stores.review'))
+                    : $t('stores.review'))
+                }}
+              </span>
+              <div v-if="n < totalSteps" :class="['w-16 h-0.5', currentStep > n ? 'bg-primary' : 'bg-gray-200']"></div>
             </div>
           </div>
-
-          <!-- Form -->
-          <form @submit.prevent="handleSubmit" class="space-y-8">
-            <!-- Success Message -->
-            <div v-if="successMessage" class="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
-              <div class="flex items-center space-x-3 space-x-reverse">
-                <i class="fas fa-check-circle text-green-600 flex-shrink-0"></i>
-                <div class="flex-1">
-                  <h4 class="font-semibold text-green-800 mb-1">{{ $t('common.success') }}</h4>
-                  <p class="text-green-700 text-sm">{{ successMessage }}</p>
-                  <p class="text-green-600 text-xs mt-2">{{ $t('stores.redirectingToStore') }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Error Message -->
-            <div v-if="errorMessage" class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
-              <div class="flex items-center space-x-3 space-x-reverse">
-                <i class="fas fa-exclamation-circle text-red-600 flex-shrink-0"></i>
-                <div class="flex-1">
-                  <h4 class="font-semibold text-red-800 mb-1">{{ $t('common.error') }}</h4>
-                  <p class="text-red-700 text-sm">{{ errorMessage }}</p>
-                </div>
-                <button @click="errorMessage = ''" class="text-red-400 hover:text-red-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Step 1: Basic Information -->
-            <div v-if="currentStep === 1" class="space-y-6">
-              <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.basicInfo') }}</h2>
-              
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  {{ $t('stores.storeName') }} *
-                </label>
-                <input
-                  v-model="formData.name"
-                  type="text"
-                  required
-                  :class="[
-                    'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors',
-                    validationErrors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'
-                  ]"
-                  :placeholder="$t('stores.storeNamePlaceholder')"
-                />
-                <p v-if="validationErrors.name" class="text-red-600 text-sm mt-1">{{ validationErrors.name }}</p>
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  {{ $t('stores.storeDescription') }}
-                </label>
-                <textarea
-                  v-model="formData.description"
-                  rows="4"
-                  :class="[
-                    'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none',
-                    validationErrors.description ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'
-                  ]"
-                  :placeholder="$t('stores.storeDescriptionPlaceholder')"
-                ></textarea>
-                <p v-if="validationErrors.description" class="text-red-600 text-sm mt-1">{{ validationErrors.description }}</p>
-                <p class="text-sm text-gray-500 mt-1">{{ $t('stores.descriptionHelp') }}</p>
-              </div>
-            </div>
-
-
-            <!-- Step 2: Review -->
-            <div v-if="currentStep === 2" class="space-y-6">
-              <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.review') }}</h2>
-              
-              <div class="bg-gray-50 rounded-xl p-6 space-y-4">
-                <div class="flex items-center space-x-4 space-x-reverse">
-                  <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-                    <i class="fas fa-store text-white text-2xl"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-xl font-bold text-gray-800">{{ formData.name }}</h3>
-                    <p class="text-gray-600">{{ formData.description || $t('stores.noDescription') }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
-              <button
-                v-if="currentStep > 1"
-                type="button"
-                @click="previousStep"
-                class="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                <i class="fas fa-arrow-left mr-2"></i>
-                {{ $t('common.back') }}
-              </button>
-              <div v-else></div>
-
-              <div class="flex space-x-3 space-x-reverse">
-                <button
-                  v-if="currentStep < 2"
-                  type="button"
-                  @click="nextStep"
-                  :disabled="!isStepValid"
-                  class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {{ $t('common.next') }}
-                  <i class="fas fa-arrow-right ml-2"></i>
-                </button>
-                
-                <button
-                  v-if="currentStep === 2"
-                  type="submit"
-                  :disabled="loading"
-                  class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <div v-if="loading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {{ loading ? $t('stores.creatingStore') : $t('stores.createStore') }}
-                </button>
-              </div>
-            </div>
-          </form>
         </div>
+
+<!-- Pack Selection Grid -->
+<div v-if="currentStep === 1">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">
+    {{ $t('stores.choosePlan') }}
+  </h3>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      v-for="pack in localizedPacks"
+      :key="pack.id"
+      @click="formData.selectedPack = pack.id"
+      :class="[
+        'cursor-pointer p-6 rounded-2xl border shadow-soft transition-all',
+        formData.selectedPack === pack.id
+          ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+          : 'border-gray-200 hover:border-primary/40 hover:shadow-md'
+      ]"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="text-xl font-bold text-gray-800">{{ pack.title }}</h4>
+        <div class="text-right">
+          <p class="text-primary font-semibold text-lg">{{ pack.price }}</p>
+          <p class="text-xs text-gray-500">{{ pack.maxAnnouncements }} {{ $t('stores.announcements') }}</p>
+        </div>
+      </div>
+
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li v-for="(feature, i) in pack.features" :key="i" class="flex items-start space-x-3">
+          <i class="fas fa-check text-green-500 mt-1"></i>
+          <span class="leading-tight">{{ feature }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Step 2: Basic / Pro Form -->
+<div v-if="currentStep === 2">
+  <h2 class="text-xl font-bold text-gray-800 mb-6">
+    {{ selectedPackData?.title || $t('stores.uploadDocs') }}
+  </h2>
+
+  <div class="space-y-6">
+  <!-- Identity Document -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      {{ $t('stores.identityDoc') }}
+    </label>
+    <label
+      class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+    >
+      <i class="fas fa-file-upload text-2xl text-primary mb-2"></i>
+      <span class="text-sm text-gray-600">
+        {{ formData.identityDoc ? formData.identityDoc.name : $t('stores.personalDocuments') }}
+      </span>
+      <input
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'identityDoc', 'identityDocPreview')"
+  class="hidden"
+/>
+
+    </label>
+    <!-- Image preview if it's a picture -->
+    <img
+      v-if="formData.identityDocPreview"
+      :src="formData.identityDocPreview"
+      alt="Identity Document"
+      class="h-16 mt-3 rounded border"
+    />
+  </div>
+
+      <!-- Pro only: Business Register -->
+  <div v-if="isProPack">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      {{ $t('stores.businessRegister') }}
+    </label>
+    <label
+      class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+    >
+      <i class="fas fa-briefcase text-2xl text-primary mb-2"></i>
+      <span class="text-sm text-gray-600">
+        {{ formData.businessRegister ? formData.businessRegister.name : $t('stores.personalDocuments') }}
+      </span>
+       <input
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'businessRegister', 'businessRegisterPreview')"
+  class="hidden"
+/>
+
+    </label>
+    <img
+      v-if="formData.businessRegisterPreview"
+      :src="formData.businessRegisterPreview"
+      alt="Business Register"
+      class="h-16 mt-3 rounded border"
+    />
+  </div>
+
+      <!-- Pro only: Payment Receipt -->
+  <div class="mt-6" v-if="isProPack">
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+      {{ $t('stores.paymentReceipt') }}
+    </label>
+    <label
+      class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+    >
+      <i class="fas fa-receipt text-2xl text-primary mb-2"></i>
+      <span class="text-sm text-gray-600">
+        {{ formData.paymentReceipt ? formData.paymentReceipt.name : $t('stores.personalDocuments') }}
+      </span>
+      <input
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png"
+  @change="e => handleFileChange(e, 'paymentReceipt', 'paymentReceiptPreview')"
+  class="hidden"
+/>
+
+    </label>
+    <img
+      v-if="formData.paymentReceiptPreview"
+      :src="formData.paymentReceiptPreview"
+      alt="Payment Receipt"
+      class="h-16 mt-3 rounded border"
+    />
+  </div>
+  </div>
+</div>
+   <!-- Step 3: Branding Info (Pro only) -->
+<div v-if="currentStep === 3 && isProPack">
+  <h2 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.brandingInfo') }}</h2>
+
+  <div class="space-y-6">
+    <!-- Store Name (required, max 100 chars) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ $t('stores.storeName') }} *
+      </label>
+      <input
+        v-model="formData.name"
+        type="text"
+        maxlength="100"
+        required
+        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+        :placeholder="$t('stores.storeNamePlaceholder')"
+      />
+      <p class="text-xs text-gray-500 mt-1">{{ $t('stores.storeNameTooLong') }}</p>
+    </div>
+
+    <!-- Store Description (optional, max 500 chars) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ $t('stores.storeDescription') }}
+      </label>
+      <textarea
+        v-model="formData.description"
+        rows="3"
+        maxlength="500"
+        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none"
+        :placeholder="$t('stores.storeDescriptionPlaceholder')"
+      ></textarea>
+      <p class="text-xs text-gray-500 mt-1">{{ $t('stores.storeDescriptionTooLong') }}</p>
+    </div>
+
+     <!-- Logo Upload -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    {{ $t('stores.storeLogo') }} *
+  </label>
+  <label
+    class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+  >
+    <i class="fas fa-image text-2xl text-primary mb-2"></i>
+    <span class="text-sm text-gray-600">
+      {{ formData.logo ? formData.logo.name : $t('stores.uploadImg') }}
+    </span>
+     <input
+  type="file"
+  accept=".jpg,.jpeg,.png"
+  required
+  @change="e => handleFileChange(e, 'logo', 'logoPreview')"
+  class="hidden"
+/>
+
+  </label>
+  <p class="text-xs text-gray-500 mt-1">{{ $t('stores.logoHelp') }}</p>
+
+  <!-- Preview -->
+  <img
+    v-if="formData.logoPreview"
+    :src="formData.logoPreview"
+    alt="Logo Preview"
+    class="h-16 mt-3 rounded border"
+  />
+</div>
+
+
+    <!-- Banner Upload -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-2">
+    {{ $t('stores.storeBanner') }} *
+  </label>
+  <label
+    class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+  >
+    <i class="fas fa-image text-2xl text-primary mb-2"></i>
+    <span class="text-sm text-gray-600">
+      {{ formData.banner ? formData.banner.name : $t('stores.uploadImg') }}
+    </span>
+    <input
+  type="file"
+  accept=".jpg,.jpeg,.png"
+  required
+  @change="e => handleFileChange(e, 'banner', 'bannerPreview')"
+  class="hidden"
+/>
+
+  </label>
+  <p class="text-xs text-gray-500 mt-1">{{ $t('stores.bannerHelp') }}</p>
+
+  <!-- Preview -->
+  <img
+    v-if="formData.bannerPreview"
+    :src="formData.bannerPreview"
+    alt="Banner Preview"
+    class="h-16 mt-3 rounded border"
+  />
+</div>
+
+  </div>
+</div>
+
+
+        <!-- Review Step -->
+<div
+  v-if="(currentStep === 3 && !isProPack) || (currentStep === 4 && isProPack)"
+  class="space-y-6"
+>
+  <h2 class="text-2xl font-bold text-gray-800">{{ $t('stores.review') }}</h2>
+
+  <!-- Pack Selection -->
+  <div class="bg-white shadow rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.selectedPlan') }}</h3>
+    <p class="text-gray-600">
+      {{ selectedPackData?.title || 'No pack selected' }}
+    </p>
+    <p class="text-sm text-gray-500">
+      {{ selectedPackData?.price || 'Free' }}
+    </p>
+  </div>
+
+  <!-- Store Info -->
+  <div v-if="isProPack" class="bg-white shadow rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.storeInfo') }}</h3>
+    <p><span class="font-medium">{{ $t('stores.storeName') }}:</span> {{ formData.name }}</p>
+    <p><span class="font-medium">{{ $t('stores.storeDescription') }}:</span> {{ formData.description || $t('stores.noDescription') }}</p>
+  </div>
+
+  <!-- Branding (Pro only) -->
+<!-- Branding (Pro only) -->
+<div v-if="isProPack" class="bg-white shadow rounded-lg p-6">
+  <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.branding') }}</h3>
+  <div class="flex items-center space-x-12">
+    <!-- Logo -->
+    <div>
+      <span class="font-medium block">{{ $t('stores.logo') }}</span>
+      <div class="mt-2">
+        <img
+          v-if="formData.logoPreview"
+          :src="formData.logoPreview"
+          alt="Logo"
+          class="h-16 rounded border mb-2"
+        />
+        <span v-if="formData.logo" class="text-sm text-gray-600 block">
+          {{ formData.logo.name }}
+        </span>
+        <span v-else class="text-gray-400 text-sm">{{ $t('common.notProvided') }}</span>
+      </div>
+    </div>
+
+    <!-- Banner -->
+    <div>
+      <span class="font-medium block">{{ $t('stores.banner') }}</span>
+      <div class="mt-2">
+        <img
+          v-if="formData.bannerPreview"
+          :src="formData.bannerPreview"
+          alt="Banner"
+          class="h-16 rounded border mb-2"
+        />
+        <span v-if="formData.banner" class="text-sm text-gray-600 block">
+          {{ formData.banner.name }}
+        </span>
+        <span v-else class="text-gray-400 text-sm">{{ $t('common.notProvided') }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- Uploaded Documents -->
+  <div class="bg-white shadow rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-2">{{ $t('stores.documents') }}</h3>
+    <div class="flex items-center space-x-4">
+      <!-- Identity Document -->
+      <div v-if="formData.identityDocPreview">
+        <img
+          :src="formData.identityDocPreview"
+          alt="Identity Document"
+          class="h-16 rounded border"
+        />
+      </div>
+
+      <!-- Business Register (Pro only) -->
+      <div v-if="isProPack && formData.businessRegisterPreview">
+        <img
+          :src="formData.businessRegisterPreview"
+          alt="Business Register"
+          class="h-16 rounded border"
+        />
+      </div>
+
+      <!-- Payment Receipt (Pro only) -->
+      <div v-if="isProPack && formData.paymentReceiptPreview">
+        <img
+          :src="formData.paymentReceiptPreview"
+          alt="Payment Receipt"
+          class="h-16 rounded border"
+        />
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+
+        <!-- Navigation Buttons -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200 mt-8">
+          <button v-if="currentStep > 1" @click="previousStep" type="button" class="px-6 py-3 bg-gray-100 rounded-lg">
+            {{ $t('common.back') }}
+          </button>
+          <button v-if="currentStep < totalSteps" @click="nextStep" type="button" class="px-6 py-3 bg-primary text-white rounded-lg">
+            {{ $t('common.next') }}
+          </button>
+           <button
+  v-if="currentStep === totalSteps"
+  type="submit"
+  class="px-6 py-3 bg-green-600 text-white rounded-lg"
+>
+  {{ $t('stores.createStore') }}
+</button>
+
+        </div>
+        
+        <!-- Error and Success Messages -->
+        <div v-if="errorMessage || successMessage" class="mt-4 text-center">
+          <p v-if="errorMessage" class="text-red-600 text-sm">
+            {{ errorMessage }}
+          </p>
+          <p v-if="successMessage" class="text-green-600 text-sm">
+            {{ successMessage }}
+          </p>
+        </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
+
+
+
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted , onUnmounted  } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
-
+const user = ref(null)          // <-- add this
+const isAuthenticated = ref(false)
+const authSubscription = ref(null)
 const router = useRouter()
-const { t: $t } = useI18n()
+const session = ref(null) 
+const { t: $t, locale } = useI18n() // locale reactive
+const rawPacks = ref([]) // raw fetched packs from DB
+const loadingPacks = ref(false)
+const fetchError = ref(null)
+
+const fetchPacks = async () => {
+  try {
+    loadingPacks.value = true
+    fetchError.value = null
+
+    const { data, error } = await supabase
+      .from('packs')
+      .select('*')
+      .eq('is_active', true)
+      .order('price', { ascending: true })
+
+    if (error) throw error
+
+    // Keep raw data and localize via computed for reactive locale updates
+    rawPacks.value = data || []
+  } catch (err) {
+    console.error('Failed to fetch packs:', err)
+    fetchError.value = err.message || 'Failed to load packs'
+  } finally {
+    loadingPacks.value = false
+  }
+}
+
+
+// Computed packs localized by current locale
+const localizedPacks = computed(() => {
+  return (rawPacks.value || []).map(pack => {
+    const features = pack.features || {}
+    const currentLocale = locale.value
+
+    return {
+      id: pack.id,
+      title:
+        currentLocale === 'fr'
+          ? pack.name_fr || pack.name_en
+          : currentLocale === 'ar'
+          ? pack.name_ar || pack.name_en
+          : pack.name_en,
+      description:
+        currentLocale === 'fr'
+          ? pack.description_fr || pack.description_en
+          : currentLocale === 'ar'
+          ? pack.description_ar || pack.description_en
+          : pack.description_en,
+      price: Number(pack.price) === 0 ? $t('stores.free') : `${pack.price} ${$t('stores.currency')}`,
+      maxAnnouncements: pack.max_announcements,
+      maxImages: pack.max_images,
+      features: features[currentLocale] || features['en'] || [],
+      rawPrice: Number(pack.price)
+    }
+  })
+})
+
+// Computed properties for selected pack
+const selectedPackData = computed(() => {
+  if (!formData.selectedPack) return null
+  return localizedPacks.value.find(p => p.id === formData.selectedPack)
+})
+
+const isProPack = computed(() => {
+  if (!selectedPackData.value) return false
+  return selectedPackData.value.rawPrice > 0
+})
+
 
 // Step management
 const currentStep = ref(1)
-const stepLoading = ref(false)
 
 // Form data
 const formData = reactive({
+  selectedPack: '',
   name: '',
-  description: ''
+  description: '',
+  logo: null,
+  logoPreview: null,
+  banner: null,
+  bannerPreview: null,
+  identityDoc: null,
+  identityDocPreview: null,
+  businessRegister: null,
+  businessRegisterPreview: null,
+  paymentReceipt: null,
+  paymentReceiptPreview: null
 })
+
+
+
 
 // UI state
 const loading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
-
-// Authentication state
-const user = ref(null)
-const session = ref(null)
-const isAuthenticated = ref(false)
-const authSubscription = ref(null)
 
 // Validation
 const validationErrors = reactive({
@@ -235,299 +533,229 @@ const validationErrors = reactive({
   description: ''
 })
 
-// Authentication functions
-const validateSession = async () => {
-  try {
-    // Get current session
-    const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      throw new Error('Authentication failed. Please log in again.')
-    }
-    
-    // Check if session exists
-    if (!currentSession || !currentSession.user) {
-      console.log('No valid session found')
-      return null
-    }
-    
-    // Check if token is expired and refresh if needed
-    const now = Math.floor(Date.now() / 1000)
-    if (currentSession.expires_at && currentSession.expires_at < now) {
-      console.log('Token expired, attempting refresh...')
-      
-      // Attempt to refresh the session
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-      
-      if (refreshError || !refreshData.session) {
-        console.log('Session refresh failed:', refreshError)
-        return null
-      }
-      
-      console.log('Session refreshed successfully')
-      session.value = refreshData.session
-      user.value = refreshData.session.user
-      isAuthenticated.value = true
-      return refreshData.session
-    }
-    
-    // Session is valid
-    session.value = currentSession
-    user.value = currentSession.user
-    isAuthenticated.value = true
-    
-    console.log('Valid session found', { 
-      userId: currentSession.user.id, 
-      email: currentSession.user.email,
-      expiresAt: new Date(currentSession.expires_at * 1000).toISOString()
-    })
-    
-    return currentSession
-  } catch (err) {
-    console.error('Session validation error:', err)
-    session.value = null
-    user.value = null
-    isAuthenticated.value = false
-    return null
-  }
-}
-
-const requireAuth = async () => {
-  const currentSession = await validateSession()
-  
-  if (!currentSession) {
-    const error = new Error('User not authenticated')
-    error.code = 'AUTH_REQUIRED'
-    throw error
-  }
-  
-  return currentSession
-}
-
-const handleAuthError = (error) => {
-  console.error('Authentication error:', error)
-  
-  // Clear local state
-  user.value = null
-  session.value = null
-  isAuthenticated.value = false
-  
-  // Redirect to login
-  const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-  router.push(`/${currentLocale}/login`)
-  
-  throw new Error('Please log in to continue')
-}
-
-// Computed properties
-const canProceed = computed(() => {
-  if (currentStep.value === 1) {
-    return formData.name.trim().length > 0 && !validationErrors.name
-  }
-  return true
+// ---- Dynamic step count ----
+const totalSteps = computed(() => {
+  if (!formData.selectedPack) return 3;
+  return isProPack.value ? 4 : 3;
 })
 
+
+// ---- Step Validation ----
 const isStepValid = computed(() => {
+  if (!formData.selectedPack) return false;
+
   switch (currentStep.value) {
     case 1:
-      return formData.name.trim().length > 0 && !validationErrors.name
+      return !!formData.selectedPack; // pack selection step
+
     case 2:
-      return canProceed.value
+      return !!formData.identityDoc && (isProPack.value ? !!formData.businessRegister && !!formData.paymentReceipt : true);
+
+    case 3:
+      if (isProPack.value) {
+        return formData.name?.trim() && formData.logo && formData.banner;
+      }
+      return true; // For basic pack, step 3 is review
+
+    case 4:
+      return true; // review step for pro pack
+
     default:
-      return false
+      return false;
   }
-})
-
-// Watch for form changes to clear errors
-watch(() => formData.name, () => {
-  if (validationErrors.name) {
-    validationErrors.name = ''
-  }
-})
-
-watch(() => formData.description, () => {
-  if (validationErrors.description) {
-    validationErrors.description = ''
-  }
-})
-
-// Validation functions
-const validateForm = () => {
-  const errors = { name: '', description: '' }
-  
-  // Validate store name
-  const name = formData.name?.trim()
-  if (!name) {
-    errors.name = $t('stores.storeNameRequired') || 'Store name is required'
-  } else if (name.length > 100) {
-    errors.name = $t('stores.storeNameTooLong') || 'Store name must be less than 100 characters'
-  }
-  
-  // Validate description
-  const description = formData.description?.trim()
-  if (description && description.length > 500) {
-    errors.description = $t('stores.storeDescriptionTooLong') || 'Store description must be less than 500 characters'
-  }
-  
-  Object.assign(validationErrors, errors)
-  return !Object.values(errors).some(error => error !== '')
-}
+});
 
 
-// Step navigation
+// ---- Navigation ----
 const nextStep = () => {
-  if (currentStep.value < 2 && isStepValid.value) {
+  if (isStepValid.value && currentStep.value < totalSteps.value) {
     currentStep.value++
+  } else {
+    console.warn('Step not valid, cannot proceed')
   }
 }
+
+
+
 
 const previousStep = () => {
-  if (currentStep.value > 1) {
-    currentStep.value--
+  if (currentStep.value > 1) currentStep.value--
+}
+
+// Handle filechange
+function handleFileChange(e, key, previewKey) {
+  const file = e.target.files[0]
+  if (!file) return
+
+  formData[key] = file
+  if (file.type.startsWith('image/')) {
+    formData[previewKey] = URL.createObjectURL(file)
+  } else {
+    formData[previewKey] = null
   }
 }
 
+// Upload helper
+// Upload helper
+const uploadFile = async (file, bucketName) => {
+  if (!file) return null
 
-// Store creation functions with proper authentication
+  const ext = file.name.split('.').pop()
+  const fileName = `${crypto.randomUUID()}.${ext}`
 
+  const { error: uploadError } = await supabase.storage
+    .from(bucketName) // 👈 correct bucket name
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+  if (uploadError) {
+    console.error('File upload error:', uploadError)
+    throw new Error(`Failed to upload to bucket ${bucketName}`)
+  }
+
+  // Build public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from(bucketName)
+    .getPublicUrl(fileName)
+
+  return publicUrl
+}
+
+
+
+// Store creation function using RPC
 const createStore = async (storeData) => {
   try {
-    // Validate session first
-    const currentSession = await requireAuth()
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error || !session) throw new Error('Not authenticated')
 
-    // Input validation
-    if (!storeData || typeof storeData !== 'object') {
-      throw new Error('Invalid store data provided')
+    // Prepare payload for SQL function
+    const payload = {
+      p_owner_id: session.user.id,  
+      p_name: storeData.name,
+      p_description: storeData.description,
+      p_logo_url: storeData.logo || null,
+      p_banner_url: storeData.banner || null,
+      p_pack_id: storeData.pack_id || null
     }
 
-    const storeName = storeData.name?.trim()
-    if (!storeName || storeName.length === 0) {
-      throw new Error('Store name is required')
-    }
+    const { data, error: rpcError } = await supabase
+      .rpc('create_store', payload)
 
-    if (storeName.length > 100) {
-      throw new Error('Store name must be less than 100 characters')
-    }
-
-    const storeDescription = storeData.description?.trim() || null
-    if (storeDescription && storeDescription.length > 500) {
-      throw new Error('Store description must be less than 500 characters')
-    }
-
-    // Prepare store data
-    const storeInsertData = {
-      owner_id: currentSession.user.id, // Uses authenticated user's ID
-      name: storeName,
-      description: storeDescription
-    }
-
-    console.log('Creating store with data:', { 
-      ...storeInsertData, 
-      owner_id: '***' // Hide user ID in logs for security
-    })
-
-    // Database insert using Supabase client (JWT automatically attached)
-    const { data, error: createError } = await supabase
-      .from('stores')
-      .insert(storeInsertData)
-      .select()
-      .single()
-
-    if (createError) {
-      console.error('Database insert error:', createError)
-      
-      // Handle specific error types
-      if (createError.code === '23505') {
-        if (createError.message.includes('unique_owner')) {
-          throw new Error('You already have a store. Each user can only create one store.')
-        }
-        throw new Error('This store name is already taken. Please choose a different name.')
-      } else if (createError.code === '23503') {
-        throw new Error('Invalid user account. Please log out and log in again.')
-      } else if (createError.code === '42501') {
-        throw new Error('Permission denied. Please ensure you have the necessary permissions to create a store.')
-      } else {
-        throw new Error(`Failed to create store: ${createError.message}`)
+    if (rpcError) {
+      if (rpcError.message.includes('already has a store')) {
+        throw new Error('You already have a store. Each user can only create one store.')
       }
+      throw new Error(`Failed to create store: ${rpcError.message}`)
     }
 
-    if (!data) {
-      throw new Error('Store was created but no data was returned. Please refresh the page.')
-    }
-
-    console.log('Store created successfully:', data.id)
-    return data
+    return { id: data }
   } catch (err) {
-    const errorMessage = err.message || 'An unexpected error occurred while creating the store'
-    console.error('Error creating store:', {
-      message: err.message,
-      code: err.code,
-      details: err.details,
-      hint: err.hint
-    })
-    
-    // Handle auth errors
-    if (err.message.includes('not authenticated') || err.message.includes('Authentication failed')) {
-      handleAuthError(err)
-    }
-    
-    throw new Error(errorMessage)
+    throw err
   }
 }
 
+// Data validation function
+const validateForm = () => {
+  // Validate pack selection
+  if (!formData.selectedPack) {
+    validationErrors.pack = $t('stores.packRequired') || 'Please select a plan';
+    return false;
+  } else {
+    validationErrors.pack = '';
+  }
 
-// Main store creation function
+  // Find selected pack from the fetched packs
+  if (!selectedPackData.value) {
+    validationErrors.pack = $t('stores.invalidPack') || 'Selected plan is invalid';
+    return false;
+  }
+
+  // Check if it's Pro plan (price > 0)
+  if (isProPack.value) {
+    // Validate store name for Pro plan
+    if (!formData.name || formData.name.trim().length === 0) {
+      validationErrors.name = $t('stores.storeNameRequired') || 'Store name is required';
+      return false;
+    } else {
+      validationErrors.name = '';
+    }
+
+    if (!formData.logo || !formData.banner) {
+      validationErrors.logo = $t('stores.logoRequired') || 'Logo is required for Pro plan';
+      validationErrors.banner = $t('stores.bannerRequired') || 'Banner is required for Pro plan';
+      return false;
+    } else {
+      validationErrors.logo = '';
+      validationErrors.banner = '';
+    }
+  } else {
+    // For basic plan, store name is optional, use pack name as default
+    if (!formData.name || formData.name.trim().length === 0) {
+      formData.name = selectedPackData.value.title + ' Store';
+    }
+  }
+
+  return true;
+};
+
+
+
+// Submit handler
 const handleSubmit = async () => {
   try {
-    loading.value = true
-    successMessage.value = ''
-    errorMessage.value = ''
+    loading.value = true;
+    successMessage.value = '';
+    errorMessage.value = '';
 
-    // 1. Validate form data
     if (!validateForm()) {
-      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.'
-      return
+      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.';
+      return;
     }
 
-    // 2. Prepare store data
+    // Upload files if present
+    let logoUrl = null;
+    let bannerUrl = null;
+
+    if (formData.logo instanceof File) {
+      logoUrl = await uploadFile(formData.logo, 'stores-logos');
+    }
+    if (formData.banner instanceof File) {
+      bannerUrl = await uploadFile(formData.banner, 'stores-banners');
+    }
+
     const storeData = {
       name: formData.name.trim(),
-      description: formData.description?.trim() || null
-    }
+      description: formData.description?.trim() || null,
+      // Keys aligned with create_store payload mapping in createStore()
+      logo: logoUrl,
+      banner: bannerUrl,
+      pack_id: formData.selectedPack, // UUID from DB
+    };
 
-    console.log('Creating store with data:', {
-      name: storeData.name,
-      description: storeData.description ? 'Present' : 'Null'
-    })
-
-    // 3. Create store
-    const newStore = await createStore(storeData)
+    const newStore = await createStore(storeData);
 
     if (!newStore?.id) {
-      throw new Error('Store creation failed: No store data returned')
+      throw new Error('Store creation failed: No ID returned');
     }
 
-    console.log('Store created successfully:', newStore.id)
+    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
+    resetForm();
 
-    // 4. Success handling
-    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!'
-    
-    // Reset form
-    resetForm()
-    
-    // Redirect to store dashboard
     setTimeout(() => {
-      router.push(`/dashboard/store/${newStore.id}`)
-    }, 1500)
-
+      const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+      router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
+    }, 1500);
   } catch (error) {
-    console.error('Error creating store:', error)
-    errorMessage.value = getErrorMessage(error)
+    console.error('Error creating store:', error);
+    errorMessage.value = getErrorMessage(error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
+
 
 // Error message helper
 const getErrorMessage = (error) => {
@@ -561,42 +789,50 @@ const resetForm = () => {
 }
 
 // Initialize authentication and set up auth state listener
+
 const initAuth = async () => {
   try {
-    // Get initial session
-    await validateSession()
-    
-    // Listen for auth changes
+    // 1. Get initial session
+    const { data, error } = await supabase.auth.getSession()
+    if (error) throw error
+
+    if (data.session) {
+      session.value = data.session
+      user.value = data.session.user
+      isAuthenticated.value = true
+    } else {
+      session.value = null
+      user.value = null
+      isAuthenticated.value = false
+    }
+
+    // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state change:', event, newSession?.user?.email)
-        
+
         if (newSession?.user) {
           session.value = newSession
           user.value = newSession.user
           isAuthenticated.value = true
-          
-          // Handle sign in
+
           if (event === 'SIGNED_IN') {
             console.log('User signed in:', newSession.user.email)
           }
         } else {
-          // User signed out or session expired
           console.log('User signed out or session expired')
           session.value = null
           user.value = null
           isAuthenticated.value = false
-          
-          // Redirect to login if user is not authenticated
+
           const currentLocale = router.currentRoute.value.meta?.locale || 'en'
           router.push(`/${currentLocale}/login`)
         }
       }
     )
-    
-    // Store the subscription for cleanup
+
+    // 3. Store subscription for cleanup
     authSubscription.value = subscription
-    
     return subscription
   } catch (err) {
     console.error('Auth initialization failed:', err)
@@ -616,6 +852,7 @@ onMounted(async () => {
     const currentLocale = router.currentRoute.value.meta?.locale || 'en'
     router.push(`/${currentLocale}/login`)
   }
+  fetchPacks()
 })
 
 onUnmounted(() => {

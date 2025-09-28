@@ -1,0 +1,70 @@
+create or replace function public.get_best_selling_products(
+  p_limit int default 10
+)
+returns table(product jsonb, sales_count bigint)
+language sql stable as $$
+  select
+    to_jsonb(p.*) as product,
+    coalesce(sum(oi.quantity), 0) as sales_count
+  from products p
+  left join order_items oi on oi.product_id = p.id
+  left join orders o on o.id = oi.order_id and o.status = 'completed'  -- only count completed orders
+  group by p.id
+  order by sales_count desc
+  limit p_limit;
+$$;
+
+
+
+create or replace function public.get_best_selling_products_by_categories(
+  p_limit int default 10
+)
+returns table(category_id uuid, category_name text, product jsonb, sales_count bigint)
+language sql stable as $$
+with product_sales as (
+  select
+    p.id,
+    p.category_id,
+    to_jsonb(p.*) as product,
+    coalesce(sum(oi.quantity), 0) as sales_count
+  from products p
+  left join order_items oi on oi.product_id = p.id
+  left join orders o on o.id = oi.order_id and o.status = 'completed'
+  group by p.id
+),
+ranked as (
+  select
+    ps.*,
+    c.name_en as category_name,
+    row_number() over (partition by ps.category_id order by ps.sales_count desc) as rn
+  from product_sales ps
+  left join categories c on c.id = ps.category_id
+)
+select category_id, category_name, product, sales_count
+from ranked
+where rn <= p_limit
+order by category_id, sales_count desc;
+$$;
+
+
+-- Create an RPC function to get the authenticated user's store status
+create or replace function public.get_user_store_status(auth_uid uuid)
+returns table(
+    store_id uuid,
+    status store_status,
+    can_create boolean
+) as $$
+begin
+    return query
+    select
+        s.id,
+        s.status,
+        case 
+            when s.id is null then true  -- no store exists
+            when s.status = 'rejected' then true -- store rejected
+            else false
+        end as can_create
+    from public.stores s
+    where s.owner_id = auth_uid;
+end;
+$$ language plpgsql security definer;

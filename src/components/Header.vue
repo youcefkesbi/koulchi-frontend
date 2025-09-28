@@ -80,9 +80,9 @@
               <span class="sm:hidden">Post</span>
             </button>
 
-            <!-- Switch to Vendor Button (auth only) -->
+            <!-- Create a store btn -->
             <button
-              v-if="authStore.isAuthenticated"
+              v-if="shouldShowCreateStoreButton"
               @click="handleSwitchToVendor"
               class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
@@ -127,6 +127,13 @@
                   </span>
                 </router-link>
                 <button
+  @click="handleGoToStoreDashboard"
+  class="dropdown-item w-full text-left"
+>
+  <i class="fas fa-store mr-3"></i>{{ $t('stores.myStore') }}
+</button>
+
+                <button
                   @click="handleLogout"
                   class="dropdown-item w-full text-left"
                 >
@@ -156,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
@@ -165,6 +172,7 @@ import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
 import { useWishlistStore } from '../stores/wishlist'
 import { useProductStore } from '../stores/product'
+import { useStoreStore } from '../stores/store'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 import Logo from './Logo.vue'
@@ -176,11 +184,13 @@ const authStore = useAuthStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 const productStore = useProductStore()
+const storeStore = useStoreStore()
 
 const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const showLoginModal = ref(false)
+const userStoresLoaded = ref(false)
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -210,6 +220,27 @@ const handleClickOutside = (event) => {
 
 // Get categories from product store
 const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
+
+// Check if user should see the "Create Store" button
+const shouldShowCreateStoreButton = computed(() => {
+  if (!authStore.isAuthenticated || !userStoresLoaded.value) {
+    return false
+  }
+  
+  // If user has no stores, show create button
+  if (!storeStore.userStores || storeStore.userStores.length === 0) {
+    return true
+  }
+  
+  // If user has stores, check their statuses
+  const hasApprovedStore = storeStore.userStores.some(store => store.status === 'approved')
+  const hasPendingStore = storeStore.userStores.some(store => store.status === 'pending')
+  
+  // Show create button only if:
+  // 1. No approved stores AND no pending stores (all are rejected or no stores)
+  // 2. All stores are rejected
+  return !hasApprovedStore && !hasPendingStore
+})
 
 // Get category icon based on category ID
 const getCategoryIcon = (categoryId) => {
@@ -277,13 +308,61 @@ const handleLogout = async () => {
   }
 }
 
+// Load user's stores
+const loadUserStores = async () => {
+  if (authStore.isAuthenticated) {
+    try {
+      await storeStore.fetchUserStores()
+      userStoresLoaded.value = true
+    } catch (error) {
+      console.error('Error loading user stores:', error)
+      userStoresLoaded.value = true // Set to true even on error to avoid infinite loading
+    }
+  }
+}
+
 //Navigate to the store creation page
 const handleSwitchToVendor = () => {
   router.push(getLocalizedRoute('/dashboard/store/create'))
 }
 
-onMounted(() => {
+//Navigate to store dashboard (if user has a store)
+const handleGoToStoreDashboard = async () => {
+  try {
+    const currentLocale = route.meta?.locale || 'en'
+    
+    // Fetch user's stores
+    await storeStore.fetchUserStores()
+    
+    // Check if user has any stores
+    if (storeStore.userStores && storeStore.userStores.length > 0) {
+      // Get the first store (assuming user has only one store)
+      const userStore = storeStore.userStores[0]
+      router.push(`/${currentLocale}/dashboard/store/${userStore.id}`)
+    } else {
+      // If no store exists, redirect to create store page
+      router.push(`/${currentLocale}/dashboard/store/create`)
+    }
+  } catch (error) {
+    console.error('Error navigating to store dashboard:', error)
+    // Fallback to create store page
+    const currentLocale = route.meta?.locale || 'en'
+    router.push(`/${currentLocale}/dashboard/store/create`)
+  }
+}
+
+// Watch for authentication changes to reload stores
+watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
+  if (isAuthenticated) {
+    await loadUserStores()
+  } else {
+    userStoresLoaded.value = false
+  }
+}, { immediate: true })
+
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
+  await loadUserStores()
 })
 
 onUnmounted(() => {

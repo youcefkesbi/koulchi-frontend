@@ -566,6 +566,30 @@ export const useStoreStore = defineStore('store', () => {
     }
   }
 
+  // Get store status and rejection reason
+  const getStoreStatus = async (storeId) => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('status, rejection_reason')
+        .eq('id', storeId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching store status:', error)
+        return { status: 'unknown', rejection_reason: null }
+      }
+
+      return {
+        status: data?.status || 'pending',
+        rejection_reason: data?.rejection_reason || null
+      }
+    } catch (err) {
+      console.error('Error fetching store status:', err)
+      return { status: 'unknown', rejection_reason: null }
+    }
+  }
+
   return {
     // State
     stores,
@@ -591,6 +615,7 @@ export const useStoreStore = defineStore('store', () => {
     updateStoreWithImages,
     clearError,
     clearCurrentStore,
-    checkStoreOwnership
+    checkStoreOwnership,
+    getStoreStatus
   }
 })

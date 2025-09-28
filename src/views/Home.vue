@@ -69,7 +69,7 @@
         </button>
         
         <!-- Production fallback message -->
-        <div v-if="process.env.NODE_ENV === 'production'" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div v-if="isProd" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p class="text-yellow-800 text-sm">
             {{ t('sections.productionDataIssue') }}
           </p>
@@ -347,6 +347,9 @@ import ProductCard from '../components/ProductCard.vue'
 const { t, locale } = useI18n()
 const productStore = useProductStore()
 
+const isProd = process.env.NODE_ENV === 'production'
+const isDev = process.env.NODE_ENV === 'development'
+
 // State for best-selling products
 const bestSellingProducts = ref([])
 const loading = ref(false)
@@ -426,6 +429,8 @@ const loadBestSellingProducts = async () => {
 }
 
 const loadCategoryProducts = async (categoryId) => {
+   debugger  // execution will pause here
+  console.log('Mounted running...')
   categoryLoading.value[categoryId] = true
   categoryErrors.value[categoryId] = null
   
@@ -488,15 +493,18 @@ onMounted(async () => {
         console.log('Categories loaded successfully:', productStore.categories.length)
       } catch (categoryError) {
         console.error('Failed to load categories:', categoryError)
-        // Always use fallback categories if none are loaded
-        console.log('Using fallback categories')
-        productStore.categories = [
-          { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
-          { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
-          { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
-          { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
-          { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
-        ]
+        
+        // In production, if categories fail to load, try to use fallback categories
+        if (process.env.NODE_ENV === 'production') {
+          console.log('Using fallback categories for production')
+          productStore.categories = [
+            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
+            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
+            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
+            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
+            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
+          ]
+        }
       }
     }
     categoriesLoaded.value = true
@@ -528,6 +536,8 @@ onMounted(async () => {
     clearTimeout(minTimeout)
   }
 })
+
+"development === 'production'"
 </script>
 
 <style scoped>

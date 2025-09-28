@@ -130,10 +130,10 @@ const baseRoutes = [
     path: '/dashboard/store/:id',
     name: 'StoreDashboard',
     component: StoreDashboard,
-    props: true,
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
   },
+  
   {
     path: '/admin',
     name: 'AdminDashboard',

@@ -502,135 +502,146 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Helper function to load user with profile data
   // Simplified to avoid recursion - only loads basic profile info
-  const loadUserWithProfile = async (authUser) => {
-    try {
-      profileLoading.value = true
-      console.log('Loading user profile for:', authUser.email)
-      console.log('User ID:', authUser.id)
-      
-      // Try to load profile with timeout
-      console.log('Starting profile query...')
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout after 5 seconds')), 5000)
-      )
-      
-      // Create the profile query promise
-      const profilePromise = supabase
-        .from('profiles')
-        .select('id, full_name, role, city')
-        .eq('id', authUser.id)
-        .single()
-      
-      // Race between the query and timeout
-      const { data: profile, error: profileError } = await Promise.race([
-        profilePromise,
-        timeoutPromise
-      ])
+const loadUserWithProfile = async (authUser) => {
+  try {
+    profileLoading.value = true
+    console.log('Loading user profile for:', authUser.email)
+    console.log('User ID:', authUser.id)
 
-      console.log('Profile query completed. Data:', profile, 'Error:', profileError)
+    // Timeout promise (5s safeguard)
+    const timeoutPromise = new Promise((resolve) =>
+  setTimeout(() => resolve({ data: null, error: new Error('Profile loading timeout after 5 seconds') }), 5000)
+)
 
-      if (profileError) {
-        // No profile found or error, just use auth user
-        console.log('Profile error:', profileError)
-        console.log('Using auth user without profile data')
-        user.value = authUser
-        return
-      }
+    // Profile + role query
+    const profilePromise = supabase
+      .from('profiles')
+      .select(`
+        id,
+        full_name,
+        city,
+        user_roles(role)
+      `)
+      .eq('id', authUser.id)
+      .single()
 
-      if (profile) {
-        // Merge profile data with auth user, keeping email from auth
-        user.value = { 
-          ...authUser, 
-          full_name: profile.full_name || authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
-          role: profile.role?.toLowerCase() || 'customer' // Normalize role to lowercase
-        }
-        console.log('✅ User loaded with role:', profile.role, '-> normalized to:', user.value.role, 'and full_name:', user.value.full_name)
-      } else {
-        // No profile found, use auth user with full name from metadata
-        user.value = {
-          ...authUser,
-          full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
-          role: 'customer' // Default role when no profile found
-        }
-        console.log('⚠️ No profile data, using auth user with default role "customer" and full_name:', user.value.full_name)
-      }
-    } catch (err) {
-      // Error fetching profile, just use auth user
-      console.warn('Could not load profile data:', err)
-      if (err.message.includes('timeout')) {
-        console.warn('Profile loading timed out, using auth user without profile')
-      }
-      console.log('Setting user to auth user due to error')
+    // Race query vs timeout
+    const { data: profile, error: profileError } = await Promise.race([
+  profilePromise,
+  timeoutPromise
+])
+
+    console.log('Profile query completed. Data:', profile, 'Error:', profileError)
+
+    if (profileError) {
+      console.log('Profile error:', profileError)
+      console.log('Using auth user without profile data')
+      user.value = authUser
+      return
+    }
+
+    if (profile) {
+      // Pick the first role (or fallback)
+      const role = profile.user_roles?.[0]?.role?.toLowerCase() || 'customer'
+
       user.value = {
         ...authUser,
-        full_name: authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
-        role: 'customer' // Default role when profile loading fails
+        full_name:
+          profile.full_name ||
+          authUser.user_metadata?.full_name ||
+          authUser.raw_user_meta_data?.full_name,
+        city: profile.city,
+        role
       }
-    } finally {
-      profileLoading.value = false
+
+      console.log(
+        '✅ User loaded with role:',
+        role,
+        'and full_name:',
+        user.value.full_name
+      )
+    } else {
+      // No profile found
+      user.value = {
+        ...authUser,
+        full_name:
+          authUser.user_metadata?.full_name ||
+          authUser.raw_user_meta_data?.full_name,
+        role: 'customer'
+      }
+      console.log('⚠️ No profile data, using auth user with default role "customer"')
     }
+  } catch (err) {
+    console.warn('Could not load profile data:', err)
+    if (err.message.includes('timeout')) {
+      console.warn('Profile loading timed out, using auth user without profile')
+    }
+    user.value = {
+      ...authUser,
+      full_name:
+        authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
+      role: 'customer'
+    }
+  } finally {
+    profileLoading.value = false
   }
+}
 
   // Initialize auth state
-  const initAuth = async () => {
-    try {
-      // Get initial session
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        // Always reload profile from Supabase to ensure fresh role data
-        console.log('🔄 Initializing auth with fresh profile data...')
-        await loadUserWithProfile(session.user)
-        
-        // Double-check role loading after a short delay
-        setTimeout(async () => {
-          if (user.value && (!user.value.role || user.value.role === 'customer')) {
-            console.log('🔄 Double-checking role loading...')
-            await loadUserWithProfile(session.user)
-          }
-        }, 1000)
-      } else {
-        // No valid session, ensure user state is cleared
-        user.value = null
-      }
+// Initialize auth state
+const initAuth = async () => {
+  try {
+    // Get initial session
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (session?.user) {
+      console.log('🔄 Initializing auth with fresh profile data...')
+      await loadUserWithProfile(session.user)
 
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          console.log('Auth state change:', event, session?.user?.email)
-          if (session?.user) {
-            await loadUserWithProfile(session.user)
-            
-            // Sync local cart and wishlist to Supabase after login
-            if (event === 'SIGNED_IN') {
-              try {
-                const { cartService } = await import('../../database/cartService.js')
-                const { wishlistService } = await import('../../database/wishlistService.js')
-                
-                await cartService.syncLocalToSupabase()
-                await wishlistService.syncLocalToSupabase()
-              } catch (err) {
-                console.error('Error syncing local data to Supabase:', err)
-              }
-            }
-          } else {
-            user.value = null
-          }
+      // Double-check role after a short delay
+      setTimeout(async () => {
+        if (user.value && (!user.value.role || user.value.role === 'customer')) {
+          console.log('🔄 Double-checking role loading...')
+          await loadUserWithProfile(session.user)
         }
-      )
-
-      // Store the subscription for cleanup
-      authSubscription.value = subscription
-
-      return subscription
-    } catch (err) {
-      console.error('Auth initialization failed:', err)
-      // Ensure user state is cleared on error
+      }, 1000)
+    } else {
       user.value = null
     }
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email)
+        if (session?.user) {
+          await loadUserWithProfile(session.user)
+
+          if (event === 'SIGNED_IN') {
+            try {
+              const { cartService } = await import('../../database/cartService.js')
+              const { wishlistService } = await import('../../database/wishlistService.js')
+
+              await cartService.syncLocalToSupabase()
+              await wishlistService.syncLocalToSupabase()
+            } catch (err) {
+              console.error('Error syncing local data to Supabase:', err)
+            }
+          }
+        } else {
+          user.value = null
+        }
+      }
+    )
+
+    // Save subscription for cleanup
+    authSubscription.value = subscription
+    return subscription
+  } catch (err) {
+    console.error('Auth initialization failed:', err)
+    user.value = null
   }
+}
+
 
   return {
     // State
