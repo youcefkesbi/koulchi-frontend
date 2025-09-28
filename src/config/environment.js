@@ -125,19 +125,5 @@ export const getOAuthConfig = () => {
   }
 }
 
-if (environment.features.debugLogging) {
-  console.log('Environment Configuration:', {
-    appName: environment.branding.name,
-    appUrl: environment.appUrl,
-    isProduction: environment.isProduction,
-    isVercel: environment.isVercel,
-    isDevelopment: environment.isDevelopment,
-    isLocalhost: environment.isLocalhost,
-    supabaseUrl: environment.supabase.url ? 'Configured' : 'Missing',
-    supabaseAnonKey: environment.supabase.anonKey ? 'Configured' : 'Missing',
-    oauthCallbackPath: environment.oauth.callbackPath,
-    oauthBranding: environment.features.oauthBranding
-  })
-}
 
 export default environment

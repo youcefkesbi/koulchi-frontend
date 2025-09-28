@@ -101,24 +101,6 @@
 
     </section>
 
-    <!-- Test Section (always visible) -->
-    <section class="my-slide-up bg-green-50 p-6 rounded-lg mb-8">
-      <h3 class="text-lg font-semibold text-green-800 mb-4">✅ Page is Working!</h3>
-      <p class="text-green-700">This section is always visible to confirm the page is loading correctly.</p>
-    </section>
-
-    <!-- Debug Section (temporary) -->
-    <section class="my-slide-up bg-blue-50 p-6 rounded-lg mb-8">
-      <h3 class="text-lg font-semibold text-blue-800 mb-4">Debug Information</h3>
-      <div class="text-sm text-blue-700 space-y-2">
-        <p>Loading: {{ loading }}</p>
-        <p>Error: {{ error || 'None' }}</p>
-        <p>Best Selling Products Count: {{ bestSellingProducts.length }}</p>
-        <p>Categories Loaded: {{ categoriesLoaded }}</p>
-        <p>Categories Count: {{ categories.length }}</p>
-        <p>Product Store Categories: {{ productStore.categories.length }}</p>
-      </div>
-    </section>
 
     <!-- Browse by Category Section -->
     <section class="my-slide-up">
@@ -215,28 +197,6 @@
         </div>
       </div>
       
-      <!-- Fallback Content (always show) -->
-      <div class="mt-8 p-6 bg-gray-50 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Links</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <router-link to="/products" class="text-center p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-            <i class="fas fa-shopping-bag text-2xl text-primary mb-2"></i>
-            <p class="text-sm font-medium">All Products</p>
-          </router-link>
-          <router-link to="/best-selling" class="text-center p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-            <i class="fas fa-star text-2xl text-yellow-500 mb-2"></i>
-            <p class="text-sm font-medium">Best Sellers</p>
-          </router-link>
-          <router-link to="/stores" class="text-center p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-            <i class="fas fa-store text-2xl text-green-500 mb-2"></i>
-            <p class="text-sm font-medium">Stores</p>
-          </router-link>
-          <router-link to="/dashboard" class="text-center p-4 bg-white rounded-lg hover:shadow-md transition-shadow">
-            <i class="fas fa-user text-2xl text-blue-500 mb-2"></i>
-            <p class="text-sm font-medium">My Account</p>
-          </router-link>
-        </div>
-      </div>
     </section>
 
     <!-- Features Section -->
@@ -356,7 +316,6 @@ const {
 } = useProducts()
 
 const isProd = process.env.NODE_ENV === 'production'
-const isDev = process.env.NODE_ENV === 'development'
 
 // State for category products
 const categoryProducts = ref({})
@@ -394,38 +353,8 @@ const getCategoryName = (categoryId) => {
 const loadBestSellingProducts = async () => {
   try {
     await fetchBestSellingProducts()
-    if (isDev) {
-      console.log('Best-selling products loaded:', bestSellingProducts.value.length)
-    }
   } catch (err) {
-    if (isDev) {
-      console.error('Error loading best-selling products:', err)
-    }
-    
-    // Add fallback products only in development
-    if (isDev && bestSellingProducts.value.length === 0) {
-      console.log('Adding fallback products for development testing')
-      bestSellingProducts.value = [
-        {
-          id: 'fallback-1',
-          name: 'Sample Product 1',
-          price: 99.99,
-          description: 'This is a sample product for testing',
-          image_url: 'https://via.placeholder.com/300x200?text=Product+1',
-          total_sold: 50,
-          store_name: 'Test Store'
-        },
-        {
-          id: 'fallback-2',
-          name: 'Sample Product 2',
-          price: 149.99,
-          description: 'Another sample product for testing',
-          image_url: 'https://via.placeholder.com/300x200?text=Product+2',
-          total_sold: 30,
-          store_name: 'Test Store'
-        }
-      ]
-    }
+    console.error('Error loading best-selling products:', err)
   }
 }
 
@@ -436,13 +365,8 @@ const loadCategoryProducts = async (categoryId) => {
   try {
     const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
     categoryProducts.value[categoryId] = products || []
-    if (isDev) {
-      console.log(`Category products loaded for ${categoryId}:`, products?.length || 0)
-    }
   } catch (err) {
-    if (isDev) {
-      console.error(`Error loading products for category ${categoryId}:`, err)
-    }
+    console.error(`Error loading products for category ${categoryId}:`, err)
     categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
     categoryProducts.value[categoryId] = []
   } finally {
@@ -477,30 +401,24 @@ const scrollToMostSoldProducts = () => {
 }
 
 onMounted(async () => {
-  // Always ensure the section renders by setting a minimum timeout
   const minTimeout = setTimeout(() => {
-    console.log('Minimum timeout reached - ensuring section renders')
     categoriesLoaded.value = true
-  }, 3000) // 3 second minimum timeout
+  }, 3000)
   
   try {
-    // Set a timeout to ensure the section renders even if there are issues
     const timeoutId = setTimeout(() => {
-      console.warn('Homepage data loading timeout - rendering with available data')
       categoriesLoaded.value = true
-    }, 10000) // 10 second timeout
+    }, 10000)
     
     // Load categories if not already loaded
     if (productStore.categories.length === 0) {
       try {
         await productStore.fetchCategories()
-        console.log('Categories loaded successfully:', productStore.categories.length)
       } catch (categoryError) {
         console.error('Failed to load categories:', categoryError)
         
-        // In production, if categories fail to load, try to use fallback categories
+        // Use fallback categories in production
         if (process.env.NODE_ENV === 'production') {
-          console.log('Using fallback categories for production')
           productStore.categories = [
             { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
             { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
@@ -516,26 +434,17 @@ onMounted(async () => {
     clearTimeout(minTimeout)
     
     // Load best-selling products
-    try {
-      await loadBestSellingProducts()
-    } catch (bestSellingError) {
-      console.error('Failed to load best-selling products:', bestSellingError)
-    }
+    await loadBestSellingProducts()
     
     // Load category products for each category
     if (categories.value && categories.value.length > 0) {
-      console.log('Loading products for categories:', categories.value.map(c => c.id))
-      // Load category products in parallel for better performance
       const categoryPromises = categories.value.map(category => 
         loadCategoryProducts(category.id)
       )
       await Promise.allSettled(categoryPromises)
-    } else {
-      console.warn('No categories available to load products for')
     }
   } catch (error) {
     console.error('Error loading homepage data:', error)
-    // Ensure categoriesLoaded is set even if there's an error
     categoriesLoaded.value = true
     clearTimeout(minTimeout)
   }
@@ -547,40 +456,6 @@ onMounted(async () => {
 section {
   min-height: 200px;
   margin-bottom: 2rem;
-  display: block !important;
-  visibility: visible !important;
-}
-
-/* Force visibility for debugging */
-.my-slide-up {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Debug section styles */
-.bg-blue-50 {
-  background-color: #eff6ff;
-}
-
-.bg-green-50 {
-  background-color: #f0fdf4;
-}
-
-.text-blue-800 {
-  color: #1e40af;
-}
-
-.text-green-800 {
-  color: #166534;
-}
-
-.text-blue-700 {
-  color: #1d4ed8;
-}
-
-.text-green-700 {
-  color: #15803d;
 }
 
 /* Custom animations */

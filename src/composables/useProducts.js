@@ -25,13 +25,7 @@ export function useProducts() {
    * Get backend base URL from environment
    */
   const getBackendUrl = () => {
-    const backendUrl = environment.backend.url
-    
-    if (environment.features.debugLogging) {
-      console.log('Backend URL:', backendUrl)
-    }
-    
-    return backendUrl
+    return environment.backend.url
   }
 
   /**
@@ -79,10 +73,6 @@ export function useProducts() {
 
       const backendUrl = getBackendUrl()
       const url = `${backendUrl}/products/best-selling`
-      
-      if (environment.features.debugLogging) {
-        console.log('Fetching best-selling products from:', url)
-      }
 
       const response = await axios.get(url, {
         timeout: 10000, // 10 second timeout
@@ -94,11 +84,6 @@ export function useProducts() {
 
       if (response.status === 200 && response.data) {
         bestSellingProducts.value = Array.isArray(response.data) ? response.data : []
-        
-        if (environment.features.debugLogging) {
-          console.log('Best-selling products fetched:', bestSellingProducts.value.length)
-        }
-        
         return bestSellingProducts.value
       } else {
         throw new Error('Invalid response from server')
@@ -124,10 +109,6 @@ export function useProducts() {
 
       const backendUrl = getBackendUrl()
       const url = `${backendUrl}/products/best-selling/${categoryId}`
-      
-      if (environment.features.debugLogging) {
-        console.log('Fetching best-selling products by category from:', url)
-      }
 
       const response = await axios.get(url, {
         timeout: 10000, // 10 second timeout
@@ -139,11 +120,6 @@ export function useProducts() {
 
       if (response.status === 200 && response.data) {
         bestSellingByCategory.value = Array.isArray(response.data) ? response.data : []
-        
-        if (environment.features.debugLogging) {
-          console.log('Best-selling products by category fetched:', bestSellingByCategory.value.length)
-        }
-        
         return bestSellingByCategory.value
       } else {
         throw new Error('Invalid response from server')
