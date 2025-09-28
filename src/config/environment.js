@@ -66,12 +66,16 @@ export const environment = {
 export const validateEnvironment = () => {
   const errors = []
   
-  if (!environment.supabase.url) {
+  if (!environment.supabase.url || environment.supabase.url === 'https://placeholder.supabase.co') {
     errors.push('VITE_SUPABASE_URL is not configured')
   }
   
-  if (!environment.supabase.anonKey) {
+  if (!environment.supabase.anonKey || environment.supabase.anonKey === 'placeholder-key') {
     errors.push('VITE_SUPABASE_ANON_KEY is not configured')
+  }
+  
+  if (!environment.backend.url || environment.backend.url === 'https://koulchi-backend.onrender.com') {
+    console.warn('Using default backend URL. Consider setting VITE_BACKEND_URL for custom backend.')
   }
   
   if (errors.length > 0) {

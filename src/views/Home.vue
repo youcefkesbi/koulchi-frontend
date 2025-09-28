@@ -38,7 +38,7 @@
             {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
           </router-link>
           <button
-            @click="loadBestSellingProducts"
+            @click="refreshBestSellingProducts"
             :disabled="loading"
             class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
           >
@@ -64,7 +64,7 @@
           <i class="fas fa-exclamation-triangle mr-2"></i>
           {{ error }}
         </div>
-        <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+        <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
         
@@ -93,7 +93,7 @@
         </div>
         <div class="mt-4">
           <p class="text-gray-600 mb-4">Try refreshing the page or check your connection.</p>
-          <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+          <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
             {{ t('common.retry') }}
           </button>
         </div>
@@ -342,18 +342,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/product'
+import { useProducts } from '../composables/useProducts'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
+const { 
+  bestSellingProducts, 
+  loading, 
+  error, 
+  fetchBestSellingProducts,
+  refreshBestSellingProducts 
+} = useProducts()
 
 const isProd = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV === 'development'
-
-// State for best-selling products
-const bestSellingProducts = ref([])
-const loading = ref(false)
-const error = ref(null)
 
 // State for category products
 const categoryProducts = ref({})
@@ -389,56 +392,57 @@ const getCategoryName = (categoryId) => {
 }
 
 const loadBestSellingProducts = async () => {
-  loading.value = true
-  error.value = null
-  
   try {
-    const products = await productStore.fetchMostSoldProducts(10)
-    bestSellingProducts.value = products || []
-    console.log('Best-selling products loaded:', products?.length || 0)
+    await fetchBestSellingProducts()
+    if (isDev) {
+      console.log('Best-selling products loaded:', bestSellingProducts.value.length)
+    }
   } catch (err) {
-    console.error('Error loading best-selling products:', err)
-    error.value = err.message || 'Failed to load best-selling products'
-    bestSellingProducts.value = []
+    if (isDev) {
+      console.error('Error loading best-selling products:', err)
+    }
     
-    // Add some fallback products for testing
-    if (bestSellingProducts.value.length === 0) {
-      console.log('Adding fallback products for testing')
+    // Add fallback products only in development
+    if (isDev && bestSellingProducts.value.length === 0) {
+      console.log('Adding fallback products for development testing')
       bestSellingProducts.value = [
         {
           id: 'fallback-1',
           name: 'Sample Product 1',
           price: 99.99,
           description: 'This is a sample product for testing',
-          image_urls: ['https://via.placeholder.com/300x200?text=Product+1'],
-          sold_count: 50
+          image_url: 'https://via.placeholder.com/300x200?text=Product+1',
+          total_sold: 50,
+          store_name: 'Test Store'
         },
         {
           id: 'fallback-2',
           name: 'Sample Product 2',
           price: 149.99,
           description: 'Another sample product for testing',
-          image_urls: ['https://via.placeholder.com/300x200?text=Product+2'],
-          sold_count: 30
+          image_url: 'https://via.placeholder.com/300x200?text=Product+2',
+          total_sold: 30,
+          store_name: 'Test Store'
         }
       ]
     }
-  } finally {
-    loading.value = false
   }
 }
 
 const loadCategoryProducts = async (categoryId) => {
-   debugger  // execution will pause here
-  console.log('Mounted running...')
   categoryLoading.value[categoryId] = true
   categoryErrors.value[categoryId] = null
   
   try {
     const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
     categoryProducts.value[categoryId] = products || []
+    if (isDev) {
+      console.log(`Category products loaded for ${categoryId}:`, products?.length || 0)
+    }
   } catch (err) {
-    console.error(`Error loading products for category ${categoryId}:`, err)
+    if (isDev) {
+      console.error(`Error loading products for category ${categoryId}:`, err)
+    }
     categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
     categoryProducts.value[categoryId] = []
   } finally {
@@ -536,8 +540,6 @@ onMounted(async () => {
     clearTimeout(minTimeout)
   }
 })
-
-"development === 'production'"
 </script>
 
 <style scoped>
