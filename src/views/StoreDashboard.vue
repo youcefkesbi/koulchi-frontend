@@ -1,36 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Store Dashboard Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-      <div class="container mx-auto px-4 py-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <router-link 
-              to="/dashboard" 
-              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <i class="fas fa-arrow-left text-xl"></i>
-            </router-link>
-            <div>
-              <h1 class="text-2xl font-bold text-gray-800">
-                {{ storeStore.currentStore?.name || $t('stores.storeDashboard') }}
-              </h1>
-              <p class="text-gray-600">{{ $t('stores.manageDashboardDescription') }}</p>
-            </div>
-          </div>
-          <div class="flex items-center space-x-3">
-            <!-- View Public Store -->
-            <router-link 
-              :to="`/stores/${$route.params.id}`"
-              class="btn-outline"
-            >
-              <i class="fas fa-eye mr-2"></i>
-              {{ $t('stores.viewPublicStore') }}
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="min-h-screen w-[90%] mx-auto ">
+    
 
     <!-- Loading State -->
     <div v-if="storeStore.loading" class="container mx-auto px-4 py-8">
@@ -100,143 +70,179 @@
     </div>
 
     <!-- Store Dashboard Content (Only for approved stores) -->
-    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status === 'approved'" class="container mx-auto px-4 py-8">
+    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status === 'approved' && !storeStore.loading" class="min-h-screen pt-5 ">
       
-      <!-- Store Overview -->
-      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
-        <div class="flex items-start space-x-6">
-          <!-- Store Logo -->
-          <div class="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center">
+      <!-- Banner -->
+      <div class="relative">
+        <!-- Banner Section (Pro Pack only) -->
+        <div v-if="isProPack" class="relative h-60 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mx-4 mt-4">
+          <!-- Banner Image -->
+          <div v-if="storeStore.currentStore?.hasBanner" class="absolute inset-0 rounded-2xl overflow-hidden">
             <img 
-              v-if="storeStore.currentStore.logo_url" 
-              :src="storeStore.currentStore.logo_url" 
-              :alt="storeStore.currentStore.name"
-              class="w-full h-full object-cover rounded-xl"
+              :src="storeStore.currentStore?.banner_url" 
+              :alt="storeStore.currentStore?.displayName + ' banner'"
+              class="w-full h-full object-cover"
             />
-            <i v-else class="fas fa-store text-gray-400 text-2xl"></i>
+            <div class="absolute inset-0 bg-black bg-opacity-20"></div>
           </div>
-
-          <!-- Store Info -->
-          <div class="flex-1">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">
-              {{ storeStore.currentStore.name }}
-            </h2>
-            <p v-if="storeStore.currentStore.description" class="text-gray-600 mb-4">
-              {{ storeStore.currentStore.description }}
-            </p>
-            <div class="flex items-center space-x-4 text-sm text-gray-500">
-              <span>
-                <i class="fas fa-calendar-alt mr-1"></i>
-                {{ $t('stores.createdOn') }} {{ formatDate(storeStore.currentStore.created_at) }}
-              </span>
-              <span>
-                <i class="fas fa-box mr-1"></i>
-                {{ storeProducts.length }} {{ $t('stores.products') }}
-              </span>
+          
+          <!-- Default Banner for Pro Pack without image -->
+          <div v-else class="absolute inset-0 flex items-center justify-center">
+            <div class="text-center text-white">
+              <i class="fas fa-image text-6xl mb-4 opacity-50"></i>
+              <p class="text-xl font-medium">{{ $t('stores.updateBanner') }}</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Dashboard Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Total Products -->
-        <div class="bg-white rounded-xl shadow-soft p-6">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-              <i class="fas fa-box text-blue-600 text-xl"></i>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ storeProducts.length }}</h3>
-              <p class="text-gray-600">{{ $t('stores.totalProducts') }}</p>
-            </div>
+          
+          <!-- Update Banner Button (Pro Pack only) -->
+          <div class="absolute top-4 right-4">
+            <button 
+              @click="updateBanner"
+              :disabled="bannerUploading"
+              class="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i v-if="bannerUploading" class="fas fa-spinner fa-spin"></i>
+              <i v-else class="fas fa-camera"></i>
+              <span>{{ bannerUploading ? $t('common.uploading') : $t('stores.updateBanner') }}</span>
+            </button>
           </div>
         </div>
 
-        <!-- Store Views -->
-        <div class="bg-white rounded-xl shadow-soft p-6">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-              <i class="fas fa-eye text-green-600 text-xl"></i>
+        <!-- Store Info Section -->
+        <div class="bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
+          <div class="container mx-auto py-6">
+            <!-- Logo Section  -->
+            <div class="relative flex -mt-20 mb-6">
+              <div class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <img 
+                    v-if="storeStore.currentStore?.hasLogo" 
+                    :src="storeStore.currentStore?.logo_url" 
+                    :alt="storeStore.currentStore?.displayName"
+                    class="w-full h-full object-cover rounded-full"
+                  />
+                <i v-else class="fas fa-store text-gray-400 text-4xl"></i>
+              </div>
+              
+              <!-- Update Logo Button -->
+              <button 
+                @click="updateLogo"
+                :disabled="logoUploading"
+                class="absolute -bottom-2 -right-2 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i v-if="logoUploading" class="fas fa-spinner fa-spin text-xs"></i>
+                <i v-else class="fas fa-camera text-sm"></i>
+              </button>
             </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">-</h3>
-              <p class="text-gray-600">{{ $t('stores.storeViews') }}</p>
-            </div>
-          </div>
-        </div>
+             <!-- Store details grid -->
+             <div class="grid grid-cols-[0.5fr_1fr] gap-16 items-center text-center relative">
+               <!-- Vertical divider line -->
+               <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-gray-200 via-gray-300 to-gray-200 transform -translate-x-1/2"></div>
+             <div>
+              <!-- Store Details -->
+              <div class="w-full text-left">
+                <!-- Store Name/ID Display -->
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                  <!-- Show Store ID for Basic Pack, Store Name for Pro Pack -->
+                  <span v-if="!isProPack">{{ $t('stores.storeIdDisplay', { id: storeStore.currentStore?.id?.slice(-8) }) }}</span>
+                  <span v-else>{{ storeStore.currentStore?.name || $t('stores.storeIdDisplay', { id: storeStore.currentStore?.id?.slice(-8) }) }}</span>
+                </h1>
+                
+                <!-- Pack Type Badge -->
+                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4"
+                     :class="isProPack ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'">
+                  <i :class="isProPack ? 'fas fa-crown mr-1' : 'fas fa-star mr-1'"></i>
+                  {{ storeStore.currentStore?.packType || (isProPack ? $t('stores.proPlan') : $t('stores.basicPlan')) }}
+                </div>
+                <!-- Location Section -->
+                <div class="w-full max-w-md text-left">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.location') }}</label>
+                  <div class="relative">
+                    <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input
+                      v-model="editForm.location"
+                      @blur="updateLocation"
+                      @keydown.enter.prevent="updateLocation"
+                      type="text"
+                      class="w-full pl-10 pr-12 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors text-center"
+                      :placeholder="$t('stores.location')"
+                    />
+                     <button 
+                       @click="updateLocation"
+                       :disabled="updateLoading"
+                       class="absolute top-2 right-2 text-primary hover:text-primary-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                       <i v-if="updateLoading" class="fas fa-spinner fa-spin"></i>
+                       <i v-else class="fas fa-check"></i>
+                     </button>
+                  </div>
+              
+              </div>
+              </div>
+              </div>
+              <div>
+              <!-- Store Stats -->
+                <div class="flex items-center space-x-6 mt-4 text-sm text-gray-500">
+                  <span>
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    {{ $t('stores.createdOn') }} {{ storeStore.currentStore?.created_at ? formatDate(storeStore.currentStore.created_at) : '' }}
+                  </span>
+                  <span>
+                    <i class="fas fa-box mr-1"></i>
+                    {{ storeProducts.length }} {{ $t('stores.products') }}
+                  </span>
+                </div>
+                <!-- Description Section -->
+                <div class="w-full mt-4 max-w-md text-left">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.storeDescription') }}</label>
+                  <div class="relative">
+                    <textarea
+                      v-model="editForm.description"
+                      @blur="updateDescription"
+                      @keydown.enter.prevent="updateDescription"
+                      class="text-sm w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none text-left pl-2"
+                      :placeholder="$t('stores.storeDescriptionPlaceholder')"
+                      rows="3"
+                    ></textarea>
+                     <button 
+                       @click="updateDescription"
+                       :disabled="updateLoading"
+                       class="absolute top-2 right-2 text-primary hover:text-primary-dark text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                       <i v-if="updateLoading" class="fas fa-spinner fa-spin"></i>
+                       <i v-else class="fas fa-check"></i>
+                     </button>
+                  </div>
+                </div>
+                </div>
 
-        <!-- Total Sales -->
-        <div class="bg-white rounded-xl shadow-soft p-6">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-              <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">-</h3>
-              <p class="text-gray-600">{{ $t('stores.totalSales') }}</p>
+                
+                
+
+              
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
-        <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <router-link :to="`/myannouncements/new?store_id=${storeStore.currentStore.id}`" class="btn-primary text-center py-4">
-            <i class="fas fa-plus text-2xl mb-2 block"></i>
-            {{ $t('stores.addProduct') }}
-          </router-link>
-          <button @click="showEditModal = true" class="btn-outline text-center py-4">
-            <i class="fas fa-edit text-2xl mb-2 block"></i>
-            {{ $t('stores.editStore') }}
-          </button>
-          <router-link :to="`/stores/${storeStore.currentStore.id}`" class="btn-secondary text-center py-4">
-            <i class="fas fa-eye text-2xl mb-2 block"></i>
-            {{ $t('stores.viewPublicStore') }}
-          </router-link>
-          <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
-            <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
-            {{ $t('stores.analytics') }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Store Products -->
-      <div class="bg-white rounded-xl shadow-soft p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-gray-800">{{ $t('stores.storeProducts') }}</h3>
-          <router-link :to="`/myannouncements/new?store_id=${storeStore.currentStore.id}`" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>
-            {{ $t('stores.addProduct') }}
-          </router-link>
-        </div>
-
-        <!-- Products Grid -->
-        <div v-if="storeProducts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <ProductCard 
-            v-for="product in storeProducts" 
-            :key="product.id" 
-            :product="product"
-            class="h-full"
-          />
-        </div>
-
-        <!-- No Products State -->
-        <div v-else class="text-center py-12">
-          <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-box-open text-gray-400 text-3xl"></i>
+      <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
+          <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <router-link v-if="storeStore.currentStore?.id" :to="`/stores/${storeStore.currentStore.id}`" class="btn-secondary text-center py-4">
+              <i class="fas fa-eye text-2xl mb-2 block"></i>
+              {{ $t('stores.viewPublicStore') }}
+            </router-link>
+            <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
+              <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
+              {{ $t('stores.analytics') }}
+            </button>
           </div>
-          <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('stores.noProductsTitle') }}</h4>
-          <p class="text-gray-600 mb-6">{{ $t('stores.noProductsMessage') }}</p>
-          <router-link :to="`/myannouncements/new?store_id=${storeStore.currentStore.id}`" class="btn-primary">
-            <i class="fas fa-plus mr-2"></i>
-            {{ $t('stores.addFirstProduct') }}
-          </router-link>
         </div>
       </div>
-    </div>
+
+</div>
 
     <!-- Edit Store Modal -->
     <div v-if="showEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -252,57 +258,9 @@
             </button>
           </div>
 
-          <form @submit.prevent="handleUpdateStore" class="space-y-6">
-            <!-- Store Name -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ $t('stores.storeName') }} *
-              </label>
-              <input
-                v-model="editForm.name"
-                type="text"
-                required
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
-                :placeholder="$t('stores.storeNamePlaceholder')"
-              />
-            </div>
-
-            <!-- Store Description -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ $t('stores.storeDescription') }}
-              </label>
-              <textarea
-                v-model="editForm.description"
-                rows="4"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none"
-                :placeholder="$t('stores.storeDescriptionPlaceholder')"
-              ></textarea>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex items-center justify-end space-x-3 space-x-reverse pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                @click="closeEditModal"
-                class="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                {{ $t('common.cancel') }}
-              </button>
-              <button
-                type="submit"
-                :disabled="updateLoading"
-                class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div v-if="updateLoading" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                {{ $t('stores.updateStore') }}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -324,10 +282,18 @@ const updateLoading = ref(false)
 const storeProducts = ref([])
 const storeStatus = ref(null)
 const statusLoading = ref(false)
+const logoUploading = ref(false)
+const bannerUploading = ref(false)
 
 const editForm = reactive({
   name: '',
-  description: ''
+  description: '',
+  location: ''
+})
+
+// Computed properties
+const isProPack = computed(() => {
+  return storeStore.currentStore?.isProPack || false
 })
 
 const fetchStoreProducts = async () => {
@@ -382,6 +348,7 @@ const closeEditModal = () => {
   if (storeStore.currentStore) {
     editForm.name = storeStore.currentStore.name
     editForm.description = storeStore.currentStore.description || ''
+    editForm.location = storeStore.currentStore.location || ''
   }
 }
 
@@ -391,7 +358,8 @@ const handleUpdateStore = async () => {
     
     const updateData = {
       name: editForm.name.trim(),
-      description: editForm.description?.trim() || null
+      description: editForm.description?.trim() || null,
+      location: editForm.location?.trim() || null
     }
 
     await storeStore.updateStore(route.params.id, updateData)
@@ -400,6 +368,162 @@ const handleUpdateStore = async () => {
   } catch (error) {
     console.error('Error updating store:', error)
     alert(error.message || 'Failed to update store')
+  } finally {
+    updateLoading.value = false
+  }
+}
+
+// Upload functionality for logo and banner
+const updateBanner = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      await uploadBanner(file)
+    }
+  }
+  input.click()
+}
+
+const updateLogo = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      await uploadLogo(file)
+    }
+  }
+  input.click()
+}
+
+const uploadBanner = async (file) => {
+  try {
+    bannerUploading.value = true
+    
+    // Validate file
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert($t('stores.fileTooLarge'))
+      return
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      alert($t('stores.invalidFileType'))
+      return
+    }
+
+    // Upload to Supabase storage
+    const fileName = `banner-${storeStore.currentStore.id}-${Date.now()}-${file.name}`
+    const { data, error } = await supabase.storage
+      .from('store-images')
+      .upload(fileName, file)
+
+    if (error) throw error
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('store-images')
+      .getPublicUrl(fileName)
+
+    // Update store with new banner URL
+    await storeStore.updateStore(route.params.id, { banner_url: publicUrl })
+    
+    // Refresh store data
+    await storeStore.fetchStoreById(route.params.id)
+    
+    alert($t('stores.uploadSuccess'))
+  } catch (error) {
+    console.error('Error uploading banner:', error)
+    alert($t('stores.bannerUploadError'))
+  } finally {
+    bannerUploading.value = false
+  }
+}
+
+const uploadLogo = async (file) => {
+  try {
+    logoUploading.value = true
+    
+    // Validate file
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert($t('stores.fileTooLarge'))
+      return
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      alert($t('stores.invalidFileType'))
+      return
+    }
+
+    // Upload to Supabase storage
+    const fileName = `logo-${storeStore.currentStore.id}-${Date.now()}-${file.name}`
+    const { data, error } = await supabase.storage
+      .from('store-images')
+      .upload(fileName, file)
+
+    if (error) throw error
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('store-images')
+      .getPublicUrl(fileName)
+
+    // Update store with new logo URL
+    await storeStore.updateStore(route.params.id, { logo_url: publicUrl })
+    
+    // Refresh store data
+    await storeStore.fetchStoreById(route.params.id)
+    
+    alert($t('stores.uploadSuccess'))
+  } catch (error) {
+    console.error('Error uploading logo:', error)
+    alert($t('stores.logoUploadError'))
+  } finally {
+    logoUploading.value = false
+  }
+}
+
+const editDescription = () => {
+  editForm.description = storeStore.currentStore?.description || ''
+  showEditModal.value = true
+}
+
+const editLocation = () => {
+  editForm.location = storeStore.currentStore?.location || ''
+  showEditModal.value = true
+}
+
+// New methods for inline editing
+const updateDescription = async () => {
+  try {
+    if (editForm.description !== storeStore.currentStore?.description) {
+      updateLoading.value = true
+      await storeStore.updateStore(route.params.id, { description: editForm.description?.trim() || null })
+      // Refresh store data to get updated values
+      await storeStore.fetchStoreById(route.params.id)
+    }
+  } catch (error) {
+    console.error('Error updating description:', error)
+    alert($t('stores.updateError') || 'Failed to update description')
+  } finally {
+    updateLoading.value = false
+  }
+}
+
+const updateLocation = async () => {
+  try {
+    if (editForm.location !== storeStore.currentStore?.location) {
+      updateLoading.value = true
+      await storeStore.updateStore(route.params.id, { location: editForm.location?.trim() || null })
+      // Refresh store data to get updated values
+      await storeStore.fetchStoreById(route.params.id)
+    }
+  } catch (error) {
+    console.error('Error updating location:', error)
+    alert($t('stores.updateError') || 'Failed to update location')
   } finally {
     updateLoading.value = false
   }
@@ -416,6 +540,7 @@ onMounted(async () => {
   if (storeStore.currentStore) {
     editForm.name = storeStore.currentStore.name
     editForm.description = storeStore.currentStore.description || ''
+    editForm.location = storeStore.currentStore.location || ''
   }
 })
 
@@ -496,3 +621,4 @@ onUnmounted(() => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>
+

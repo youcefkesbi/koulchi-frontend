@@ -65,57 +65,6 @@
           </router-link>
         </div>
       </div>
-
-      <!-- Wishlist -->
-      <div class="card">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('dashboard.wishlist') }}</h3>
-        <div v-if="wishlistStore.loading" class="text-center py-8">
-          <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
-          <p class="text-gray-600 mt-2">{{ $t('common.loading') }}</p>
-        </div>
-        <div v-else-if="wishlistStore.wishlistItems.length > 0" class="space-y-4">
-          <div 
-            v-for="item in wishlistStore.wishlistItems.slice(0, 3)" 
-            :key="item.id"
-            class="flex items-center space-x-3 space-x-reverse border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-          >
-            <img 
-              :src="item.image_urls?.[0] || '/placeholder-product.jpg'" 
-              :alt="item.name"
-              class="w-16 h-16 object-cover rounded-lg"
-            />
-            <div class="flex-1">
-              <h4 class="font-semibold text-gray-800">{{ item.name }}</h4>
-              <p class="text-sm text-gray-600">{{ $t('common.price') }}: {{ item.price }} {{ $t('common.currency') }}</p>
-            </div>
-            <button 
-              @click="removeFromWishlist(item.id)"
-              class="text-red-500 hover:text-red-700 p-2"
-            >
-              <i class="fas fa-heart-broken"></i>
-            </button>
-          </div>
-          <div class="text-center pt-4">
-            <router-link 
-              :to="getLocalizedRoute('/wishlist')" 
-              class="text-primary hover:text-primary-dark font-medium"
-            >
-              {{ $t('dashboard.viewAllWishlist') }}
-            </router-link>
-          </div>
-        </div>
-        <div v-else class="text-center py-8">
-          <i class="fas fa-heart text-gray-400 text-4xl mb-4"></i>
-          <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('dashboard.noWishlist') }}</h4>
-          <p class="text-gray-600 mb-4">{{ $t('dashboard.noWishlistMessage') }}</p>
-          <router-link 
-            :to="getLocalizedRoute('/products')" 
-            class="btn-primary"
-          >
-            {{ $t('dashboard.browseProducts') }}
-          </router-link>
-        </div>
-      </div>
     </div>
 
     <!-- Quick Actions -->
@@ -130,10 +79,6 @@
           <i class="fas fa-heart text-2xl mb-2 block"></i>
           {{ $t('dashboard.viewWishlist') }}
         </router-link>
-        <router-link :to="getLocalizedRoute('/profile')" class="btn-secondary text-center py-4">
-          <i class="fas fa-user text-2xl mb-2 block"></i>
-          {{ $t('dashboard.editProfile') }}
-        </router-link>
       </div>
     </div>
   </div>
@@ -143,9 +88,9 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useOrdersStore } from '../../stores/orders'
-import { useWishlistStore } from '../../stores/wishlist'
-import { getLocalizedPath } from '../../lib/i18n-utils'
+import { useOrdersStore } from '../stores/orders'
+import { useWishlistStore } from '../stores/wishlist'
+import { getLocalizedPath } from '../lib/i18n-utils'
 
 const { t: $t } = useI18n()
 const route = useRoute()

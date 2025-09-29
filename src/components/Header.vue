@@ -1,9 +1,9 @@
 <template>
-  <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
+  <header class="h-20 bg-white shadow-soft sticky top-0 z-50 border-b border-gray-100">
     <div class="container mx-auto px-4">
       <!-- Main header -->
-      <div class="py-4 sm:py-6">
-        <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+      <div class="py-4 sm:py-6  h-20">
+        <div class="h-10 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <!-- Logo -->
           <router-link :to="getLocalizedRoute('/')" class="group">
             <Logo size="large" />
@@ -125,6 +125,9 @@
                   <span v-if="wishlistStore.totalItems > 0" class="ml-2 bg-secondary text-white text-xs rounded-full px-2 py-1">
                     {{ wishlistStore.totalItems }}
                   </span>
+                </router-link>
+                <router-link :to="getLocalizedRoute('/myorders')" class="dropdown-item">
+                  <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myOrders') }}
                 </router-link>
                 <button
   @click="handleGoToStoreDashboard"

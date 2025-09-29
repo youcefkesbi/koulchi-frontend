@@ -1,4 +1,4 @@
-{
+ {
   "welcome": "مرحبًا",
   "cart": "سلة التسوق",
   "cartPage": {
@@ -214,7 +214,18 @@
     "documents": "الوثائق",
     "announcements": "إعلانات",
     "myStore": "متجري",
-    "validationError": "يرجى تصحيح أخطاء التحقق قبل المتابعة."
+    "validationError": "يرجى تصحيح أخطاء التحقق قبل المتابعة.",
+    "storeId": "معرف المتجر",
+    "location": "الموقع",
+    "editDescription": "تعديل الوصف",
+    "editLocation": "تعديل الموقع",
+    "updateBanner": "تحديث اللافتة",
+    "updateLogo": "تحديث الشعار",
+    "basicPlan": "الخطة الأساسية",
+    "proPlan": "الخطة الاحترافية",
+    "storeIdDisplay": "المتجر #{id}",
+    "updateError": "فشل في التحديث. يرجى المحاولة مرة أخرى.",
+    "myOrders": "طلباتي"
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",

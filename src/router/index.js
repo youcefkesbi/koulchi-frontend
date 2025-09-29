@@ -127,7 +127,12 @@ const baseRoutes = [
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
   },
-  
+  {
+    path: '/myorders',
+    name: 'MyOrders',
+    component: () => import('../views/MyOrders.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/admin',
     name: 'AdminDashboard',

@@ -86,7 +86,8 @@
     "login": "Connexion",
     "tagline": "Trouvez-le. Aimez-le. Obtenez-le.",
     "categories": "Catégories",
-    "brandName": "Koulchi"
+    "brandName": "Koulchi",
+    "myOrders": "Mes commandes"
   },
   "checkout": {
     "title": "Finaliser Votre Commande",
@@ -278,6 +279,16 @@
     "paymentReceipt": "Reçu de paiement",
     "announcements": "annonces",
     "validationError": "Veuillez corriger les erreurs de validation avant de continuer.",
+    "storeId": "ID du magasin",
+    "location": "Emplacement",
+    "editDescription": "Modifier la description",
+    "editLocation": "Modifier l'emplacement",
+    "updateBanner": "Mettre à jour la bannière",
+    "updateLogo": "Mettre à jour le logo",
+    "basicPlan": "Plan de base",
+    "proPlan": "Plan Pro",
+    "storeIdDisplay": "Magasin #{id}",
+    "updateError": "Échec de la mise à jour. Veuillez réessayer.",
     "noPackSelected": "Aucun plan sélectionné",
     "packRequired": "Veuillez sélectionner un plan",
     "invalidPack": "Le plan sélectionné n'est pas valide",

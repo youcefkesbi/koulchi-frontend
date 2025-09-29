@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white">
     <!-- Dashboard Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
+    <div class ="bg-white shadow-sm border-b border-gray-200">
       <div class="w-full px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center">
@@ -25,7 +25,6 @@
         </div>
       </div>
     </div>
-
     <!-- Tab Navigation -->
     <div class="bg-white border-b border-gray-200">
       <div class="w-full px-4 sm:px-6 lg:px-8">
@@ -59,12 +58,10 @@
       
       <!-- Dashboard Tabs -->
       <template v-else>
-        <!-- Buying Tab -->
-        <BuyingTab v-if="activeTab === 'buying'" />
-        
+  
         <!-- Selling Tab -->
-        <SellingTab v-else-if="activeTab === 'selling'" />
-        
+        <SellingTab v-if="activeTab === 'selling'" />
+    
         <!-- Admin Tab -->
         <AdminTab 
           v-else-if="activeTab === 'admin'" 
@@ -77,8 +74,6 @@
           @navigate-to="handleEmployeeNavigation"
         />
         
-        <!-- Verification Tab -->
-        <VerificationManager v-else-if="activeTab === 'verification'" />
       </template>
     </div>
 
@@ -95,11 +90,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
-import BuyingTab from '../components/dashboard/BuyingTab.vue'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
-import VerificationManager from '../components/VerificationManager.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
@@ -107,8 +100,8 @@ const router = useRouter()
 const { t } = useI18n()
 const authStore = useAuthStore()
 
-// Default to buying dashboard
-const activeTab = ref('buying')
+// Default to selling dashboard
+const activeTab = ref('selling')
 
 // Available tabs based on user role
 const availableTabs = computed(() => {
@@ -122,21 +115,9 @@ const availableTabs = computed(() => {
   
   const tabs = [
     {
-      id: 'buying',
-      name: t('dashboard.buyingDashboard'),
-      icon: 'fas fa-shopping-bag',
-      roles: ['customer', 'admin', 'employee', 'vendor']
-    },
-    {
       id: 'selling',
       name: t('dashboard.sellingDashboard'),
       icon: 'fas fa-store',
-      roles: ['customer', 'admin', 'employee', 'vendor']
-    },
-    {
-      id: 'verification',
-      name: t('dashboard.verification'),
-      icon: 'fas fa-shield-alt',
       roles: ['customer', 'admin', 'employee', 'vendor']
     }
   ]
@@ -203,7 +184,7 @@ const hasAccessToTab = (tabId) => {
 const validateTabAccess = () => {
   if (!hasAccessToTab(activeTab.value)) {
     // Redirect to first available tab
-    activeTab.value = availableTabs.value[0]?.id || 'buying'
+    activeTab.value = availableTabs.value[0]?.id || 'selling'
   }
 }
 

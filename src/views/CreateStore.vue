@@ -677,60 +677,16 @@ const createStore = async (storeData) => {
   }
 }
 
-// Verification check function
+// Verification presence check (no approval gate)
+// Basic: require identityDoc uploaded in this form
+// Pro: require identityDoc + businessRegister + paymentReceipt uploaded in this form
 const checkUserVerifications = async () => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) {
-      throw new Error('User not authenticated')
-    }
-
-    // Get user's approved verifications
-    const { data: verifications, error } = await supabase
-      .from('verifications')
-      .select('verification_type')
-      .eq('user_id', session.user.id)
-      .eq('status', 'approved')
-
-    if (error) throw error
-
-    const approvedTypes = verifications?.map(v => v.verification_type) || []
-    
-    // Get pack name for verification requirements
-    const packName = selectedPackData.value?.name || ''
-    
-    // Check verification requirements based on pack
-    if (packName === 'Basic Pack') {
-      // Basic Pack: Need at least one of: id_card, driving_license, passport
-      const basicVerifications = ['id_card', 'driving_license', 'passport']
-      const hasBasicVerification = basicVerifications.some(type => approvedTypes.includes(type))
-      
-      if (!hasBasicVerification) {
-        return {
-          canCreate: false,
-          missingTypes: basicVerifications.filter(type => !approvedTypes.includes(type)),
-          requiredTypes: basicVerifications
-        }
-      }
-    } else if (packName === 'Pro Pack') {
-      // Pro Pack: Need all: id_card, driving_license, passport, commerce_register, payment_receipt
-      const proVerifications = ['id_card', 'driving_license', 'passport', 'commerce_register', 'payment_receipt']
-      const missingTypes = proVerifications.filter(type => !approvedTypes.includes(type))
-      
-      if (missingTypes.length > 0) {
-        return {
-          canCreate: false,
-          missingTypes,
-          requiredTypes: proVerifications
-        }
-      }
-    }
-
-    return { canCreate: true, missingTypes: [], requiredTypes: [] }
-  } catch (error) {
-    console.error('Error checking verifications:', error)
-    return { canCreate: false, missingTypes: [], requiredTypes: [], error: error.message }
+  const basicOk = !!formData.identityDoc
+  const proOk = !!formData.identityDoc && !!formData.businessRegister && !!formData.paymentReceipt
+  if (isProPack.value) {
+    return { canCreate: proOk, missingTypes: proOk ? [] : ['identityDoc', 'businessRegister', 'paymentReceipt'] }
   }
+  return { canCreate: basicOk, missingTypes: basicOk ? [] : ['identityDoc'] }
 }
 
 // Data validation function
@@ -749,14 +705,13 @@ const validateForm = async () => {
     return false;
   }
 
-  // Check verification requirements
+  // Check verification requirements (uploads presence only)
   const verificationCheck = await checkUserVerifications()
   if (!verificationCheck.canCreate) {
     validationErrors.verification = $t('stores.verificationRequired') || 'Verification documents required';
     return false;
-  } else {
-    validationErrors.verification = '';
   }
+  validationErrors.verification = '';
 
   // Check if it's Pro plan (price > 0)
   if (isProPack.value) {
