@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     define: {
-      __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
     },
     envPrefix: 'VITE_',
     envDir: process.cwd(),
