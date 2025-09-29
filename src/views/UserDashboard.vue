@@ -76,6 +76,9 @@
           v-else-if="activeTab === 'employee'" 
           @navigate-to="handleEmployeeNavigation"
         />
+        
+        <!-- Verification Tab -->
+        <VerificationManager v-else-if="activeTab === 'verification'" />
       </template>
     </div>
 
@@ -96,6 +99,7 @@ import BuyingTab from '../components/dashboard/BuyingTab.vue'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
+import VerificationManager from '../components/VerificationManager.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
 const route = useRoute()
@@ -127,6 +131,12 @@ const availableTabs = computed(() => {
       id: 'selling',
       name: t('dashboard.sellingDashboard'),
       icon: 'fas fa-store',
+      roles: ['customer', 'admin', 'employee', 'vendor']
+    },
+    {
+      id: 'verification',
+      name: t('dashboard.verification'),
+      icon: 'fas fa-shield-alt',
       roles: ['customer', 'admin', 'employee', 'vendor']
     }
   ]
