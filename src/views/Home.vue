@@ -138,12 +138,12 @@
       <!-- Category Products -->
       <div v-else>
         <!-- Debug info for production troubleshooting -->
-        <div v-if="process.env.NODE_ENV === 'development'" class="text-xs text-gray-400 mb-4">
+        <div v-if="isDev" class="text-xs text-gray-400 mb-4">
           Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
         </div>
         
         <!-- Production debug info -->
-        <div v-if="process.env.NODE_ENV === 'production'" class="text-xs text-gray-400 mb-4">
+        <div v-if="isProd" class="text-xs text-gray-400 mb-4">
           <div>Categories loaded: {{ categories.length }}</div>
           <div>Categories loaded flag: {{ categoriesLoaded }}</div>
           <div>Product store categories: {{ productStore.categories.length }}</div>
@@ -315,7 +315,8 @@ const {
   refreshBestSellingProducts 
 } = useProducts()
 
-const isProd = process.env.NODE_ENV === 'production'
+const isProd = import.meta.env.PROD
+const isDev = import.meta.env.DEV
 
 // State for category products
 const categoryProducts = ref({})
@@ -418,7 +419,7 @@ onMounted(async () => {
         console.error('Failed to load categories:', categoryError)
         
         // Use fallback categories in production
-        if (process.env.NODE_ENV === 'production') {
+        if (import.meta.env.PROD) {
           productStore.categories = [
             { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
             { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
