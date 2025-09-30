@@ -34,9 +34,6 @@
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.bestSellingProducts') }}</h2>
         <div class="flex items-center space-x-4 space-x-reverse">
-          <router-link to="/best-selling" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
-            {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
-          </router-link>
           <button
             @click="refreshBestSellingProducts"
             :disabled="loading"

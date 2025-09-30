@@ -67,11 +67,12 @@ Located at `src/components/BestSellingProducts.vue`
 </template>
 ```
 
-### 3. BestSellingPage View
+### 3. Integration in Existing Pages
 
-Located at `src/views/BestSellingPage.vue`
-
-A complete page implementation showing how to use the BestSellingProducts component with full functionality.
+The BestSellingProducts component is integrated into:
+- **Home Page**: Shows global best-selling products in the main section
+- **Category Pages**: Shows category-specific best-selling products at the top
+- **Browse by Category**: Each category section shows its best-selling products
 
 ## Environment Configuration
 
@@ -221,8 +222,9 @@ The integration includes comprehensive error handling:
 
 1. Set `VITE_BACKEND_URL` to your backend URL
 2. Run the development server: `npm run dev`
-3. Navigate to `/best-selling` to test the full page
-4. Check browser console for any errors
+3. Navigate to the home page to test the best-selling products section
+4. Test category pages to verify category-specific best-selling products
+5. Check browser console for any errors
 
 ### Production Testing
 
