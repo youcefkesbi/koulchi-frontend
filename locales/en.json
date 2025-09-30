@@ -295,7 +295,13 @@
     "packRequired": "Please select a plan",
     "invalidPack": "Selected plan is invalid",
     "logoRequired": "Logo is required for Pro plan",
-    "bannerRequired": "Banner is required for Pro plan"
+    "bannerRequired": "Banner is required for Pro plan",
+    "contact": "Contact",
+    "addLink": "Add Link",
+    "selectColor": "Select a color for your store",
+    "saveChanges": "Save Changes",
+    "noChangesToSave": "No changes to save",
+    "socialLinkPlaceholder": "https://example.com/your-profile"
   },
   "pack": {
   "basic": {

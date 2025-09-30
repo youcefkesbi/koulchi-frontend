@@ -225,7 +225,13 @@
     "proPlan": "الخطة الاحترافية",
     "storeIdDisplay": "المتجر #{id}",
     "updateError": "فشل في التحديث. يرجى المحاولة مرة أخرى.",
-    "myOrders": "طلباتي"
+    "myOrders": "طلباتي",
+    "contact": "تواصل",
+    "addLink": "إضافة رابط",
+    "selectColor": "اختر لوناً لمتجرك",
+    "saveChanges": "حفظ التغييرات",
+    "noChangesToSave": "لا توجد تغييرات للحفظ",
+    "socialLinkPlaceholder": "https://example.com/الملف-الشخصي"
   },
   "profile.fullNameNote": "الاسم الكامل اختياري",
   "profile.phone": "الهاتف",

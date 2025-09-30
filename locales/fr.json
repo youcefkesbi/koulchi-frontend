@@ -293,7 +293,13 @@
     "packRequired": "Veuillez sélectionner un plan",
     "invalidPack": "Le plan sélectionné n'est pas valide",
     "logoRequired": "Le logo est requis pour le plan Pro",
-    "bannerRequired": "La bannière est requise pour le plan Pro"
+    "bannerRequired": "La bannière est requise pour le plan Pro",
+    "contact": "Contact",
+    "addLink": "Ajouter un Lien",
+    "selectColor": "Choisir une couleur pour votre magasin",
+    "saveChanges": "Enregistrer les Modifications",
+    "noChangesToSave": "Aucune modification à enregistrer",
+    "socialLinkPlaceholder": "https://exemple.com/votre-profil"
   },
   "profile.fullNameNote": "Le nom complet est optionnel",
   "profile.phone": "Téléphone",

@@ -77,9 +77,9 @@
         <!-- Banner Section (Pro Pack only) -->
         <div v-if="isProPack" class="relative h-60 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mx-4 mt-4">
           <!-- Banner Image -->
-          <div v-if="storeStore.currentStore?.hasBanner" class="absolute inset-0 rounded-2xl overflow-hidden">
+          <div v-if="storeStore.currentStore?.hasBanner || editForm.banner" class="absolute inset-0 rounded-2xl overflow-hidden">
             <img 
-              :src="storeStore.currentStore?.banner_url" 
+              :src="editForm.banner ? getFilePreview(editForm.banner) : storeStore.currentStore?.banner_url" 
               :alt="storeStore.currentStore?.displayName + ' banner'"
               class="w-full h-full object-cover"
             />
@@ -93,7 +93,7 @@
               <p class="text-xl font-medium">{{ $t('stores.updateBanner') }}</p>
             </div>
           </div>
-          
+
           <!-- Update Banner Button (Pro Pack only) -->
           <div class="absolute top-4 right-4">
             <button 
@@ -106,23 +106,37 @@
               <span>{{ bannerUploading ? $t('common.uploading') : $t('stores.updateBanner') }}</span>
             </button>
           </div>
+          <!-- Banner validation error -->
+          <div v-if="validationErrors.banner" class="absolute bottom-4 left-4 right-4">
+            <p class="text-red-600 text-sm bg-white bg-opacity-90 px-3 py-2 rounded-lg">{{ validationErrors.banner }}</p>
+          </div>
         </div>
 
         <!-- Store Info Section -->
-        <div class="bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
+        <div class="pb-20 bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
           <div class="container mx-auto py-6">
             <!-- Logo Section  -->
             <div class="relative flex -mt-20 mb-6">
               <div class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
                   <img 
-                    v-if="storeStore.currentStore?.hasLogo" 
-                    :src="storeStore.currentStore?.logo_url" 
+                    v-if="storeStore.currentStore?.hasLogo || editForm.logo" 
+                    :src="editForm.logo ? getFilePreview(editForm.logo) : storeStore.currentStore?.logo_url" 
                     :alt="storeStore.currentStore?.displayName"
                     class="w-full h-full object-cover rounded-full"
                   />
                 <i v-else class="fas fa-store text-gray-400 text-4xl"></i>
               </div>
-              
+              <!-- Store Stats -->
+                <div class="mt-8 ml-8 flex items-center space-x-6 mt-4 text-sm text-gray-500">
+              <span>
+                <i class="fas fa-calendar-alt mr-1"></i>
+                    {{ $t('stores.createdOn') }} {{ storeStore.currentStore?.created_at ? formatDate(storeStore.currentStore.created_at) : '' }}
+              </span>
+              <span>
+                <i class="fas fa-box mr-1"></i>
+                {{ storeProducts.length }} {{ $t('stores.products') }}
+              </span>
+                </div>
               <!-- Update Logo Button -->
               <button 
                 @click="updateLogo"
@@ -132,6 +146,10 @@
                 <i v-if="logoUploading" class="fas fa-spinner fa-spin text-xs"></i>
                 <i v-else class="fas fa-camera text-sm"></i>
               </button>
+              <!-- Logo validation error -->
+              <div v-if="validationErrors.logo" class="absolute -bottom-8 left-0 right-0 text-center">
+                <p class="text-red-600 text-xs bg-white px-2 py-1 rounded shadow-lg">{{ validationErrors.logo }}</p>
+              </div>
             </div>
              <!-- Store details grid -->
              <div class="grid grid-cols-[0.5fr_1fr] gap-16 items-center text-center relative">
@@ -164,6 +182,7 @@
                       @keydown.enter.prevent="updateLocation"
                       type="text"
                       class="w-full pl-10 pr-12 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors text-center"
+                      :class="{ 'border-red-500': validationErrors.location }"
                       :placeholder="$t('stores.location')"
                     />
                      <button 
@@ -175,22 +194,41 @@
                        <i v-else class="fas fa-check"></i>
                      </button>
                   </div>
+                  <p v-if="validationErrors.location" class="mt-1 text-sm text-red-600">{{ validationErrors.location }}</p>
+
+                <!-- Contact Section (Pro Pack only) -->
+                 <div v-if="isProPack" class="w-full mt-6 max-w-md text-left">
+                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.contact') }}</label>
+                   <div class="space-y-3">
+                     <div v-for="(link, idx) in editForm.socialLinks" :key="idx" class="relative flex items-center space-x-2">
+                       <input
+                         v-model="editForm.socialLinks[idx]"
+                         type="url"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                         :placeholder="$t('stores.socialLinkPlaceholder')"
+                       />
+                       <button @click="removeSocialLink(idx)" class="px-2 py-2 text-red-600 hover:text-red-700" type="button">
+                         <i class="fas fa-times"></i>
+                       </button>
+                     </div>
+                     <div class="flex items-center space-x-2">
+                       <button @click="addSocialLink" type="button" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">
+                         <i class="fas fa-plus mr-1"></i>{{ $t('stores.addLink') }}
+                       </button>
+                       <button @click="updateSocialLinks" :disabled="updateLoading" type="button" class="px-3 py-2 text-white bg-primary hover:bg-primary-dark rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                         <i v-if="updateLoading" class="fas fa-spinner fa-spin mr-1"></i>{{ $t('common.save') || 'Save' }}
+                       </button>
+                     </div>
+                     <p v-if="validationErrors.socialLinks" class="mt-1 text-sm text-red-600">{{ validationErrors.socialLinks }}</p>
+                   </div>
+                 </div>
               
               </div>
               </div>
               </div>
               <div>
-              <!-- Store Stats -->
-                <div class="flex items-center space-x-6 mt-4 text-sm text-gray-500">
-                  <span>
-                    <i class="fas fa-calendar-alt mr-1"></i>
-                    {{ $t('stores.createdOn') }} {{ storeStore.currentStore?.created_at ? formatDate(storeStore.currentStore.created_at) : '' }}
-                  </span>
-                  <span>
-                    <i class="fas fa-box mr-1"></i>
-                    {{ storeProducts.length }} {{ $t('stores.products') }}
-                  </span>
-                </div>
+              
+               <div class="w-1 h-40 bg-green-600 rounded-md absolute left-[34%]"></div>
                 <!-- Description Section -->
                 <div class="w-full mt-4 max-w-md text-left">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.storeDescription') }}</label>
@@ -200,6 +238,7 @@
                       @blur="updateDescription"
                       @keydown.enter.prevent="updateDescription"
                       class="text-sm w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none text-left pl-2"
+                      :class="{ 'border-red-500': validationErrors.description }"
                       :placeholder="$t('stores.storeDescriptionPlaceholder')"
                       rows="3"
                     ></textarea>
@@ -212,7 +251,72 @@
                        <i v-else class="fas fa-check"></i>
                      </button>
                   </div>
+                  <p v-if="validationErrors.description" class="mt-1 text-sm text-red-600">{{ validationErrors.description }}</p>
                 </div>
+
+                <!-- Color Picker (Pro Pack only) -->
+                <div v-if="isProPack" class="w-full mt-4 max-w-md text-left">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.selectColor') }}</label>
+                  <div class="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      @click="openColorPicker"
+                      class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+                    >
+                      <i class="fas fa-eye-dropper mr-2"></i>{{ $t('stores.selectColor') }}
+                    </button>
+                    <div
+                      class="w-8 h-8 rounded-md border border-gray-300"
+                      :style="{ backgroundColor: editForm.themeColor || '#0099ff' }"
+                      title="Current color"
+                    ></div>
+                    <input
+                      ref="colorInputRef"
+                      type="color"
+                      class="hidden"
+                      :value="editForm.themeColor || '#0099ff'"
+                      @input="onColorChange"
+                    />
+                  </div>
+                </div>
+
+
+                <!-- Save Button -->
+                <div class="w-full mt-6 text-center">
+                  <button
+                    @click="saveAllChanges"
+                    :disabled="updateLoading"
+                    class="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+                  >
+                    <i v-if="updateLoading" class="fas fa-spinner fa-spin mr-2"></i>
+                    <i v-else class="fas fa-save mr-2"></i>
+                    {{ updateLoading ? ($t('common.saving') || 'Saving...') : ($t('stores.saveChanges') || 'Save Changes') }}
+                  </button>
+                </div>
+
+                <!-- Update Message -->
+                <div v-if="updateMessage" class="w-full mt-4 text-center">
+                  <div 
+                    class="px-4 py-3 rounded-lg font-medium"
+                    :class="{
+                      'bg-green-100 text-green-800 border border-green-200': updateMessageType === 'success',
+                      'bg-red-100 text-red-800 border border-red-200': updateMessageType === 'error',
+                      'bg-blue-100 text-blue-800 border border-blue-200': updateMessageType === 'info'
+                    }"
+                  >
+                    <i 
+                      class="fas mr-2"
+                      :class="{
+                        'fa-check-circle': updateMessageType === 'success',
+                        'fa-exclamation-circle': updateMessageType === 'error',
+                        'fa-info-circle': updateMessageType === 'info'
+                      }"
+                    ></i>
+                    {{ updateMessage }}
+                  </div>
+                </div>
+
+                 
                 </div>
 
                 
@@ -227,17 +331,17 @@
 
       <!-- Quick Actions -->
       <div class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
-          <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <router-link v-if="storeStore.currentStore?.id" :to="`/stores/${storeStore.currentStore.id}`" class="btn-secondary text-center py-4">
-              <i class="fas fa-eye text-2xl mb-2 block"></i>
-              {{ $t('stores.viewPublicStore') }}
-            </router-link>
-            <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
-              <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
-              {{ $t('stores.analytics') }}
-            </button>
+            <i class="fas fa-eye text-2xl mb-2 block"></i>
+            {{ $t('stores.viewPublicStore') }}
+          </router-link>
+          <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
+            <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
+            {{ $t('stores.analytics') }}
+          </button>
           </div>
         </div>
       </div>
@@ -258,9 +362,9 @@
             </button>
           </div>
 
-        </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -273,12 +377,14 @@ import ProductCard from '../components/ProductCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t: $t } = useI18n()
 const storeStore = useStoreStore()
 
 const showEditModal = ref(false)
 const showAnalytics = ref(false)
 const updateLoading = ref(false)
+const updateMessage = ref('')
+const updateMessageType = ref('') // 'success', 'error', 'info'
 const storeProducts = ref([])
 const storeStatus = ref(null)
 const statusLoading = ref(false)
@@ -288,8 +394,214 @@ const bannerUploading = ref(false)
 const editForm = reactive({
   name: '',
   description: '',
-  location: ''
+  location: '',
+  socialLinks: [],
+  themeColor: '#0099ff',
+  logo: null,
+  banner: null
 })
+
+// Validation errors
+const validationErrors = reactive({
+  description: '',
+  location: '',
+  logo: '',
+  banner: '',
+  socialLinks: ''
+})
+
+// Upload helper (from CreateStore.vue)
+const uploadFile = async (file, bucketName) => {
+  if (!file) return null
+
+  const ext = file.name.split('.').pop()
+  const fileName = `${crypto.randomUUID()}.${ext}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucketName)
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+  if (uploadError) {
+    console.error('File upload error:', uploadError)
+    throw new Error(`Failed to upload to bucket ${bucketName}`)
+  }
+
+  // Build public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from(bucketName)
+    .getPublicUrl(fileName)
+
+  return publicUrl
+}
+
+// Validation function (adapted from CreateStore.vue)
+const validateForm = async () => {
+  // Clear previous errors
+  Object.keys(validationErrors).forEach(key => {
+    validationErrors[key] = ''
+  })
+
+  let isValid = true
+
+  // Validate description (optional but if provided, check length)
+  if (editForm.description && editForm.description.trim().length > 500) {
+    validationErrors.description = $t('stores.descriptionTooLong') || 'Description must be less than 500 characters'
+    isValid = false
+  }
+
+  // Validate location (optional but if provided, check length)
+  if (editForm.location && editForm.location.trim().length > 200) {
+    validationErrors.location = $t('stores.locationTooLong') || 'Location must be less than 200 characters'
+    isValid = false
+  }
+
+  // Validate social links (optional but if provided, check URLs)
+  if (editForm.socialLinks && editForm.socialLinks.length > 0) {
+    const invalidLinks = editForm.socialLinks.filter(link => {
+      if (!link || !link.trim()) return false
+      try {
+        new URL(link.trim())
+        return false
+      } catch {
+        return true
+      }
+    })
+    
+    if (invalidLinks.length > 0) {
+      validationErrors.socialLinks = $t('stores.invalidLinks') || 'Please enter valid URLs for social links'
+      isValid = false
+    }
+  }
+
+  // Validate logo file if provided
+  if (editForm.logo instanceof File) {
+    if (!editForm.logo.type.startsWith('image/')) {
+      validationErrors.logo = $t('stores.invalidFileType') || 'Logo must be an image file'
+      isValid = false
+    } else if (editForm.logo.size > 5 * 1024 * 1024) { // 5MB limit
+      validationErrors.logo = $t('stores.fileTooLarge') || 'Logo file must be less than 5MB'
+      isValid = false
+    }
+  }
+
+  // Validate banner file if provided
+  if (editForm.banner instanceof File) {
+    if (!editForm.banner.type.startsWith('image/')) {
+      validationErrors.banner = $t('stores.invalidFileType') || 'Banner must be an image file'
+      isValid = false
+    } else if (editForm.banner.size > 5 * 1024 * 1024) { // 5MB limit
+      validationErrors.banner = $t('stores.fileTooLarge') || 'Banner file must be less than 5MB'
+      isValid = false
+    }
+  }
+
+  return isValid
+}
+
+// Save all changes at once
+const saveAllChanges = async () => {
+  try {
+    updateLoading.value = true
+    
+    // Validate form first
+    if (!(await validateForm())) {
+      updateMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.'
+      updateMessageType.value = 'error'
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        updateMessage.value = ''
+        updateMessageType.value = ''
+      }, 5000)
+      return
+    }
+    
+    // Upload files if present
+    let logoUrl = null
+    let bannerUrl = null
+
+    if (editForm.logo instanceof File) {
+      logoUrl = await uploadFile(editForm.logo, 'stores-logos')
+    }
+    if (editForm.banner instanceof File) {
+      bannerUrl = await uploadFile(editForm.banner, 'stores-banners')
+    }
+    
+    // Prepare update data - include all fields to allow clearing empty values
+    const updateData = {}
+    
+    // Always include description (even if empty to clear it)
+    updateData.description = editForm.description?.trim() || null
+    
+    // Always include location (even if empty to clear it)
+    updateData.location = editForm.location?.trim() || null
+    
+    // Always include social links (even if empty to clear it)
+    updateData.external_buttons = editForm.socialLinks && editForm.socialLinks.length > 0 ? editForm.socialLinks : null
+    
+    // Add customization settings (color picker)
+    if (editForm.themeColor) {
+      updateData.customization_settings = {
+        color: editForm.themeColor
+      }
+    }
+    
+    // Add file URLs if uploaded
+    if (logoUrl) updateData.logo_url = logoUrl
+    if (bannerUrl) updateData.banner_url = bannerUrl
+    
+    // Check if there are any actual changes (excluding file uploads)
+    const hasTextChanges = editForm.description !== (storeStore.currentStore?.description || '') ||
+                          editForm.location !== (storeStore.currentStore?.location || '') ||
+                          JSON.stringify(editForm.socialLinks || []) !== JSON.stringify(storeStore.currentStore?.external_buttons || []) ||
+                          editForm.themeColor !== (storeStore.currentStore?.customization_settings?.color || '#0099ff')
+    
+    const hasFileChanges = editForm.logo instanceof File || editForm.banner instanceof File
+    
+    if (!hasTextChanges && !hasFileChanges) {
+      updateMessage.value = $t('stores.noChangesToSave') || 'No changes to save'
+      updateMessageType.value = 'info'
+      return
+    }
+    
+    console.log('Updating store with data:', updateData)
+    
+    // Update store via Pinia store
+    await storeStore.updateStore(route.params.id, updateData)
+    
+    // Refresh store data to get updated values
+    await storeStore.fetchStoreById(route.params.id)
+    
+    // Clear file inputs
+    editForm.logo = null
+    editForm.banner = null
+    
+    // Show success message
+    updateMessage.value = $t('stores.updateSuccess') || 'Store updated successfully!'
+    updateMessageType.value = 'success'
+    
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      updateMessage.value = ''
+      updateMessageType.value = ''
+    }, 3000)
+  } catch (error) {
+    console.error('Error updating store:', error)
+    updateMessage.value = $t('stores.updateError') || 'Failed to update store'
+    updateMessageType.value = 'error'
+    
+    // Clear error message after 5 seconds
+    setTimeout(() => {
+      updateMessage.value = ''
+      updateMessageType.value = ''
+    }, 5000)
+  } finally {
+    updateLoading.value = false
+  }
+}
 
 // Computed properties
 const isProPack = computed(() => {
@@ -346,9 +658,12 @@ const closeEditModal = () => {
   showEditModal.value = false
   // Reset form to current store data
   if (storeStore.currentStore) {
-    editForm.name = storeStore.currentStore.name
+    editForm.name = storeStore.currentStore.name || ''
     editForm.description = storeStore.currentStore.description || ''
     editForm.location = storeStore.currentStore.location || ''
+    const existing = storeStore.currentStore.external_buttons
+    editForm.socialLinks = Array.isArray(existing) ? [...existing] : []
+    editForm.themeColor = storeStore.currentStore.themeColor || '#0099ff'
   }
 }
 
@@ -359,7 +674,9 @@ const handleUpdateStore = async () => {
     const updateData = {
       name: editForm.name.trim(),
       description: editForm.description?.trim() || null,
-      location: editForm.location?.trim() || null
+      location: editForm.location?.trim() || null,
+      external_buttons: editForm.socialLinks && editForm.socialLinks.length > 0 ? editForm.socialLinks : null,
+      themeColor: editForm.themeColor || null
     }
 
     await storeStore.updateStore(route.params.id, updateData)
@@ -373,15 +690,17 @@ const handleUpdateStore = async () => {
   }
 }
 
-// Upload functionality for logo and banner
+// File upload handlers (updated to use new validation system)
 const updateBanner = () => {
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
-  input.onchange = async (e) => {
+  input.onchange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      await uploadBanner(file)
+      editForm.banner = file
+      // Clear any previous validation errors
+      validationErrors.banner = ''
     }
   }
   input.click()
@@ -391,142 +710,75 @@ const updateLogo = () => {
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
-  input.onchange = async (e) => {
+  input.onchange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      await uploadLogo(file)
+      editForm.logo = file
+      // Clear any previous validation errors
+      validationErrors.logo = ''
     }
   }
   input.click()
 }
 
-const uploadBanner = async (file) => {
-  try {
-    bannerUploading.value = true
-    
-    // Validate file
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert($t('stores.fileTooLarge'))
-      return
-    }
-    
-    if (!file.type.startsWith('image/')) {
-      alert($t('stores.invalidFileType'))
-      return
-    }
-
-    // Upload to Supabase storage
-    const fileName = `banner-${storeStore.currentStore.id}-${Date.now()}-${file.name}`
-    const { data, error } = await supabase.storage
-      .from('store-images')
-      .upload(fileName, file)
-
-    if (error) throw error
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('store-images')
-      .getPublicUrl(fileName)
-
-    // Update store with new banner URL
-    await storeStore.updateStore(route.params.id, { banner_url: publicUrl })
-    
-    // Refresh store data
-    await storeStore.fetchStoreById(route.params.id)
-    
-    alert($t('stores.uploadSuccess'))
-  } catch (error) {
-    console.error('Error uploading banner:', error)
-    alert($t('stores.bannerUploadError'))
-  } finally {
-    bannerUploading.value = false
-  }
-}
-
-const uploadLogo = async (file) => {
-  try {
-    logoUploading.value = true
-    
-    // Validate file
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert($t('stores.fileTooLarge'))
-      return
-    }
-    
-    if (!file.type.startsWith('image/')) {
-      alert($t('stores.invalidFileType'))
-      return
-    }
-
-    // Upload to Supabase storage
-    const fileName = `logo-${storeStore.currentStore.id}-${Date.now()}-${file.name}`
-    const { data, error } = await supabase.storage
-      .from('store-images')
-      .upload(fileName, file)
-
-    if (error) throw error
-
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('store-images')
-      .getPublicUrl(fileName)
-
-    // Update store with new logo URL
-    await storeStore.updateStore(route.params.id, { logo_url: publicUrl })
-    
-    // Refresh store data
-    await storeStore.fetchStoreById(route.params.id)
-    
-    alert($t('stores.uploadSuccess'))
-  } catch (error) {
-    console.error('Error uploading logo:', error)
-    alert($t('stores.logoUploadError'))
-  } finally {
-    logoUploading.value = false
-  }
+// File preview helpers
+const getFilePreview = (file) => {
+  if (!file) return null
+  return URL.createObjectURL(file)
 }
 
 const editDescription = () => {
-  editForm.description = storeStore.currentStore?.description || ''
-  showEditModal.value = true
+  // Just update the local form state, save happens via saveAllChanges
+  // No need to show modal since we have inline editing
 }
 
 const editLocation = () => {
-  editForm.location = storeStore.currentStore?.location || ''
-  showEditModal.value = true
+  // Just update the local form state, save happens via saveAllChanges
+  // No need to show modal since we have inline editing
 }
 
-// New methods for inline editing
-const updateDescription = async () => {
-  try {
-    if (editForm.description !== storeStore.currentStore?.description) {
-      updateLoading.value = true
-      await storeStore.updateStore(route.params.id, { description: editForm.description?.trim() || null })
-      // Refresh store data to get updated values
-      await storeStore.fetchStoreById(route.params.id)
-    }
-  } catch (error) {
-    console.error('Error updating description:', error)
-    alert($t('stores.updateError') || 'Failed to update description')
-  } finally {
-    updateLoading.value = false
+// Individual update methods (for immediate feedback)
+const updateDescription = () => {
+  // Just update the form, don't save yet
+  // Clear any previous validation errors
+  validationErrors.description = ''
+}
+
+const updateLocation = () => {
+  // Just update the form, don't save yet
+  // Clear any previous validation errors
+  validationErrors.location = ''
+}
+
+// Color picker controls
+const colorInputRef = ref(null)
+const openColorPicker = () => {
+  if (colorInputRef.value) {
+    colorInputRef.value.click()
+  }
+}
+const onColorChange = async (e) => {
+  // Just update the form, don't save yet
+  const value = e.target.value
+  editForm.themeColor = value
+  console.log('Color updated in form:', value)
+}
+
+// Social links controls (Pro Pack only)
+const addSocialLink = () => {
+  editForm.socialLinks.push('')
+}
+
+const removeSocialLink = (idx) => {
+  if (idx >= 0 && idx < editForm.socialLinks.length) {
+    editForm.socialLinks.splice(idx, 1)
   }
 }
 
-const updateLocation = async () => {
-  try {
-    if (editForm.location !== storeStore.currentStore?.location) {
-      updateLoading.value = true
-      await storeStore.updateStore(route.params.id, { location: editForm.location?.trim() || null })
-      // Refresh store data to get updated values
-      await storeStore.fetchStoreById(route.params.id)
-    }
-  } catch (error) {
-    console.error('Error updating location:', error)
-    alert($t('stores.updateError') || 'Failed to update location')
-  } finally {
-    updateLoading.value = false
-  }
+const updateSocialLinks = () => {
+  // Just update the form, don't save yet
+  // Clear any previous validation errors
+  validationErrors.socialLinks = ''
 }
 
 onMounted(async () => {
@@ -541,6 +793,8 @@ onMounted(async () => {
     editForm.name = storeStore.currentStore.name
     editForm.description = storeStore.currentStore.description || ''
     editForm.location = storeStore.currentStore.location || ''
+    editForm.socialLinks = storeStore.currentStore.external_buttons || []
+    editForm.themeColor = storeStore.currentStore.customization_settings?.color || '#0099ff'
   }
 })
 
