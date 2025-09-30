@@ -15,6 +15,14 @@
       </p>
     </div>
 
+    <!-- Best-selling Products Section -->
+    <div v-if="categoryId !== 'all'" class="mb-12">
+      <BestSellingProducts 
+        :categoryId="categoryId" 
+        :title="`Best-selling ${getCategoryName(categoryId)} Products`"
+      />
+    </div>
+
     <!-- Filters and Sort -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
       <!-- Results Count -->
@@ -83,6 +91,7 @@ import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/product'
 import ProductCard from '../components/ProductCard.vue'
+import BestSellingProducts from '../components/BestSellingProducts.vue'
 
 const { t } = useI18n()
 const route = useRoute()

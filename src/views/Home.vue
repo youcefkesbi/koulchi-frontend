@@ -312,6 +312,7 @@ const {
   loading, 
   error, 
   fetchBestSellingProducts,
+  fetchBestSellingProductsByCategory,
   refreshBestSellingProducts 
 } = useProducts()
 
@@ -364,7 +365,7 @@ const loadCategoryProducts = async (categoryId) => {
   categoryErrors.value[categoryId] = null
   
   try {
-    const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
+    const products = await fetchBestSellingProductsByCategory(categoryId)
     categoryProducts.value[categoryId] = products || []
   } catch (err) {
     console.error(`Error loading products for category ${categoryId}:`, err)

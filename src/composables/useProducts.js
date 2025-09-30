@@ -25,7 +25,7 @@ export function useProducts() {
    * Get backend base URL from environment
    */
   const getBackendUrl = () => {
-    return environment.backend.url
+    return import.meta.env.VITE_BACKEND_URL
   }
 
   /**
@@ -72,7 +72,7 @@ export function useProducts() {
       error.value = null
 
       const backendUrl = getBackendUrl()
-      const url = `${backendUrl}/products/best-selling`
+      const url = `${backendUrl}/api/products/best-selling-products`
 
       const response = await axios.get(url, {
         timeout: 10000, // 10 second timeout
@@ -108,7 +108,7 @@ export function useProducts() {
       }
 
       const backendUrl = getBackendUrl()
-      const url = `${backendUrl}/products/best-selling/${categoryId}`
+      const url = `${backendUrl}/api/products/best-selling-products/category/${categoryId}`
 
       const response = await axios.get(url, {
         timeout: 10000, // 10 second timeout
