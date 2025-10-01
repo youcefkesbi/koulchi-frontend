@@ -84,7 +84,8 @@
     "login": "Login",
     "tagline": "Find It. Love It. Get It.",
     "categories": "Categories",
-    "brandName": "Koulchi"
+    "brandName": "Koulchi",
+    "myOrders": "My Orders"
   },
   "notFound": {
     "title": "Page Not Found",
@@ -278,13 +279,29 @@
     "validationError":"Please fix the validation errors before proceeding.",
     "announcements": "announcements",
     "currency": "DZD",
+    "storeId": "Store ID",
+    "location": "Location",
+    "editDescription": "Edit Description",
+    "editLocation": "Edit Location",
+    "updateBanner": "Update Banner",
+    "updateLogo": "Update Logo",
+    "basicPlan": "Basic Plan",
+    "proPlan": "Pro Plan",
+    "storeIdDisplay": "Store #{id}",
+    "updateError": "Failed to update. Please try again.",
     "free": "Free",
     "myStore": "My Store",
     "noPackSelected": "No pack selected",
     "packRequired": "Please select a plan",
     "invalidPack": "Selected plan is invalid",
     "logoRequired": "Logo is required for Pro plan",
-    "bannerRequired": "Banner is required for Pro plan"
+    "bannerRequired": "Banner is required for Pro plan",
+    "contact": "Contact",
+    "addLink": "Add Link",
+    "selectColor": "Select a color for your store",
+    "saveChanges": "Save Changes",
+    "noChangesToSave": "No changes to save",
+    "socialLinkPlaceholder": "https://example.com/your-profile"
   },
   "pack": {
   "basic": {

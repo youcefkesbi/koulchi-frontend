@@ -78,17 +78,31 @@ export const useStoreStore = defineStore('store', () => {
       loading.value = true
       error.value = null
 
-      // Uses the public SELECT policy "everyone can view stores" - any user can view any store
+      // Fetch store with all necessary information using the store_details view
       const { data, error: fetchError } = await supabase
-        .from('stores')
+        .from('store_details')
         .select('*')
         .eq('id', storeId)
         .single()
 
       if (fetchError) throw fetchError
 
-      currentStore.value = data
-      return data
+      // Transform the data to include computed properties
+      const storeData = {
+        ...data,
+        // Determine pack type based on store name (as per user's suggestion)
+        isProPack: !!data.name && data.name.trim() !== '',
+        packType: (!!data.name && data.name.trim() !== '') ? 'Pro Pack' : 'Basic Pack',
+        // Add computed properties for easier access
+        displayName: data.name || `Store #${data.id?.slice(-8)}`,
+        hasBanner: !!data.banner_url,
+        hasLogo: !!data.logo_url,
+        hasLocation: !!data.location,
+        hasDescription: !!data.description
+      }
+
+      currentStore.value = storeData
+      return storeData
     } catch (err) {
       error.value = err.message
       console.error('Error fetching store:', err)
