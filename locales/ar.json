@@ -111,6 +111,7 @@
   "products": "المنتجات",
   "profile": "الملف الشخصي",
   "stores": {
+    "currency": "دج",
     "discoverStores": "اكتشف المتاجر",
     "heroDescription": "استكشف المتاجر الرائعة واعثر على منتجات فريدة من بائعين موثوقين",
     "loading": "جاري تحميل المتاجر...",
@@ -181,7 +182,6 @@
     "invalidFileType": "نوع ملف غير صالح. الصور فقط مسموحة.",
     "uploadSuccess": "تم الرفع بنجاح",
     "updateSuccess": "تم تحديث المتجر بنجاح",
-    "currency": "دج",
     "free": "مجاني",
     "storeNameRequired": "اسم المتجر مطلوب",
     "storeNameTooLong": "يجب أن يكون اسم المتجر أقل من 100 حرف",
@@ -328,6 +328,16 @@
     "buyingSection": "الشراء",
     "sellingSection": "البيع",
     "buyingDescription": "تتبع طلباتك، وأدر قائمة أمنياتك، واعرض سجل مشترياتك",
+    "stats": {
+      "totalOrders": "إجمالي الطلبات",
+      "totalProducts": "إجمالي المنتجات",
+      "totalSales": "إجمالي المبيعات",
+      "totalVisitors": "إجمالي الزوار",
+      "loadingStats": "جاري تحميل إحصائيات المتجر...",
+      "noStoreFound": "لم يتم العثور على متجر",
+      "noStoreMessage": "ليس لديك متجر معتمد بعد. أنشئ متجرًا لرؤية إحصائياتك.",
+      "createStore": "إنشاء متجر"
+    },
     "sellingDescription": "أدر منتجاتك ومتاجرك وتتبع أداء مبيعاتك",
     "activeOrders": "الطلبات النشطة",
     "wishlist": "قائمة الأمنيات",
