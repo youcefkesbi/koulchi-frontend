@@ -33,9 +33,16 @@
     <section id="best-selling-products" class="my-slide-up">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.bestSellingProducts') }}</h2>
-        <router-link to="/products" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
-          {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
-        </router-link>
+        <div class="flex items-center space-x-4 space-x-reverse">
+          <button
+            @click="refreshBestSellingProducts"
+            :disabled="loading"
+            class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
+          >
+            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': loading }"></i>
+            {{ t('bestSelling.refresh') }}
+          </button>
+        </div>
       </div>
       
       <!-- Loading State -->
@@ -54,7 +61,7 @@
           <i class="fas fa-exclamation-triangle mr-2"></i>
           {{ error }}
         </div>
-        <button @click="loadBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+        <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
         
@@ -81,9 +88,16 @@
           <i class="fas fa-box-open mr-2"></i>
           {{ t('sections.noBestSellingProducts') }}
         </div>
+        <div class="mt-4">
+          <p class="text-gray-600 mb-4">Try refreshing the page or check your connection.</p>
+          <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+            {{ t('common.retry') }}
+          </button>
+        </div>
       </div>
 
     </section>
+
 
     <!-- Browse by Category Section -->
     <section class="my-slide-up">
@@ -179,6 +193,7 @@
         </div>
         </div>
       </div>
+      
     </section>
 
     <!-- Features Section -->
@@ -284,20 +299,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/product'
+import { useProducts } from '../composables/useProducts'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
+const { 
+  bestSellingProducts, 
+  loading, 
+  error, 
+  fetchBestSellingProducts,
+  fetchBestSellingProductsByCategory,
+  refreshBestSellingProducts 
+} = useProducts()
 
-
-const isProd = process.env.NODE_ENV === 'production'
-const isDev = process.env.NODE_ENV === 'development'
-
-
-// State for best-selling products
-const bestSellingProducts = ref([])
-const loading = ref(false)
-const error = ref(null)
+const isProd = import.meta.env.PROD
+const isDev = import.meta.env.DEV
 
 // State for category products
 const categoryProducts = ref({})
@@ -333,30 +350,19 @@ const getCategoryName = (categoryId) => {
 }
 
 const loadBestSellingProducts = async () => {
-  loading.value = true
-  error.value = null
-  
   try {
-    const products = await productStore.fetchMostSoldProducts(10)
-    bestSellingProducts.value = products || []
-    console.log('Best-selling products loaded:', products?.length || 0)
+    await fetchBestSellingProducts()
   } catch (err) {
     console.error('Error loading best-selling products:', err)
-    error.value = err.message || 'Failed to load best-selling products'
-    bestSellingProducts.value = []
-  } finally {
-    loading.value = false
   }
 }
 
 const loadCategoryProducts = async (categoryId) => {
-   debugger  // execution will pause here
-  console.log('Mounted running...')
   categoryLoading.value[categoryId] = true
   categoryErrors.value[categoryId] = null
   
   try {
-    const products = await productStore.fetchBestSellingProductsByCategory(categoryId, 10)
+    const products = await fetchBestSellingProductsByCategory(categoryId)
     categoryProducts.value[categoryId] = products || []
   } catch (err) {
     console.error(`Error loading products for category ${categoryId}:`, err)
@@ -394,29 +400,24 @@ const scrollToMostSoldProducts = () => {
 }
 
 onMounted(async () => {
-  // Always ensure the section renders by setting a minimum timeout
   const minTimeout = setTimeout(() => {
-    console.log('Minimum timeout reached - ensuring section renders')
     categoriesLoaded.value = true
-  }, 3000) // 3 second minimum timeout
+  }, 3000)
   
   try {
-    // Set a timeout to ensure the section renders even if there are issues
     const timeoutId = setTimeout(() => {
-      console.warn('Homepage data loading timeout - rendering with available data')
       categoriesLoaded.value = true
-    }, 10000) // 10 second timeout
+    }, 10000)
     
     // Load categories if not already loaded
     if (productStore.categories.length === 0) {
       try {
         await productStore.fetchCategories()
-        console.log('Categories loaded successfully:', productStore.categories.length)
       } catch (categoryError) {
         console.error('Failed to load categories:', categoryError)
-        // In production, if categories fail to load, try to use fallback categories
-        if (process.env.NODE_ENV === 'production') {
-          console.log('Using fallback categories for production')
+        
+        // Use fallback categories in production
+        if (import.meta.env.PROD) {
           productStore.categories = [
             { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
             { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
@@ -432,30 +433,113 @@ onMounted(async () => {
     clearTimeout(minTimeout)
     
     // Load best-selling products
-    try {
-      await loadBestSellingProducts()
-    } catch (bestSellingError) {
-      console.error('Failed to load best-selling products:', bestSellingError)
-    }
+    await loadBestSellingProducts()
     
     // Load category products for each category
     if (categories.value && categories.value.length > 0) {
-      console.log('Loading products for categories:', categories.value.map(c => c.id))
-      // Load category products in parallel for better performance
       const categoryPromises = categories.value.map(category => 
         loadCategoryProducts(category.id)
       )
       await Promise.allSettled(categoryPromises)
-    } else {
-      console.warn('No categories available to load products for')
     }
   } catch (error) {
     console.error('Error loading homepage data:', error)
-    // Ensure categoriesLoaded is set even if there's an error
     categoriesLoaded.value = true
     clearTimeout(minTimeout)
   }
 })
-
-"development === 'production'"
 </script>
+
+<style scoped>
+/* Ensure sections are always visible */
+section {
+  min-height: 200px;
+  margin-bottom: 2rem;
+}
+
+/* Custom animations */
+.my-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.my-slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Grid cards layout */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+/* Card styles */
+.card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Shadow utilities */
+.shadow-soft {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+/* Section padding */
+.section-padding {
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .section-padding {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding: 4rem 2rem;
+  }
+}
+
+/* Container responsive */
+.container-lg {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* RTL support */
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+</style>

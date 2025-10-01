@@ -8,6 +8,19 @@ import { piniaPersist } from './plugins/piniaPersist.js'
 // Initialize stores after Pinia is set up
 import { useAuthStore } from './stores/auth.js'
 
+// Global error handlers
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason)
+  // Prevent the default behavior (which would log to console)
+  event.preventDefault()
+})
+
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error)
+  // Prevent the default behavior
+  event.preventDefault()
+})
+
 // Error handling for app initialization
 try {
   const app = createApp(App)
@@ -22,6 +35,11 @@ try {
 
   // Make i18n instance globally available
   app.config.globalProperties.$i18n = i18n.global
+
+  // Global error handler for Vue components
+  app.config.errorHandler = (err, instance, info) => {
+    console.error('Vue error:', err, 'Component:', instance, 'Info:', info)
+  }
 
   const authStore = useAuthStore()
 

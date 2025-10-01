@@ -1,3 +1,4 @@
+-- create cart table
 CREATE TABLE cart (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,

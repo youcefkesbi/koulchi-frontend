@@ -41,6 +41,10 @@ export const environment = {
     anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
   },
 
+  backend: {
+    url: import.meta.env.VITE_BACKEND_URL || 'https://koulchi-backend.onrender.com'
+  },
+
   oauth: {
     // Supabase handles OAuth callbacks through its own fixed endpoint
     // No custom callbackPath needed
@@ -62,12 +66,16 @@ export const environment = {
 export const validateEnvironment = () => {
   const errors = []
   
-  if (!environment.supabase.url) {
+  if (!environment.supabase.url || environment.supabase.url === 'https://placeholder.supabase.co') {
     errors.push('VITE_SUPABASE_URL is not configured')
   }
   
-  if (!environment.supabase.anonKey) {
+  if (!environment.supabase.anonKey || environment.supabase.anonKey === 'placeholder-key') {
     errors.push('VITE_SUPABASE_ANON_KEY is not configured')
+  }
+  
+  if (!environment.backend.url || environment.backend.url === 'https://koulchi-backend.onrender.com') {
+    console.warn('Using default backend URL. Consider setting VITE_BACKEND_URL for custom backend.')
   }
   
   if (errors.length > 0) {
@@ -117,19 +125,5 @@ export const getOAuthConfig = () => {
   }
 }
 
-if (environment.features.debugLogging) {
-  console.log('Environment Configuration:', {
-    appName: environment.branding.name,
-    appUrl: environment.appUrl,
-    isProduction: environment.isProduction,
-    isVercel: environment.isVercel,
-    isDevelopment: environment.isDevelopment,
-    isLocalhost: environment.isLocalhost,
-    supabaseUrl: environment.supabase.url ? 'Configured' : 'Missing',
-    supabaseAnonKey: environment.supabase.anonKey ? 'Configured' : 'Missing',
-    oauthCallbackPath: environment.oauth.callbackPath,
-    oauthBranding: environment.features.oauthBranding
-  })
-}
 
 export default environment

@@ -743,5 +743,20 @@
     "profile": "Profile",
     "orders": "Orders",
     "settings": "Settings"
+  },
+  "bestSelling": {
+    "title": "Best Selling Products",
+    "subtitle": "Discover our most popular products",
+    "loading": "Loading best-selling products...",
+    "errorTitle": "Failed to load products",
+    "retry": "Try Again",
+    "emptyTitle": "No products found",
+    "emptyMessage": "There are no best-selling products available at the moment.",
+    "allCategories": "All Categories",
+    "soldBy": "Sold by",
+    "sold": "Sold",
+    "viewProduct": "View Product",
+    "loadMore": "Load More",
+    "refresh": "Refresh"
   }
 }
