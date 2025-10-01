@@ -43,14 +43,8 @@ export const useStoreStore = defineStore('store', () => {
 
       const { data: { session } } = await supabase.auth.getSession()
       if (!session || !session.user) {
-        console.log('Fetch user stores request: User not authenticated')
         throw new Error('User not authenticated')
       }
-      
-      console.log('Fetch user stores request: User authenticated', { 
-        userId: session.user.id, 
-        email: session.user.email 
-      })
       
       const user = session.user
 
@@ -126,14 +120,8 @@ export const useStoreStore = defineStore('store', () => {
       }
       
       if (!session || !session.user) {
-        console.log('Store creation request: User not authenticated')
         throw new Error('User not authenticated')
       }
-      
-      console.log('Store creation request: User authenticated', { 
-        userId: session.user.id, 
-        email: session.user.email 
-      })
       
       const user = session.user
 
@@ -203,11 +191,6 @@ export const useStoreStore = defineStore('store', () => {
         status: 'pending' // All stores start as pending for review
       }
 
-      console.log('Creating store with data:', { 
-        ...storeInsertData, 
-        owner_id: '***' // Hide user ID in logs for security
-      })
-
       // 4. Database Insert with Enhanced Error Handling
       const { data, error: createError } = await supabase
         .from('stores')
@@ -242,7 +225,6 @@ export const useStoreStore = defineStore('store', () => {
         throw new Error('Store was created but no data was returned. Please refresh the page.')
       }
 
-      console.log('Store created successfully:', data.id)
 
       // 5. Update Local State (Optimistic Updates)
       try {
@@ -439,14 +421,8 @@ export const useStoreStore = defineStore('store', () => {
       }
       
       if (!session || !session.user) {
-        console.log('Store creation with images request: User not authenticated')
         throw new Error('User not authenticated')
       }
-      
-      console.log('Store creation with images request: User authenticated', { 
-        userId: session.user.id, 
-        email: session.user.email 
-      })
 
       // Upload images in parallel for better performance
       const uploadPromises = []

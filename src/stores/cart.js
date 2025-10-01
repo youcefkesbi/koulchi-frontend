@@ -35,12 +35,10 @@ export const useCartStore = defineStore('cart', () => {
     try {
       loading.value = true
       error.value = null
-      console.log('Fetching cart...')
       
       // Use the cart service to fetch items
       const cartItems = await cartService.getItems()
       items.value = cartItems
-      console.log('Fetched', cartItems.length, 'cart items')
     } catch (err) {
       error.value = err.message
       console.error('Error fetching cart:', err)
@@ -64,21 +62,13 @@ export const useCartStore = defineStore('cart', () => {
 
   const addToCart = async (product, quantity = 1) => {
     try {
-      console.log('=== Cart Store addToCart START ===')
-      console.log('Cart store addToCart called with:', { product, quantity })
-      console.log('Cart service available:', !!cartService)
       
       // Use the cart service to add item
-      console.log('Calling cartService.addItem...')
       await cartService.addItem(product.id, quantity)
-      console.log('cartService.addItem completed successfully')
       
       // Refresh cart items
-      console.log('Refreshing cart items...')
       await fetchCart()
-      console.log('Cart items refreshed successfully')
       
-      console.log('=== Cart Store addToCart SUCCESS ===')
     } catch (err) {
       console.error('=== Cart Store addToCart ERROR ===')
       error.value = err.message

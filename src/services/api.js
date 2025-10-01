@@ -35,7 +35,6 @@ class BaseAPI {
       // Check if token is expired and refresh if needed
       const now = Math.floor(Date.now() / 1000)
       if (session.expires_at && session.expires_at < now) {
-        console.log('Token expired, attempting refresh...')
         
         const { data: refreshData, error: refreshError } = await this.supabase.auth.refreshSession()
         
@@ -166,7 +165,6 @@ export class StoresAPI extends BaseAPI {
         description: storeDescription
       }
 
-      console.log('Creating store with data:', { 
         ...storeInsertData, 
         owner_id: '***' // Hide user ID in logs for security
       })
@@ -197,7 +195,6 @@ export class StoresAPI extends BaseAPI {
         throw new Error('Store was created but no data was returned. Please refresh the page.')
       }
 
-      console.log('Store created successfully:', data.id)
       return data
     } catch (err) {
       this.handleError(err, 'Create store')
@@ -271,7 +268,6 @@ export class StorageAPI extends BaseAPI {
         throw new Error('File size must be less than 5MB')
       }
 
-      console.log('Uploading file:', { bucketName, fileName, fileSize: file.size })
 
       // Upload file to Supabase storage (JWT automatically attached)
       const { data, error } = await this.supabase.storage
@@ -302,7 +298,6 @@ export class StorageAPI extends BaseAPI {
         throw new Error('Failed to get public URL for uploaded file')
       }
 
-      console.log('File uploaded successfully:', publicUrl)
       return publicUrl
     } catch (err) {
       this.handleError(err, 'Upload file')

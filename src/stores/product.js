@@ -286,7 +286,6 @@ export const useProductStore = defineStore('product', () => {
         throw supabaseError;
       }
       
-      console.log('Categories fetched successfully:', data?.length || 0);
       categories.value = data || [];
       return data;
     } catch (err) {

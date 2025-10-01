@@ -45,21 +45,13 @@ export const useWishlistStore = defineStore('wishlist', () => {
 
   const addToWishlist = async (productId) => {
     try {
-      console.log('=== Wishlist Store addToWishlist START ===')
-      console.log('Wishlist store addToWishlist called with:', { productId })
-      console.log('Wishlist service available:', !!wishlistService)
       
       // Use the wishlist service to add item
-      console.log('Calling wishlistService.addItem...')
       await wishlistService.addItem(productId);
-      console.log('wishlistService.addItem completed successfully')
       
       // Refresh wishlist items
-      console.log('Refreshing wishlist items...')
       await fetchWishlist();
-      console.log('Wishlist items refreshed successfully')
       
-      console.log('=== Wishlist Store addToWishlist SUCCESS ===')
       return true;
     } catch (err) {
       console.error('=== Wishlist Store addToWishlist ERROR ===')

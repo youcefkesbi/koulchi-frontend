@@ -41,7 +41,6 @@ export function useLocalizedI18n() {
         route.meta.locale = newLocale
       }
       
-      console.log('Language changed successfully to:', newLocale)
     } catch (error) {
       console.error('Error changing language:', error)
       // Revert locale change on error
@@ -73,7 +72,6 @@ export function useLocalizedI18n() {
   // Watch for locale changes to ensure proper reactivity
   watch(locale, (newLocale, oldLocale) => {
     if (newLocale !== oldLocale) {
-      console.log('Locale changed in composable from', oldLocale, 'to', newLocale)
       // Update document attributes
       const langInfo = getLanguageInfo(newLocale)
       if (langInfo) {

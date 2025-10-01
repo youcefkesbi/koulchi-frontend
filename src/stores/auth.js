@@ -90,7 +90,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
     
     try {
-      console.log('🔄 Manually refreshing profile for user:', user.value.id)
       await loadUserWithProfile(user.value)
       return true
     } catch (err) {
@@ -102,7 +101,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Force role refresh from Supabase
   const forceRoleRefresh = async () => {
     try {
-      console.log('🔄 Force refreshing role from Supabase...')
       
       // Get current session
       const { data: { session } } = await supabase.auth.getSession()
@@ -129,7 +127,6 @@ export const useAuthStore = defineStore('auth', () => {
           ...user.value,
           role: profile.role?.toLowerCase() || 'customer'
         }
-        console.log('✅ Role refreshed from Supabase:', profile.role)
         return true
       }
 
@@ -344,7 +341,6 @@ export const useAuthStore = defineStore('auth', () => {
       // Clear local user state
       user.value = null
       
-      console.log('User logged out successfully')
     } catch (err) {
       console.error('Logout error:', err)
       error.value = err.message
@@ -505,8 +501,6 @@ export const useAuthStore = defineStore('auth', () => {
 const loadUserWithProfile = async (authUser) => {
   try {
     profileLoading.value = true
-    console.log('Loading user profile for:', authUser.email)
-    console.log('User ID:', authUser.id)
 
     // Timeout promise (5s safeguard)
     const timeoutPromise = new Promise((resolve) =>
@@ -531,11 +525,8 @@ const loadUserWithProfile = async (authUser) => {
   timeoutPromise
 ])
 
-    console.log('Profile query completed. Data:', profile, 'Error:', profileError)
 
     if (profileError) {
-      console.log('Profile error:', profileError)
-      console.log('Using auth user without profile data')
       user.value = authUser
       return
     }
@@ -553,13 +544,6 @@ const loadUserWithProfile = async (authUser) => {
         city: profile.city,
         role
       }
-
-      console.log(
-        '✅ User loaded with role:',
-        role,
-        'and full_name:',
-        user.value.full_name
-      )
     } else {
       // No profile found
       user.value = {
@@ -569,7 +553,6 @@ const loadUserWithProfile = async (authUser) => {
           authUser.raw_user_meta_data?.full_name,
         role: 'customer'
       }
-      console.log('⚠️ No profile data, using auth user with default role "customer"')
     }
   } catch (err) {
     console.warn('Could not load profile data:', err)
@@ -595,13 +578,11 @@ const initAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (session?.user) {
-      console.log('🔄 Initializing auth with fresh profile data...')
       await loadUserWithProfile(session.user)
 
       // Double-check role after a short delay
       setTimeout(async () => {
         if (user.value && (!user.value.role || user.value.role === 'customer')) {
-          console.log('🔄 Double-checking role loading...')
           await loadUserWithProfile(session.user)
         }
       }, 1000)
@@ -612,7 +593,6 @@ const initAuth = async () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email)
         if (session?.user) {
           await loadUserWithProfile(session.user)
 

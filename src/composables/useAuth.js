@@ -38,24 +38,20 @@ export function useAuth() {
       
       // Check if session exists
       if (!currentSession || !currentSession.user) {
-        console.log('No valid session found')
         return null
       }
       
       // Check if token is expired (optional - Supabase handles this automatically)
       const now = Math.floor(Date.now() / 1000)
       if (currentSession.expires_at && currentSession.expires_at < now) {
-        console.log('Token expired, attempting refresh...')
         
         // Attempt to refresh the session
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
         
         if (refreshError || !refreshData.session) {
-          console.log('Session refresh failed:', refreshError)
           return null
         }
         
-        console.log('Session refreshed successfully')
         session.value = refreshData.session
         user.value = refreshData.session.user
         return refreshData.session
@@ -65,7 +61,6 @@ export function useAuth() {
       session.value = currentSession
       user.value = currentSession.user
       
-      console.log('Valid session found', { 
         userId: currentSession.user.id, 
         email: currentSession.user.email,
         expiresAt: new Date(currentSession.expires_at * 1000).toISOString()
@@ -128,7 +123,6 @@ export function useAuth() {
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, newSession) => {
-          console.log('Auth state change:', event, newSession?.user?.email)
           
           if (newSession?.user) {
             session.value = newSession
@@ -136,7 +130,6 @@ export function useAuth() {
             
             // Handle sign in
             if (event === 'SIGNED_IN') {
-              console.log('User signed in:', newSession.user.email)
               
               // Sync local data to Supabase after login
               try {
@@ -151,7 +144,6 @@ export function useAuth() {
             }
           } else {
             // User signed out or session expired
-            console.log('User signed out or session expired')
             session.value = null
             user.value = null
           }

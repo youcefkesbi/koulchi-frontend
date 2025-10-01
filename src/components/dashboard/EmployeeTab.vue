@@ -275,6 +275,9 @@ onMounted(() => {
 
 <style scoped>
 .card {
-  @apply bg-white rounded-xl shadow-soft p-6;
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
 }
 </style>

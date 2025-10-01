@@ -849,7 +849,6 @@ const initAuth = async () => {
     // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('Auth state change:', event, newSession?.user?.email)
 
         if (newSession?.user) {
           session.value = newSession
@@ -857,10 +856,8 @@ const initAuth = async () => {
           isAuthenticated.value = true
 
           if (event === 'SIGNED_IN') {
-            console.log('User signed in:', newSession.user.email)
           }
         } else {
-          console.log('User signed out or session expired')
           session.value = null
           user.value = null
           isAuthenticated.value = false
