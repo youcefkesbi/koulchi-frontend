@@ -156,7 +156,6 @@ const addToCart = async () => {
     await cartStore.addToCart(props.product)
     
     // Show success feedback
-    console.log('Product added to cart successfully')
   } catch (err) {
     console.error('Failed to add to cart:', err)
     error.value = err.message || 'فشل في إضافة المنتج للسلة'
@@ -172,10 +171,8 @@ const toggleWishlist = async () => {
     
     if (isInWishlist.value) {
       await wishlistStore.removeProductFromWishlist(props.product.id)
-      console.log('Product removed from wishlist successfully')
     } else {
       await wishlistStore.addToWishlist(props.product.id)
-      console.log('Product added to wishlist successfully')
     }
   } catch (err) {
     console.error('Failed to toggle wishlist:', err)
@@ -197,7 +194,6 @@ onMounted(async () => {
       await wishlistStore.fetchWishlist()
     } catch (error) {
       // User might not be authenticated, which is fine
-      console.log('User not authenticated or wishlist fetch failed:', error)
     }
   }
 })

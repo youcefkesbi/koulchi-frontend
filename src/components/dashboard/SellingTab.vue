@@ -241,7 +241,6 @@ const editStore = (store) => {
   // Navigate to store edit page
   const editPath = getLocalizedRoute(`/dashboard/store/${store.id}/edit`)
   // This would be handled by the parent component or router
-  console.log('Edit store:', store, editPath)
 }
 
 onMounted(async () => {

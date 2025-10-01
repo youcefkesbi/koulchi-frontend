@@ -77,11 +77,6 @@
       </template>
     </div>
 
-    <!-- Debug component (remove in production) -->
-    <RoleDebugger />
-    <RoleTest />
-    <ThemeTest />
-    <ThemeDebugger />
   </div>
 </template>
 
@@ -106,12 +101,6 @@ const activeTab = ref('selling')
 // Available tabs based on user role
 const availableTabs = computed(() => {
   const userRole = authStore.userRole || 'customer'
-  console.log('🔍 Computing availableTabs:')
-  console.log('  - userRole:', userRole)
-  console.log('  - isAuthenticated:', authStore.isAuthenticated)
-  console.log('  - profileLoading:', authStore.profileLoading)
-  console.log('  - user object:', authStore.user)
-  console.log('  - user.role from object:', authStore.user?.role)
   
   const tabs = [
     {
@@ -124,7 +113,6 @@ const availableTabs = computed(() => {
 
   // Add admin tab for admins
   if (userRole === 'admin') {
-    console.log('✅ Adding admin tab - userRole is admin')
     tabs.push({
       id: 'admin',
       name: t('admin.dashboard'),
@@ -132,12 +120,10 @@ const availableTabs = computed(() => {
       roles: ['admin']
     })
   } else {
-    console.log('❌ Not adding admin tab - userRole is:', userRole)
   }
 
   // Add employee tab for employees
   if (userRole === 'employee') {
-    console.log('✅ Adding employee tab - userRole is employee')
     tabs.push({
       id: 'employee',
       name: t('employee.dashboard'),
@@ -145,17 +131,13 @@ const availableTabs = computed(() => {
       roles: ['employee']
     })
   } else {
-    console.log('❌ Not adding employee tab - userRole is:', userRole)
   }
-
-  console.log('Final tabs:', tabs)
   return tabs
 })
 
 // Handle admin navigation
 const handleAdminNavigation = (section) => {
   // Navigate to admin section or show admin modal
-  console.log('Navigate to admin section:', section)
   // This could open a modal or navigate to a different route
   // For now, we'll just log it
 }
@@ -163,7 +145,6 @@ const handleAdminNavigation = (section) => {
 // Handle employee navigation
 const handleEmployeeNavigation = (section) => {
   // Navigate to employee section or show employee modal
-  console.log('Navigate to employee section:', section)
   // This could open a modal or navigate to a different route
   // For now, we'll just log it
 }
@@ -190,14 +171,12 @@ const validateTabAccess = () => {
 
 // Watch for role changes and refresh tabs
 watch(() => authStore.userRole, (newRole, oldRole) => {
-  console.log('User role changed from', oldRole, 'to', newRole)
   validateTabAccess()
 }, { immediate: true })
 
 onMounted(async () => {
   // Force role refresh on dashboard mount to ensure fresh data
   if (authStore.isAuthenticated) {
-    console.log('🔄 Dashboard mounted, ensuring fresh role data...')
     await authStore.forceRoleRefresh()
   }
   

@@ -638,7 +638,6 @@ const refreshLogs = async () => {
 
 const editUser = (user) => {
   // TODO: Implement user edit modal
-  console.log('Edit user:', user)
 }
 
 const deleteUser = async (userId) => {
@@ -661,12 +660,10 @@ const deleteUser = async (userId) => {
 
 const viewStoreDetails = (store) => {
   // TODO: Implement store details modal
-  console.log('View store details:', store)
 }
 
 const editStore = (store) => {
   // TODO: Implement store edit modal
-  console.log('Edit store:', store)
 }
 
 const deleteStore = async (storeId) => {
@@ -689,7 +686,6 @@ const deleteStore = async (storeId) => {
 
 const editPack = (pack) => {
   // TODO: Implement pack edit modal
-  console.log('Edit pack:', pack)
 }
 
 const deletePack = async (packId) => {

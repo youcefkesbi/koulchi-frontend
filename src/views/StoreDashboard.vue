@@ -567,7 +567,6 @@ const saveAllChanges = async () => {
       return
     }
     
-    console.log('Updating store with data:', updateData)
     
     // Update store via Pinia store
     await storeStore.updateStore(route.params.id, updateData)
@@ -761,7 +760,6 @@ const onColorChange = async (e) => {
   // Just update the form, don't save yet
   const value = e.target.value
   editForm.themeColor = value
-  console.log('Color updated in form:', value)
 }
 
 // Social links controls (Pro Pack only)

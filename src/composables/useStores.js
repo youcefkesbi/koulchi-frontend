@@ -41,28 +41,23 @@ export function useStores() {
       
       // 2. Check if session exists and is valid
       if (!session || !session.user) {
-        console.log('No valid session found')
         return null
       }
       
       // 3. Check if token is expired (optional - Supabase handles this automatically)
       const now = Math.floor(Date.now() / 1000)
       if (session.expires_at && session.expires_at < now) {
-        console.log('Token expired, attempting refresh...')
         
         // Attempt to refresh the session
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
         
         if (refreshError || !refreshData.session) {
-          console.log('Session refresh failed')
           return null
         }
         
-        console.log('Session refreshed successfully')
         return refreshData.session
       }
       
-      console.log('Valid session found', { 
         userId: session.user.id, 
         email: session.user.email,
         expiresAt: new Date(session.expires_at * 1000).toISOString()
@@ -229,7 +224,6 @@ export function useStores() {
         description: storeDescription
       }
 
-      console.log('Creating store with data:', { 
         ...storeInsertData, 
         owner_id: '***' // Hide user ID in logs for security
       })
@@ -263,7 +257,6 @@ export function useStores() {
         throw new Error('Store was created but no data was returned. Please refresh the page.')
       }
 
-      console.log('Store created successfully:', data.id)
 
       // 5. Update local state
       try {
@@ -333,7 +326,6 @@ export function useStores() {
         throw new Error('File size must be less than 5MB')
       }
 
-      console.log('Uploading image:', { bucketName, fileName, fileSize: file.size })
 
       // Upload file to Supabase storage (JWT automatically attached)
       const { data, error: uploadError } = await supabase.storage
@@ -366,7 +358,6 @@ export function useStores() {
         throw new Error('Failed to get public URL for uploaded file')
       }
 
-      console.log('Image uploaded successfully:', publicUrl)
       return publicUrl
     } catch (err) {
       console.error('Error uploading image:', err)
@@ -395,7 +386,6 @@ export function useStores() {
         throw new Error('User not authenticated')
       }
 
-      console.log('Creating store with images:', {
         hasLogo: !!logoFile,
         hasBanner: !!bannerFile,
         storeName: storeData.name

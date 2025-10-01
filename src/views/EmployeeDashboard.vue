@@ -732,12 +732,10 @@ const cancelRejection = () => {
 
 const viewStoreDetails = (store) => {
   // TODO: Implement store details modal
-  console.log('View store details:', store)
 }
 
 const viewProductDetails = (product) => {
   // TODO: Implement product details modal
-  console.log('View product details:', product)
 }
 
 const viewVerificationDocument = (documentUrl) => {
