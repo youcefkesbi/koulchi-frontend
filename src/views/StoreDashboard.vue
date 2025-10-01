@@ -127,7 +127,7 @@
                 <i v-else class="fas fa-store text-gray-400 text-4xl"></i>
               </div>
               <!-- Store Stats -->
-                <div class="mt-8 ml-8 flex items-center space-x-6 mt-4 text-sm text-gray-500">
+                <div class="mt-8 ml-8 flex items-center space-x-6 text-sm text-gray-500">
               <span>
                 <i class="fas fa-calendar-alt mr-1"></i>
                     {{ $t('stores.createdOn') }} {{ storeStore.currentStore?.created_at ? formatDate(storeStore.currentStore.created_at) : '' }}
