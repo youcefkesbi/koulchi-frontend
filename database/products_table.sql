@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS public.products (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+
+ALTER TABLE public.products ADD COLUMN thumbnail_url TEXT;
+
+
 -- ================================
 -- Indexes
 -- ================================

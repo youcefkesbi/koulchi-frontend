@@ -9,7 +9,7 @@ import ProductDetail from '../views/ProductDetail.vue'
 import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
-import UserDashboard from '../views/UserDashboard.vue'
+import StoreDashboard from '../views/StoreDashboard.vue'
 import Profile from '../views/Profile.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
@@ -17,7 +17,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
-import StoreDashboard from '../views/StoreDashboard.vue'
+import MyStoreInfos from '../views/MyStoreInfos.vue'
 import NotFound from '../views/NotFound.vue'
 
 // Supported locales configuration
@@ -26,6 +26,12 @@ const defaultLocale = 'en'
 
 // Base routes without locale prefix
 const baseRoutes = [
+  {
+    path: '/productCard',
+    name: 'productCard',
+    component: () => import('../components/ProductCard.vue'),
+    meta: { requiresAuth: true }
+  },
   {
     path: '/',
     name: 'Home',
@@ -64,8 +70,8 @@ const baseRoutes = [
   },
   {
     path: '/dashboard',
-    name: 'UserDashboard',
-    component: UserDashboard,
+    name: 'StoreDashboard',
+    component: StoreDashboard,
     meta: { requiresAuth: true },
     beforeEnter: authGuard
   },
@@ -121,16 +127,22 @@ const baseRoutes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/dashboard/store/:id',
-    name: 'StoreDashboard',
-    component: StoreDashboard,
+    path: '/store/:id',
+    name: 'MyStoreInfos',
+    component: MyStoreInfos,
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
   },
   {
-    path: '/myorders',
-    name: 'MyOrders',
-    component: () => import('../views/MyOrders.vue'),
+    path: '/mypurchases',
+    name: 'MyPurchases',
+    component: () => import('../views/MyPurchases.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/mystoreproducts',
+    name: 'MyStoreProducts',
+    component: () => import('../views/MyStoreProducts.vue'),
     meta: { requiresAuth: true }
   },
   {
