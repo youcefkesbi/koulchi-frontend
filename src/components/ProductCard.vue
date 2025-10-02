@@ -1,5 +1,6 @@
 <template>
-  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
+  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm hover:border-primary/50 hover:-translate-y-1"
+       :class="{ 'opacity-75': (product.stock_quantity || 0) <= 0 }">
     <!-- Product Image Container -->
     <div class="relative overflow-hidden bg-neutral-50 dark:bg-neutral-700">
       <img 
@@ -36,6 +37,15 @@
         </span>
       </div>
 
+      <!-- Out of Stock Overlay -->
+      <div v-if="(product.stock_quantity || 0) <= 0" 
+           class="absolute inset-0 bg-black/60 flex items-center justify-center">
+        <div class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-lg shadow-lg">
+          <i class="fas fa-times-circle ml-2"></i>
+          {{ $t('product.outOfStock') }}
+        </div>
+      </div>
+
       <!-- Wishlist Button (Floating) -->
       <button
         @click="toggleWishlist"
@@ -64,9 +74,14 @@
             {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
           </span>
         </div>
-        <div class="flex items-center bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded-full">
-          <i class="fas fa-box text-neutral-600 text-xs ml-1"></i>
-          <span class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ product.stock_quantity || 0 }}</span>
+        <div class="flex items-center px-2 py-1 rounded-full" 
+             :class="(product.stock_quantity || 0) <= 0 ? 'bg-red-100 dark:bg-red-900/20' : 'bg-neutral-100 dark:bg-neutral-700'">
+          <i class="fas fa-box text-xs ml-1" 
+             :class="(product.stock_quantity || 0) <= 0 ? 'text-red-600 dark:text-red-400' : 'text-neutral-600'"></i>
+          <span class="text-xs font-medium" 
+                :class="(product.stock_quantity || 0) <= 0 ? 'text-red-600 dark:text-red-400' : 'text-neutral-600 dark:text-neutral-300'">
+            {{ (product.stock_quantity || 0) <= 0 ? $t('product.outOfStock') : (product.stock_quantity || 0) }}
+          </span>
         </div>
       </div>
 
@@ -75,7 +90,10 @@
         <button
           @click="addToCart"
           :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 bg-primary hover:bg-primary-dark text-white text-sm py-3 px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-md flex items-center justify-center space-x-2 space-x-reverse"
+          class="flex-1 text-sm py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse"
+          :class="(product.stock_quantity || 0) <= 0 
+            ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed' 
+            : 'bg-primary hover:bg-primary-dark text-white hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'"
         >
           <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
           <i v-else class="fas fa-spinner fa-spin"></i>
