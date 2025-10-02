@@ -280,3 +280,175 @@ begin
     where s.owner_id = auth_uid;
 end;
 $$ language plpgsql security definer;
+
+
+-- Function to get total orders for a store
+CREATE OR REPLACE FUNCTION public.get_store_total_orders(store_uuid UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(DISTINCT o.id)
+        FROM public.orders o
+        WHERE o.store_id = store_uuid
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get total products for a store
+CREATE OR REPLACE FUNCTION public.get_store_total_products(store_uuid UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)
+        FROM public.products p
+        WHERE p.store_id = store_uuid AND p.is_active = true
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get total sales amount for a store
+CREATE OR REPLACE FUNCTION public.get_store_total_sales(store_uuid UUID)
+RETURNS NUMERIC(10,2) AS $$
+BEGIN
+    RETURN (
+        SELECT COALESCE(SUM(o.total_amount), 0)
+        FROM public.orders o
+        WHERE o.store_id = store_uuid 
+        AND o.status IN ('confirmed', 'shipped', 'delivered')
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get total visitors for a store (based on unique customers who placed orders)
+CREATE OR REPLACE FUNCTION public.get_store_total_visitors(store_uuid UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(DISTINCT o.user_id)
+        FROM public.orders o
+        WHERE o.store_id = store_uuid
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get store statistics for the authenticated user's store
+CREATE OR REPLACE FUNCTION public.get_my_store_statistics()
+RETURNS TABLE(
+    total_orders INTEGER,
+    total_products INTEGER,
+    total_sales NUMERIC(10,2),
+    total_visitors INTEGER,
+    store_id UUID,
+    store_name TEXT
+) AS $$
+DECLARE
+    user_store_id UUID;
+    user_store_name TEXT;
+BEGIN
+    -- Get the user's store ID
+    SELECT s.id, s.name INTO user_store_id, user_store_name
+    FROM public.stores s
+    WHERE s.owner_id = auth.uid() AND s.status = 'approved';
+    
+    -- If no store found, return zeros
+    IF user_store_id IS NULL THEN
+        RETURN QUERY SELECT 0, 0, 0::NUMERIC(10,2), 0, NULL::UUID, NULL::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Return statistics for the user's store
+    RETURN QUERY
+    SELECT 
+        (SELECT public.get_store_total_orders(user_store_id)) as total_orders,
+        (SELECT public.get_store_total_products(user_store_id)) as total_products,
+        (SELECT public.get_store_total_sales(user_store_id)) as total_sales,
+        (SELECT public.get_store_total_visitors(user_store_id)) as total_visitors,
+        user_store_id as store_id,
+        user_store_name as store_name;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION public.get_store_total_orders TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_store_total_products TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_store_total_sales TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_store_total_visitors TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_my_store_statistics TO authenticated;
+
+
+
+
+-- Function to get monthly sales for a specific store
+CREATE OR REPLACE FUNCTION public.get_store_monthly_sales(
+    store_uuid UUID,
+    year_param INTEGER DEFAULT EXTRACT(YEAR FROM CURRENT_DATE)
+)
+RETURNS TABLE(
+    labels TEXT[],
+    datasets JSONB
+) AS $$
+DECLARE
+    month_labels TEXT[] := ARRAY['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    sales_data NUMERIC[12] := ARRAY[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    month_sales RECORD;
+BEGIN
+    -- Get monthly sales data
+    FOR month_sales IN
+        SELECT 
+            EXTRACT(MONTH FROM o.created_at)::INTEGER as month_num,
+            COALESCE(SUM(o.total_amount), 0) as total_sales
+        FROM public.orders o
+        WHERE o.store_id = store_uuid
+        AND EXTRACT(YEAR FROM o.created_at) = year_param
+        AND o.status IN ('confirmed', 'shipped', 'delivered')
+        GROUP BY EXTRACT(MONTH FROM o.created_at)
+        ORDER BY month_num
+    LOOP
+        -- Ensure month_num is within bounds (1-12)
+        IF month_sales.month_num >= 1 AND month_sales.month_num <= 12 THEN
+            sales_data[month_sales.month_num] := month_sales.total_sales;
+        END IF;
+    END LOOP;
+    
+    -- Return the data
+    RETURN QUERY SELECT 
+        month_labels,
+        jsonb_build_object('data', to_jsonb(sales_data));
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get monthly sales for the authenticated user's store
+CREATE OR REPLACE FUNCTION public.get_my_store_monthly_sales(
+    year_param INTEGER DEFAULT EXTRACT(YEAR FROM CURRENT_DATE)
+)
+RETURNS TABLE(
+    labels TEXT[],
+    datasets JSONB
+) AS $$
+DECLARE
+    user_store_id UUID;
+BEGIN
+    -- Get the user's store ID
+    SELECT s.id INTO user_store_id
+    FROM public.stores s
+    WHERE s.owner_id = auth.uid() AND s.status = 'approved';
+    
+    -- If no store found, return empty data
+    IF user_store_id IS NULL THEN
+        RETURN QUERY SELECT 
+            ARRAY[]::TEXT[],
+            jsonb_build_object('data', jsonb_build_array());
+        RETURN;
+    END IF;
+    
+    -- Return monthly sales for the user's store
+    RETURN QUERY SELECT * FROM public.get_store_monthly_sales(user_store_id, year_param);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get sales data for the last N months (rolling window)
+
+GRANT EXECUTE ON FUNCTION public.get_store_monthly_sales TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_my_store_monthly_sales TO authenticated;
+

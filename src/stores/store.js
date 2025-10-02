@@ -580,6 +580,128 @@ export const useStoreStore = defineStore('store', () => {
     }
   }
 
+  // Store statistics functions
+  const storeStatistics = ref({
+    totalOrders: 0,
+    totalProducts: 0,
+    totalSales: 0,
+    totalVisitors: 0,
+    storeId: null,
+    storeName: null
+  })
+
+  const fetchStoreStatistics = async (storeId = null) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      let functionName, params
+      
+      if (storeId) {
+        // Get statistics for a specific store
+        functionName = 'get_store_statistics'
+        params = { store_uuid: storeId }
+      } else {
+        // Get statistics for the authenticated user's store
+        functionName = 'get_my_store_statistics'
+        params = {}
+      }
+
+      const { data, error: statsError } = await supabase.rpc(functionName, params)
+
+      if (statsError) {
+        console.error('Error fetching store statistics:', statsError)
+        throw statsError
+      }
+
+      if (data && data.length > 0) {
+        const stats = data[0]
+        storeStatistics.value = {
+          totalOrders: stats.total_orders || 0,
+          totalProducts: stats.total_products || 0,
+          totalSales: parseFloat(stats.total_sales || 0),
+          totalVisitors: stats.total_visitors || 0,
+          storeId: stats.store_id || null,
+          storeName: stats.store_name || null
+        }
+      } else {
+        // No store found or no data
+        storeStatistics.value = {
+          totalOrders: 0,
+          totalProducts: 0,
+          totalSales: 0,
+          totalVisitors: 0,
+          storeId: null,
+          storeName: null
+        }
+      }
+
+      return storeStatistics.value
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching store statistics:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const getStoreTotalOrders = async (storeId) => {
+    try {
+      const { data, error } = await supabase.rpc('get_store_total_orders', {
+        store_uuid: storeId
+      })
+
+      if (error) throw error
+      return data || 0
+    } catch (err) {
+      console.error('Error fetching total orders:', err)
+      throw err
+    }
+  }
+
+  const getStoreTotalProducts = async (storeId) => {
+    try {
+      const { data, error } = await supabase.rpc('get_store_total_products', {
+        store_uuid: storeId
+      })
+
+      if (error) throw error
+      return data || 0
+    } catch (err) {
+      console.error('Error fetching total products:', err)
+      throw err
+    }
+  }
+
+  const getStoreTotalSales = async (storeId) => {
+    try {
+      const { data, error } = await supabase.rpc('get_store_total_sales', {
+        store_uuid: storeId
+      })
+
+      if (error) throw error
+      return parseFloat(data || 0)
+    } catch (err) {
+      console.error('Error fetching total sales:', err)
+      throw err
+    }
+  }
+
+  const getStoreTotalVisitors = async (storeId) => {
+    try {
+      const { data, error } = await supabase.rpc('get_store_total_visitors', {
+        store_uuid: storeId
+      })
+
+      if (error) throw error
+      return data || 0
+    } catch (err) {
+      console.error('Error fetching total visitors:', err)
+      throw err
+    }
+  }
+
   return {
     // State
     stores,
@@ -587,6 +709,7 @@ export const useStoreStore = defineStore('store', () => {
     currentStore,
     loading,
     error,
+    storeStatistics,
     
     // Getters
     totalStores,
@@ -606,6 +729,13 @@ export const useStoreStore = defineStore('store', () => {
     clearError,
     clearCurrentStore,
     checkStoreOwnership,
-    getStoreStatus
+    getStoreStatus,
+    
+    // Statistics
+    fetchStoreStatistics,
+    getStoreTotalOrders,
+    getStoreTotalProducts,
+    getStoreTotalSales,
+    getStoreTotalVisitors
   }
 })

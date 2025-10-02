@@ -176,6 +176,7 @@
   "products": "Produits",
   "profile": "Profil",
   "stores": {
+    "currency": "DZD",
     "discoverStores": "Découvrir les Magasins",
     "heroDescription": "Explorez des magasins incroyables et trouvez des produits uniques de vendeurs de confiance",
     "loading": "Chargement des magasins...",
@@ -628,6 +629,16 @@
     "buyingSection": "Achat",
     "sellingSection": "Vente",
     "buyingDescription": "Suivez vos commandes, gérez votre liste de souhaits et consultez votre historique d'achat",
+    "stats": {
+      "totalOrders": "Total des Commandes",
+      "totalProducts": "Total des Produits",
+      "totalSales": "Total des Ventes",
+      "totalVisitors": "Total des Visiteurs",
+      "loadingStats": "Chargement des statistiques du magasin...",
+      "noStoreFound": "Aucun Magasin Trouvé",
+      "noStoreMessage": "Vous n'avez pas encore de magasin approuvé. Créez un magasin pour voir vos statistiques.",
+      "createStore": "Créer un Magasin"
+    },
     "sellingDescription": "Gérez vos produits, vos magasins et suivez vos performances de vente",
     "activeOrders": "Commandes Actives",
     "wishlist": "Liste de Souhaits",

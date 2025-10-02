@@ -383,6 +383,52 @@ export const useOrdersStore = defineStore('orders', () => {
     error.value = null
   }
 
+  // Fetch orders using the get_my_orders function
+  const fetchMyOrders = async () => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      await initUser()
+      if (!currentUser.value) throw new Error('User not authenticated')
+
+      const { data, error: fetchError } = await supabase
+        .rpc('get_my_orders')
+      
+      if (fetchError) throw fetchError
+      
+      orders.value = data || []
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching my orders:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Fetch vendor orders using the get_vendor_orders function
+  const fetchVendorOrders = async () => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      await initUser()
+      if (!currentUser.value) throw new Error('User not authenticated')
+
+      const { data, error: fetchError } = await supabase
+        .rpc('get_vendor_orders')
+      
+      if (fetchError) throw fetchError
+      
+      orders.value = data || []
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching vendor orders:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     orders,
@@ -403,6 +449,8 @@ export const useOrdersStore = defineStore('orders', () => {
     fetchOrders,
     fetchBuyerOrders,
     fetchSellerOrders,
+    fetchMyOrders,
+    fetchVendorOrders,
     createOrder,
     updateOrderStatus,
     cancelOrder,

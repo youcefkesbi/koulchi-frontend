@@ -179,6 +179,7 @@
   },
   "home": "Home",
   "stores": {
+    "currency": "DZD",
     "discoverStores": "Discover Stores",
     "heroDescription": "Explore amazing stores and find unique products from trusted sellers",
     "loading": "Loading stores...",
@@ -512,6 +513,16 @@
     "buyingSection": "Buying",
     "sellingSection": "Selling",
     "buyingDescription": "Track your orders, manage your wishlist, and view your purchase history",
+    "stats": {
+      "totalOrders": "Total Orders",
+      "totalProducts": "Total Products", 
+      "totalSales": "Total Sales",
+      "totalVisitors": "Total Visitors",
+      "loadingStats": "Loading store statistics...",
+      "noStoreFound": "No Store Found",
+      "noStoreMessage": "You don't have an approved store yet. Create a store to see your statistics.",
+      "createStore": "Create Store"
+    },
     "sellingDescription": "Manage your products, stores, and track your sales performance",
     "activeOrders": "Active Orders",
     "wishlist": "Wishlist",
