@@ -452,3 +452,89 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION public.get_store_monthly_sales TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_my_store_monthly_sales TO authenticated;
 
+-- Function to get authenticated user's store products
+-- Only works if user has vendor role and approved store
+CREATE OR REPLACE FUNCTION public.get_my_store_products()
+RETURNS TABLE(
+    product_id UUID,
+    product_name TEXT,
+    product_description TEXT,
+    price NUMERIC(10,2),
+    stock_quantity INTEGER,
+    sold_count INTEGER,
+    category_id UUID,
+    category_name TEXT,
+    is_active BOOLEAN,
+    is_new BOOLEAN,
+    image_urls TEXT[],
+    store_id UUID,
+    store_name TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+) AS $$
+DECLARE
+    user_store_id UUID;
+    user_role TEXT;
+    store_status store_status;
+BEGIN
+    -- Check if user is authenticated
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'User not authenticated';
+    END IF;
+    
+    -- Check if user has vendor role (handles multiple roles)
+    IF NOT EXISTS (
+        SELECT 1 FROM user_roles ur 
+        WHERE ur.user_id = auth.uid() 
+        AND LOWER(ur.role) = 'vendor'
+    ) THEN
+        RAISE EXCEPTION 'Access denied. User must have vendor role';
+    END IF;
+    
+    -- Get user's store ID and status
+    SELECT s.id, s.status INTO user_store_id, store_status
+    FROM public.stores s
+    WHERE s.owner_id = auth.uid();
+    
+    -- Check if user has a store
+    IF user_store_id IS NULL THEN
+        RAISE EXCEPTION 'No store found for user';
+    END IF;
+    
+    -- Check if store is approved
+    IF store_status != 'approved' THEN
+        RAISE EXCEPTION 'Store must be approved to access products';
+    END IF;
+    
+    -- Return products for the user's store
+    RETURN QUERY
+    SELECT 
+        p.id as product_id,
+        p.name as product_name,
+        p.description as product_description,
+        p.price,
+        p.stock_quantity,
+        p.sold_count,
+        p.category_id,
+        COALESCE(c.name_en, 'No Category') as category_name,
+        p.is_active,
+        p.is_new,
+        p.image_urls,
+        p.store_id,
+        s.name as store_name,
+        p.created_at,
+        p.updated_at
+    FROM public.products p
+    JOIN public.stores s ON p.store_id = s.id
+    LEFT JOIN public.categories c ON p.category_id = c.id
+    WHERE p.store_id = user_store_id
+    ORDER BY p.created_at DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.get_my_store_products TO authenticated;
+
+

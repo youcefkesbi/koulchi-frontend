@@ -85,7 +85,8 @@
     "tagline": "Find It. Love It. Get It.",
     "categories": "Categories",
     "brandName": "Koulchi",
-    "myOrders": "My Orders"
+    "myPurchases": "My purchases",
+    "orders": "Orders"
   },
   "notFound": {
     "title": "Page Not Found",

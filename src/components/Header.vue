@@ -114,22 +114,29 @@
                 v-if="userMenuOpen"
                 class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
-                <router-link :to="getLocalizedRoute('/dashboard')" class="dropdown-item">
+                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                 </router-link>
                 <router-link :to="getLocalizedRoute('/profile')" class="dropdown-item">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                 </router-link>
-                <router-link :to="getLocalizedRoute('/wishlist')" class="dropdown-item">
-                  <i class="fas fa-heart mr-3"></i>{{ t('wishlist.title') }}
-                  <span v-if="wishlistStore.totalItems > 0" class="ml-2 bg-secondary text-white text-xs rounded-full px-2 py-1">
+                <router-link :to="getLocalizedRoute('/wishlist')" class="dropdown-item flex items-center justify-between">
+                  <div class="flex items-center">
+                    <i class="fas fa-heart mr-3"></i>{{ t('wishlist.title') }}
+                  </div>
+                  <span 
+                  :class="wishlistStore.totalItems > 0 ? 'ml-2 bg-secondary text-white text-xs rounded-full px-2 py-1 flex-shrink-0' : 'hidden'">
                     {{ wishlistStore.totalItems }}
                   </span>
                 </router-link>
-                <router-link :to="getLocalizedRoute('/myorders')" class="dropdown-item">
-                  <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myOrders') }}
+                <router-link :to="getLocalizedRoute('/mypurchases')" class="dropdown-item">
+                  <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myPurchases') }}
+                </router-link>
+                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/mystoreproducts')" class="dropdown-item">
+                  <i class="fas fa-clipboard-list mr-3"></i>My Store products
                 </router-link>
                 <button
+  v-if="userStoreStatus.store_id"
   @click="handleGoToStoreDashboard"
   class="dropdown-item w-full text-left"
 >
@@ -193,7 +200,7 @@ const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const showLoginModal = ref(false)
-const userStoresLoaded = ref(false)
+const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -224,25 +231,14 @@ const handleClickOutside = (event) => {
 // Get categories from product store
 const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
 
+// Check if user has an approved store
+const hasApprovedStore = computed(() => {
+  return authStore.isAuthenticated && userStoreStatus.value.status === 'approved'
+})
+
 // Check if user should see the "Create Store" button
 const shouldShowCreateStoreButton = computed(() => {
-  if (!authStore.isAuthenticated || !userStoresLoaded.value) {
-    return false
-  }
-  
-  // If user has no stores, show create button
-  if (!storeStore.userStores || storeStore.userStores.length === 0) {
-    return true
-  }
-  
-  // If user has stores, check their statuses
-  const hasApprovedStore = storeStore.userStores.some(store => store.status === 'approved')
-  const hasPendingStore = storeStore.userStores.some(store => store.status === 'pending')
-  
-  // Show create button only if:
-  // 1. No approved stores AND no pending stores (all are rejected or no stores)
-  // 2. All stores are rejected
-  return !hasApprovedStore && !hasPendingStore
+  return authStore.isAuthenticated && userStoreStatus.value.can_create
 })
 
 // Get category icon based on category ID
@@ -311,15 +307,15 @@ const handleLogout = async () => {
   }
 }
 
-// Load user's stores
-const loadUserStores = async () => {
+// Load user store status using optimized RPC function
+const loadUserStoreStatus = async () => {
   if (authStore.isAuthenticated) {
     try {
-      await storeStore.fetchUserStores()
-      userStoresLoaded.value = true
+      const status = await storeStore.getUserStoreStatus()
+      userStoreStatus.value = status
     } catch (error) {
-      console.error('Error loading user stores:', error)
-      userStoresLoaded.value = true // Set to true even on error to avoid infinite loading
+      console.error('Error loading user store status:', error)
+      userStoreStatus.value = { store_id: null, status: null, can_create: true }
     }
   }
 }
@@ -334,14 +330,9 @@ const handleGoToStoreDashboard = async () => {
   try {
     const currentLocale = route.meta?.locale || 'en'
     
-    // Fetch user's stores
-    await storeStore.fetchUserStores()
-    
-    // Check if user has any stores
-    if (storeStore.userStores && storeStore.userStores.length > 0) {
-      // Get the first store (assuming user has only one store)
-      const userStore = storeStore.userStores[0]
-      router.push(`/${currentLocale}/dashboard/store/${userStore.id}`)
+    // Check if user has a store using the optimized status
+    if (userStoreStatus.value.store_id) {
+      router.push(`/${currentLocale}/store/${userStoreStatus.value.store_id}`)
     } else {
       // If no store exists, redirect to create store page
       router.push(`/${currentLocale}/dashboard/store/create`)
@@ -354,18 +345,18 @@ const handleGoToStoreDashboard = async () => {
   }
 }
 
-// Watch for authentication changes to reload stores
+// Watch for authentication changes to reload store status
 watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
   if (isAuthenticated) {
-    await loadUserStores()
+    await loadUserStoreStatus()
   } else {
-    userStoresLoaded.value = false
+    userStoreStatus.value = { store_id: null, status: null, can_create: true }
   }
 }, { immediate: true })
 
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
-  await loadUserStores()
+  await loadUserStoreStatus()
 })
 
 onUnmounted(() => {
