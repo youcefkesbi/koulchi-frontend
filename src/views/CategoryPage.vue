@@ -1,41 +1,97 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8 my-fade-in">
-    <!-- Category Header -->
-    <div class="text-center mb-8 sm:mb-12">
-      <div class="flex items-center justify-center space-x-3 sm:space-x-4 space-x-reverse mb-4 sm:mb-6">
-        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
-          <i :class="getCategoryIcon(categoryId)" class="text-white text-lg sm:text-2xl"></i>
+  <div class="my-fade-in">
+    <!-- Category Banner (Hero Section) -->
+    <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft mx-4 sm:mx-6 mb-8 sm:mb-12">
+      <!-- Background Pattern -->
+      <div class="absolute inset-0 bg-gradient-to-br from-green-600/20 via-green-500/20 to-green-400/20"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+      <div class="relative z-10 px-4 sm:px-6 py-8 sm:py-12 text-center">
+        <!-- Decorative Elements -->
+        <div class="absolute top-6 left-6 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
+        <div class="absolute bottom-6 right-6 w-24 h-24 bg-green-400/20 rounded-full blur-xl"></div>
+        
+        <!-- Category Icon and Title -->
+        <div class="flex items-center justify-center space-x-3 sm:space-x-4 space-x-reverse mb-4 sm:mb-6 my-slide-up">
+          <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
+            <i :class="getCategoryIcon(categoryId)" class="text-white text-lg sm:text-2xl"></i>
+          </div>
+          <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+            {{ getCategoryName(categoryId) }}
+          </h1>
         </div>
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-dark bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
-          {{ getCategoryName(categoryId) }}
-        </h1>
+        
+        <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-green-50 my-slide-up" style="animation-delay: 0.1s">
+          {{ getCategoryDescription(categoryId) }}
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
+          <button @click="scrollToProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-primary-50">
+            <i class="fas fa-shopping-bag ml-1 sm:ml-2"></i>
+            {{ $t('categoryPage.browseProducts') }}
+          </button>
+        </div>
       </div>
-      <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-        {{ getCategoryDescription(categoryId) }}
-      </p>
-    </div>
+    </section>
 
-    <!-- Best-selling Products Section -->
+    <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8">
+
+    <!-- Featured Products Section (2 rows of ads products) -->
     <div v-if="categoryId !== 'all'" class="mb-12">
-      <BestSellingProducts 
-        :categoryId="categoryId" 
-        :title="`Best-selling ${getCategoryName(categoryId)} Products`"
-      />
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
+        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ $t('categoryPage.featuredProducts') }}</h2>
+        <div class="flex items-center space-x-4 space-x-reverse">
+          <button
+            @click="refreshFeaturedProducts"
+            :disabled="featuredLoading"
+            class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
+          >
+            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': featuredLoading }"></i>
+            {{ $t('categoryPage.refresh') }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Loading State for Featured Products -->
+      <div v-if="featuredLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div v-for="i in 8" :key="i" class="card animate-pulse">
+          <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
+          <div class="h-4 bg-neutral-200 rounded mb-2"></div>
+          <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+          <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
+        </div>
+      </div>
+      
+      <!-- Featured Products Grid - 2 rows × 4 products per row -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <ProductCard
+          v-for="product in featuredProducts"
+          :key="product.id"
+          :product="product"
+        />
+      </div>
+      
+      <!-- Empty State for Featured Products -->
+      <div v-if="!featuredLoading && featuredProducts.length === 0" class="text-center py-12">
+        <div class="text-neutral-500 text-lg mb-4">
+          <i class="fas fa-star mr-2"></i>
+          {{ $t('categoryPage.noFeaturedProducts') }}
+        </div>
+      </div>
     </div>
 
     <!-- Filters and Sort -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
       <!-- Results Count -->
-      <div class="text-gray-600">
+      <div class="text-neutral-700">
         {{ $t('categoryPage.resultsCount', { count: filteredProducts.length, total: products.length }) }}
       </div>
 
       <!-- Sort Options -->
       <div class="flex items-center space-x-4 space-x-reverse">
-        <label class="text-sm font-medium text-gray-700">{{ $t('categoryPage.sortBy') }}:</label>
+        <label class="text-sm font-medium text-neutral-700">{{ $t('categoryPage.sortBy') }}:</label>
         <select
           v-model="sortBy"
-          class="px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
+          class="px-4 py-2 border-2 border-neutral-200 rounded-xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft"
         >
           <option value="newest">{{ $t('categoryPage.sortNewest') }}</option>
           <option value="oldest">{{ $t('categoryPage.sortOldest') }}</option>
@@ -49,38 +105,112 @@
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-16">
       <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p class="text-gray-600">{{ $t('categoryPage.loading') }}</p>
+      <p class="text-neutral-700">{{ $t('categoryPage.loading') }}</p>
     </div>
 
-    <!-- Products Grid -->
-    <div v-else-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-      <ProductCard
-        v-for="product in filteredProducts"
-        :key="product.id"
-        :product="product"
-      />
+    <!-- Category Products Section -->
+    <div v-if="filteredProducts.length > 0" class="mb-12">
+      <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8">{{ $t('categoryPage.categoryProducts') }}</h2>
+      
+      <!-- Products Grid - 4 products per row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <ProductCard
+          v-for="product in paginatedProducts"
+          :key="product.id"
+          :product="product"
+        />
+      </div>
+      
+      <!-- Pagination Controls -->
+      <div v-if="totalPages > 1" class="flex flex-col sm:flex-row justify-between items-center mt-8 space-y-4 sm:space-y-0">
+        <!-- Page Info -->
+        <div class="text-neutral-600 text-sm">
+          {{ $t('categoryPage.showingResults', { 
+            start: (currentPage - 1) * itemsPerPage + 1, 
+            end: Math.min(currentPage * itemsPerPage, filteredProducts.length),
+            total: filteredProducts.length 
+          }) }}
+        </div>
+        
+        <!-- Pagination Buttons -->
+        <div class="flex items-center space-x-2 space-x-reverse">
+          <!-- Previous Button -->
+          <button
+            @click="prevPage"
+            :disabled="currentPage === 1"
+            class="px-3 py-2 text-sm font-medium text-neutral-500 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50 hover:text-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          
+          <!-- Page Numbers -->
+          <div class="flex items-center space-x-1 space-x-reverse">
+            <button
+              v-for="page in Math.min(5, totalPages)"
+              :key="page"
+              @click="goToPage(page)"
+              :class="[
+                'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                currentPage === page
+                  ? 'bg-primary text-white'
+                  : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50'
+              ]"
+            >
+              {{ page }}
+            </button>
+            
+            <!-- Ellipsis for more pages -->
+            <span v-if="totalPages > 5" class="px-2 text-neutral-500">...</span>
+            
+            <!-- Last page if more than 5 pages -->
+            <button
+              v-if="totalPages > 5"
+              @click="goToPage(totalPages)"
+              :class="[
+                'px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                currentPage === totalPages
+                  ? 'bg-primary text-white'
+                  : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50'
+              ]"
+            >
+              {{ totalPages }}
+            </button>
+          </div>
+          
+          <!-- Next Button -->
+          <button
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-2 text-sm font-medium text-neutral-500 bg-white border border-neutral-300 rounded-lg hover:bg-neutral-50 hover:text-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Empty State -->
     <div v-else class="text-center py-16">
-      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <i class="fas fa-box text-gray-400 text-3xl"></i>
+      <div class="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fas fa-box text-neutral-400 text-3xl"></i>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">{{ $t('categoryPage.noProducts') }}</h3>
-      <p class="text-gray-500 mb-6">{{ $t('categoryPage.noProductsMessage') }}</p>
+      <h3 class="text-xl font-semibold text-neutral-700 mb-2">{{ $t('categoryPage.noProducts') }}</h3>
+      <p class="text-neutral-500 mb-6">{{ $t('categoryPage.noProductsMessage') }}</p>
       <router-link to="/products" class="btn-primary">
         <i class="fas fa-arrow-left mr-2"></i>
         {{ $t('categoryPage.browseAllProducts') }}
       </router-link>
     </div>
 
-    <!-- Back to Categories -->
+    <!-- Back to Homepage -->
     <div class="text-center mt-12">
-      <router-link to="/" class="inline-flex items-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 font-medium rounded-2xl transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105">
+      <router-link to="/" class="inline-flex items-center px-6 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 font-medium rounded-2xl transition-all duration-300 shadow-soft hover:shadow-glow transform hover:scale-105">
         <i class="fas fa-arrow-left mr-2"></i>
-        {{ $t('categoryPage.backToCategories') }}
+        {{ $t('categoryPage.backToHomepage') }}
       </router-link>
     </div>
+    </div>
+
   </div>
 </template>
 
@@ -90,17 +220,35 @@ import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/product'
+import { useProducts } from '../composables/useProducts'
 import ProductCard from '../components/ProductCard.vue'
-import BestSellingProducts from '../components/BestSellingProducts.vue'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const { 
+  bestSellingProducts, 
+  loading: bestSellingLoading, 
+  error: bestSellingError, 
+  fetchBestSellingProductsByCategory,
+  refreshBestSellingProducts 
+} = useProducts()
 
 const sortBy = ref('newest')
 const loading = ref(false)
+const featuredLoading = ref(false)
+
+// Pagination variables
+const currentPage = ref(1)
+const itemsPerPage = 20
 const categoryId = computed(() => route.params.categoryId)
+
+// Featured products (best-selling products for this category)
+const featuredProducts = computed(() => {
+  if (categoryId.value === 'all') return []
+  return bestSellingProducts.value.slice(0, 8) // 2 rows × 4 products = 8 products
+})
 
 // Get products for this category
 const products = computed(() => {
@@ -142,6 +290,36 @@ const filteredProducts = computed(() => {
   
   return sorted
 })
+
+// Pagination computed properties
+const totalPages = computed(() => Math.ceil(filteredProducts.value.length / itemsPerPage))
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredProducts.value.slice(start, end)
+})
+
+// Pagination methods
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    scrollToProducts()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    scrollToProducts()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    scrollToProducts()
+  }
+}
 
 // Get category icon
 const getCategoryIcon = (categoryId) => {
@@ -194,6 +372,28 @@ const getCategoryDescription = (categoryId) => {
   return descriptions[categoryId] || 'Explore our amazing products in this category'
 }
 
+// Scroll to products section
+const scrollToProducts = () => {
+  const productsSection = document.querySelector('.max-w-7xl')
+  if (productsSection) {
+    productsSection.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+// Refresh featured products
+const refreshFeaturedProducts = async () => {
+  if (categoryId.value === 'all') return
+  
+  featuredLoading.value = true
+  try {
+    await fetchBestSellingProductsByCategory(categoryId.value)
+  } catch (error) {
+    console.error('Error refreshing featured products:', error)
+  } finally {
+    featuredLoading.value = false
+  }
+}
+
 // Validate category ID
 const validateCategory = () => {
   const validCategories = productStore.categories.map(cat => cat.id)
@@ -206,6 +406,7 @@ const validateCategory = () => {
 // Watch for route changes
 watch(() => route.params.categoryId, async (newCategoryId) => {
   loading.value = true
+  currentPage.value = 1 // Reset pagination
   try {
     validateCategory()
     // Refetch products for the new category
@@ -219,6 +420,11 @@ watch(() => route.params.categoryId, async (newCategoryId) => {
   }
 })
 
+// Watch for sort changes to reset pagination
+watch(sortBy, () => {
+  currentPage.value = 1
+})
+
 onMounted(async () => {
   loading.value = true
   try {
@@ -229,6 +435,11 @@ onMounted(async () => {
     
     // Fetch products for this specific category
     await productStore.fetchProducts({ category_id: categoryId.value })
+    
+    // Load featured products (best-selling products for this category)
+    if (categoryId.value !== 'all') {
+      await fetchBestSellingProductsByCategory(categoryId.value)
+    }
     
     validateCategory()
   } catch (error) {
@@ -245,6 +456,42 @@ onMounted(async () => {
 }
 
 /* Animation classes - using global my-fade-in class */
+.my-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.my-slide-up {
+  animation: slideUp 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card styles for loading states */
+.card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
 
 /* Hover effects for category icon */
 .category-icon {
@@ -254,5 +501,19 @@ onMounted(async () => {
 .category-icon:hover {
   transform: scale(1.1);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Shadow utilities */
+.shadow-soft {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+/* RTL support */
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
 }
 </style>

@@ -14,8 +14,8 @@
         </svg>
       </template>
       <template v-else>
-        <span class="text-blue-600 font-medium hidden sm:block">{{ currentLanguage.name }}</span>
-        <span class="text-blue-600 font-medium sm:hidden">{{ currentLanguage.code.toUpperCase() }}</span>
+        <span class="text-primary-600 font-medium hidden sm:block">{{ currentLanguage.name }}</span>
+        <span class="text-primary-600 font-medium sm:hidden">{{ currentLanguage.code.toUpperCase() }}</span>
         <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
@@ -32,10 +32,10 @@
           :key="language.code"
           @click="selectLanguage(language.code)"
           class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-          :class="{ 'bg-blue-50 text-blue-700': currentLanguage.code === language.code }"
+          :class="{ 'bg-primary-50 text-primary-700': currentLanguage.code === language.code }"
         >
           <span class="w-2 h-2 rounded-full mr-3"
-                :class="currentLanguage.code === language.code ? 'bg-blue-600' : 'bg-gray-300'">
+                :class="currentLanguage.code === language.code ? 'bg-primary-600' : 'bg-gray-300'">
           </span>
           <span>{{ language.name }}</span>
         </button>

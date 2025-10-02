@@ -22,8 +22,8 @@
 
       <div class="card">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-            <i class="fas fa-box text-blue-600 text-xl"></i>
+          <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-box text-primary-600 text-xl"></i>
           </div>
           <div>
             <h3 class="text-2xl font-bold text-gray-800">{{ pendingProductsCount }}</h3>
@@ -34,8 +34,8 @@
 
       <div class="card">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-            <i class="fas fa-file-alt text-purple-600 text-xl"></i>
+          <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-file-alt text-accent-600 text-xl"></i>
           </div>
           <div>
             <h3 class="text-2xl font-bold text-gray-800">{{ pendingVerificationsCount }}</h3>

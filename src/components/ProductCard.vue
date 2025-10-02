@@ -1,18 +1,18 @@
 <template>
-  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden shadow-sm hover:shadow-lg hover:border-primary/50 hover:-translate-y-1">
     <!-- Product Image Container -->
-    <div class="relative overflow-hidden bg-gray-50 dark:bg-gray-700">
+    <div class="relative overflow-hidden bg-neutral-50 dark:bg-neutral-700">
       <img 
         v-if="productImage" 
         :src="productImage" 
         :alt="product.name"
-        class="w-full h-48 sm:h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+        class="w-full h-56 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-500"
         @error="handleImageError"
       />
       
       <!-- No Image Placeholder -->
-      <div v-else class="w-full h-48 sm:h-56 flex items-center justify-center">
-        <div class="text-center text-gray-400 dark:text-gray-500">
+      <div v-else class="w-full h-56 sm:h-64 flex items-center justify-center">
+        <div class="text-center text-neutral-400 dark:text-neutral-500">
           <i class="fas fa-image text-5xl mb-3 opacity-50"></i>
           <p class="text-sm font-medium">{{ $t('product.noImage') }}</p>
         </div>
@@ -39,8 +39,8 @@
       <!-- Wishlist Button (Floating) -->
       <button
         @click="toggleWishlist"
-        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-        :class="{ 'text-red-500': isInWishlist, 'text-gray-600 dark:text-gray-300': !isInWishlist }"
+        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+        :class="{ 'text-red-500': isInWishlist, 'text-neutral-600 dark:text-neutral-300': !isInWishlist }"
         :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
       >
         <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isInWishlist }"></i>
@@ -48,50 +48,46 @@
     </div>
 
     <!-- Product Info Container -->
-    <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
+    <div class="p-4 sm:p-6 space-y-4 bg-white dark:bg-neutral-800">
       <!-- Title -->
-      <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
+      <h3 class="font-bold text-lg text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
         {{ product.name }}
       </h3>
 
-      <!-- Stock Status -->
-      <div class="flex items-center space-x-2 space-x-reverse">
-        <div class="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-          <i class="fas fa-box text-primary text-sm ml-2"></i>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ product.stock_quantity || 0 }}</span>
-        </div>
-        <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">متوفر</span>
-      </div>
-
       <!-- Price -->
       <div class="flex items-center justify-between">
-        <span class="text-xl sm:text-2xl font-bold text-primary">
-          {{ formatPrice(product.price) }} {{ $t('product.currency') }}
-        </span>
-        <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-          {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
-        </span>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold text-primary">
+            {{ formatPrice(product.price) }} {{ $t('product.currency') }}
+          </span>
+          <span v-if="product.is_on_sale" class="text-sm text-neutral-500 line-through">
+            {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
+          </span>
+        </div>
+        <div class="flex items-center bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded-full">
+          <i class="fas fa-box text-neutral-600 text-xs ml-1"></i>
+          <span class="text-xs font-medium text-neutral-600 dark:text-neutral-300">{{ product.stock_quantity || 0 }}</span>
+        </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex space-x-2 sm:space-x-3 space-x-reverse pt-2">
+      <div class="flex space-x-2 space-x-reverse">
         <button
           @click="addToCart"
           :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 btn-primary text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 bg-primary hover:bg-primary-dark text-white text-sm py-3 px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-md flex items-center justify-center space-x-2 space-x-reverse"
         >
-          <i v-if="!cartLoading" class="fas fa-shopping-cart ml-1 sm:ml-2"></i>
-          <i v-else class="fas fa-spinner fa-spin ml-1 sm:ml-2"></i>
-          <span class="hidden sm:inline">{{ getCartButtonText() }}</span>
-          <span class="sm:hidden">Add</span>
+          <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+          <i v-else class="fas fa-spinner fa-spin"></i>
+          <span>{{ getCartButtonText() }}</span>
         </button>
         
         <router-link
           :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="btn-outline text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center"
+          class="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 text-sm py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center"
           :title="$t('product.viewProduct')"
         >
-          <i class="fas fa-eye text-gray-600 group-hover:text-primary transition-colors"></i>
+          <i class="fas fa-eye"></i>
         </router-link>
       </div>
 

@@ -167,7 +167,7 @@
                 
                 <!-- Pack Type Badge -->
                 <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4"
-                     :class="isProPack ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'">
+                     :class="isProPack ? 'bg-accent-100 text-accent-800' : 'bg-primary-100 text-primary-800'">
                   <i :class="isProPack ? 'fas fa-crown mr-1' : 'fas fa-star mr-1'"></i>
                   {{ storeStore.currentStore?.packType || (isProPack ? $t('stores.proPlan') : $t('stores.basicPlan')) }}
                 </div>
@@ -301,7 +301,7 @@
                     :class="{
                       'bg-green-100 text-green-800 border border-green-200': updateMessageType === 'success',
                       'bg-red-100 text-red-800 border border-red-200': updateMessageType === 'error',
-                      'bg-blue-100 text-blue-800 border border-blue-200': updateMessageType === 'info'
+                      'bg-primary-100 text-primary-800 border border-primary-200': updateMessageType === 'info'
                     }"
                   >
                     <i 

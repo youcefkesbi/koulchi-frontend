@@ -10,8 +10,8 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="card">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-            <i class="fas fa-users text-blue-600 text-xl"></i>
+          <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-users text-primary-600 text-xl"></i>
           </div>
           <div>
             <h3 class="text-2xl font-bold text-gray-800">{{ totalUsers }}</h3>
@@ -34,8 +34,8 @@
 
       <div class="card">
         <div class="flex items-center space-x-3 space-x-reverse">
-          <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-            <i class="fas fa-box text-purple-600 text-xl"></i>
+          <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
+            <i class="fas fa-box text-accent-600 text-xl"></i>
           </div>
           <div>
             <h3 class="text-2xl font-bold text-gray-800">{{ totalProducts }}</h3>
@@ -128,7 +128,7 @@
           </div>
           <div class="text-right">
             <p class="text-sm text-gray-500">{{ formatDate(log.created_at) }}</p>
-            <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+            <span class="px-2 py-1 text-xs rounded-full bg-primary-100 text-primary-800">
               {{ log.employee_email }}
             </span>
           </div>
