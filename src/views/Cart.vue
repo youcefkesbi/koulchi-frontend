@@ -26,19 +26,19 @@
             class="w-20 h-20 object-cover rounded-lg"
             @error="handleImageError"
           />
-          <div v-else class="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-            <i class="fas fa-image text-gray-400"></i>
+          <div v-else class="w-20 h-20 bg-neutral-100 rounded-lg flex items-center justify-center">
+            <i class="fas fa-image text-neutral-400"></i>
           </div>
           
           <!-- Product Info -->
           <div class="flex-1">
             <h3 class="font-semibold text-lg">{{ item.nameAr }}</h3>
-            <p class="text-gray-600 text-sm">{{ item.name }}</p>
+            <p class="text-neutral-700 text-sm">{{ item.name }}</p>
             <div class="flex items-center space-x-4 space-x-reverse mt-2">
               <span class="text-lg font-bold text-primary">
                 {{ formatPrice(item.price) }} {{ $t('product.currency') }}
               </span>
-              <span class="text-sm text-gray-500">
+              <span class="text-sm text-neutral-600">
                 {{ $t('cartPage.perPiece') }}
               </span>
             </div>
@@ -48,14 +48,14 @@
           <div class="flex items-center space-x-2 space-x-reverse">
             <button
               @click="updateQuantity(item.id, item.quantity - 1)"
-              class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors"
             >
               <i class="fas fa-minus text-sm"></i>
             </button>
             <span class="w-12 text-center font-semibold">{{ item.quantity }}</span>
             <button
               @click="updateQuantity(item.id, item.quantity + 1)"
-              class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors"
             >
               <i class="fas fa-plus text-sm"></i>
             </button>
@@ -86,17 +86,17 @@
           <!-- Summary Details -->
           <div class="space-y-4 mb-6">
             <div class="flex justify-between">
-              <span class="text-gray-600">{{ $t('cartPage.productCount') }}:</span>
+              <span class="text-neutral-600">{{ $t('cartPage.productCount') }}:</span>
               <span class="font-semibold">{{ cartStore.totalItems }}</span>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-gray-600">{{ $t('cartPage.subtotal') }}:</span>
+              <span class="text-neutral-600">{{ $t('cartPage.subtotal') }}:</span>
               <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} {{ $t('product.currency') }}</span>
             </div>
             
             <div class="flex justify-between">
-              <span class="text-gray-600">{{ $t('cartPage.deliveryFee') }}:</span>
+              <span class="text-neutral-600">{{ $t('cartPage.deliveryFee') }}:</span>
               <span class="font-semibold">{{ formatPrice(cartStore.deliveryFee) }} {{ $t('product.currency') }}</span>
             </div>
             
@@ -122,10 +122,10 @@
           </div>
 
           <!-- Free Shipping Info -->
-          <div v-if="cartStore.subtotal >= 5000" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div v-if="cartStore.subtotal >= 5000" class="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
             <div class="flex items-center space-x-2 space-x-reverse">
-              <i class="fas fa-truck text-blue-600"></i>
-              <span class="text-blue-800 font-semibold">{{ $t('features.fastDelivery') }}!</span>
+              <i class="fas fa-truck text-primary-600"></i>
+              <span class="text-primary-800 font-semibold">{{ $t('features.fastDelivery') }}!</span>
             </div>
           </div>
 
@@ -143,11 +143,11 @@
 
     <!-- Empty Cart -->
     <div v-else class="text-center py-12">
-      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-shopping-cart text-gray-400 text-3xl"></i>
+      <div class="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-shopping-cart text-neutral-400 text-3xl"></i>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">{{ $t('cartPage.emptyCart') }}</h3>
-      <p class="text-gray-500 mb-6">
+      <h3 class="text-xl font-semibold text-neutral-700 mb-2">{{ $t('cartPage.emptyCart') }}</h3>
+      <p class="text-neutral-500 mb-6">
         {{ $t('cartPage.emptyCartMessage') }}
       </p>
       <router-link to="/products" class="btn-primary">

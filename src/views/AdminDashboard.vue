@@ -23,8 +23,8 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-soft p-6">
           <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <i class="fas fa-users text-blue-600 text-xl"></i>
+            <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-users text-primary-600 text-xl"></i>
             </div>
             <div>
               <h3 class="text-2xl font-bold text-gray-800">{{ totalUsers }}</h3>
@@ -47,8 +47,8 @@
 
         <div class="bg-white rounded-xl shadow-soft p-6">
           <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <i class="fas fa-box text-purple-600 text-xl"></i>
+            <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-box text-accent-600 text-xl"></i>
             </div>
             <div>
               <h3 class="text-2xl font-bold text-gray-800">{{ totalProducts }}</h3>
@@ -201,7 +201,7 @@
                         :class="[
                           'px-2 py-1 text-xs rounded-full font-medium',
                           user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                          user.role === 'employee' ? 'bg-blue-100 text-blue-800' :
+                          user.role === 'employee' ? 'bg-primary-100 text-primary-800' :
                           'bg-gray-100 text-gray-800'
                         ]"
                       >
@@ -322,7 +322,7 @@
                     </button>
                     <button
                       @click="editStore(store)"
-                      class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                      class="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
                     >
                       <i class="fas fa-edit mr-2"></i>
                       {{ $t('common.edit') }}
@@ -396,7 +396,7 @@
                 <div class="flex items-center space-x-2 space-x-reverse">
                   <button
                     @click="editPack(pack)"
-                    class="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    class="flex-1 px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
                   >
                     <i class="fas fa-edit mr-2"></i>
                     {{ $t('common.edit') }}
@@ -463,7 +463,7 @@
                   <tr v-for="log in filteredLogs" :key="log.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.employee_email }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                      <span class="px-2 py-1 text-xs rounded-full bg-primary-100 text-primary-800">
                         {{ log.action }}
                       </span>
                     </td>

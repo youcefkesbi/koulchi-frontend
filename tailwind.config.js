@@ -8,21 +8,60 @@ export default defineConfig({
   theme: {
     extend: {
       colors: {
-        'primary': '#10B981',      // Beautiful emerald green
-        'primary-dark': '#059669', // Darker green
-        'primary-light': '#34D399', // Light green
-        'secondary': '#F97316',    // Vibrant orange
-        'secondary-dark': '#EA580C', // Darker orange
-        'secondary-light': '#FB923C', // Light orange
-        'accent': '#F59E0B',       // Golden accent
-        'accent-dark': '#D97706',   // Darker gold
-        'accent-light': '#FBBF24',  // Light gold
-        'dark': '#1F2937',         // Dark gray
-        'light-gray': '#F8FAFC',   // Light gray
-        'success': '#10B981',      // Green for success
-        'warning': '#F59E0B',      // Yellow for warnings
-        'error': '#EF4444',        // Red for errors
-        'info': '#3B82F6'          // Blue for info
+        // Primary - Green from logo
+        'primary': {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          DEFAULT: '#10b981',
+          'dark': '#059669',
+          'light': '#34d399'
+        },
+        // Accent - Subtle orange
+        'accent': {
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
+          DEFAULT: '#f97316',
+          'dark': '#ea580c',
+          'light': '#fb923c'
+        },
+        // Neutral - Black and white
+        'neutral': {
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717'
+        },
+        // Legacy aliases for compatibility
+        'secondary': '#f97316',
+        'secondary-dark': '#ea580c',
+        'secondary-light': '#fb923c',
+        'dark': '#171717',
+        'light-gray': '#fafafa',
+        'success': '#10b981',
+        'warning': '#f97316',
+        'error': '#ef4444'
       },
       fontFamily: {
         'arabic': ['Noto Sans Arabic', 'sans-serif'],

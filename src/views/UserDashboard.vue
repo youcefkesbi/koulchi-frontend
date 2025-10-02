@@ -14,14 +14,14 @@
       <!-- Statistics Cards -->
       <template v-else>
         <!-- Total Orders Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-primary-500">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalOrders') }}</p>
               <p class="text-3xl font-bold text-gray-900">{{ storeStatistics.totalOrders }}</p>
             </div>
-            <div class="p-3 bg-blue-100 rounded-full">
-              <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+            <div class="p-3 bg-primary-100 rounded-full">
+              <i class="fas fa-shopping-cart text-primary-600 text-xl"></i>
             </div>
           </div>
         </div>
@@ -53,14 +53,14 @@
         </div>
 
         <!-- Total Visitors Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-accent-500">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalVisitors') }}</p>
               <p class="text-3xl font-bold text-gray-900">{{ storeStatistics.totalVisitors }}</p>
             </div>
-            <div class="p-3 bg-purple-100 rounded-full">
-              <i class="fas fa-users text-purple-600 text-xl"></i>
+            <div class="p-3 bg-accent-100 rounded-full">
+              <i class="fas fa-users text-accent-600 text-xl"></i>
             </div>
           </div>
         </div>
@@ -150,8 +150,8 @@
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                         :class="{
                           'bg-yellow-100 text-yellow-800': order.order_status === 'pending',
-                          'bg-blue-100 text-blue-800': order.order_status === 'confirmed',
-                          'bg-purple-100 text-purple-800': order.order_status === 'shipped',
+                          'bg-primary-100 text-primary-800': order.order_status === 'confirmed',
+                          'bg-accent-100 text-accent-800': order.order_status === 'shipped',
                           'bg-green-100 text-green-800': order.order_status === 'delivered',
                           'bg-red-100 text-red-800': order.order_status === 'cancelled'
                         }">
@@ -172,7 +172,7 @@
         </div>
       </div>
       <!-- Best selling products -->
-      <div class="bg-blue-50 ">Best selling products</div>
+      <div class="bg-primary-50 ">Best selling products</div>
       
     
     </div>

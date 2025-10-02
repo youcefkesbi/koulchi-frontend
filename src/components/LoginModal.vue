@@ -309,7 +309,7 @@
                 <button
                   @click="handleFacebookLogin"
                   :disabled="authStore.loading"
-                  class="w-full flex items-center justify-center px-4 py-3 border-2 border-transparent rounded-xl shadow-sm bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium"
+                  class="w-full flex items-center justify-center px-4 py-3 border-2 border-transparent rounded-xl shadow-sm bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-medium"
                 >
                   <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-3"></i>
                   <svg v-else class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">

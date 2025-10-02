@@ -165,6 +165,7 @@
   },
   "categoryPage": {
     "resultsCount": "Showing {count} of {total} products",
+    "showingResults": "Showing {start}-{end} of {total} results",
     "sortBy": "Sort by",
     "sortNewest": "Newest first",
     "sortOldest": "Oldest first",
@@ -175,7 +176,13 @@
     "noProductsMessage": "There are no products available in this category at the moment.",
     "browseAllProducts": "Browse All Products",
     "backToCategories": "Back to Categories",
-    "loading": "Loading products..."
+    "backToHomepage": "Back to Homepage",
+    "loading": "Loading products...",
+    "browseProducts": "Browse Products",
+    "featuredProducts": "Featured Products",
+    "categoryProducts": "Category Products",
+    "refresh": "Refresh",
+    "noFeaturedProducts": "No featured products available"
   },
   "home": "Home",
   "stores": {
@@ -465,17 +472,17 @@
   },
   "sections": {
     "newProducts": "New Products",
-    "bestSellingProducts": "Best-selling Products",
+    "featuredProducts": "Featured Products",
     "saleProducts": "Sale Products",
     "viewAll": "View All",
     "browseByCategory": "Browse by Category",
     "whyChooseUs": "Why Choose Koulchi?",
-    "noBestSellingProducts": "No best-selling products available at the moment.",
+    "noFeaturedProducts": "No featured products available at the moment.",
     "noProductsInCategory": "No products available in {category} category.",
     "noCategoriesAvailable": "No categories available at the moment.",
     "categoriesLoadingFallback": "Categories are being loaded. You can browse all products in the meantime.",
     "browseAllProducts": "Browse All Products",
-    "productionDataIssue": "Data loading issue in production. Please try refreshing the page or contact support if the problem persists."
+    "refresh": "Refresh"
   },
   "benefits": {
     "securePayment": "Secure Cash on Delivery",
