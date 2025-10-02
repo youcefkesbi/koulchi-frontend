@@ -50,7 +50,7 @@ export const useProductStore = defineStore('product', () => {
       // Use a simpler query that doesn't trigger user_roles policy
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at')
+        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at, stock_quantity')
         .eq('is_active', true)
         .order('sold_count', { ascending: false })
         .limit(limit);
@@ -79,7 +79,7 @@ export const useProductStore = defineStore('product', () => {
       // Use a simpler query that doesn't trigger user_roles policy
       const { data, error: supabaseError } = await supabase
         .from('products')
-        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at')
+        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at, stock_quantity')
         .eq('category_id', categoryId)
         .eq('is_active', true)
         .order('sold_count', { ascending: false })

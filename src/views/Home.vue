@@ -17,7 +17,7 @@
           {{ t('hero.subtitle') }}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
-          <button @click="scrollToMostSoldProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-blue-50">
+          <button @click="scrollToFeaturedProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-primary-50">
             <i class="fas fa-shopping-bag ml-1 sm:ml-2"></i>
             {{ t('hero.shopNow') }}
           </button>
@@ -29,68 +29,61 @@
       </div>
     </section>
 
-    <!-- Best-selling Products Section -->
-    <section id="best-selling-products" class="my-slide-up">
+    <!-- Featured Products Section -->
+    <section id="featured-products" class="my-slide-up">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.bestSellingProducts') }}</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.featuredProducts') }}</h2>
         <div class="flex items-center space-x-4 space-x-reverse">
           <button
-            @click="refreshBestSellingProducts"
-            :disabled="loading"
+            @click="refreshFeaturedProducts"
+            :disabled="featuredLoading"
             class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
           >
-            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': loading }"></i>
-            {{ t('bestSelling.refresh') }}
+            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': featuredLoading }"></i>
+            {{ t('sections.refresh') }}
           </button>
         </div>
       </div>
       
       <!-- Loading State -->
-      <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div v-for="i in 10" :key="i" class="card animate-pulse">
-          <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
-          <div class="h-4 bg-gray-200 rounded mb-2"></div>
-          <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+      <div v-if="featuredLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div v-for="i in 8" :key="i" class="card animate-pulse">
+          <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
+          <div class="h-4 bg-neutral-200 rounded mb-2"></div>
+          <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+          <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
         </div>
       </div>
       
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12">
+      <div v-else-if="featuredError" class="text-center py-12">
         <div class="text-red-500 text-lg mb-4">
           <i class="fas fa-exclamation-triangle mr-2"></i>
-          {{ error }}
+          {{ featuredError }}
         </div>
-        <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+        <button @click="refreshFeaturedProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
           {{ t('common.retry') }}
         </button>
-        
-        <!-- Production fallback message -->
-        <div v-if="isProd" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p class="text-yellow-800 text-sm">
-            {{ t('sections.productionDataIssue') }}
-          </p>
-        </div>
       </div>
       
-      <!-- Products Grid - 2 rows × 5 products per row -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+      <!-- Products Grid - 2 rows × 4 products per row -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         <ProductCard
-          v-for="product in bestSellingProducts"
+          v-for="product in featuredProducts"
           :key="product.id"
           :product="product"
         />
       </div>
       
       <!-- Empty State -->
-      <div v-if="!loading && !error && bestSellingProducts.length === 0" class="text-center py-12">
-        <div class="text-gray-500 text-lg mb-4">
-          <i class="fas fa-box-open mr-2"></i>
-          {{ t('sections.noBestSellingProducts') }}
+      <div v-if="!featuredLoading && !featuredError && featuredProducts.length === 0" class="text-center py-12">
+        <div class="text-neutral-500 text-lg mb-4">
+          <i class="fas fa-star mr-2"></i>
+          {{ t('sections.noFeaturedProducts') }}
         </div>
         <div class="mt-4">
-          <p class="text-gray-600 mb-4">Try refreshing the page or check your connection.</p>
-          <button @click="refreshBestSellingProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
+          <p class="text-neutral-600 mb-4">Try refreshing the page or check your connection.</p>
+          <button @click="refreshFeaturedProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
             {{ t('common.retry') }}
           </button>
         </div>
@@ -107,13 +100,13 @@
       <div v-if="!categoriesLoaded" class="text-center py-12">
         <div class="inline-flex items-center space-x-2 space-x-reverse">
           <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          <span class="text-gray-600">{{ t('common.loading') }}</span>
+          <span class="text-neutral-600">{{ t('common.loading') }}</span>
         </div>
       </div>
       
       <!-- Error State for Categories -->
       <div v-else-if="categories.length === 0" class="text-center py-12">
-        <div class="text-gray-500 text-lg mb-4">
+        <div class="text-neutral-500 text-lg mb-4">
           <i class="fas fa-exclamation-triangle mr-2"></i>
           {{ t('sections.noCategoriesAvailable') }}
         </div>
@@ -122,8 +115,8 @@
         </button>
         
         <!-- Fallback: Show a message that categories are being loaded -->
-        <div class="mt-8 p-6 bg-gray-50 rounded-lg">
-          <p class="text-gray-600 mb-4">{{ t('sections.categoriesLoadingFallback') }}</p>
+        <div class="mt-8 p-6 bg-neutral-50 rounded-lg">
+          <p class="text-neutral-600 mb-4">{{ t('sections.categoriesLoadingFallback') }}</p>
           <div class="flex justify-center space-x-4">
             <router-link to="/products" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
               {{ t('sections.browseAllProducts') }}
@@ -135,12 +128,12 @@
       <!-- Category Products -->
       <div v-else>
         <!-- Debug info for production troubleshooting -->
-        <div v-if="isDev" class="text-xs text-gray-400 mb-4">
+        <div v-if="isDev" class="text-xs text-neutral-400 mb-4">
           Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
         </div>
         
         <!-- Production debug info -->
-        <div v-if="isProd" class="text-xs text-gray-400 mb-4">
+        <div v-if="isProd" class="text-xs text-neutral-400 mb-4">
           <div>Categories loaded: {{ categories.length }}</div>
           <div>Categories loaded flag: {{ categoriesLoaded }}</div>
           <div>Product store categories: {{ productStore.categories.length }}</div>
@@ -155,12 +148,12 @@
         </div>
         
         <!-- Loading State for Category -->
-        <div v-if="categoryLoading[category.id]" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-          <div v-for="i in 10" :key="i" class="card animate-pulse">
-            <div class="w-full h-48 bg-gray-200 rounded-t-2xl mb-4"></div>
-            <div class="h-4 bg-gray-200 rounded mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+        <div v-if="categoryLoading[category.id]" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div v-for="i in 8" :key="i" class="card animate-pulse">
+            <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
+            <div class="h-4 bg-neutral-200 rounded mb-2"></div>
+            <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
+            <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
           </div>
         </div>
         
@@ -175,10 +168,10 @@
           </button>
         </div>
         
-        <!-- Category Products Grid - 2 rows × 5 products per row -->
-        <div v-else-if="categoryProducts[category.id] && categoryProducts[category.id].length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <!-- Category Products Grid - 2 rows × 4 products per row -->
+        <div v-else-if="categoryProducts[category.id] && categoryProducts[category.id].length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           <ProductCard
-            v-for="product in categoryProducts[category.id]"
+            v-for="product in categoryProducts[category.id].slice(0, 8)"
             :key="product.id"
             :product="product"
           />
@@ -186,7 +179,7 @@
         
         <!-- Empty State for Category -->
         <div v-else class="text-center py-8">
-          <div class="text-gray-500 text-lg mb-4">
+          <div class="text-neutral-500 text-lg mb-4">
             <i class="fas fa-box-open mr-2"></i>
             {{ t('sections.noProductsInCategory', { category: getCategoryName(category.id) }) }}
           </div>
@@ -197,64 +190,64 @@
     </section>
 
     <!-- Features Section -->
-    <section class="grid-cards my-slide-up">
-      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
-        <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-primary-dark transition-all duration-300">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 my-slide-up">
+      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300 bg-white border-2 border-neutral-100 hover:border-primary/20">
+        <div class="w-16 h-16 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
           <i class="fas fa-truck text-white text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold mb-3 text-dark">{{ t('features.fastDelivery') }}</h3>
-        <p class="text-gray-600 leading-relaxed text-sm">{{ t('features.fastDeliveryDesc') }}</p>
+        <h3 class="text-xl font-bold mb-3 text-neutral-900">{{ t('features.fastDelivery') }}</h3>
+        <p class="text-neutral-700 leading-relaxed text-sm">{{ t('features.fastDeliveryDesc') }}</p>
       </div>
       
-      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
-        <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-secondary-dark transition-all duration-300">
+      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300 bg-white border-2 border-neutral-100 hover:border-accent/20">
+        <div class="w-16 h-16 bg-gradient-to-br from-accent to-accent-dark rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
           <i class="fas fa-money-bill-wave text-white text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold mb-3 text-dark">{{ t('features.cod') }}</h3>
-        <p class="text-gray-600 leading-relaxed text-sm">{{ t('features.codDesc') }}</p>
+        <h3 class="text-xl font-bold mb-3 text-neutral-900">{{ t('features.cod') }}</h3>
+        <p class="text-neutral-700 leading-relaxed text-sm">{{ t('features.codDesc') }}</p>
       </div>
       
-      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300">
-        <div class="w-16 h-16 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent-dark transition-all duration-300">
+      <div class="card text-center group hover:shadow-glow transform hover:scale-105 transition-all duration-300 bg-white border-2 border-neutral-100 hover:border-accent/20">
+        <div class="w-16 h-16 bg-gradient-to-br from-accent to-accent-dark rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
           <i class="fas fa-shield-alt text-white text-2xl"></i>
         </div>
-        <h3 class="text-xl font-bold mb-3 text-dark">{{ t('features.qualityGuarantee') }}</h3>
-        <p class="text-gray-600 leading-relaxed text-sm">{{ t('features.qualityGuaranteeDesc') }}</p>
+        <h3 class="text-xl font-bold mb-3 text-neutral-900">{{ t('features.qualityGuarantee') }}</h3>
+        <p class="text-neutral-700 leading-relaxed text-sm">{{ t('features.qualityGuaranteeDesc') }}</p>
       </div>
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="bg-white rounded-3xl p-8 sm:p-12 shadow-soft my-slide-up border border-gray-100">
-      <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-8 sm:mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
+    <section class="bg-white rounded-3xl p-8 sm:p-12 shadow-soft my-slide-up border border-neutral-100">
+      <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900 mb-8 sm:mb-12 text-center">{{ t('sections.whyChooseUs') }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
         <div class="space-y-8">
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
-              <i class="fas fa-check text-white text-sm"></i>
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
+              <i class="fas fa-shield-alt text-white text-lg"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.securePayment') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.securePaymentDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.securePayment') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.securePaymentDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
-              <i class="fas fa-check text-white text-sm"></i>
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
+              <i class="fas fa-truck text-white text-lg"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.fastDeliveryAlgeria') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.fastDeliveryAlgeriaDesc') }}</p>
             </div>
           </div>
           
           <div class="flex items-start space-x-4 space-x-reverse group">
-            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg transition-all duration-300">
-              <i class="fas fa-check text-white text-sm"></i>
+            <div class="w-12 h-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 shadow-md">
+              <i class="fas fa-certificate text-white text-lg"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.originalProducts') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.originalProductsDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.originalProducts') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.originalProductsDesc') }}</p>
             </div>
           </div>
         </div>
@@ -265,8 +258,8 @@
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.competitivePrices') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.competitivePricesDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.competitivePrices') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.competitivePricesDesc') }}</p>
             </div>
           </div>
           
@@ -275,8 +268,8 @@
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.customerService') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.customerServiceDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.customerService') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.customerServiceDesc') }}</p>
             </div>
           </div>
           
@@ -285,8 +278,8 @@
               <i class="fas fa-check text-white text-sm"></i>
             </div>
             <div>
-              <h4 class="font-bold text-xl text-gray-900 mb-3">{{ t('benefits.easyOrdering') }}</h4>
-              <p class="text-gray-700 leading-relaxed text-base">{{ t('benefits.easyOrderingDesc') }}</p>
+              <h4 class="font-bold text-xl text-neutral-900 mb-3">{{ t('benefits.easyOrdering') }}</h4>
+              <p class="text-neutral-800 leading-relaxed text-base">{{ t('benefits.easyOrderingDesc') }}</p>
             </div>
           </div>
         </div>
@@ -299,22 +292,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/product'
-import { useProducts } from '../composables/useProducts'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
-const { 
-  bestSellingProducts, 
-  loading, 
-  error, 
-  fetchBestSellingProducts,
-  fetchBestSellingProductsByCategory,
-  refreshBestSellingProducts 
-} = useProducts()
 
 const isProd = import.meta.env.PROD
 const isDev = import.meta.env.DEV
+
+// State for featured products
+const featuredProducts = ref([])
+const featuredLoading = ref(false)
+const featuredError = ref(null)
 
 // State for category products
 const categoryProducts = ref({})
@@ -349,12 +338,29 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const loadBestSellingProducts = async () => {
+const loadFeaturedProducts = async () => {
+  featuredLoading.value = true
+  featuredError.value = null
+  
   try {
-    await fetchBestSellingProducts()
+    // Fetch all products and select 10 random ones for featured
+    await productStore.fetchProducts()
+    const allProducts = productStore.products
+    
+    // Shuffle and take first 8 products
+    const shuffled = [...allProducts].sort(() => 0.5 - Math.random())
+    featuredProducts.value = shuffled.slice(0, 8)
   } catch (err) {
-    console.error('Error loading best-selling products:', err)
+    console.error('Error loading featured products:', err)
+    featuredError.value = err.message || 'Failed to load featured products'
+    featuredProducts.value = []
+  } finally {
+    featuredLoading.value = false
   }
+}
+
+const refreshFeaturedProducts = async () => {
+  await loadFeaturedProducts()
 }
 
 const loadCategoryProducts = async (categoryId) => {
@@ -362,8 +368,13 @@ const loadCategoryProducts = async (categoryId) => {
   categoryErrors.value[categoryId] = null
   
   try {
-    const products = await fetchBestSellingProductsByCategory(categoryId)
-    categoryProducts.value[categoryId] = products || []
+    // Fetch products for this specific category
+    await productStore.fetchProducts({ category_id: categoryId })
+    const categoryProductsList = productStore.products.filter(product => product.category_id === categoryId)
+    
+    // Shuffle and take first 8 products
+    const shuffled = [...categoryProductsList].sort(() => 0.5 - Math.random())
+    categoryProducts.value[categoryId] = shuffled.slice(0, 8)
   } catch (err) {
     console.error(`Error loading products for category ${categoryId}:`, err)
     categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
@@ -392,10 +403,10 @@ const retryCategoryLoading = async () => {
   }
 }
 
-const scrollToMostSoldProducts = () => {
-  const mostSoldSection = document.getElementById('most-sold-products')
-  if (mostSoldSection) {
-    mostSoldSection.scrollIntoView({ behavior: 'smooth' })
+const scrollToFeaturedProducts = () => {
+  const featuredSection = document.getElementById('featured-products')
+  if (featuredSection) {
+    featuredSection.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
@@ -432,8 +443,8 @@ onMounted(async () => {
     clearTimeout(timeoutId)
     clearTimeout(minTimeout)
     
-    // Load best-selling products
-    await loadBestSellingProducts()
+    // Load featured products
+    await loadFeaturedProducts()
     
     // Load category products for each category
     if (categories.value && categories.value.length > 0) {

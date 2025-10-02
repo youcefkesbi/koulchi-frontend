@@ -88,10 +88,10 @@
           </button>
         </div>
         
-        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="mt-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
           <div class="flex items-start space-x-2">
-            <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-            <div class="text-sm text-blue-700">
+            <i class="fas fa-info-circle text-primary-500 mt-0.5"></i>
+            <div class="text-sm text-primary-700">
               <p class="font-medium mb-1">{{ t('maystro.howToConnect') }}</p>
               <p>{{ t('maystro.connectionSteps') }}</p>
             </div>

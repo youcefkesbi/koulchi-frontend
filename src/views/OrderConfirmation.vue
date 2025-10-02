@@ -13,8 +13,8 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-12">
-      <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-spinner fa-spin text-blue-600 text-2xl"></i>
+      <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-spinner fa-spin text-primary-600 text-2xl"></i>
       </div>
       <p class="text-gray-600">{{ t('orderConfirmation.loading') }}</p>
     </div>
@@ -112,9 +112,9 @@
       </div>
 
       <!-- Next Steps -->
-      <div class="card bg-blue-50 border border-blue-200">
-        <h2 class="text-xl font-bold text-blue-800 mb-4">{{ t('orderConfirmation.nextSteps') }}</h2>
-        <ul class="text-blue-700 space-y-2">
+      <div class="card bg-primary-50 border border-primary-200">
+        <h2 class="text-xl font-bold text-primary-800 mb-4">{{ t('orderConfirmation.nextSteps') }}</h2>
+        <ul class="text-primary-700 space-y-2">
           <li>• {{ t('orderConfirmation.step1') }}</li>
           <li>• {{ t('orderConfirmation.step2') }}</li>
           <li>• {{ t('orderConfirmation.step3') }}</li>
@@ -189,8 +189,8 @@ const formatDate = (dateString) => {
 const getStatusBadgeClass = (status) => {
   const statusClasses = {
     'pending': 'bg-yellow-100 text-yellow-800',
-    'confirmed': 'bg-blue-100 text-blue-800',
-    'shipped': 'bg-purple-100 text-purple-800',
+    'confirmed': 'bg-primary-100 text-primary-800',
+    'shipped': 'bg-accent-100 text-accent-800',
     'delivered': 'bg-green-100 text-green-800',
     'cancelled': 'bg-red-100 text-red-800'
   }

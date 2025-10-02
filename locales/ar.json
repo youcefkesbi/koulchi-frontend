@@ -95,6 +95,7 @@
   },
   "categoryPage": {
     "resultsCount": "عرض {count} من {total} منتج",
+    "showingResults": "عرض {start}-{end} من {total} نتيجة",
     "sortBy": "ترتيب حسب",
     "sortNewest": "الأحدث أولاً",
     "sortOldest": "الأقدم أولاً",
@@ -105,7 +106,13 @@
     "noProductsMessage": "لا توجد منتجات متاحة في هذه الفئة في الوقت الحالي.",
     "browseAllProducts": "تصفح جميع المنتجات",
     "backToCategories": "العودة إلى الفئات",
-    "loading": "جاري تحميل المنتجات..."
+    "backToHomepage": "العودة إلى الصفحة الرئيسية",
+    "loading": "جاري تحميل المنتجات...",
+    "browseProducts": "تصفح المنتجات",
+    "featuredProducts": "المنتجات المميزة",
+    "categoryProducts": "منتجات الفئة",
+    "refresh": "تحديث",
+    "noFeaturedProducts": "لا توجد منتجات مميزة متاحة"
   },
   "home": "الرئيسية",
   "products": "المنتجات",
@@ -281,17 +288,17 @@
   },
   "sections": {
     "newProducts": "المنتجات الجديدة",
-    "bestSellingProducts": "أفضل المنتجات مبيعاً",
+    "featuredProducts": "المنتجات المميزة",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
     "browseByCategory": "تصفح حسب الفئة",
     "whyChooseUs": "لماذا تختار كولشي؟",
-    "noBestSellingProducts": "لا توجد أفضل المنتجات مبيعاً متاحة في الوقت الحالي.",
+    "noFeaturedProducts": "لا توجد منتجات مميزة متاحة في الوقت الحالي.",
     "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}.",
     "noCategoriesAvailable": "لا توجد فئات متاحة في الوقت الحالي.",
     "categoriesLoadingFallback": "يتم تحميل الفئات. يمكنك تصفح جميع المنتجات في الوقت الحالي.",
     "browseAllProducts": "تصفح جميع المنتجات",
-    "productionDataIssue": "مشكلة في تحميل البيانات في الإنتاج. يرجى المحاولة مرة أخرى أو الاتصال بالدعم إذا استمرت المشكلة."
+    "refresh": "تحديث"
   },
   "benefits": {
     "securePayment": "دفع آمن عند الاستلام",

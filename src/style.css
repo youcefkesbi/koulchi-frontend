@@ -1,31 +1,62 @@
 @import "tailwindcss";
 
-/* CSS Variables for light theme system */
+/* CSS Variables for modern color palette */
 :root {
-  /* Brand Colors */
+  /* Brand Colors - Green Primary */
   --color-primary: #10b981;
   --color-primary-dark: #059669;
   --color-primary-light: #34d399;
-  --color-secondary: #f97316;
-  --color-secondary-dark: #ea580c;
-  --color-secondary-light: #fb923c;
-  --color-accent: #f59e0b;
-  --color-accent-dark: #d97706;
-  --color-accent-light: #fbbf24;
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  
+  /* Accent Colors - Subtle Orange */
+  --color-accent: #f97316;
+  --color-accent-dark: #ea580c;
+  --color-accent-light: #fb923c;
+  --color-accent-50: #fff7ed;
+  --color-accent-100: #ffedd5;
+  --color-accent-200: #fed7aa;
+  --color-accent-300: #fdba74;
+  --color-accent-400: #fb923c;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --color-accent-800: #9a3412;
+  --color-accent-900: #7c2d12;
+  
+  /* Neutral Colors - Black and White */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
   
   /* Theme Colors - Light Mode */
   --color-background: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-secondary: #f9fafb;
-  --color-surface-tertiary: #f3f4f6;
-  --color-text-primary: #111827;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #6b7280;
+  --color-surface-secondary: #fafafa;
+  --color-surface-tertiary: #f5f5f5;
+  --color-text-primary: #171717;
+  --color-text-secondary: #404040;
+  --color-text-tertiary: #737373;
   --color-text-inverse: #ffffff;
-  --color-border: #e5e7eb;
-  --color-border-secondary: #d1d5db;
+  --color-border: #e5e5e5;
+  --color-border-secondary: #d4d4d4;
   --color-shadow: rgba(0, 0, 0, 0.1);
-  --color-shadow-soft: rgba(0, 0, 0, 0.07);
+  --color-shadow-soft: rgba(0, 0, 0, 0.05);
 }
 
 /* Shadow utilities using CSS variables */
@@ -64,7 +95,7 @@
 
   .btn-primary:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .btn-primary:active {
@@ -77,8 +108,8 @@
     }
   }
 
-  .btn-secondary {
-    background-color: var(--color-secondary);
+  .btn-accent {
+    background-color: var(--color-accent);
     color: white;
     font-weight: 600;
     padding: 0.5rem 1.5rem;
@@ -90,22 +121,23 @@
     transform: scale(1);
   }
 
-  .btn-secondary:hover {
+  .btn-accent:hover {
+    background-color: var(--color-accent-dark);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     transform: scale(1.05);
   }
 
-  .btn-secondary:focus {
+  .btn-accent:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2);
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.2), 0 0 0 2px rgba(249, 115, 22, 0.1);
   }
 
-  .btn-secondary:active {
+  .btn-accent:active {
     transform: scale(0.95);
   }
 
   @media (min-width: 640px) {
-    .btn-secondary {
+    .btn-accent {
       padding: 0.75rem 1.5rem;
     }
   }
@@ -130,7 +162,7 @@
 
   .btn-outline:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .btn-outline:active {
@@ -167,6 +199,32 @@
       padding: 1rem 2rem;
       font-size: 1.125rem;
     }
+  }
+
+  /* Consistent button base styles */
+  .btn-base {
+    font-weight: 600;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: scale(1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .btn-base:hover {
+    transform: scale(1.05);
+  }
+
+  .btn-base:active {
+    transform: scale(0.95);
+  }
+
+  .btn-base:focus {
+    outline: none;
   }
 
   /* Card Components */
@@ -214,8 +272,12 @@
 
   .input-field:focus {
     border-color: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transform: scale(1.02);
+  }
+
+  .input-field::placeholder {
+    color: #6b7280;
   }
 
   @media (min-width: 640px) {
@@ -594,6 +656,40 @@
   transition: all 0.2s ease-in-out;
 }
 
+/* Improved spacing utilities */
+.space-y-consistent > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.space-x-consistent > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 1rem;
+}
+
+/* Better text contrast utilities */
+.text-contrast-high {
+  color: #111827;
+}
+
+.dark .text-contrast-high {
+  color: #f9fafb;
+}
+
+.text-contrast-medium {
+  color: #374151;
+}
+
+.dark .text-contrast-medium {
+  color: #e5e7eb;
+}
+
+.text-contrast-low {
+  color: #4b5563;
+}
+
+.dark .text-contrast-low {
+  color: #9ca3af;
+}
+
 /* Custom Animation Keyframes */
 @keyframes fadeIn {
   from { 
@@ -734,23 +830,24 @@
   /* Dark mode card styles */
   .card {
     background-color: white;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     padding: 1.5rem;
-    border: 1px solid #f3f4f6;
-    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+    border: 2px solid #f3f4f6;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
   }
 
   .dark .card {
-    background-color: #1f2937;
-    border-color: #374151;
+    background-color: #262626;
+    border-color: #404040;
   }
 
   .card-hover {
     background-color: white;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     padding: 1.5rem;
-    border: 1px solid #f3f4f6;
-    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+    border: 2px solid #f3f4f6;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 8px 16px -4px rgba(0, 0, 0, 0.06);
     transition: all 0.3s ease;
     cursor: pointer;
   }
@@ -761,8 +858,8 @@
   }
 
   .dark .card-hover {
-    background-color: #1f2937;
-    border-color: #374151;
+    background-color: #262626;
+    border-color: #404040;
   }
 
   /* Dark mode text styles */
@@ -771,22 +868,39 @@
   }
 
   .dark .text-primary {
-    color: #f3f4f6;
+    color: #fafafa;
   }
 
   .text-secondary {
-    color: #4b5563;
+    color: #374151;
   }
 
   .dark .text-secondary {
-    color: #d1d5db;
+    color: #f5f5f5;
   }
 
   .text-muted {
-    color: #6b7280;
+    color: #4b5563;
   }
 
   .dark .text-muted {
+    color: #9ca3af;
+  }
+
+  /* Better contrast text utilities */
+  .text-readable {
+    color: #374151;
+  }
+
+  .dark .text-readable {
+    color: #e5e7eb;
+  }
+
+  .text-subtle {
+    color: #4b5563;
+  }
+
+  .dark .text-subtle {
     color: #9ca3af;
   }
 
@@ -834,7 +948,7 @@
 
   .input-primary:focus {
     border-color: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .dark .input-primary {
@@ -890,7 +1004,7 @@
 
   .btn-primary:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .btn-primary:active {
@@ -917,7 +1031,7 @@
 
   .btn-outline:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .btn-outline:active {
@@ -942,7 +1056,7 @@
 
   .form-input:focus {
     border-color: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2), 0 0 0 2px rgba(16, 185, 129, 0.1);
   }
 
   .dark .form-input {

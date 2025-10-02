@@ -1,25 +1,26 @@
 <template>
-  <div class="product-card group hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+  <div class="product-card group hover:shadow-2xl transition-all duration-500 bg-white rounded-3xl border-0 overflow-hidden shadow-lg hover:-translate-y-2 hover:scale-[1.02] relative"
+       :class="{ 'opacity-60': (product.stock_quantity || 0) <= 0 }">
     <!-- Product Image Container -->
-    <div class="relative overflow-hidden bg-gray-50 dark:bg-gray-700">
+    <div class="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       <img 
         v-if="productImage" 
         :src="productImage" 
         :alt="product.name"
-        class="w-full h-48 sm:h-56 object-cover group-hover:scale-110 transition-transform duration-500"
+        class="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
         @error="handleImageError"
       />
       
       <!-- No Image Placeholder -->
-      <div v-else class="w-full h-48 sm:h-56 flex items-center justify-center">
-        <div class="text-center text-gray-400 dark:text-gray-500">
-          <i class="fas fa-image text-5xl mb-3 opacity-50"></i>
-          <p class="text-sm font-medium">{{ $t('product.noImage') }}</p>
+      <div v-else class="w-full h-64 sm:h-72 flex items-center justify-center">
+        <div class="text-center text-gray-400">
+          <i class="fas fa-image text-6xl mb-4 opacity-40"></i>
+          <p class="text-sm font-medium text-gray-500">{{ $t('product.noImage') }}</p>
         </div>
       </div>
       
       <!-- Badges Container -->
-      <div class="absolute top-3 right-3 flex flex-col space-y-2">
+      <div class="absolute top-4 right-4 flex flex-col space-y-2">
         <span v-if="product.is_new" class="badge-new">
           {{ $t('product.new') }}
         </span>
@@ -29,18 +30,27 @@
       </div>
       
       <!-- COD Badge -->
-      <div class="absolute top-3 left-3">
+      <div class="absolute top-4 left-4">
         <span class="badge-cod">
           <i class="fas fa-money-bill-wave ml-2"></i>
           {{ $t('product.cod') }}
         </span>
       </div>
 
+      <!-- Out of Stock Overlay -->
+      <div v-if="(product.stock_quantity || 0) <= 0" 
+           class="absolute inset-0 bg-gradient-to-br from-red-500/80 to-red-600/90 backdrop-blur-sm flex items-center justify-center">
+        <div class="bg-white text-red-600 px-6 py-3 rounded-2xl font-bold text-lg shadow-2xl border-2 border-red-200">
+          <i class="fas fa-times-circle ml-2"></i>
+          {{ $t('product.outOfStock') }}
+        </div>
+      </div>
+
       <!-- Wishlist Button (Floating) -->
       <button
         @click="toggleWishlist"
-        class="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
-        :class="{ 'text-red-500': isInWishlist, 'text-gray-600 dark:text-gray-300': !isInWishlist }"
+        class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl"
+        :class="{ 'text-red-500 bg-red-50': isInWishlist, 'text-gray-600 hover:text-red-500': !isInWishlist }"
         :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
       >
         <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isInWishlist }"></i>
@@ -48,55 +58,59 @@
     </div>
 
     <!-- Product Info Container -->
-    <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
+    <div class="p-6 space-y-5 bg-white">
       <!-- Title -->
-      <h3 class="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 line-clamp-2 leading-tight group-hover:text-primary transition-colors duration-300">
+      <h3 class="font-bold text-xl text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-300">
         {{ product.name }}
       </h3>
 
-      <!-- Stock Status -->
-      <div class="flex items-center space-x-2 space-x-reverse">
-        <div class="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-lg">
-          <i class="fas fa-box text-primary text-sm ml-2"></i>
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ product.stock_quantity || 0 }}</span>
-        </div>
-        <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">متوفر</span>
-      </div>
-
       <!-- Price -->
       <div class="flex items-center justify-between">
-        <span class="text-xl sm:text-2xl font-bold text-primary">
-          {{ formatPrice(product.price) }} {{ $t('product.currency') }}
-        </span>
-        <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-          {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
-        </span>
+        <div class="flex flex-col space-y-1">
+          <span class="text-3xl font-bold text-blue-600">
+            {{ formatPrice(product.price) }} {{ $t('product.currency') }}
+          </span>
+          <span v-if="product.is_on_sale" class="text-sm text-gray-500 line-through">
+            {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
+          </span>
+        </div>
+        <div class="flex items-center px-3 py-2 rounded-full" 
+             :class="(product.stock_quantity || 0) <= 0 ? 'bg-red-100' : 'bg-green-100'">
+          <i class="fas fa-box text-xs ml-1" 
+             :class="(product.stock_quantity || 0) <= 0 ? 'text-red-600' : 'text-green-600'"></i>
+          <span class="text-xs font-semibold" 
+                :class="(product.stock_quantity || 0) <= 0 ? 'text-red-600' : 'text-green-600'">
+            {{ (product.stock_quantity || 0) <= 0 ? $t('product.outOfStock') : (product.stock_quantity || 0) }}
+          </span>
+        </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex space-x-2 sm:space-x-3 space-x-reverse pt-2">
+      <div class="flex space-x-3 space-x-reverse">
         <button
           @click="addToCart"
           :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 btn-primary text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+          :class="(product.stock_quantity || 0) <= 0 
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
         >
-          <i v-if="!cartLoading" class="fas fa-shopping-cart ml-1 sm:ml-2"></i>
-          <i v-else class="fas fa-spinner fa-spin ml-1 sm:ml-2"></i>
-          <span class="hidden sm:inline">{{ getCartButtonText() }}</span>
-          <span class="sm:hidden">Add</span>
+          <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+          <i v-else class="fas fa-spinner fa-spin"></i>
+          <span>{{ getCartButtonText() }}</span>
         </button>
         
         <router-link
           :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="btn-outline text-xs sm:text-sm py-2 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
           :title="$t('product.viewProduct')"
         >
-          <i class="fas fa-eye text-gray-600 group-hover:text-primary transition-colors"></i>
+          <i class="fas fa-eye"></i>
         </router-link>
       </div>
 
       <!-- Error Message -->
-      <div v-if="error" class="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+      <div v-if="error" class="text-red-600 text-sm text-center bg-red-50 p-4 rounded-2xl border-2 border-red-200 font-medium">
         {{ error }}
       </div>
     </div>
@@ -216,46 +230,52 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* Enhanced badge styles */
+/* Modern badge styles */
 .badge-new {
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  background-color: #10b981;
+  font-weight: 800;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px -5px rgba(16, 185, 129, 0.4), 0 4px 10px -2px rgba(16, 185, 129, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .badge-sale {
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  background-color: #ef4444;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.4), 0 4px 10px -2px rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .badge-cod {
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
   font-size: 0.75rem;
-  font-weight: 700;
-  background-color: #3b82f6;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.4), 0 4px 10px -2px rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Product card hover effects */
+/* Modern product card hover effects */
 .product-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.02);
 }
 
 .product-card:hover .product-image {
