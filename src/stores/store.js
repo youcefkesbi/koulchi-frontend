@@ -597,12 +597,13 @@ export const useStoreStore = defineStore('store', () => {
         return { store_id: null, status: null, can_create: true }
       }
 
-      // The function returns an array, get the first result or default values
-      const result = data && data.length > 0 ? data[0] : null
+      // The function returns one row (or none). Handle defensively.
+      const result = Array.isArray(data) ? (data[0] || null) : (data || null)
       return {
         store_id: result?.store_id || null,
         status: result?.status || null,
-        can_create: result?.can_create || true
+        // respect false; only default to true when no result
+        can_create: result ? !!result.can_create : true
       }
     } catch (err) {
       console.error('Error fetching user store status:', err)

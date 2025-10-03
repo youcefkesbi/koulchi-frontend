@@ -17,6 +17,7 @@
     <div class="container mx-auto px-4 py-8 ">
       <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-soft p-8">
        <form @submit.prevent="handleSubmit">
+       
         <!-- Stepper -->
         <div class="mb-8">
           <div class="flex items-center justify-center space-x-8">
@@ -384,12 +385,19 @@
 
 
         <!-- Navigation Buttons -->
-        <div class="flex items-center justify-between pt-6 border-t border-gray-200 mt-8">
-          <button v-if="currentStep > 1" @click="previousStep" type="button" class="px-6 py-3 bg-gray-100 rounded-lg">
+        <div 
+        class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-8">
+          <button v-if="currentStep > 1" 
+          @click="previousStep" 
+          type="button" 
+          class=" px-6 py-3 bg-gray-300 rounded-lg text-white">
             {{ $t('common.back') }}
           </button>
-          <button v-if="currentStep < totalSteps" @click="nextStep" type="button" class="px-6 py-3 bg-primary text-white rounded-lg">
-            {{ $t('common.next') }}
+          <button 
+          v-if="currentStep < totalSteps" 
+          @click="nextStep" type="button" 
+          class="px-6 py-3 bg-green-600 text-white rounded-lg">
+            {{ $t('common.next') }} ({{ currentStep }}/{{ totalSteps }})
           </button>
            <button
   v-if="currentStep === totalSteps"
@@ -447,7 +455,7 @@ const isAuthenticated = ref(false)
 const authSubscription = ref(null)
 const router = useRouter()
 const session = ref(null) 
-const { $t, locale } = useI18n() // locale reactive
+const { t, locale } = useI18n() // locale reactive
 const rawPacks = ref([]) // raw fetched packs from DB
 const loadingPacks = ref(false)
 const fetchError = ref(null)
@@ -496,7 +504,7 @@ const localizedPacks = computed(() => {
           : currentLocale === 'ar'
           ? pack.description_ar || pack.description_en
           : pack.description_en,
-      price: Number(pack.price) === 0 ? $t('stores.free') : `${pack.price} ${$t('stores.currency')}`,
+      price: Number(pack.price) === 0 ? t('stores.free') : `${pack.price} ${t('stores.currency')}`,
       maxAnnouncements: pack.max_announcements,
       maxImages: pack.max_images,
       features: features[currentLocale] || features['en'] || [],
@@ -693,7 +701,7 @@ const checkUserVerifications = async () => {
 const validateForm = async () => {
   // Validate pack selection
   if (!formData.selectedPack) {
-    validationErrors.pack = $t('stores.packRequired') || 'Please select a plan';
+    validationErrors.pack = t('stores.packRequired') || 'Please select a plan';
     return false;
   } else {
     validationErrors.pack = '';
@@ -701,14 +709,14 @@ const validateForm = async () => {
 
   // Find selected pack from the fetched packs
   if (!selectedPackData.value) {
-    validationErrors.pack = $t('stores.invalidPack') || 'Selected plan is invalid';
+    validationErrors.pack = t('stores.invalidPack') || 'Selected plan is invalid';
     return false;
   }
 
   // Check verification requirements (uploads presence only)
   const verificationCheck = await checkUserVerifications()
   if (!verificationCheck.canCreate) {
-    validationErrors.verification = $t('stores.verificationRequired') || 'Verification documents required';
+    validationErrors.verification = t('stores.verificationRequired') || 'Verification documents required';
     return false;
   }
   validationErrors.verification = '';
@@ -717,15 +725,15 @@ const validateForm = async () => {
   if (isProPack.value) {
     // Validate store name for Pro plan
     if (!formData.name || formData.name.trim().length === 0) {
-      validationErrors.name = $t('stores.storeNameRequired') || 'Store name is required';
+      validationErrors.name = t('stores.storeNameRequired') || 'Store name is required';
       return false;
     } else {
       validationErrors.name = '';
     }
 
     if (!formData.logo || !formData.banner) {
-      validationErrors.logo = $t('stores.logoRequired') || 'Logo is required for Pro plan';
-      validationErrors.banner = $t('stores.bannerRequired') || 'Banner is required for Pro plan';
+      validationErrors.logo = t('stores.logoRequired') || 'Logo is required for Pro plan';
+      validationErrors.banner = t('stores.bannerRequired') || 'Banner is required for Pro plan';
       return false;
     } else {
       validationErrors.logo = '';
@@ -751,7 +759,7 @@ const handleSubmit = async () => {
     errorMessage.value = '';
 
     if (!(await validateForm())) {
-      errorMessage.value = $t('stores.validationError') || 'Please fix the validation errors before proceeding.';
+      errorMessage.value = t('stores.validationError') || 'Please fix the validation errors before proceeding.';
       return;
     }
 
@@ -781,12 +789,17 @@ const handleSubmit = async () => {
       throw new Error('Store creation failed: No ID returned');
     }
 
-    successMessage.value = $t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
+    successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
     resetForm();
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-      router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
+      try {
+        await router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
+      } finally {
+        // Force a refresh so header/state updates and the Create button disappears immediately
+        window.location.reload()
+      }
     }, 1500);
   } catch (error) {
     console.error('Error creating store:', error);
@@ -802,17 +815,17 @@ const getErrorMessage = (error) => {
   const message = error.message || ''
   
   if (message.includes('User not authenticated')) {
-    return $t('stores.authenticationError') || 'Please log in to create a store'
+    return t('stores.authenticationError') || 'Please log in to create a store'
   } else if (message.includes('permission denied')) {
-    return $t('stores.permissionError') || 'Permission denied. Please check your account permissions.'
+    return t('stores.permissionError') || 'Permission denied. Please check your account permissions.'
   } else if (message.includes('already have a store')) {
-    return $t('stores.storeAlreadyExists') || 'You already have a store. Each user can only create one store.'
+    return t('stores.storeAlreadyExists') || 'You already have a store. Each user can only create one store.'
   } else if (message.includes('network') || message.includes('fetch')) {
-    return $t('stores.networkError') || 'Network error. Please check your internet connection and try again.'
+    return t('stores.networkError') || 'Network error. Please check your internet connection and try again.'
   } else if (message.includes('upload')) {
-    return $t('stores.uploadError') || 'Failed to upload images. Please try again.'
+    return t('stores.uploadError') || 'Failed to upload images. Please try again.'
   } else {
-    return message || $t('stores.storeCreationError') || 'Could not create your store, please try again.'
+    return message || t('stores.storeCreationError') || 'Could not create your store, please try again.'
   }
 }
 
