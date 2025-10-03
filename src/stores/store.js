@@ -580,6 +580,36 @@ export const useStoreStore = defineStore('store', () => {
     }
   }
 
+  // Get user store status using the optimized RPC function
+  const getUserStoreStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session || !session.user) {
+        return { store_id: null, status: null, can_create: true }
+      }
+
+      const { data, error } = await supabase.rpc('get_user_store_status', {
+        auth_uid: session.user.id
+      })
+
+      if (error) {
+        console.error('Error fetching user store status:', error)
+        return { store_id: null, status: null, can_create: true }
+      }
+
+      // The function returns an array, get the first result or default values
+      const result = data && data.length > 0 ? data[0] : null
+      return {
+        store_id: result?.store_id || null,
+        status: result?.status || null,
+        can_create: result?.can_create || true
+      }
+    } catch (err) {
+      console.error('Error fetching user store status:', err)
+      return { store_id: null, status: null, can_create: true }
+    }
+  }
+
   // Store statistics functions
   const storeStatistics = ref({
     totalOrders: 0,
@@ -730,6 +760,7 @@ export const useStoreStore = defineStore('store', () => {
     clearCurrentStore,
     checkStoreOwnership,
     getStoreStatus,
+    getUserStoreStatus,
     
     // Statistics
     fetchStoreStatistics,

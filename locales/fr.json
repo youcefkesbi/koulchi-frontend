@@ -87,7 +87,8 @@
     "tagline": "Trouvez-le. Aimez-le. Obtenez-le.",
     "categories": "Catégories",
     "brandName": "Koulchi",
-    "myOrders": "Mes commandes"
+    "myPurchases": "Mes achats",
+    "orders": "Commandes"
   },
   "checkout": {
     "title": "Finaliser Votre Commande",
