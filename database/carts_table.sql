@@ -94,7 +94,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
-
-
-
+-- 10/03/2025
+-- Create a function to add items to the cart
+create or replace function public.add_to_cart(
+  p_user_id uuid,
+  p_product_id uuid,
+  p_quantity int
+)
+returns void
+language plpgsql
+as $$
+begin
+  insert into public.cart (user_id, product_id, quantity)
+  values (p_user_id, p_product_id, p_quantity)
+  on conflict (user_id, product_id) 
+  do update set quantity = cart.quantity + excluded.quantity;
+end;
+$$;
