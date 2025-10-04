@@ -1,6 +1,6 @@
 <template>
   <header class="h-20 bg-white shadow-soft sticky top-0 z-50 border-b border-neutral-200">
-    <div class="container mx-auto px-4">
+    <div class="px-8">
       <!-- Main header -->
       <div class="py-4 sm:py-6  h-20">
         <div class="h-10 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
@@ -73,10 +73,10 @@
             <!-- Post Announcement Button -->
             <button
               @click="handlePostAnnouncement"
-              class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+              class="w-28 flex gap-2 items-center text-xs sm:text-sm  sm:px-3 py-1 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
               <i class="fas fa-plus mr-1"></i>
-              <span class="hidden sm:inline">{{ t('header.postAnnouncement') }}</span>
+              <span class="hidden sm:inline">{{ t('header.addProduct') }}</span>
               <span class="sm:hidden">Post</span>
             </button>
 
@@ -90,6 +90,7 @@
               <span class="hidden sm:inline">{{ t('seller.createStore') }}</span>
               <span class="sm:hidden">Store</span>
             </button>
+            
 
             <!-- Language Switcher (always visible, compact) -->
             <LanguageSwitcher :compact="true" />
@@ -133,7 +134,7 @@
                   <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myPurchases') }}
                 </router-link>
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/mystoreproducts')" class="dropdown-item">
-                  <i class="fas fa-clipboard-list mr-3"></i>My Store products
+                  <i class="fas fa-clipboard-list mr-3"></i>{{ t('header.myStoreProducts') }}
                 </router-link>
                 <button
   v-if="userStoreStatus.store_id"

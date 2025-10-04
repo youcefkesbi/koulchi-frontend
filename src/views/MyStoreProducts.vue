@@ -3,28 +3,67 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">My Store Products</h1>
-        <p class="mt-2 text-gray-600">Manage your store's product inventory</p>
+        <h1 class="text-3xl font-bold text-gray-900">{{ $t('storeProducts.title') }}</h1>
+        <p class="mt-2 text-gray-600">{{ $t('storeProducts.subtitle') }}</p>
       </div>
 
       <!-- Products Table -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="relative px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-800">Product Inventory</h3>
-          <!-- Add product button -->
-          <button 
-            v-if="hasVendorRole"
-            @click="showAddForm = true"
-            class="right-4 top-2 cursor-pointer text-semibold absolute bg-indigo-700 text-white px-14 py-2 rounded-md hover:bg-indigo-800 transition-colors"
-          >
-            Add Product
-          </button>
-        </div>
+        <div class="relative px-6 py-4 border-b border-gray-200"> 
+
+      <!-- Manage products -->
+      <div class="bg-white rounded-lg  ">
+        <div class="flex items-center gap-8">
+        <h3 
+        class="ml-4 mt-3 text-lg font-semibold text-gray-800 mb-4">{{ $t('storeProducts.storeOrders') }}</h3>
+        <!-- Products Filtering tab -->
+        <div class="flex justify-center gap-4">
+        <!-- Price Sort Button -->
+        <button 
+          @click="setSortFilter('price')"
+          :class="sortFilter === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+          class="h-fit rounded-md px-12 py-2 transition-colors">
+           <span>{{ $t('storeProducts.price') }}</span><span class="ml-1">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
+        </button>
+
         
+        <!-- Category Filter -->
+                <select 
+          @change="setCategoryFilter($event.target.value)"
+          :value="categoryFilter"
+         class="h-fit rounded-md pl-2  py-2 transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">{{ $t('dashboard.categories') }}</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ getCategoryDisplayName(category) }}
+          </option>
+        </select>
+        <!-- Stock Filter -->
+        <select 
+          @change="setStockFilter($event.target.value)"
+          :value="stockFilter"
+          class="h-fit rounded-md px-4 py-2 transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="">{{ $t('storeProducts.allStock') }}</option>
+          <option value="in_stock">{{ $t('storeProducts.inStockFilter') }}</option>
+          <option value="low_stock">{{ $t('storeProducts.lowStockFilter') }}</option>
+          <option value="out_of_stock">{{ $t('storeProducts.outOfStockFilter') }}</option>
+        </select>
+
+        <!-- Add product button -->
+        <button 
+          v-if="hasVendorRole"
+          @click="showAddForm = true"
+          class="h-fit cursor-pointer text-semibold ml-4 bg-indigo-700 text-white px-10 py-2 rounded-md hover:bg-indigo-800 transition-colors"
+        >
+          {{ $t('stores.addProduct') }}
+        </button>
+        </div> 
+        </div>
+        </div>
+        </div>
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-12">
           <i class="fas fa-spinner fa-spin text-primary text-3xl mb-4"></i>
-          <p class="text-gray-600">Loading products...</p>
+          <p class="text-gray-600">{{ $t('storeProducts.loadingProducts') }}</p>
         </div>
         
         <!-- Error State -->
@@ -32,15 +71,15 @@
           <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
           <p class="text-red-600">{{ error }}</p>
           <button @click="fetchProducts" class="mt-4 btn-primary">
-            Try Again
+            {{ $t('storeProducts.tryAgain') }}
           </button>
         </div>
         
         <!-- Access Guard -->
         <div v-else-if="!hasVendorRole" class="text-center py-12">
           <i class="fas fa-lock text-gray-400 text-4xl mb-4"></i>
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">Vendor access required</h3>
-          <p class="text-gray-600">Your store must be approved (vendor role) to manage products.</p>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('storeProducts.vendorAccessRequired') }}</h3>
+          <p class="text-gray-600">{{ $t('storeProducts.vendorAccessMessage') }}</p>
         </div>
 
         <!-- Products Table -->
@@ -48,11 +87,11 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.product') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.price') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.category') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.stock') }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.actions') }}</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -62,8 +101,8 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-12 w-12">
                       <img 
-                        v-if="product.image_urls && product.image_urls.length > 0" 
-                        :src="product.image_urls[0]" 
+                        v-if="product.product_image" 
+                        :src="product.product_image" 
                         :alt="product.product_name" 
                         class="h-12 w-12 rounded-lg object-cover border border-gray-200"
                       >
@@ -80,16 +119,16 @@
                 
                 <!-- Price -->
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{{ formatCurrency(product.price) }}</div>
+                  <div class="text-sm font-medium text-gray-900">{{ formatCurrency(product.product_price) }}</div>
                   <div v-if="product.sold_count > 0" class="text-sm text-gray-500">
-                    {{ product.sold_count }} sold
+                    {{ product.sold_count }} {{ $t('storeProducts.sold') }}
                   </div>
                 </td>
                 
                 <!-- Category -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                    {{ product.category_name }}
+                    {{ getProductCategoryName(product) }}
                   </span>
                 </td>
                 
@@ -105,7 +144,7 @@
                         'bg-red-100 text-red-800': product.stock_quantity === 0
                       }"
                     >
-                      {{ product.stock_quantity > 10 ? 'In Stock' : product.stock_quantity > 0 ? 'Low Stock' : 'Out of Stock' }}
+                      {{ product.stock_quantity > 10 ? $t('storeProducts.inStock') : product.stock_quantity > 0 ? $t('storeProducts.lowStock') : $t('storeProducts.outOfStock') }}
                     </span>
                   </div>
                 </td>
@@ -140,11 +179,11 @@
         <!-- No Products State -->
         <div v-else class="text-center py-12">
           <i class="fas fa-box-open text-gray-400 text-4xl mb-4"></i>
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">No Products Found</h3>
-          <p class="text-gray-600 mb-6">You haven't added any products to your store yet.</p>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('storeProducts.noProductsFound') }}</h3>
+          <p class="text-gray-600 mb-6">{{ $t('storeProducts.noProductsMessage') }}</p>
           <button v-if="hasVendorRole" @click="addProduct" class="btn-primary">
             <i class="fas fa-plus mr-2"></i>
-            Add Your First Product
+            {{ $t('storeProducts.addFirstProduct') }}
           </button>
         </div>
       </div>
@@ -157,11 +196,11 @@
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
             <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
           </div>
-          <h3 class="text-lg font-medium text-gray-900 mt-4">Delete Product</h3>
+          <h3 class="text-lg font-medium text-gray-900 mt-4">{{ $t('storeProducts.deleteProduct') }}</h3>
           <div class="mt-2 px-7 py-3">
             <p class="text-sm text-gray-500">
-              Are you sure you want to delete "<strong>{{ productToDelete.name }}</strong>"? 
-              This action cannot be undone.
+              {{ $t('storeProducts.deleteConfirm') }} "<strong>{{ productToDelete.name }}</strong>"? 
+              {{ $t('storeProducts.deleteConfirmMessage') }}
             </p>
           </div>
           <div class="flex justify-center space-x-4 mt-4">
@@ -169,7 +208,7 @@
               @click="showDeleteModal = false"
               class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
-              Cancel
+              {{ $t('storeProducts.cancel') }}
             </button>
             <button 
               @click="deleteProduct"
@@ -177,7 +216,7 @@
               :disabled="deleting"
             >
               <i v-if="deleting" class="fas fa-spinner fa-spin mr-2"></i>
-              {{ deleting ? 'Deleting...' : 'Delete' }}
+              {{ deleting ? $t('storeProducts.deleting') : $t('storeProducts.delete') }}
             </button>
           </div>
         </div>
@@ -191,7 +230,7 @@
           <!-- Header -->
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-gray-900">
-              {{ editing ? 'Edit Product' : 'Add New Product' }}
+              {{ editing ? $t('storeProducts.editProduct') : $t('storeProducts.addNewProduct') }}
             </h3>
             <button 
               @click="closeAddForm"
@@ -207,35 +246,35 @@
               <!-- Product Name -->
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name <span class="text-red-500">*</span>
+                  {{ $t('storeProducts.productName') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="newProduct.name"
                   type="text"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter product name"
+                  :placeholder="$t('storeProducts.productNamePlaceholder')"
                 />
               </div>
 
               <!-- Description -->
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Description <span class="text-red-500">*</span>
+                  {{ $t('storeProducts.description') }} <span class="text-red-500">*</span>
                 </label>
                 <textarea
                   v-model="newProduct.description"
                   required
                   rows="3"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter product description"
+                  :placeholder="$t('storeProducts.descriptionPlaceholder')"
                 ></textarea>
               </div>
 
               <!-- Price -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Price (DZD) <span class="text-red-500">*</span>
+                  {{ $t('storeProducts.priceDZD') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="newProduct.price"
@@ -244,14 +283,14 @@
                   min="0"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="0.00"
+                  :placeholder="$t('storeProducts.pricePlaceholder')"
                 />
               </div>
 
               <!-- Stock Quantity -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Stock Quantity <span class="text-red-500">*</span>
+                  {{ $t('storeProducts.stockQuantity') }} <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="newProduct.stock_quantity"
@@ -259,23 +298,23 @@
                   min="0"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="0"
+                  :placeholder="$t('storeProducts.stockPlaceholder')"
                 />
               </div>
 
               <!-- Category -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Category <span class="text-red-500">*</span>
+                  {{ $t('storeProducts.category') }} <span class="text-red-500">*</span>
                 </label>
                 <select
                   v-model="newProduct.category_id"
                   required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{{ $t('storeProducts.selectCategory') }}</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name_en }}
+                    {{ getCategoryDisplayName(category) }}
                   </option>
                 </select>
               </div>
@@ -289,7 +328,7 @@
                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
                 <label for="is_new" class="ml-2 block text-sm text-gray-700">
-                  Mark as new product
+                  {{ $t('storeProducts.markAsNew') }}
                 </label>
               </div>
             </div>
@@ -297,7 +336,7 @@
             <!-- Thumbnail Upload -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Thumbnail Image <span class="text-red-500">*</span>
+                {{ $t('storeProducts.thumbnailImage') }} <span class="text-red-500">*</span>
               </label>
               <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
                 <div class="space-y-1 text-center">
@@ -309,7 +348,7 @@
                   </div>
                   <div class="flex text-sm text-gray-600">
                     <label for="thumbnail-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                      <span>Upload thumbnail</span>
+                      <span>{{ $t('storeProducts.uploadThumbnail') }}</span>
                       <input
                         id="thumbnail-upload"
                         type="file"
@@ -318,9 +357,9 @@
                         class="sr-only"
                       />
                     </label>
-                    <p class="pl-1">or drag and drop</p>
+                    <p class="pl-1">{{ $t('storeProducts.dragAndDrop') }}</p>
                   </div>
-                  <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 2MB</p>
+                  <p class="text-xs text-gray-500">{{ $t('storeProducts.imageFormats') }}</p>
                 </div>
               </div>
             </div>
@@ -328,7 +367,7 @@
             <!-- Product Images Upload -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Product Images (Optional)
+                {{ $t('storeProducts.productImages') }}
               </label>
               
               <!-- Upload Area -->
@@ -339,7 +378,7 @@
                   </div>
                   <div class="flex text-sm text-gray-600">
                     <label for="images-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                      <span>Upload images</span>
+                      <span>{{ $t('storeProducts.uploadImages') }}</span>
                       <input
                         id="images-upload"
                         type="file"
@@ -349,18 +388,18 @@
                         class="sr-only"
                       />
                     </label>
-                    <p class="pl-1">or drag and drop</p>
+                    <p class="pl-1">{{ $t('storeProducts.dragAndDrop') }}</p>
                   </div>
-                  <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 2MB each (max 10 images)</p>
+                  <p class="text-xs text-gray-500">{{ $t('storeProducts.maxImages') }}</p>
                   <div v-if="imageFiles.length > 0" class="text-sm text-gray-600">
-                    {{ imageFiles.length }} image(s) selected
+                    {{ imageFiles.length }} {{ $t('storeProducts.imagesSelected') }}
                   </div>
                 </div>
               </div>
 
               <!-- Image Previews -->
               <div v-if="imagePreviews.length > 0" class="mt-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-3">Selected Images:</h4>
+                <h4 class="text-sm font-medium text-gray-700 mb-3">{{ $t('storeProducts.selectedImages') }}</h4>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   <div 
                     v-for="(preview, index) in imagePreviews" 
@@ -376,7 +415,7 @@
                     <button
                       @click="removeImage(index)"
                       class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                      title="Remove image"
+                      :title="$t('storeProducts.removeImage')"
                     >
                       <i class="fas fa-times"></i>
                     </button>
@@ -396,7 +435,7 @@
                 @click="closeAddForm"
                 class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
-                Cancel
+                {{ $t('storeProducts.cancel') }}
               </button>
                <button
                  type="button"
@@ -405,7 +444,7 @@
                  class="px-6 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  <i v-if="creating" class="fas fa-spinner fa-spin mr-2"></i>
-                 {{ editing ? (creating ? 'Updating...' : 'Update Product') : (creating ? 'Creating...' : 'Create Product') }}
+                 {{ editing ? (creating ? $t('storeProducts.updating') : $t('storeProducts.updateProduct')) : (creating ? $t('storeProducts.creating') : $t('storeProducts.createProduct')) }}
                </button>
             </div>
           </form>
@@ -417,8 +456,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
+
+const { t: $t } = useI18n()
+const route = useRoute()
 
 const router = useRouter()
 
@@ -429,6 +472,14 @@ const error = ref(null)
 const showDeleteModal = ref(false)
 const productToDelete = ref({ id: null, name: '' })
 const deleting = ref(false)
+
+// Filtering state
+const sortFilter = ref('created_at')
+const sortOrder = ref('desc')
+const priceMin = ref('')
+const priceMax = ref('')
+const categoryFilter = ref('')
+const stockFilter = ref('')
 
 // Add product form data
 const showAddForm = ref(false)
@@ -466,7 +517,14 @@ const fetchProducts = async () => {
       return
     }
 
-    const { data, error: fetchError } = await supabase.rpc('get_my_store_products')
+    const { data, error: fetchError } = await supabase.rpc('get_my_store_products_filtered', {
+      p_price_min: priceMin.value ? parseFloat(priceMin.value) : null,
+      p_price_max: priceMax.value ? parseFloat(priceMax.value) : null,
+      p_category_id: categoryFilter.value || null,
+      p_stock_filter: stockFilter.value || null,
+      p_sort_by: sortFilter.value,
+      p_sort_order: sortOrder.value
+    })
 
     if (fetchError) throw fetchError
 
@@ -479,7 +537,69 @@ const fetchProducts = async () => {
   }
 }
 
-// Category names are now provided directly by the database function
+// Filtering methods
+const setSortFilter = async (filter) => {
+  if (sortFilter.value === filter) {
+    // Toggle order if same filter is clicked
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    // Set new filter with default desc order
+    sortFilter.value = filter
+    sortOrder.value = 'desc'
+  }
+  
+  // Fetch filtered products
+  await fetchProducts()
+}
+
+const setCategoryFilter = async (categoryId) => {
+  categoryFilter.value = categoryId
+  await fetchProducts()
+}
+
+const setStockFilter = async (stockStatus) => {
+  stockFilter.value = stockStatus
+  await fetchProducts()
+}
+
+let priceFilterTimeout = null
+const setPriceFilter = async () => {
+  // Clear existing timeout
+  if (priceFilterTimeout) {
+    clearTimeout(priceFilterTimeout)
+  }
+  
+  // Set new timeout to debounce the API call
+  priceFilterTimeout = setTimeout(async () => {
+    await fetchProducts()
+  }, 500) // Wait 500ms after user stops typing
+}
+
+// Helper function to get category display name for dropdown
+const getCategoryDisplayName = (category) => {
+  const currentLocale = route.meta.locale || 'en'
+  
+  if (currentLocale === 'ar' && category.name_ar) {
+    return category.name_ar
+  } else if (currentLocale === 'fr' && category.name_fr) {
+    return category.name_fr
+  } else {
+    return category.name_en
+  }
+}
+
+// Helper function to get product category name in current language
+const getProductCategoryName = (product) => {
+  const currentLocale = route.meta.locale || 'en'
+  
+  if (currentLocale === 'ar' && product.category_name_ar) {
+    return product.category_name_ar
+  } else if (currentLocale === 'fr' && product.category_name_fr) {
+    return product.category_name_fr
+  } else {
+    return product.category_name_en || product.category_name
+  }
+}
 
 // Fetch categories from database
 const fetchCategories = async () => {
@@ -538,22 +658,22 @@ const openEditForm = (product) => {
   newProduct.value = {
     name: product.product_name,
     description: product.product_description,
-    price: product.price.toString(),
+    price: product.product_price.toString(),
     stock_quantity: product.stock_quantity.toString(),
     category_id: product.category_id,
     is_new: product.is_new
   }
   
   // Set existing images as previews
-  if (product.image_urls && product.image_urls.length > 0) {
-    imagePreviews.value = [...product.image_urls]
+  if (product.product_image) {
+    imagePreviews.value = [product.product_image]
     // Note: We can't set imageFiles for existing images since they're URLs, not files
     // The user will need to re-upload if they want to change images
   }
   
   // Set thumbnail preview if exists
-  if (product.thumbnail_url) {
-    thumbnailPreview.value = product.thumbnail_url
+  if (product.product_image) {
+    thumbnailPreview.value = product.product_image
   }
 }
 

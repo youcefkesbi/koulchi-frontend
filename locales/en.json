@@ -66,7 +66,7 @@
     "noSessionFound": "No session found after OAuth callback",
     "userNotAuthenticated": "User not authenticated"
   },
-  "postAnnouncement": "Post an Announcement",
+  "postAnnouncement": "Add a product",
   "language": "Language",
   "search": "Search",
   "searchPlaceholder": "Search for products...",
@@ -86,7 +86,9 @@
     "categories": "Categories",
     "brandName": "Koulchi",
     "myPurchases": "My purchases",
-    "orders": "Orders"
+    "orders": "Orders",
+    "addProduct":"Product",
+    "myStoreProducts": "Products"
   },
   "notFound": {
     "title": "Page Not Found",
@@ -160,6 +162,13 @@
   "orderStatus": {
     "pending": "Pending",
     "confirmed": "Confirmed",
+    "shipped": "Shipped",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "orderStatusLabels": {
+    "pending": "Pending",
+    "confirmed": "Confirmed", 
     "shipped": "Shipped",
     "delivered": "Delivered",
     "cancelled": "Cancelled"
@@ -531,6 +540,36 @@
       "noStoreMessage": "You don't have an approved store yet. Create a store to see your statistics.",
       "createStore": "Create Store"
     },
+    "monthlySales": "Monthly Sales",
+    "currency": {
+      "dzd": "DZD",
+      "dzdSymbol": "دج"
+    },
+    "orders": {
+      "title": "Orders",
+      "loading": "Loading orders...",
+      "noOrders": "No Orders Found",
+      "noOrdersMessage": "No customers have placed orders for your products yet.",
+      "filters": {
+        "date": "Date",
+        "quantity": "Quantity",
+        "allStatus": "Status",
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+      },
+      "table": {
+        "product": "Product",
+        "customer": "Customer",
+        "date": "Date",
+        "price": "Price",
+        "qty": "Qty",
+        "status": "Status",
+        "total": "Total"
+      }
+    },
     "sellingDescription": "Manage your products, stores, and track your sales performance",
     "activeOrders": "Active Orders",
     "wishlist": "Wishlist",
@@ -563,7 +602,68 @@
     "viewWishlist": "View Wishlist",
     "products": "Products",
     "stock": "Stock",
-    "orderedOn": "Ordered on"
+    "orderedOn": "Ordered on",
+    "categories": "Categories",
+    "orderLabel": "Order",
+    "soldBy": "Sold by"
+  },
+  "storeProducts": {
+    "title": "My Store Products",
+    "subtitle": "Manage your store's product inventory",
+    "storeOrders": "Store Orders",
+    "price": "Price",
+    "category": "Category",
+    "stock": "Stock",
+    "actions": "Actions",
+    "product": "Product",
+    "sold": "sold",
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock",
+    "noProductsFound": "No Products Found",
+    "noProductsMessage": "You haven't added any products to your store yet.",
+    "addFirstProduct": "Add Your First Product",
+    "vendorAccessRequired": "Vendor access required",
+    "vendorAccessMessage": "Your store must be approved (vendor role) to manage products.",
+    "loadingProducts": "Loading products...",
+    "tryAgain": "Try Again",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "deleteProduct": "Delete Product",
+    "deleteConfirm": "Are you sure you want to delete",
+    "deleteConfirmMessage": "This action cannot be undone.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "addNewProduct": "Add New Product",
+    "productName": "Product Name",
+    "productNamePlaceholder": "Enter product name",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter product description",
+    "priceDZD": "Price (DZD)",
+    "pricePlaceholder": "0.00",
+    "stockQuantity": "Stock Quantity",
+    "stockPlaceholder": "0",
+    "selectCategory": "Select a category",
+    "markAsNew": "Mark as new product",
+    "thumbnailImage": "Thumbnail Image",
+    "uploadThumbnail": "Upload thumbnail",
+    "dragAndDrop": "or drag and drop",
+    "imageFormats": "PNG, JPG, JPEG up to 2MB",
+    "productImages": "Product Images (Optional)",
+    "uploadImages": "Upload images",
+    "maxImages": "PNG, JPG, JPEG up to 2MB each (max 10 images)",
+    "imagesSelected": "image(s) selected",
+    "selectedImages": "Selected Images:",
+    "removeImage": "Remove image",
+    "creating": "Creating...",
+    "updating": "Updating...",
+    "createProduct": "Create Product",
+    "updateProduct": "Update Product",
+    "allStock": "All Stock",
+    "inStockFilter": "In Stock",
+    "lowStockFilter": "Low Stock",
+    "outOfStockFilter": "Out of Stock"
   },
   "admin": {
     "dashboard": "Admin Dashboard",
@@ -614,7 +714,7 @@
     "paymentReceipt": "Payment Receipt"
   },
   "announcement": {
-    "postAnnouncement": "Post an Announcement",
+    "postAnnouncement": "Add a product",
     "productInfo": "Product Information",
     "productName": "Product Name",
     "productNamePlaceholder": "Enter product name",
@@ -661,7 +761,7 @@
     }
   },
   "seller": {
-    "createStore": "Create a Store",
+    "createStore": "Store",
     "dashboard": "Seller Dashboard",
     "welcomeMessage": "Welcome back, {name}!",
     "cars": "Cars",
@@ -766,14 +866,16 @@
   "bestSelling": {
     "title": "Best Selling Products",
     "subtitle": "Discover our most popular products",
-    "loading": "Loading best-selling products...",
+    "loading": "Loading best sellers...",
     "errorTitle": "Failed to load products",
     "retry": "Try Again",
-    "emptyTitle": "No products found",
-    "emptyMessage": "There are no best-selling products available at the moment.",
+    "emptyTitle": "No Sales Yet",
+    "emptyMessage": "Your best selling products will appear here once you start receiving orders.",
     "allCategories": "All Categories",
     "soldBy": "Sold by",
-    "sold": "Sold",
+    "sold": "sold",
+    "noSales": "No Sales Yet",
+    "noSalesMessage": "Your best selling products will appear here once you start receiving orders.",
     "viewProduct": "View Product",
     "loadMore": "Load More",
     "refresh": "Refresh"
