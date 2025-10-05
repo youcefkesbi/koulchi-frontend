@@ -8,7 +8,35 @@ import { supabase } from '../lib/supabase.js'
  */
 export const addToCart = async (productId, quantity = 1) => {
   try {
-    // Get current user
+    // Check for active session first
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      return { success: false, error: 'Authentication session error. Please log in again.' }
+    }
+
+    if (!session || !session.user) {
+      console.error('No active session')
+      return { success: false, error: 'Please log in to add items to cart' }
+    }
+
+    // Verify session is not expired
+    const now = Math.floor(Date.now() / 1000)
+    if (session.expires_at && session.expires_at < now) {
+      console.warn('Session expired, attempting to refresh...')
+      
+      // Try to refresh the session
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+      
+      if (refreshError || !refreshData.session) {
+        return { success: false, error: 'Your session has expired. Please log in again.' }
+      }
+      
+      console.log('Session refreshed successfully')
+    }
+
+    // Get current user (should be available after session check)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError) {

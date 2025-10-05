@@ -32,20 +32,84 @@ export const useCartStore = defineStore('cart', () => {
     return (productId) => items.value.some(item => item.product_id === productId)
   })
 
+  // Helper function to validate active session
+  const validateActiveSession = async () => {
+    // Check for active session first
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      throw new Error('Authentication session error. Please log in again.')
+    }
+
+    if (!session || !session.user) {
+      throw new Error('Please log in to manage cart')
+    }
+
+    // Verify session is not expired
+    const now = Math.floor(Date.now() / 1000)
+    if (session.expires_at && session.expires_at < now) {
+      console.warn('Session expired, attempting to refresh...')
+      
+      // Try to refresh the session
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+      
+      if (refreshError || !refreshData.session) {
+        throw new Error('Your session has expired. Please log in again.')
+      }
+      
+      console.log('Session refreshed successfully')
+    }
+
+    // Get current user (should be available after session check)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError) {
+      throw new Error(userError.message)
+    }
+
+    if (!user) {
+      throw new Error('Please log in to manage cart')
+    }
+
+    return user
+  }
+
   // Actions
   const fetchCartItems = async () => {
     try {
       loading.value = true
       error.value = null
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      // Check for active session (graceful for loading)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (userError) {
-        throw new Error(userError.message)
+      if (sessionError || !session || !session.user) {
+        items.value = []
+        return
       }
 
-      if (!user) {
+      // Verify session is not expired
+      const now = Math.floor(Date.now() / 1000)
+      if (session.expires_at && session.expires_at < now) {
+        console.warn('Session expired, attempting to refresh...')
+        
+        // Try to refresh the session
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        
+        if (refreshError || !refreshData.session) {
+          console.warn('Session refresh failed, clearing cart')
+          items.value = []
+          return
+        }
+        
+        console.log('Session refreshed successfully')
+      }
+
+      // Get current user (should be available after session check)
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError || !user) {
         items.value = []
         return
       }
@@ -119,16 +183,8 @@ export const useCartStore = defineStore('cart', () => {
       loading.value = true
       error.value = null
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError) {
-        throw new Error(userError.message)
-      }
-
-      if (!user) {
-        throw new Error('Please log in to add items to cart')
-      }
+      // Validate active session
+      await validateActiveSession()
 
       // Validate inputs
       if (!productId) {
@@ -177,16 +233,8 @@ export const useCartStore = defineStore('cart', () => {
       loading.value = true
       error.value = null
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError) {
-        throw new Error(userError.message)
-      }
-
-      if (!user) {
-        throw new Error('Please log in to manage cart')
-      }
+      // Validate active session
+      await validateActiveSession()
 
       if (!productId) {
         throw new Error('Product ID is required')
@@ -231,16 +279,8 @@ export const useCartStore = defineStore('cart', () => {
       loading.value = true
       error.value = null
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError) {
-        throw new Error(userError.message)
-      }
-
-      if (!user) {
-        throw new Error('Please log in to manage cart')
-      }
+      // Validate active session
+      await validateActiveSession()
 
       if (!productId) {
         throw new Error('Product ID is required')
@@ -293,16 +333,8 @@ export const useCartStore = defineStore('cart', () => {
       loading.value = true
       error.value = null
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError) {
-        throw new Error(userError.message)
-      }
-
-      if (!user) {
-        throw new Error('Please log in to manage cart')
-      }
+      // Validate active session
+      await validateActiveSession()
 
       // Use the clear_user_cart SQL function (uses auth.uid() automatically)
       const { error: rpcError } = await supabase.rpc('clear_user_cart')
