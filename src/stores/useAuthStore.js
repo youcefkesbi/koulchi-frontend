@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabase'
+import { supabase, verifySupabaseAuth } from '../lib/supabase'
 import { oauthConfig } from '../config/oauth'
 import { getPasswordResetRedirectUrl } from '../config/environment.js'
 
@@ -574,6 +574,12 @@ const loadUserWithProfile = async (authUser) => {
 // Initialize auth state
 const initAuth = async () => {
   try {
+    // Verify Supabase client is properly initialized with auth
+    const isAuthReady = await verifySupabaseAuth()
+    if (!isAuthReady) {
+      console.warn('Supabase auth not ready, some features may not work')
+    }
+
     // Get initial session
     const { data: { session } } = await supabase.auth.getSession()
     

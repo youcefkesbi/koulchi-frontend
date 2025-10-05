@@ -21,9 +21,24 @@ try {
     environment.supabase.anonKey,
     {
       auth: {
-        // Let Supabase handle OAuth callbacks through its own fixed endpoint
-        // No custom redirectTo needed
-        flowType: 'pkce'
+        // Use PKCE flow for better security
+        flowType: 'pkce',
+        // Enable automatic token refresh
+        autoRefreshToken: true,
+        // Persist session in localStorage
+        persistSession: true,
+        // Detect session in URL (for OAuth callbacks)
+        detectSessionInUrl: true,
+        // Storage key for session persistence
+        storageKey: 'koulchi-auth-token',
+        // Storage implementation
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined
+      },
+      // Global configuration
+      global: {
+        headers: {
+          'X-Client-Info': 'koulchi-frontend'
+        }
       }
     }
   );
@@ -37,15 +52,52 @@ try {
       signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
       signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
       signOut: () => Promise.resolve({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+      refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      signInWithOAuth: () => Promise.resolve({ data: { provider: null, url: null }, error: { message: 'Supabase not configured' } }),
+      signInWithOtp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } })
     },
     from: () => ({
       select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }) }) }),
       insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
       update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
       delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+    }),
+    rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    channel: () => ({
+      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) })
     })
   };
+}
+
+// Verify Supabase client is properly initialized with auth
+export const verifySupabaseAuth = async () => {
+  try {
+    // Test basic auth functionality
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    if (error) {
+      console.warn('Supabase auth verification failed:', error)
+      return false
+    }
+    
+    console.log('Supabase client initialized with auth support')
+    return true
+  } catch (error) {
+    console.warn('Supabase auth verification error:', error)
+    return false
+  }
+}
+
+// Initialize auth verification on import
+if (typeof window !== 'undefined') {
+  verifySupabaseAuth().then(isValid => {
+    if (isValid) {
+      console.log('✅ Supabase client is properly initialized with authentication')
+    } else {
+      console.warn('⚠️ Supabase client may not be properly configured')
+    }
+  })
 }
 
 export { supabase };
