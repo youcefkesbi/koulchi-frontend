@@ -131,15 +131,21 @@ export function useAuth() {
             // Handle sign in
             if (event === 'SIGNED_IN') {
               
-              // Sync local data to Supabase after login
+              // Initialize cart and wishlist stores after login
               try {
-                const { cartService } = await import('../../database/cartService.js')
-                const { wishlistService } = await import('../../database/wishlistService.js')
+                const { useCartStore } = await import('../stores/useCartStore.js')
+                const { useWishlistStore } = await import('../stores/useWishlistStore.js')
                 
-                await cartService.syncLocalToSupabase()
-                await wishlistService.syncLocalToSupabase()
+                const cartStore = useCartStore()
+                const wishlistStore = useWishlistStore()
+                
+                // Fetch user's cart and wishlist data
+                await Promise.all([
+                  cartStore.fetchCartItems(),
+                  wishlistStore.fetchWishlist()
+                ])
               } catch (err) {
-                console.error('Error syncing local data to Supabase:', err)
+                console.error('Error initializing stores after login:', err)
               }
             }
           } else {
@@ -312,5 +318,4 @@ export function useAuth() {
     resetPassword,
     updatePassword,
     clearError
-  }
 }

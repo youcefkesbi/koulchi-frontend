@@ -34,10 +34,14 @@ export const addToCart = async (productId, quantity = 1) => {
 
     // Call the Supabase RPC function
     const { data, error } = await supabase.rpc('add_to_cart', {
-      user_id: user.id,
-      product_id: productId,
-      quantity: quantity
+      p_product_id: productId,
+      p_quantity: quantity,
+      p_user_id: user.id
     })
+
+    // Log both data and error for debugging
+    console.log('Add to cart - data:', data)
+    console.log('Add to cart - error:', error)
 
     if (error) {
       console.error('Error adding to cart:', error)

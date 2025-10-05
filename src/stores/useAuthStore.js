@@ -598,13 +598,20 @@ const initAuth = async () => {
 
           if (event === 'SIGNED_IN') {
             try {
-              const { cartService } = await import('../../database/cartService.js')
-              const { wishlistService } = await import('../../database/wishlistService.js')
-
-              await cartService.syncLocalToSupabase()
-              await wishlistService.syncLocalToSupabase()
+              // Initialize cart and wishlist stores after login
+              const { useCartStore } = await import('./useCartStore.js')
+              const { useWishlistStore } = await import('./useWishlistStore.js')
+              
+              const cartStore = useCartStore()
+              const wishlistStore = useWishlistStore()
+              
+              // Fetch user's cart and wishlist data
+              await Promise.all([
+                cartStore.fetchCartItems(),
+                wishlistStore.fetchWishlist()
+              ])
             } catch (err) {
-              console.error('Error syncing local data to Supabase:', err)
+              console.error('Error initializing stores after login:', err)
             }
           }
         } else {

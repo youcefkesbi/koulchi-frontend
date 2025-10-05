@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useRouter } from 'vue-router'
 
 /**
