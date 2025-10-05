@@ -32,15 +32,25 @@ export const addToCart = async (productId, quantity = 1) => {
       return { success: false, error: 'Quantity must be at least 1' }
     }
 
-    // Call the Supabase RPC function
+    // Call the Supabase RPC function (uses auth.uid() automatically)
     const { data, error } = await supabase.rpc('add_to_cart', {
-      user_id: user.id,
-      product_id: productId,
-      quantity: quantity
+      p_product_id: productId,
+      p_quantity: quantity
     })
+
+    // Log both data and error for debugging
+    console.log('Add to cart - data:', data)
+    console.log('Add to cart - error:', error)
 
     if (error) {
       console.error('Error adding to cart:', error)
+      // Handle specific RLS and permission errors
+      if (error.message?.includes('permission denied') || error.message?.includes('RLS')) {
+        return { success: false, error: 'You do not have permission to modify this cart. Please log in again.' }
+      }
+      if (error.message?.includes('not authenticated')) {
+        return { success: false, error: 'Please log in to add items to cart' }
+      }
       return { success: false, error: error.message || 'Failed to add item to cart' }
     }
 

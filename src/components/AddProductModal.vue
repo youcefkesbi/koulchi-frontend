@@ -277,7 +277,7 @@ import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import { useSellerStore } from '../stores/seller'
-import { useProductStore } from '../stores/product'
+import { useProductStore } from '../stores/useProductStore'
 import { supabase } from '../lib/supabase'
 
 const props = defineProps({

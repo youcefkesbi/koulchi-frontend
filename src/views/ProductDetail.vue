@@ -222,9 +222,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useProductStore } from '../stores/product'
-import { useCartStore } from '../stores/cart'
-import { useWishlistStore } from '../stores/wishlist'
+import { useProductStore } from '../stores/useProductStore'
+import { useCartStore } from '../stores/useCartStore'
+import { useWishlistStore } from '../stores/useWishlistStore'
 import ProductCard from '../components/ProductCard.vue'
 
 const route = useRoute()

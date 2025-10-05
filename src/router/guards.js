@@ -1,5 +1,5 @@
 // Route guards for role-based access control
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 
 /**
  * Admin route guard - only allows admin users
@@ -185,8 +185,8 @@ export const storeOwnerGuard = async (to, from, next) => {
   
   try {
     // Import store store dynamically to avoid circular dependency
-    const { useStoreStore } = await import('../stores/store')
-    const storeStore = useStoreStore()
+    const { useStoresStore } = await import('../stores/useStoresStore')
+    const storeStore = useStoresStore()
     
     // Check if user owns the store
     const isOwner = await storeStore.checkStoreOwnership(storeId, authStore.user.id)

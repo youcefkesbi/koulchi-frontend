@@ -371,7 +371,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useStoreStore } from '../stores/store'
+import { useStoreStore } from '../stores/useStoresStore'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/ProductCard.vue'
 
