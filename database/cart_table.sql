@@ -6,6 +6,15 @@ CREATE TABLE cart (
   updated_at timestamptz DEFAULT now()
 );
 
+create table cart_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  cart_id uuid references cart(id) on delete cascade,
+  product_id uuid references products(id),
+  quantity int default 1,
+  updated_at timestamptz DEFAULT now(),
+  unique(cart_id, product_id) -- prevents duplicate product entries
+);
+
 -- ================================
 -- Policies
 -- ================================
@@ -47,39 +56,39 @@ WITH CHECK (
 
 -- Create a function to add items to the cart
 CREATE OR REPLACE FUNCTION public.add_to_cart(
-  p_user_id uuid,
   p_product_id uuid,
   p_quantity int DEFAULT 1
 )
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER
 AS $$
 DECLARE
   v_cart_id uuid;
 BEGIN
-  -- 1. Find or create cart
+  -- 1. Find the current user's cart
   SELECT id INTO v_cart_id 
   FROM public.cart 
-  WHERE user_id = p_user_id;
+  WHERE user_id = auth.uid();
   
+  -- 2. Create cart if it doesn't exist
   IF NOT FOUND THEN
     INSERT INTO public.cart(user_id) 
-    VALUES (p_user_id) 
+    VALUES (auth.uid()) 
     RETURNING id INTO v_cart_id;
   END IF;
 
-  -- 2. Insert or update item in cart_items
+  -- 3. Insert or update item in cart_items
   INSERT INTO public.cart_items(cart_id, product_id, quantity)
   VALUES (v_cart_id, p_product_id, p_quantity)
   ON CONFLICT (cart_id, product_id)
   DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity;
+
 END;
 $$;
 
+
 -- Function to decrease or remove cart item
 CREATE OR REPLACE FUNCTION public.decrease_or_remove_row(
-  p_user_id uuid,
   p_product_id uuid,
   p_quantity int DEFAULT 1
 )
@@ -90,10 +99,10 @@ DECLARE
   v_cart_id uuid;
 BEGIN
   -- 1. Find the user's cart
-  SELECT id INTO v_cart_id FROM public.cart WHERE user_id = p_user_id;
+  SELECT id INTO v_cart_id FROM public.cart WHERE user_id = auth.uid();
 
   IF v_cart_id IS NULL THEN
-    RAISE NOTICE 'No cart found for user %', p_user_id;
+    RAISE NOTICE 'No cart found for user %', auth.uid();
     RETURN;
   END IF;
 
@@ -112,9 +121,7 @@ END;
 $$;
 
 -- Function to clear all items from user's cart
-CREATE OR REPLACE FUNCTION public.clear_user_cart(
-  p_user_id uuid
-)
+CREATE OR REPLACE FUNCTION public.clear_user_cart()
 RETURNS void
 LANGUAGE plpgsql
 AS $$
@@ -122,10 +129,10 @@ DECLARE
   v_cart_id uuid;
 BEGIN
   -- 1. Find the user's cart
-  SELECT id INTO v_cart_id FROM public.cart WHERE user_id = p_user_id;
+  SELECT id INTO v_cart_id FROM public.cart WHERE user_id = auth.uid();
 
   IF v_cart_id IS NULL THEN
-    RAISE NOTICE 'No cart found for user %', p_user_id;
+    RAISE NOTICE 'No cart found for user %', auth.uid();
     RETURN;
   END IF;
 
@@ -152,16 +159,7 @@ ALTER TABLE cart ADD CONSTRAINT cart_user_unique UNIQUE(user_id);
 -- Triggers
 -- ================================
 
--- Update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_cart_updated_at 
-  BEFORE UPDATE ON cart 
-  FOR EACH ROW 
-  EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_cart_updated_at
+BEFORE UPDATE ON cart
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

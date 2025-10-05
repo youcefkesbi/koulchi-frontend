@@ -7,6 +7,7 @@ export const useCartStore = defineStore('cart', () => {
   const items = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const lastUpdated = ref(null)
 
   // Getters
   const totalItems = computed(() => 
@@ -96,8 +97,13 @@ export const useCartStore = defineStore('cart', () => {
         name: item.products?.name || 'Unknown Product',
         price: item.products?.price || 0,
         image: item.products?.image_urls?.[0] || '',
-        seller_id: item.products?.seller_id
+        seller_id: item.products?.seller_id,
+        created_at: item.created_at,
+        updated_at: item.updated_at
       }))
+
+      // Update last updated timestamp
+      lastUpdated.value = new Date().toISOString()
 
     } catch (err) {
       error.value = err.message
@@ -133,11 +139,10 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error('Quantity must be at least 1')
       }
 
-      // Call the Supabase RPC function
+      // Call the Supabase RPC function (uses auth.uid() automatically)
       const { data, error: rpcError } = await supabase.rpc('add_to_cart', {
         p_product_id: productId,
-        p_quantity: quantity,
-        p_user_id: user.id
+        p_quantity: quantity
       })
 
       // Log both data and error for debugging
@@ -145,6 +150,13 @@ export const useCartStore = defineStore('cart', () => {
       console.log('Add to cart - error:', rpcError)
 
       if (rpcError) {
+        // Handle specific RLS and permission errors
+        if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+          throw new Error('You do not have permission to modify this cart. Please log in again.')
+        }
+        if (rpcError.message?.includes('not authenticated')) {
+          throw new Error('Please log in to add items to cart')
+        }
         throw new Error(rpcError.message)
       }
 
@@ -180,14 +192,20 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error('Product ID is required')
       }
 
-      // Call the Supabase RPC function to decrease or remove
+      // Call the Supabase RPC function to decrease or remove (uses auth.uid() automatically)
       const { error: rpcError } = await supabase.rpc('decrease_or_remove_row', {
-        p_user_id: user.id,
         p_product_id: productId,
         p_quantity: 1
       })
 
       if (rpcError) {
+        // Handle specific RLS and permission errors
+        if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+          throw new Error('You do not have permission to modify this cart. Please log in again.')
+        }
+        if (rpcError.message?.includes('not authenticated')) {
+          throw new Error('Please log in to manage cart')
+        }
         throw new Error(rpcError.message)
       }
 
@@ -240,14 +258,20 @@ export const useCartStore = defineStore('cart', () => {
         // Add the difference
         await addToCart(productId, quantityDifference)
       } else if (quantityDifference < 0) {
-        // Remove the difference
+        // Remove the difference (uses auth.uid() automatically)
         const { error: rpcError } = await supabase.rpc('decrease_or_remove_row', {
-          p_user_id: user.id,
           p_product_id: productId,
           p_quantity: Math.abs(quantityDifference)
         })
 
         if (rpcError) {
+          // Handle specific RLS and permission errors
+          if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+            throw new Error('You do not have permission to modify this cart. Please log in again.')
+          }
+          if (rpcError.message?.includes('not authenticated')) {
+            throw new Error('Please log in to manage cart')
+          }
           throw new Error(rpcError.message)
         }
 
@@ -280,17 +304,23 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error('Please log in to manage cart')
       }
 
-      // Use the clear_user_cart SQL function
-      const { error: rpcError } = await supabase.rpc('clear_user_cart', {
-        p_user_id: user.id
-      })
+      // Use the clear_user_cart SQL function (uses auth.uid() automatically)
+      const { error: rpcError } = await supabase.rpc('clear_user_cart')
 
       if (rpcError) {
+        // Handle specific RLS and permission errors
+        if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+          throw new Error('You do not have permission to modify this cart. Please log in again.')
+        }
+        if (rpcError.message?.includes('not authenticated')) {
+          throw new Error('Please log in to manage cart')
+        }
         throw new Error(rpcError.message)
       }
 
       // Clear local state
       items.value = []
+      lastUpdated.value = new Date().toISOString()
 
     } catch (err) {
       error.value = err.message
@@ -305,11 +335,51 @@ export const useCartStore = defineStore('cart', () => {
     error.value = null
   }
 
+  // Get cart statistics
+  const getCartStats = () => {
+    return {
+      totalItems: totalItems.value,
+      subtotal: subtotal.value,
+      deliveryFee: deliveryFee.value,
+      total: total.value,
+      itemCount: items.value.length,
+      lastUpdated: lastUpdated.value
+    }
+  }
+
+  // Subscribe to real-time cart changes
+  const subscribeToCartChanges = () => {
+    try {
+      // Subscribe to cart_items changes for the current user
+      const subscription = supabase
+        .channel('cart_changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'cart_items' 
+          }, 
+          (payload) => {
+            console.log('Cart change detected:', payload)
+            // Refresh cart items when changes are detected
+            fetchCartItems()
+          }
+        )
+        .subscribe()
+
+      return subscription
+    } catch (error) {
+      console.error('Error subscribing to cart changes:', error)
+      return null
+    }
+  }
+
   return {
     // State
     items,
     loading,
     error,
+    lastUpdated,
     
     // Getters
     totalItems,
@@ -325,6 +395,8 @@ export const useCartStore = defineStore('cart', () => {
     removeFromCart,
     updateQuantity,
     clearCart,
-    clearError
+    clearError,
+    getCartStats,
+    subscribeToCartChanges
   }
 })

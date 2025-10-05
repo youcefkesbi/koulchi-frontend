@@ -224,7 +224,7 @@ const handleImageError = (event) => {
 // Fetch cart and products on component mount
 onMounted(async () => {
   await Promise.all([
-    cartStore.fetchCart(),
+    cartStore.fetchCartItems(),
     productStore.fetchProducts()
   ])
 })

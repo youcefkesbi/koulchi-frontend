@@ -121,7 +121,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
-import { addToCart } from '../composables/useCart.js'
 
 const props = defineProps({
   product: {
@@ -168,18 +167,9 @@ const handleAddToCart = async () => {
     cartLoading.value = true
     error.value = ''
     
-    // Call the Supabase RPC function
-    const result = await addToCart(props.product.id, 1)
+    // Use the cart store method which handles both RPC call and state update
+    await cartStore.addToCart(props.product.id, 1)
     
-    // Log the result
-    console.log('Add to cart result:', result)
-    
-    if (result.success) {
-      // Also update the local cart store for UI consistency
-      await cartStore.addToCart(props.product)
-    } else {
-      error.value = result.error || 'فشل في إضافة المنتج للسلة'
-    }
   } catch (err) {
     console.error('Failed to add to cart:', err)
     error.value = err.message || 'فشل في إضافة المنتج للسلة'
