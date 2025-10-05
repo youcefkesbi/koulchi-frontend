@@ -88,7 +88,7 @@
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useOrdersStore } from '../stores/orders'
+import { useOrdersStore } from '../stores/useOrdersStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
