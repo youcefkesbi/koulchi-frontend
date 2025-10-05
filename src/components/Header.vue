@@ -178,6 +178,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
 
+
+import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
@@ -201,6 +203,7 @@ const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const showLoginModal = ref(false)
 const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
+const hasVendorRole = ref(false)
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -231,9 +234,9 @@ const handleClickOutside = (event) => {
 // Get categories from product store
 const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
 
-// Check if user has an approved store
+// Show vendor-only buttons when user has vendor role
 const hasApprovedStore = computed(() => {
-  return authStore.isAuthenticated && userStoreStatus.value.status === 'approved'
+  return authStore.isAuthenticated && hasVendorRole.value
 })
 
 // Check if user should see the "Create Store" button
@@ -306,6 +309,26 @@ const handleLogout = async () => {
     console.error('Logout error:', error)
   }
 }
+// Load vendor role from user_roles table
+const loadVendorRole = async () => {
+  try {
+    hasVendorRole.value = false
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) return
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+    if (error) {
+      console.error('Error loading user roles:', error)
+      return
+    }
+    hasVendorRole.value = Array.isArray(data) && data.some(r => (r.role || '').toLowerCase() === 'vendor')
+  } catch (e) {
+    console.error('loadVendorRole error:', e)
+  }
+}
+
 
 // Load user store status using optimized RPC function
 const loadUserStoreStatus = async () => {
@@ -349,14 +372,17 @@ const handleGoToStoreDashboard = async () => {
 watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
   if (isAuthenticated) {
     await loadUserStoreStatus()
+    await loadVendorRole()
   } else {
     userStoreStatus.value = { store_id: null, status: null, can_create: true }
+    hasVendorRole.value = false
   }
 }, { immediate: true })
 
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   await loadUserStoreStatus()
+  await loadVendorRole()
 })
 
 onUnmounted(() => {

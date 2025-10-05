@@ -24,10 +24,10 @@
       </div>
     </div>
 
-    <!-- Store Status Display -->
-    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status !== 'approved'" class="container mx-auto px-4 py-8">
+    <!-- Store Status Display (shown when user has a store but not vendor) -->
+    <div v-else-if="storeStore.currentStore && !hasVendorRole" class="container mx-auto px-4 py-8">
       <!-- Pending Status -->
-      <div v-if="storeStatus.status === 'pending'" class="text-center">
+      <div v-if="storeStatus && storeStatus.status === 'pending'" class="text-center">
         <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-clock text-yellow-600 text-3xl"></i>
         </div>
@@ -42,7 +42,7 @@
       </div>
 
       <!-- Rejected Status -->
-      <div v-else-if="storeStatus.status === 'rejected'" class="text-center">
+      <div v-else-if="storeStatus && storeStatus.status === 'rejected'" class="text-center">
         <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-times-circle text-red-600 text-3xl"></i>
         </div>
@@ -69,8 +69,8 @@
       </div>
     </div>
 
-    <!-- Store Dashboard Content (Only for approved stores) -->
-    <div v-else-if="storeStore.currentStore && storeStatus && storeStatus.status === 'approved' && !storeStore.loading" class="min-h-screen pt-5 ">
+    <!-- Store Dashboard Content (Only for vendor role / approved stores) -->
+    <div v-else-if="storeStore.currentStore && hasVendorRole && !storeStore.loading" class="min-h-screen pt-5 ">
       
       <!-- Banner -->
       <div class="relative">
@@ -83,7 +83,7 @@
               :alt="storeStore.currentStore?.displayName + ' banner'"
               class="w-full h-full object-cover"
             />
-            <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+
           </div>
           
           <!-- Default Banner for Pro Pack without image -->
@@ -286,7 +286,7 @@
                   <button
                     @click="saveAllChanges"
                     :disabled="updateLoading"
-                    class="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+                    class="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
                   >
                     <i v-if="updateLoading" class="fas fa-spinner fa-spin mr-2"></i>
                     <i v-else class="fas fa-save mr-2"></i>
@@ -356,7 +356,7 @@
             <h3 class="text-xl font-bold text-gray-800">{{ $t('stores.editStore') }}</h3>
             <button
               @click="closeEditModal"
-              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              class=" p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <i class="fas fa-times"></i>
             </button>
@@ -390,6 +390,7 @@ const storeStatus = ref(null)
 const statusLoading = ref(false)
 const logoUploading = ref(false)
 const bannerUploading = ref(false)
+const hasVendorRole = ref(false)
 
 const editForm = reactive({
   name: '',
@@ -780,6 +781,22 @@ const updateSocialLinks = () => {
 }
 
 onMounted(async () => {
+  // Check vendor role
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      const { data: roles, error: roleErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      if (!roleErr) {
+        hasVendorRole.value = Array.isArray(roles) && roles.some(r => (r.role || '').toLowerCase() === 'vendor')
+      }
+    }
+  } catch (e) {
+    console.error('Role check failed:', e)
+  }
+
   await Promise.all([
     storeStore.fetchStoreById(route.params.id),
     fetchStoreProducts(),

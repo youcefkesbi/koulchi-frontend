@@ -262,22 +262,31 @@ GRANT EXECUTE ON FUNCTION update_store_counts TO authenticated;
 -- Create an RPC function to get the authenticated user's store status
 create or replace function public.get_user_store_status(auth_uid uuid)
 returns table(
-    store_id uuid,
-    status store_status,
-    can_create boolean
+  store_id uuid,
+  status store_status,
+  can_create boolean,
+  has_vendor boolean
 ) as $$
 begin
-    return query
-    select
-        s.id,
-        s.status,
-        case 
-            when s.id is null then true  -- no store exists
-            when s.status = 'rejected' then true -- store rejected
-            else false
-        end as can_create
-    from public.stores s
-    where s.owner_id = auth_uid;
+  return query
+  select
+    s.id,
+    s.status,
+    (
+      not exists (select 1 from public.user_roles ur where ur.user_id = auth_uid and lower(ur.role) = 'vendor')
+      and not exists (select 1 from public.stores xs where xs.owner_id = auth_uid and xs.status in ('pending','approved'))
+    ) as can_create,
+    exists (select 1 from public.user_roles ur where ur.user_id = auth_uid and lower(ur.role) = 'vendor') as has_vendor
+  from public.stores s
+  where s.owner_id = auth_uid
+  order by case when s.status in ('pending','approved') then 0 else 1 end, s.created_at desc
+  limit 1;
+
+  if not found then
+    return query select null::uuid, null::store_status,
+      (not exists (select 1 from public.user_roles ur where ur.user_id = auth_uid and lower(ur.role) = 'vendor'))::boolean,
+      exists (select 1 from public.user_roles ur where ur.user_id = auth_uid and lower(ur.role) = 'vendor')::boolean;
+  end if;
 end;
 $$ language plpgsql security definer;
 
@@ -454,83 +463,79 @@ GRANT EXECUTE ON FUNCTION public.get_my_store_monthly_sales TO authenticated;
 
 -- Function to get authenticated user's store products
 -- Only works if user has vendor role and approved store
-CREATE OR REPLACE FUNCTION public.get_my_store_products()
-RETURNS TABLE(
-    product_id UUID,
-    product_name TEXT,
-    product_description TEXT,
-    price NUMERIC(10,2),
-    stock_quantity INTEGER,
-    sold_count INTEGER,
-    category_id UUID,
-    category_name TEXT,
-    is_active BOOLEAN,
-    is_new BOOLEAN,
-    image_urls TEXT[],
-    store_id UUID,
-    store_name TEXT,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ
-) AS $$
-DECLARE
-    user_store_id UUID;
-    user_role TEXT;
-    store_status store_status;
-BEGIN
-    -- Check if user is authenticated
-    IF auth.uid() IS NULL THEN
-        RAISE EXCEPTION 'User not authenticated';
-    END IF;
-    
-    -- Check if user has vendor role (handles multiple roles)
-    IF NOT EXISTS (
-        SELECT 1 FROM user_roles ur 
-        WHERE ur.user_id = auth.uid() 
-        AND LOWER(ur.role) = 'vendor'
-    ) THEN
-        RAISE EXCEPTION 'Access denied. User must have vendor role';
-    END IF;
-    
-    -- Get user's store ID and status
-    SELECT s.id, s.status INTO user_store_id, store_status
-    FROM public.stores s
-    WHERE s.owner_id = auth.uid();
-    
-    -- Check if user has a store
-    IF user_store_id IS NULL THEN
-        RAISE EXCEPTION 'No store found for user';
-    END IF;
-    
-    -- Check if store is approved
-    IF store_status != 'approved' THEN
-        RAISE EXCEPTION 'Store must be approved to access products';
-    END IF;
-    
-    -- Return products for the user's store
-    RETURN QUERY
-    SELECT 
-        p.id as product_id,
-        p.name as product_name,
-        p.description as product_description,
-        p.price,
-        p.stock_quantity,
-        p.sold_count,
-        p.category_id,
-        COALESCE(c.name_en, 'No Category') as category_name,
-        p.is_active,
-        p.is_new,
-        p.image_urls,
-        p.store_id,
-        s.name as store_name,
-        p.created_at,
-        p.updated_at
-    FROM public.products p
-    JOIN public.stores s ON p.store_id = s.id
-    LEFT JOIN public.categories c ON p.category_id = c.id
-    WHERE p.store_id = user_store_id
-    ORDER BY p.created_at DESC;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+create or replace function public.get_my_store_products()
+returns table(
+  product_id uuid,
+  product_name text,
+  product_description text,
+  price numeric(10,2),
+  stock_quantity integer,
+  sold_count integer,
+  category_id uuid,
+  category_name text,
+  is_active boolean,
+  is_new boolean,
+  image_urls text[],
+  store_id uuid,
+  store_name text,
+  created_at timestamptz,
+  updated_at timestamptz
+) as $$
+declare
+  user_store_id uuid;
+  store_status store_status;
+begin
+  if auth.uid() is null then
+    raise exception 'User not authenticated';
+  end if;
+
+  if not exists (
+    select 1 from user_roles ur
+    where ur.user_id = auth.uid() and lower(ur.role) = 'vendor'
+  ) then
+    raise exception 'Access denied. User must have vendor role';
+  end if;
+
+  select s.id, s.status
+  into user_store_id, store_status
+  from public.stores s
+  where s.owner_id = auth.uid()
+  order by case when s.status = 'approved' then 0 when s.status = 'pending' then 1 else 2 end,
+           s.created_at desc
+  limit 1;
+
+  if user_store_id is null then
+    raise exception 'No store found for user';
+  end if;
+
+  if store_status != 'approved' then
+    raise exception 'Store must be approved to access products';
+  end if;
+
+  return query
+  select 
+    p.id as product_id,
+    p.name as product_name,
+    p.description as product_description,
+    p.price,
+    p.stock_quantity,
+    p.sold_count,
+    p.category_id,
+    coalesce(c.name_en, 'No Category') as category_name,
+    p.is_active,
+    p.is_new,
+    p.image_urls,
+    p.store_id,
+    s.name as store_name,
+    p.created_at,
+    p.updated_at
+  from public.products p
+  join public.stores s on p.store_id = s.id
+  left join public.categories c on p.category_id = c.id
+  where p.store_id = user_store_id
+  order by p.created_at desc;
+end;
+$$ language plpgsql security definer;
 
 
 

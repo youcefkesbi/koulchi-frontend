@@ -13,6 +13,7 @@
           <h3 class="text-lg font-semibold text-gray-800">Product Inventory</h3>
           <!-- Add product button -->
           <button 
+            v-if="hasVendorRole"
             @click="showAddForm = true"
             class="right-4 top-2 cursor-pointer text-semibold absolute bg-indigo-700 text-white px-14 py-2 rounded-md hover:bg-indigo-800 transition-colors"
           >
@@ -35,6 +36,13 @@
           </button>
         </div>
         
+        <!-- Access Guard -->
+        <div v-else-if="!hasVendorRole" class="text-center py-12">
+          <i class="fas fa-lock text-gray-400 text-4xl mb-4"></i>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Vendor access required</h3>
+          <p class="text-gray-600">Your store must be approved (vendor role) to manage products.</p>
+        </div>
+
         <!-- Products Table -->
         <div v-else-if="products.length > 0" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
@@ -134,7 +142,7 @@
           <i class="fas fa-box-open text-gray-400 text-4xl mb-4"></i>
           <h3 class="text-lg font-semibold text-gray-800 mb-2">No Products Found</h3>
           <p class="text-gray-600 mb-6">You haven't added any products to your store yet.</p>
-          <button @click="addProduct" class="btn-primary">
+          <button v-if="hasVendorRole" @click="addProduct" class="btn-primary">
             <i class="fas fa-plus mr-2"></i>
             Add Your First Product
           </button>
@@ -408,7 +416,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
 
@@ -441,6 +449,9 @@ const thumbnailPreview = ref(null)
 const imageFiles = ref([])
 const imagePreviews = ref([])
 
+// Vendor role flag
+const hasVendorRole = ref(false)
+
 // Category names are now fetched directly from the database via JOIN
 
 // Methods
@@ -448,6 +459,12 @@ const fetchProducts = async () => {
   try {
     loading.value = true
     error.value = null
+
+    // Ensure vendor access
+    if (!hasVendorRole.value) {
+      products.value = []
+      return
+    }
 
     const { data, error: fetchError } = await supabase.rpc('get_my_store_products')
 
@@ -795,6 +812,22 @@ const deleteProduct = async (productId, productName) => {
 
 // Lifecycle
 onMounted(async () => {
+  // Determine vendor role from user_roles
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      const { data: roles, error: roleErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      if (!roleErr) {
+        hasVendorRole.value = Array.isArray(roles) && roles.some(r => (r.role || '').toLowerCase() === 'vendor')
+      }
+    }
+  } catch (e) {
+    console.error('Role check failed:', e)
+  }
+
   await fetchCategories()
   await fetchProducts()
 })
