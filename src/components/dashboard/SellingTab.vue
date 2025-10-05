@@ -7,10 +7,10 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
-import { useOrdersStore } from '../../stores/orders'
-import { useProductStore } from '../../stores/product'
-import { useStoreStore } from '../../stores/store'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useOrdersStore } from '../../stores/useOrdersStore'
+import { useProductStore } from '../../stores/useProductStore'
+import { useStoreStore } from '../../stores/useStoresStore'
 import { getLocalizedPath } from '../../lib/i18n-utils'
 
 const { t: $t } = useI18n()

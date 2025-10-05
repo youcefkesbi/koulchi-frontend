@@ -17,7 +17,7 @@
 import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from './stores/auth'
+import { useAuthStore } from './stores/useAuthStore'
 import { languages } from './i18n'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'

@@ -175,9 +175,9 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useCartStore } from '../stores/cart'
-import { useProductStore } from '../stores/product'
-import { useAuthStore } from '../stores/auth'
+import { useCartStore } from '../stores/useCartStore'
+import { useProductStore } from '../stores/useProductStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import ProductCard from '../components/ProductCard.vue'
 import LoginModal from '../components/LoginModal.vue'
 
@@ -224,7 +224,7 @@ const handleImageError = (event) => {
 // Fetch cart and products on component mount
 onMounted(async () => {
   await Promise.all([
-    cartStore.fetchCart(),
+    cartStore.fetchCartItems(),
     productStore.fetchProducts()
   ])
 })

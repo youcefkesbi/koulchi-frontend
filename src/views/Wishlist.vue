@@ -132,8 +132,8 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useWishlistStore } from '../stores/wishlist'
-import { useCartStore } from '../stores/cart'
+import { useWishlistStore } from '../stores/useWishlistStore'
+import { useCartStore } from '../stores/useCartStore'
 
 const { t } = useI18n()
 const wishlistStore = useWishlistStore()

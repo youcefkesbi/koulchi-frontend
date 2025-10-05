@@ -88,7 +88,7 @@
       <!-- Actions -->
       <div class="flex space-x-3 space-x-reverse">
         <button
-          @click="addToCart"
+          @click="handleAddToCart"
           :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
           class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
           :class="(product.stock_quantity || 0) <= 0 
@@ -119,8 +119,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useCartStore } from '../stores/cart'
-import { useWishlistStore } from '../stores/wishlist'
+import { useCartStore } from '../stores/useCartStore'
+import { useWishlistStore } from '../stores/useWishlistStore'
 
 const props = defineProps({
   product: {
@@ -160,16 +160,16 @@ const getCartButtonText = () => {
   return 'أضف للسلة'
 }
 
-const addToCart = async () => {
+const handleAddToCart = async () => {
   if ((props.product.stock_quantity || 0) <= 0) return
   
   try {
     cartLoading.value = true
     error.value = ''
     
-    await cartStore.addToCart(props.product)
+    // Use the cart store method which handles both RPC call and state update
+    await cartStore.addToCart(props.product.id, 1)
     
-    // Show success feedback
   } catch (err) {
     console.error('Failed to add to cart:', err)
     error.value = err.message || 'فشل في إضافة المنتج للسلة'

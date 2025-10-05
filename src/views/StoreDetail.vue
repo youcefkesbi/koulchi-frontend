@@ -115,8 +115,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStoreStore } from '../stores/store'
-import { useProductStore } from '../stores/product'
+import { useStoreStore } from '../stores/useStoresStore'
+import { useProductStore } from '../stores/useProductStore'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/ProductCard.vue'
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabase'
+import { supabase, verifySupabaseAuth } from '../lib/supabase'
 import { oauthConfig } from '../config/oauth'
 import { getPasswordResetRedirectUrl } from '../config/environment.js'
 
@@ -574,6 +574,12 @@ const loadUserWithProfile = async (authUser) => {
 // Initialize auth state
 const initAuth = async () => {
   try {
+    // Verify Supabase client is properly initialized with auth
+    const isAuthReady = await verifySupabaseAuth()
+    if (!isAuthReady) {
+      console.warn('Supabase auth not ready, some features may not work')
+    }
+
     // Get initial session
     const { data: { session } } = await supabase.auth.getSession()
     
@@ -598,13 +604,20 @@ const initAuth = async () => {
 
           if (event === 'SIGNED_IN') {
             try {
-              const { cartService } = await import('../../database/cartService.js')
-              const { wishlistService } = await import('../../database/wishlistService.js')
-
-              await cartService.syncLocalToSupabase()
-              await wishlistService.syncLocalToSupabase()
+              // Initialize cart and wishlist stores after login
+              const { useCartStore } = await import('./useCartStore.js')
+              const { useWishlistStore } = await import('./useWishlistStore.js')
+              
+              const cartStore = useCartStore()
+              const wishlistStore = useWishlistStore()
+              
+              // Fetch user's cart and wishlist data
+              await Promise.all([
+                cartStore.fetchCartItems(),
+                wishlistStore.fetchWishlist()
+              ])
             } catch (err) {
-              console.error('Error syncing local data to Supabase:', err)
+              console.error('Error initializing stores after login:', err)
             }
           }
         } else {

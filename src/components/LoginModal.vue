@@ -327,7 +327,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({

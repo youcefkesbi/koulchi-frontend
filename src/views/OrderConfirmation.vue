@@ -155,8 +155,8 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
-import { useOrdersStore } from '../stores/orders'
-import { useCartStore } from '../stores/cart'
+import { useOrdersStore } from '../stores/useOrdersStore'
+import { useCartStore } from '../stores/useCartStore'
 
 const { t } = useI18n()
 const route = useRoute()

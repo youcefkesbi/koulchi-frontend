@@ -98,7 +98,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()

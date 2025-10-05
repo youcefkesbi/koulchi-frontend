@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import { supabase } from '../lib/supabase';
 
 export function useBestSellers() {
   const products = ref([]);
@@ -6,17 +7,31 @@ export function useBestSellers() {
   const error = ref(null);
 
   async function fetchBestSellers({ categoryId = null } = {}) {
-    loading.value = true; error.value = null;
+    loading.value = true; 
+    error.value = null;
+    
     try {
-      const url = categoryId
-        ? `${import.meta.env.VITE_BACKEND_URL}/api/products/best-sellers/category/${categoryId}`
-        : `${import.meta.env.VITE_BACKEND_URL}/api/products/best-sellers`;
+      let query = supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Status ${res.status}`);
-      products.value = await res.json();
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      products.value = data || [];
     } catch (err) {
       error.value = err.message;
+      console.error('Error fetching best sellers:', err);
     } finally {
       loading.value = false;
     }

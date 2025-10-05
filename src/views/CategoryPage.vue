@@ -219,7 +219,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useProductStore } from '../stores/product'
+import { useProductStore } from '../stores/useProductStore'
 import { useProducts } from '../composables/useProducts'
 import ProductCard from '../components/ProductCard.vue'
 

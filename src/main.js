@@ -6,7 +6,7 @@ import App from './App.vue'
 import './style.css'
 import { piniaPersist } from './plugins/piniaPersist.js'
 // Initialize stores after Pinia is set up
-import { useAuthStore } from './stores/auth.js'
+import { useAuthStore } from './stores/useAuthStore.js'
 
 // Global error handlers
 window.addEventListener('unhandledrejection', (event) => {

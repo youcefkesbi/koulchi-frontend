@@ -51,7 +51,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 import { oauthProviderNames, oauthErrorMessages } from '../config/oauth'
 

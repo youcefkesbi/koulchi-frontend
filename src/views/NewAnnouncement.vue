@@ -244,7 +244,7 @@ import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
 import { useRouter } from 'vue-router'
 import { supabase } from '../lib/supabase'
-import { useProductStore } from '../stores/product'
+import { useProductStore } from '../stores/useProductStore'
 
 const { t } = useI18n()
 const router = useRouter()

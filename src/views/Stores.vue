@@ -113,7 +113,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStoreStore } from '../stores/store'
+import { useStoreStore } from '../stores/useStoresStore'
 
 const router = useRouter()
 const storeStore = useStoreStore()
