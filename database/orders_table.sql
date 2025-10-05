@@ -268,6 +268,237 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to get vendor orders with filtering options
+CREATE OR REPLACE FUNCTION public.get_vendor_orders_filtered(
+    p_sort_by TEXT DEFAULT 'date',
+    p_sort_order TEXT DEFAULT 'desc',
+    p_status_filter TEXT DEFAULT NULL
+)
+RETURNS TABLE(
+    order_id UUID,
+    product_id UUID,
+    product_name TEXT,
+    product_image TEXT,
+    customer_name TEXT,
+    order_date TIMESTAMPTZ,
+    product_price NUMERIC(10,2),
+    quantity INTEGER,
+    item_total NUMERIC(10,2),
+    order_status TEXT,
+    total_amount NUMERIC(10,2),
+    shipping_address TEXT,
+    notes TEXT
+) AS $$
+DECLARE
+    current_user_id UUID;
+    user_store_id UUID;
+    sort_clause TEXT;
+BEGIN
+    -- Get the current user ID
+    current_user_id := auth.uid();
+    
+    -- Return empty if no user
+    IF current_user_id IS NULL THEN
+        RETURN;
+    END IF;
+    
+    -- Get the user's store ID
+    SELECT s.id INTO user_store_id
+    FROM public.stores s
+    WHERE s.owner_id = current_user_id AND s.status = 'approved';
+    
+    -- Return empty if no store found
+    IF user_store_id IS NULL THEN
+        RETURN;
+    END IF;
+    
+    -- If no special filtering, just return all orders (same as get_vendor_orders)
+    IF p_sort_by = 'date' AND p_sort_order = 'desc' AND (p_status_filter IS NULL OR p_status_filter = '') THEN
+        RETURN QUERY
+        SELECT 
+            o.id as order_id,
+            p.id as product_id,
+            p.name as product_name,
+            COALESCE(p.image_urls[1], '') as product_image,
+            COALESCE(prof.full_name, 'Unknown Customer') as customer_name,
+            o.created_at as order_date,
+            oi.price as product_price,
+            oi.quantity,
+            COALESCE((oi.price::NUMERIC * oi.quantity::NUMERIC), 0) as item_total,
+            o.status as order_status,
+            o.total_amount,
+            o.shipping_address,
+            o.notes
+        FROM public.orders o
+        JOIN public.order_items oi ON o.id = oi.order_id
+        JOIN public.products p ON oi.product_id = p.id
+        JOIN public.profiles prof ON o.user_id = prof.id
+        WHERE o.store_id = user_store_id
+        ORDER BY o.created_at DESC, p.name ASC;
+        RETURN;
+    END IF;
+    
+    -- Build sort clause for filtering
+    CASE p_sort_by
+        WHEN 'date' THEN
+            sort_clause := 'o.created_at ' || UPPER(p_sort_order);
+        WHEN 'quantity' THEN
+            sort_clause := 'oi.quantity ' || UPPER(p_sort_order);
+        WHEN 'status' THEN
+            sort_clause := 'o.status ' || UPPER(p_sort_order);
+        ELSE
+            sort_clause := 'o.created_at DESC';
+    END CASE;
+    
+    -- Return filtered orders
+    RETURN QUERY
+    EXECUTE format('
+        SELECT 
+            o.id as order_id,
+            p.id as product_id,
+            p.name as product_name,
+            COALESCE(p.image_urls[1], '''') as product_image,
+            COALESCE(prof.full_name, ''Unknown Customer'') as customer_name,
+            o.created_at as order_date,
+            oi.price as product_price,
+            oi.quantity,
+            COALESCE((oi.price::NUMERIC * oi.quantity::NUMERIC), 0) as item_total,
+            o.status as order_status,
+            o.total_amount,
+            o.shipping_address,
+            o.notes
+        FROM public.orders o
+        JOIN public.order_items oi ON o.id = oi.order_id
+        JOIN public.products p ON oi.product_id = p.id
+        JOIN public.profiles prof ON o.user_id = prof.id
+        WHERE o.store_id = %L
+        %s
+        ORDER BY %s, p.name ASC',
+        user_store_id,
+        CASE WHEN p_status_filter IS NOT NULL THEN 'AND o.status = ' || quote_literal(p_status_filter) ELSE '' END,
+        sort_clause
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get 3 best selling products for the authenticated user's store
+CREATE OR REPLACE FUNCTION public.get_best_selling_products()
+RETURNS TABLE(
+    product_id UUID,
+    product_name TEXT,
+    product_image TEXT,
+    total_quantity_sold BIGINT,
+    total_revenue NUMERIC(10,2),
+    store_id UUID
+) AS $$
+DECLARE
+    user_store_id UUID;
+BEGIN
+    -- Get the current user's store ID
+    SELECT s.id INTO user_store_id
+    FROM public.stores s
+    JOIN public.user_roles ur ON s.owner_id = ur.user_id
+    WHERE ur.user_id = auth.uid() 
+      AND ur.role = 'vendor'
+      AND s.status = 'approved'
+    ORDER BY s.created_at DESC
+    LIMIT 1;
+    
+    -- If no store found, return empty result
+    IF user_store_id IS NULL THEN
+        RETURN;
+    END IF;
+    
+    -- Return the 3 best selling products for the store
+    RETURN QUERY
+    SELECT 
+        p.id as product_id,
+        p.name as product_name,
+        COALESCE(p.image_urls[1], '') as product_image,
+        SUM(oi.quantity) as total_quantity_sold,
+        SUM(oi.quantity * oi.price) as total_revenue,
+        o.store_id
+    FROM public.orders o
+    JOIN public.order_items oi ON o.id = oi.order_id
+    JOIN public.products p ON oi.product_id = p.id
+    WHERE o.store_id = user_store_id
+      AND o.status IN ('confirmed', 'shipped', 'delivered') -- Only count completed orders
+    GROUP BY p.id, p.name, p.image_urls, o.store_id
+    ORDER BY total_quantity_sold DESC, total_revenue DESC
+    LIMIT 3;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get buyer orders with complete product and category information
+CREATE OR REPLACE FUNCTION public.get_buyer_orders_with_details()
+RETURNS TABLE(
+    order_id UUID,
+    order_status TEXT,
+    total_amount NUMERIC(10,2),
+    shipping_address TEXT,
+    notes TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    order_items JSONB
+) AS $$
+DECLARE
+    current_user_id UUID;
+BEGIN
+    -- Get the current user ID
+    current_user_id := auth.uid();
+    
+    -- Return empty if no user
+    IF current_user_id IS NULL THEN
+        RETURN;
+    END IF;
+    
+    RETURN QUERY
+    SELECT 
+        o.id as order_id,
+        o.status as order_status,
+        o.total_amount,
+        o.shipping_address,
+        o.notes,
+        o.created_at,
+        o.updated_at,
+        COALESCE(
+            json_agg(
+                json_build_object(
+                    'id', oi.id,
+                    'quantity', oi.quantity,
+                    'price', oi.price,
+                    'product', json_build_object(
+                        'id', p.id,
+                        'name', p.name,
+                        'description', p.description,
+                        'price', p.price,
+                        'image_urls', p.image_urls,
+                        'thumbnail_url', p.thumbnail_url,
+                        'category_id', p.category_id,
+                        'category_name', c.name_en,
+                        'seller', json_build_object(
+                            'id', prof.id,
+                            'full_name', prof.full_name,
+                            'city', prof.city
+                        )
+                    )
+                )
+            ) FILTER (WHERE oi.id IS NOT NULL),
+            '[]'::json
+        ) as order_items
+    FROM public.orders o
+    LEFT JOIN public.order_items oi ON o.id = oi.order_id
+    LEFT JOIN public.products p ON oi.product_id = p.id
+    LEFT JOIN public.categories c ON p.category_id = c.id
+    LEFT JOIN public.profiles prof ON p.seller_id = prof.id
+    WHERE o.user_id = current_user_id
+    GROUP BY o.id, o.status, o.total_amount, o.shipping_address, o.notes, o.created_at, o.updated_at
+    ORDER BY o.created_at DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION public.get_my_orders TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_vendor_orders TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_vendor_orders_filtered TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_best_selling_products TO authenticated;

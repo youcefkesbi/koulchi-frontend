@@ -468,14 +468,18 @@ returns table(
   product_id uuid,
   product_name text,
   product_description text,
-  price numeric(10,2),
+  product_price numeric(10,2),
   stock_quantity integer,
   sold_count integer,
   category_id uuid,
   category_name text,
+  category_name_en text,
+  category_name_ar text,
+  category_name_fr text,
   is_active boolean,
   is_new boolean,
   image_urls text[],
+  product_image text,
   store_id uuid,
   store_name text,
   created_at timestamptz,
@@ -517,14 +521,18 @@ begin
     p.id as product_id,
     p.name as product_name,
     p.description as product_description,
-    p.price,
+    p.price as product_price,
     p.stock_quantity,
     p.sold_count,
     p.category_id,
     coalesce(c.name_en, 'No Category') as category_name,
+    coalesce(c.name_en, 'No Category') as category_name_en,
+    coalesce(c.name_ar, 'No Category') as category_name_ar,
+    coalesce(c.name_fr, 'No Category') as category_name_fr,
     p.is_active,
     p.is_new,
     p.image_urls,
+    coalesce(p.image_urls[1], p.thumbnail_url) as product_image,
     p.store_id,
     s.name as store_name,
     p.created_at,
@@ -542,4 +550,188 @@ $$ language plpgsql security definer;
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION public.get_my_store_products TO authenticated;
 
+-- Function to get authenticated user's store products with filtering
+CREATE OR REPLACE FUNCTION public.get_my_store_products_filtered(p_price_min numeric DEFAULT NULL::numeric, p_price_max numeric DEFAULT NULL::numeric, p_category_id uuid DEFAULT NULL::uuid, p_stock_filter text DEFAULT NULL::text, p_sort_by text DEFAULT 'created_at'::text, p_sort_order text DEFAULT 'desc'::text)
+ RETURNS TABLE(product_id uuid, product_name text, product_description text, product_price numeric, product_image text, category_id uuid, category_name text, stock_quantity integer, sold_count integer, is_active boolean, is_new boolean, created_at timestamp with time zone, updated_at timestamp with time zone)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+    user_store_id UUID;
+    sort_clause TEXT;
+BEGIN
+    -- Get the current user's store ID
+    SELECT s.id INTO user_store_id
+    FROM public.stores s
+    JOIN public.user_roles ur ON s.owner_id = ur.user_id
+    WHERE ur.user_id = auth.uid() 
+      AND ur.role = 'vendor'
+      AND s.status = 'approved'
+    ORDER BY s.created_at DESC
+    LIMIT 1;
+    
+    -- If no store found, return empty result
+    IF user_store_id IS NULL THEN
+        RETURN;
+    END IF;
+    
+    -- Build sort clause
+    CASE p_sort_by
+        WHEN 'name' THEN sort_clause := 'p.name ' || p_sort_order;
+        WHEN 'price' THEN sort_clause := 'p.price ' || p_sort_order;
+        WHEN 'stock_quantity' THEN sort_clause := 'p.stock_quantity ' || p_sort_order;
+        WHEN 'sold_count' THEN sort_clause := 'p.sold_count ' || p_sort_order;
+        WHEN 'created_at' THEN sort_clause := 'p.created_at ' || p_sort_order;
+        ELSE sort_clause := 'p.created_at ' || p_sort_order;
+    END CASE;
+    
+    -- Return filtered products
+    RETURN QUERY
+    SELECT 
+        p.id as product_id,
+        p.name as product_name,
+        p.description as product_description,
+        p.price as product_price,
+        COALESCE(p.image_urls[1], p.thumbnail_url, '') as product_image,
+        p.category_id,
+        COALESCE(c.name_en, 'No Category') as category_name,
+        p.stock_quantity,
+        p.sold_count,
+        p.is_active,
+        p.is_new,
+        p.created_at,
+        p.updated_at
+    FROM public.products p
+    LEFT JOIN public.categories c ON p.category_id = c.id
+    WHERE p.store_id = user_store_id
+      AND (p_price_min IS NULL OR p.price >= p_price_min)
+      AND (p_price_max IS NULL OR p.price <= p_price_max)
+      AND (p_category_id IS NULL OR p.category_id = p_category_id)
+      AND (
+        p_stock_filter IS NULL OR
+        (p_stock_filter = 'in_stock' AND p.stock_quantity > 10) OR
+        (p_stock_filter = 'low_stock' AND p.stock_quantity BETWEEN 1 AND 10) OR
+        (p_stock_filter = 'out_of_stock' AND p.stock_quantity = 0) OR
+        (p_stock_filter = 'all')
+      )
+    ORDER BY 
+        CASE WHEN p_sort_by = 'name' AND p_sort_order = 'asc' THEN p.name END ASC,
+        CASE WHEN p_sort_by = 'name' AND p_sort_order = 'desc' THEN p.name END DESC,
+        CASE WHEN p_sort_by = 'price' AND p_sort_order = 'asc' THEN p.price END ASC,
+        CASE WHEN p_sort_by = 'price' AND p_sort_order = 'desc' THEN p.price END DESC,
+        CASE WHEN p_sort_by = 'stock_quantity' AND p_sort_order = 'asc' THEN p.stock_quantity END ASC,
+        CASE WHEN p_sort_by = 'stock_quantity' AND p_sort_order = 'desc' THEN p.stock_quantity END DESC,
+        CASE WHEN p_sort_by = 'sold_count' AND p_sort_order = 'asc' THEN p.sold_count END ASC,
+        CASE WHEN p_sort_by = 'sold_count' AND p_sort_order = 'desc' THEN p.sold_count END DESC,
+        CASE WHEN p_sort_by = 'created_at' AND p_sort_order = 'asc' THEN p.created_at END ASC,
+        CASE WHEN p_sort_by = 'created_at' AND p_sort_order = 'desc' THEN p.created_at END DESC;
+END;
+$function$
+
+-- ================================
+-- Get User Store Pack Information
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_user_store_pack()
+RETURNS TABLE(
+    has_vendor_role BOOLEAN,
+    store_id UUID,
+    pack_name_en TEXT,
+    pack_name_ar TEXT,
+    pack_name_fr TEXT,
+    pack_id UUID,
+    is_pro BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $function$
+DECLARE
+    user_store_id UUID;
+    user_pack_id UUID;
+    pack_name_en_val TEXT;
+    pack_name_ar_val TEXT;
+    pack_name_fr_val TEXT;
+    is_vendor BOOLEAN := FALSE;
+    is_pro_pack BOOLEAN := FALSE;
+BEGIN
+    -- Check if user has vendor role
+    SELECT EXISTS(
+        SELECT 1 FROM public.user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+    ) INTO is_vendor;
+    
+    -- If user doesn't have vendor role, return false
+    IF NOT is_vendor THEN
+        RETURN QUERY SELECT 
+            FALSE as has_vendor_role,
+            NULL::UUID as store_id,
+            NULL::TEXT as pack_name_en,
+            NULL::TEXT as pack_name_ar,
+            NULL::TEXT as pack_name_fr,
+            NULL::UUID as pack_id,
+            FALSE as is_pro;
+        RETURN;
+    END IF;
+    
+    -- Get user's store ID
+    SELECT s.id INTO user_store_id
+    FROM public.stores s
+    WHERE s.owner_id = auth.uid() 
+      AND s.status = 'approved'
+    ORDER BY s.created_at DESC
+    LIMIT 1;
+    
+    -- If no approved store found, return false
+    IF user_store_id IS NULL THEN
+        RETURN QUERY SELECT 
+            TRUE as has_vendor_role,
+            NULL::UUID as store_id,
+            NULL::TEXT as pack_name_en,
+            NULL::TEXT as pack_name_ar,
+            NULL::TEXT as pack_name_fr,
+            NULL::UUID as pack_id,
+            FALSE as is_pro;
+        RETURN;
+    END IF;
+    
+    -- Get pack information for the store
+    SELECT 
+        s.pack_id,
+        p.name_en,
+        p.name_ar,
+        p.name_fr
+    INTO 
+        user_pack_id,
+        pack_name_en_val,
+        pack_name_ar_val,
+        pack_name_fr_val
+    FROM public.stores s
+    LEFT JOIN public.packs p ON s.pack_id = p.id
+    WHERE s.id = user_store_id;
+    
+    -- Determine if it's a pro pack (check if pack name contains "pro" or "premium")
+    IF user_pack_id IS NOT NULL THEN
+        SELECT 
+            CASE 
+                WHEN LOWER(pack_name_en_val) LIKE '%pro%' 
+                  OR LOWER(pack_name_en_val) LIKE '%premium%'
+                  OR LOWER(pack_name_ar_val) LIKE '%برو%'
+                  OR LOWER(pack_name_ar_val) LIKE '%بريميوم%'
+                  OR LOWER(pack_name_fr_val) LIKE '%pro%'
+                  OR LOWER(pack_name_fr_val) LIKE '%premium%'
+                THEN TRUE
+                ELSE FALSE
+            END INTO is_pro_pack;
+    END IF;
+    
+    -- Return the result
+    RETURN QUERY SELECT 
+        TRUE as has_vendor_role,
+        user_store_id as store_id,
+        COALESCE(pack_name_en_val, 'No Pack') as pack_name_en,
+        COALESCE(pack_name_ar_val, 'لا توجد باقة') as pack_name_ar,
+        COALESCE(pack_name_fr_val, 'Aucun Pack') as pack_name_fr,
+        user_pack_id as pack_id,
+        is_pro_pack as is_pro;
+END;
+$function$
 

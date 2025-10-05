@@ -1,20 +1,20 @@
 <template>
-  <div class="min-h-screen bg-white">
-  <div class="grid grid-cols-[1fr_1fr]">
-
-
+  <div class="min-h-screen bg-white overflow-hidden">
+  <div 
+  :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr]' : 'block w-full'"
+    >
     <!-- Dashboard stats -->
-    <div class="grid grid-cols-2 gap-6 w-140 max-w-4xl h-60 p-6">
+    <div :class="packInfo.is_pro ? 'grid grid-cols-2 gap-6 w-140 max-w-4xl h-60 p-6' : 'flex gap-4 w-full h-40 p-6'">
       <!-- Loading State for Statistics -->
-      <div v-if="statsLoading" class="col-span-2 text-center py-8">
-        <i class="fas fa-spinner fa-spin text-primary text-2xl mb-2"></i>
+        <div v-if="statsLoading" :class="packInfo.is_pro ? 'col-span-2 text-center py-8' : 'w-full text-center py-8'">
+        <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mb-2"></i>
         <p class="text-gray-600">{{ t('dashboard.stats.loadingStats') }}</p>
       </div>
 
       <!-- Statistics Cards -->
-      <template v-else>
+      <template v-else class="h-60">
         <!-- Total Orders Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div :class="packInfo.is_pro ? 'bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500' : 'bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 flex-1'">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalOrders') }}</p>
@@ -27,7 +27,7 @@
         </div>
 
         <!-- Total Products Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+        <div :class="packInfo.is_pro ? 'bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500' : 'bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500 flex-1'">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalProducts') }}</p>
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Total Sales Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+        <div :class="packInfo.is_pro ? 'bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500' : 'bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500 flex-1'">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalSales') }}</p>
@@ -53,7 +53,7 @@
         </div>
 
         <!-- Total Visitors Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+        <div :class="packInfo.is_pro ? 'bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500' : 'bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500 flex-1'">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">{{ t('dashboard.stats.totalVisitors') }}</p>
@@ -66,7 +66,7 @@
         </div>
 
         <!-- No Store Message -->
-        <div v-if="!storeStatistics.storeId && !statsLoading" class="col-span-2 text-center py-8">
+        <div v-if="!storeStatistics.storeId && !statsLoading" :class="packInfo.is_pro ? 'col-span-2 text-center py-8' : 'w-full text-center py-8'">
           <div class="bg-gray-50 rounded-lg p-6">
             <i class="fas fa-store text-gray-400 text-4xl mb-4"></i>
             <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('dashboard.stats.noStoreFound') }}</h3>
@@ -83,28 +83,63 @@
       </template>
       </div>
 
-      <!-- Line chart -->
-      <div class=" ">
-       <Line :data="chartData" :options="chartOptions" />
+      <!-- Line chart - Only show for Pro pack users -->
+      <div v-if="packInfo.is_pro" class=" h-50 pt-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ t('dashboard.monthlySales') }}</h3>
+        <div class="h-55">
+          <Line :data="chartData" :options="chartOptions" />
+        </div>
       </div>      
   </div>
 
     <!-- Orders tab + best selling products tab -->
-    <div class="grid grid-cols-[1fr_1fr] w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-2' : 'flex px-4 mt-2 sm:px-6 lg:px-8 pb-8 gap-2'">
       <!-- Loading State -->
       <div v-if="statsLoading" class="text-center py-12">
-        <i class="fas fa-spinner fa-spin text-primary text-3xl mb-4"></i>
+        <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-4"></i>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('common.loading') }}</h3>
         <p class="text-gray-600">{{ t('dashboard.loadingProfile') }}</p>
       </div>
       <!-- Manage orders -->
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Store Orders</h3>
+      <div :class="packInfo.is_pro ? 'relative bg-white rounded-lg shadow-md px-3 pb-6' : 'relative bg-white rounded-lg shadow-md px-3 pb-6 flex-1'">
+        <div class="flex pb-2 items-center">
+        <h3 
+        class="ml-4 mt-3 text-lg font-semibold text-gray-800 mb-4">{{ t('dashboard.orders.title') }}</h3>
         
+        <!-- Orders Filtering tab -->
+        <div class="flex justify-center gap-4 absolute" :class="route.meta.locale === 'ar' ? 'left-8' : 'right-8'">
+        <button 
+          @click="setSortFilter('date')"
+          :class="sortFilter === 'date' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
+          class="w-32 rounded-md px-4 py-2 transition-colors text-center">
+           <span>{{ t('dashboard.orders.filters.date') }}</span><span class="ml-1">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
+          
+        </button>
+        <button 
+          @click="setSortFilter('quantity')"
+          :class="sortFilter === 'quantity' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'"
+          class="w-32 rounded-md px-4 py-2 transition-colors text-center">
+          <span>{{ t('dashboard.orders.filters.quantity') }}</span><span class="ml-1">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
+        </button>
+        <div class="relative">
+          <select 
+            @change="setStatusFilter($event.target.value)"
+            :value="statusFilter"
+            class="w-32 rounded-md px-4 py-2 transition-colors bg-gray-200 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none text-center">
+            <option value="">{{ t('dashboard.orders.filters.allStatus') }}</option>
+            <option value="pending">{{ t('dashboard.orders.filters.pending') }}</option>
+            <option value="confirmed">{{ t('dashboard.orders.filters.confirmed') }}</option>
+            <option value="shipped">{{ t('dashboard.orders.filters.shipped') }}</option>
+            <option value="delivered">{{ t('dashboard.orders.filters.delivered') }}</option>
+            <option value="cancelled">{{ t('dashboard.orders.filters.cancelled') }}</option>
+          </select>
+        </div>
+        </div>
+        </div>
         <!-- Loading State -->
         <div v-if="ordersStore.loading" class="text-center py-8">
-          <i class="fas fa-spinner fa-spin text-primary text-2xl mb-2"></i>
-          <p class="text-gray-600">Loading orders...</p>
+          <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mb-2"></i>
+          <p class="text-gray-600">{{ t('dashboard.orders.loading') }}</p>
         </div>
         
         <!-- Error State -->
@@ -114,51 +149,49 @@
         </div>
         
         <!-- Orders Table -->
-        <div v-else-if="ordersStore.orders.length > 0" class="overflow-x-auto">
-          <table class="divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+        <div v-else-if="ordersStore.orders.length > 0" class="max-h-64 overflow-y-auto scrollbar-hide">
+          <table class="divide-y divide-gray-200 w-full table-fixed">
+
+            <thead class=" bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.product') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">{{ t('dashboard.orders.table.customer') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">{{ t('dashboard.orders.table.date') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.price') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">{{ t('dashboard.orders.table.qty') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">{{ t('dashboard.orders.table.status') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.total') }}</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class=" bg-white divide-y divide-gray-200">
               <tr v-for="order in ordersStore.orders" :key="`${order.order_id}-${order.product_id}`" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <img v-if="order.product_image" :src="order.product_image" :alt="order.product_name" class="h-10 w-10 rounded-full object-cover">
-                      <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <i class="fas fa-image text-gray-400"></i>
-                      </div>
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">{{ order.product_name }}</div>
-                    </div>
-                  </div>
+                <td class="px-3 py-4  text-xs font-medium text-gray-900 truncate" :title="order.product_name">
+                  {{ order.product_name }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ order.customer_name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ new Date(order.order_date).toLocaleDateString() }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatCurrency(order.product_price) }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ order.quantity }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                        :class="{
-                          'bg-yellow-100 text-yellow-800': order.order_status === 'pending',
-                          'bg-blue-100 text-blue-800': order.order_status === 'confirmed',
-                          'bg-purple-100 text-purple-800': order.order_status === 'shipped',
-                          'bg-green-100 text-green-800': order.order_status === 'delivered',
-                          'bg-red-100 text-red-800': order.order_status === 'cancelled'
-                        }">
-                    {{ order.order_status }}
-                  </span>
+                <td class="px-3 py-4 text-xs text-gray-900 truncate" :title="order.customer_name">{{ order.customer_name }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900">{{ formatDate(order.order_date) }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900">{{ formatCurrency(order.product_price) }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900 text-center">{{ order.quantity }}</td>
+                <td class="px-3 py-4">
+                  <select 
+                    :value="order.order_status"
+                    @change="updateOrderStatus(order.order_id, order.product_id, $event.target.value)"
+                    class="text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+                    :class="{
+                      'bg-yellow-100 text-yellow-800': order.order_status === 'pending',
+                      'bg-blue-100 text-blue-800': order.order_status === 'confirmed',
+                      'bg-purple-100 text-purple-800': order.order_status === 'shipped',
+                      'bg-green-100 text-green-800': order.order_status === 'delivered',
+                      'bg-red-100 text-red-800': order.order_status === 'cancelled'
+                    }">
+                    <option value="pending" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.pending') }}</option>
+                    <option value="confirmed" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.confirmed') }}</option>
+                    <option value="shipped" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.shipped') }}</option>
+                    <option value="delivered" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.delivered') }}</option>
+                    <option value="cancelled" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.cancelled') }}</option>
+                  </select>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ formatCurrency(order.item_total || 0) }}</td>
+                <td class="px-3 py-4 text-xs font-medium text-gray-900">{{ formatCurrency(order.item_total || 0) }}</td>
               </tr>
             </tbody>
           </table>
@@ -167,12 +200,76 @@
         <!-- No Orders State -->
         <div v-else class="text-center py-8">
           <i class="fas fa-shopping-cart text-gray-400 text-4xl mb-4"></i>
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">No Orders Found</h3>
-          <p class="text-gray-600">No customers have placed orders for your products yet.</p>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('dashboard.orders.noOrders') }}</h3>
+          <p class="text-gray-600">{{ t('dashboard.orders.noOrdersMessage') }}</p>
         </div>
       </div>
-      <!-- Best selling products -->
-      <div class="bg-blue-50 ">Best selling products</div>
+      <!-- Best selling products - Only show for Pro pack users -->
+      <div v-if="packInfo.is_pro" class="w-60 bg-white mt-8 rounded-lg shadow-md px-3 pb-6">
+        <h3 class="text-lg -mt-4 font-semibold text-gray-800 mb-4">{{ t('bestSelling.title') }}</h3>
+        
+        <!-- Loading State -->
+        <div v-if="bestSellingLoading" class="text-center py-8">
+          <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mb-2"></i>
+          <p class="text-gray-600">{{ t('bestSelling.loading') }}</p>
+        </div>
+        
+        <!-- Best Selling Products List -->
+        <div v-else-if="bestSellingProducts.length > 0" 
+        class="space-y-4">
+          <div 
+            v-for="(product, index) in bestSellingProducts" 
+            :key="product.product_id"
+            class="flex items-center space-x-3 py-3  rounded-lg transition-colors">
+            <!-- Rank Badge -->
+            <div class="flex-shrink-0">
+              <span class="inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white rounded-full"
+                    :class="{
+                      'bg-yellow-500': index === 0,
+                      'bg-blue-400': index === 1,
+                      'bg-orange-500': index === 2
+                    }">
+                {{ index + 1 }}
+              </span>
+            </div>
+            
+            <!-- Product Image -->
+            <div class="flex-shrink-0">
+              <img 
+                v-if="product.product_image" 
+                :src="product.product_image" 
+                :alt="product.product_name"
+                class="w-10 h-10 rounded-lg object-cover">
+              <div v-else class="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                <i class="fas fa-image text-gray-400 text-xs"></i>
+              </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-medium text-gray-900 truncate" :title="product.product_name">
+                {{ product.product_name }}
+              </h4>
+              <div class="flex items-center space-x-2 mt-1">
+                <span class="text-xs text-gray-500">
+                  {{ product.total_quantity_sold }} {{ t('bestSelling.sold') }}
+                </span>
+                <span class="text-xs text-gray-500">•</span>
+                <span class="text-xs font-medium text-green-600">
+                  {{ formatCurrency(product.total_revenue) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- No Products State -->
+        <div v-else class="text-center py-8">
+          <i class="fas fa-chart-line text-gray-400 text-4xl mb-4"></i>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('bestSelling.noSales') }}</h3>
+          <p class="text-gray-600">{{ t('bestSelling.noSalesMessage') }}</p>
+        </div>
+      </div>
       
     
     </div>
@@ -229,6 +326,27 @@ const activeTab = ref('selling')
 const storeStatistics = computed(() => storeStore.storeStatistics)
 const statsLoading = ref(false)
 
+// Best selling products
+const bestSellingProducts = ref([])
+const bestSellingLoading = ref(false)
+
+// Pack information
+const packInfo = ref({
+  has_vendor_role: false,
+  store_id: null,
+  pack_name_en: null,
+  pack_name_ar: null,
+  pack_name_fr: null,
+  pack_id: null,
+  is_pro: false
+})
+const packLoading = ref(false)
+
+// Filtering state
+const sortFilter = ref('date')
+const sortOrder = ref('desc')
+const statusFilter = ref('')
+
 // Chart data
 const chartData = ref({
   labels: [],
@@ -246,32 +364,73 @@ const chartOptions = ref({
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      display: true
+      display: false
     }
   },
   scales: {
+    x: {
+      grid: {
+        display: false
+      }
+    },
     y: {
-      beginAtZero: true
+      beginAtZero: true,
+      min: 0,
+      max: 50000,
+      ticks: {
+        stepSize: 10000,
+        callback: function(value) {
+          return value.toLocaleString();
+        }
+      },
+      grid: {
+        display: true
+      }
     }
   }
 })
 
 // Format currency function using i18n
 const formatCurrency = (amount) => {
-  const locale = 'en' // Use default locale to avoid i18n error
-  const currencySymbol = 'DZD'
+  const currentLocale = route.meta.locale || 'en'
   
-  // Always use DZD as the currency code for Intl.NumberFormat
+  // Get currency symbol from translations
+  const currencySymbol = t('dashboard.currency.dzdSymbol')
+  
+  // For Arabic locale, use custom formatting with Arabic currency symbol
+  if (currentLocale === 'ar') {
+    return `${amount.toLocaleString('ar-DZ')} ${currencySymbol}`
+  }
+  
+  // For other locales, use standard currency formatting
   const currencyCode = 'DZD'
-  
-  // Format with proper currency code
-  const formatted = new Intl.NumberFormat(locale, {
+  const formatted = new Intl.NumberFormat(currentLocale, {
     style: 'currency',
     currency: currencyCode,
     minimumFractionDigits: 0
   }).format(amount)
   
   return formatted
+}
+
+// Format date function using i18n
+const formatDate = (dateString) => {
+  const currentLocale = route.meta.locale || 'en'
+  const date = new Date(dateString)
+  
+  // Use locale-specific formatting
+  const localeMap = {
+    'en': 'en-US',
+    'fr': 'fr-FR',
+    'ar': 'ar-DZ'
+  }
+  
+  const locale = localeMap[currentLocale] || 'en-US'
+  
+  return date.toLocaleDateString(locale, { 
+    month: 'short', 
+    day: 'numeric' 
+  })
 }
 
 // Available tabs based on user role
@@ -350,6 +509,72 @@ watch(() => authStore.userRole, (newRole, oldRole) => {
   validateTabAccess()
 }, { immediate: true })
 
+// Set sort filter and toggle order
+const setSortFilter = async (filter) => {
+  if (sortFilter.value === filter) {
+    // Toggle order if same filter is clicked
+    sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+  } else {
+    // Set new filter with default desc order
+    sortFilter.value = filter
+    sortOrder.value = 'desc'
+  }
+  
+  // Fetch filtered orders
+  await fetchFilteredOrders()
+}
+
+// Set status filter
+const setStatusFilter = async (status) => {
+  statusFilter.value = status
+  await fetchFilteredOrders()
+}
+
+// Update order status
+const updateOrderStatus = async (orderId, productId, newStatus) => {
+  try {
+    // Update the order status in the orders table (not order_items)
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId)
+    
+    if (error) throw error
+    
+    // Update the local orders array to reflect the change immediately
+    const orderIndex = ordersStore.orders.findIndex(
+      order => order.order_id === orderId && order.product_id === productId
+    )
+    
+    if (orderIndex !== -1) {
+      ordersStore.orders[orderIndex].order_status = newStatus
+    }
+    
+    console.log(`Order status updated to ${newStatus}`)
+  } catch (error) {
+    console.error('Error updating order status:', error)
+    // You might want to show a user-friendly error message here
+  }
+}
+
+// Fetch filtered orders using the new RPC function
+const fetchFilteredOrders = async () => {
+  try {
+    const { data, error } = await supabase.rpc('get_vendor_orders_filtered', {
+      p_sort_by: sortFilter.value,
+      p_sort_order: sortOrder.value,
+      p_status_filter: statusFilter.value || null
+    })
+    
+    if (error) throw error
+    
+    // Update orders store with filtered data
+    ordersStore.orders = data || []
+  } catch (error) {
+    console.error('Error fetching filtered orders:', error)
+  }
+}
+
 // Fetch monthly sales data
 const fetchMonthlySales = async () => {
   try {
@@ -374,14 +599,51 @@ const fetchMonthlySales = async () => {
   }
 }
 
+// Fetch pack information
+const fetchPackInfo = async () => {
+  try {
+    packLoading.value = true
+    const { data, error } = await supabase.rpc('get_user_store_pack')
+    
+    if (error) throw error
+    
+    if (data && data.length > 0) {
+      packInfo.value = data[0]
+    }
+  } catch (error) {
+    console.error('Error fetching pack information:', error)
+  } finally {
+    packLoading.value = false
+  }
+}
+
+// Fetch best selling products
+const fetchBestSellingProducts = async () => {
+  try {
+    bestSellingLoading.value = true
+    const { data, error } = await supabase.rpc('get_best_selling_products')
+    
+    if (error) throw error
+    
+    bestSellingProducts.value = data || []
+  } catch (error) {
+    console.error('Error fetching best selling products:', error)
+    bestSellingProducts.value = []
+  } finally {
+    bestSellingLoading.value = false
+  }
+}
+
 onMounted(async () => {
   // Avoid forcing role refresh here to prevent loops
   if (authStore.isAuthenticated) {
     statsLoading.value = true
     try {
       await storeStore.fetchStoreStatistics()
-      await ordersStore.fetchVendorOrders()
+      await fetchFilteredOrders() // Use filtered orders instead of regular fetch
+      await fetchPackInfo() // Fetch pack information
       await fetchMonthlySales()
+      await fetchBestSellingProducts()
     } catch (error) {
       console.error('Error fetching store statistics:', error)
     } finally {
@@ -461,5 +723,14 @@ onMounted(async () => {
 .btn-secondary:focus {
   outline: none;
   box-shadow: 0 0 0 2px #6b7280;
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
 }
 </style> 

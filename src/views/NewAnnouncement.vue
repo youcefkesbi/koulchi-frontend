@@ -6,9 +6,6 @@
         <h1 class="text-3xl md:text-4xl font-bold text-dark mb-4">
           {{ $t('announcement.postAnnouncement') }}
         </h1>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-          {{ $t('announcement.description') }}
-        </p>
       </div>
 
       <!-- Success Message -->
