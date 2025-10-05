@@ -194,7 +194,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/store'
-import { useProductStore } from '../stores/product'
+import { useProductStore } from '../stores/useProductStore'
 
 const $router = useRouter()
 const { t: $t } = useI18n()

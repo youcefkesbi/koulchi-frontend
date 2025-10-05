@@ -119,8 +119,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useCartStore } from '../stores/cart'
-import { useWishlistStore } from '../stores/wishlist'
+import { useCartStore } from '../stores/useCartStore'
+import { useWishlistStore } from '../stores/useWishlistStore'
 import { addToCart } from '../composables/useCart.js'
 
 const props = defineProps({

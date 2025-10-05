@@ -58,11 +58,6 @@ export function useStores() {
         return refreshData.session
       }
       
-        userId: session.user.id, 
-        email: session.user.email,
-        expiresAt: new Date(session.expires_at * 1000).toISOString()
-      })
-      
       return session
     } catch (err) {
       console.error('Session validation error:', err)
@@ -224,10 +219,6 @@ export function useStores() {
         description: storeDescription
       }
 
-        ...storeInsertData, 
-        owner_id: '***' // Hide user ID in logs for security
-      })
-
       // 4. Database insert using Supabase client (JWT automatically attached)
       const { data, error: createError } = await supabase
         .from('stores')
@@ -385,11 +376,6 @@ export function useStores() {
       if (!session) {
         throw new Error('User not authenticated')
       }
-
-        hasLogo: !!logoFile,
-        hasBanner: !!bannerFile,
-        storeName: storeData.name
-      })
 
       // Upload images in parallel for better performance
       const uploadPromises = []

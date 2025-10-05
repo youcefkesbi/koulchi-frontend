@@ -291,7 +291,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useProductStore } from '../stores/product'
+import { useProductStore } from '../stores/useProductStore'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()

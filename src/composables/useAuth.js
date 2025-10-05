@@ -61,11 +61,6 @@ export function useAuth() {
       session.value = currentSession
       user.value = currentSession.user
       
-        userId: currentSession.user.id, 
-        email: currentSession.user.email,
-        expiresAt: new Date(currentSession.expires_at * 1000).toISOString()
-      })
-      
       return currentSession
     } catch (err) {
       console.error('Session validation error:', err)
@@ -318,4 +313,5 @@ export function useAuth() {
     resetPassword,
     updatePassword,
     clearError
+  }
 }

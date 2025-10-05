@@ -233,9 +233,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getLocalizedPath } from '../lib/i18n-utils'
-import { useCartStore } from '../stores/cart'
-import { useOrdersStore } from '../stores/orders'
-import { useAuthStore } from '../stores/auth'
+import { useCartStore } from '../stores/useCartStore'
+import { useOrdersStore } from '../stores/useOrdersStore'
+import { useAuthStore } from '../stores/useAuthStore'
 import LoginModal from '../components/LoginModal.vue'
 
 const { t } = useI18n()
