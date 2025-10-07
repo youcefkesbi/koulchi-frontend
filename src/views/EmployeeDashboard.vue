@@ -20,7 +20,7 @@
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
       <!-- Stats Overview -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-soft p-6">
           <div class="flex items-center space-x-3 space-x-reverse">
             <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -28,7 +28,7 @@
             </div>
             <div>
               <h3 class="text-2xl font-bold text-gray-800">{{ pendingStoresCount }}</h3>
-              <p class="text-sm text-gray-600">{{ $t('employee.pendingStores') }}</p>
+              <p class="text-sm text-gray-600">{{ $t('employee.proPackStores') }}</p>
             </div>
           </div>
         </div>
@@ -45,17 +45,6 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-soft p-6">
-          <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center">
-              <i class="fas fa-file-alt text-accent-600 text-xl"></i>
-            </div>
-            <div>
-              <h3 class="text-2xl font-bold text-gray-800">{{ pendingVerificationsCount }}</h3>
-              <p class="text-sm text-gray-600">{{ $t('employee.pendingVerifications') }}</p>
-            </div>
-          </div>
-        </div>
 
         <div class="bg-white rounded-xl shadow-soft p-6">
           <div class="flex items-center space-x-3 space-x-reverse">
@@ -95,10 +84,10 @@
         </div>
 
         <div class="p-6">
-          <!-- Pending Stores Tab -->
+          <!-- Pro Pack Stores Tab -->
           <div v-if="activeTab === 'stores'" class="space-y-6">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.pendingStores') }}</h2>
+              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.proPackStores') }}</h2>
               <button
                 @click="refreshData"
                 :disabled="loading"
@@ -210,6 +199,9 @@
             </div>
           </div>
 
+
+          
+
           <!-- Pending Products Tab -->
           <div v-if="activeTab === 'products'" class="space-y-6">
             <div class="flex items-center justify-between">
@@ -312,93 +304,6 @@
             </div>
           </div>
 
-          <!-- Pending Verifications Tab -->
-          <div v-if="activeTab === 'verifications'" class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.pendingVerifications') }}</h2>
-              <button
-                @click="refreshData"
-                :disabled="loading"
-                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                <i class="fas fa-sync-alt mr-2" :class="{ 'animate-spin': loading }"></i>
-                {{ $t('common.refresh') }}
-              </button>
-            </div>
-
-            <div v-if="loading" class="text-center py-8">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p class="text-gray-600">{{ $t('common.loading') }}</p>
-            </div>
-
-            <div v-else-if="pendingVerifications.length === 0" class="text-center py-12">
-              <div class="text-gray-400 text-5xl mb-4">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noPendingVerifications') }}</h3>
-              <p class="text-gray-600">{{ $t('employee.noPendingVerificationsMessage') }}</p>
-            </div>
-
-            <div v-else class="space-y-4">
-              <div
-                v-for="verification in pendingVerifications"
-                :key="verification.id"
-                class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
-              >
-                <div class="flex items-start justify-between">
-                  <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center">
-                      <i class="fas fa-file-image text-gray-600 text-2xl"></i>
-                    </div>
-                    
-                    <div class="flex-1">
-                      <div class="flex items-center space-x-3 space-x-reverse mb-2">
-                        <h3 class="text-lg font-semibold text-gray-800">{{ getDocumentTypeName(verification.verification_type) }}</h3>
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                          {{ $t('employee.pending') }}
-                        </span>
-                      </div>
-                      
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
-                        <div>
-                          <strong>{{ $t('employee.user') }}:</strong> {{ verification.user_email }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.uploaded') }}:</strong> {{ formatDate(verification.created_at) }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center space-x-2 space-x-reverse">
-                    <button
-                      @click="viewVerificationDocument(verification.document_url)"
-                      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      <i class="fas fa-eye mr-2"></i>
-                      {{ $t('common.view') }}
-                    </button>
-                    <button
-                      @click="approveVerification(verification.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-check mr-2"></i>
-                      {{ $t('employee.approve') }}
-                    </button>
-                    <button
-                      @click="rejectVerification(verification.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-times mr-2"></i>
-                      {{ $t('employee.reject') }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -481,13 +386,12 @@ const viewingDocumentType = ref('')
 // Data
 const pendingStores = ref([])
 const pendingProducts = ref([])
-const pendingVerifications = ref([])
 
 // Tabs configuration
 const tabs = computed(() => [
   {
     id: 'stores',
-    name: $t('employee.pendingStores'),
+    name: $t('employee.proPackStores'),
     icon: 'fas fa-store',
     count: pendingStores.value.length
   },
@@ -496,19 +400,12 @@ const tabs = computed(() => [
     name: $t('employee.pendingProducts'),
     icon: 'fas fa-box',
     count: pendingProducts.value.length
-  },
-  {
-    id: 'verifications',
-    name: $t('employee.pendingVerifications'),
-    icon: 'fas fa-file-alt',
-    count: pendingVerifications.value.length
   }
 ])
 
 // Computed properties
 const pendingStoresCount = computed(() => pendingStores.value.length)
 const pendingProductsCount = computed(() => pendingProducts.value.length)
-const pendingVerificationsCount = computed(() => pendingVerifications.value.length)
 const todayApprovalsCount = computed(() => 0) // TODO: Implement today's approvals count
 
 // Methods
@@ -549,31 +446,13 @@ const fetchPendingProducts = async () => {
   }
 }
 
-const fetchPendingVerifications = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('verifications')
-      .select(`
-        *,
-        profiles!verifications_user_id_fkey(email as user_email)
-      `)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    pendingVerifications.value = data || []
-  } catch (error) {
-    console.error('Error fetching pending verifications:', error)
-  }
-}
 
 const refreshData = async () => {
   loading.value = true
   try {
     await Promise.all([
       fetchPendingStores(),
-      fetchPendingProducts(),
-      fetchPendingVerifications()
+      fetchPendingProducts()
     ])
   } finally {
     loading.value = false
@@ -643,38 +522,6 @@ const rejectProduct = (productId) => {
   showRejectionModal.value = true
 }
 
-const approveVerification = async (verificationId) => {
-  try {
-    processing.value = true
-    
-    const { error } = await supabase
-      .from('verifications')
-      .update({
-        status: 'approved',
-        reviewed_by: (await supabase.auth.getUser()).data.user.id,
-        reviewed_at: new Date().toISOString()
-      })
-      .eq('id', verificationId)
-
-    if (error) throw error
-
-    // Log the action
-    await logEmployeeAction('approve_verification', 'verification', verificationId, { action: 'approve' })
-
-    // Refresh data
-    await refreshData()
-  } catch (error) {
-    console.error('Error approving verification:', error)
-    alert('Failed to approve verification')
-  } finally {
-    processing.value = false
-  }
-}
-
-const rejectVerification = (verificationId) => {
-  currentRejectionTarget.value = { type: 'verification', id: verificationId }
-  showRejectionModal.value = true
-}
 
 const confirmRejection = async () => {
   if (!rejectionReason.value.trim()) return
@@ -690,7 +537,7 @@ const confirmRejection = async () => {
       rejection_reason: rejectionReason.value.trim()
     }
 
-    let tableName = type === 'store' ? 'stores' : type === 'product' ? 'products' : 'verifications'
+    let tableName = type === 'store' ? 'stores' : 'products'
     
     if (type === 'product') {
       updateData = { is_active: false, rejection_reason: rejectionReason.value.trim() }
@@ -738,22 +585,6 @@ const viewProductDetails = (product) => {
   // TODO: Implement product details modal
 }
 
-const viewVerificationDocument = (documentUrl) => {
-  viewingDocumentUrl.value = documentUrl
-  viewingDocumentType.value = 'Document'
-  showDocumentViewer.value = true
-}
-
-const getDocumentTypeName = (type) => {
-  const types = {
-    'id_card': $t('verification.idCard'),
-    'driving_license': $t('verification.drivingLicense'),
-    'passport': $t('verification.passport'),
-    'commerce_register': $t('verification.commerceRegister'),
-    'payment_receipt': $t('verification.paymentReceipt')
-  }
-  return types[type] || type
-}
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {

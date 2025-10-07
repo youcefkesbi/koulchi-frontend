@@ -71,13 +71,13 @@ WITH CHECK (
 
 -------- INSERT --------
 -- Vendor can insert own verifications
-CREATE POLICY "Vendor can insert own verifications"
+CREATE POLICY "Customer can insert own verifications"
 ON public.verifications FOR INSERT TO authenticated
 WITH CHECK (
     user_id = auth.uid() AND
     EXISTS (
         SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role ='vendor'
+        WHERE ur.user_id = auth.uid() AND ur.role ='customer'
     )
 );
 -- Employee can insert own verifications

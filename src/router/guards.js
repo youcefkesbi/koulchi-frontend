@@ -1,5 +1,6 @@
 // Route guards for role-based access control
 import { useAuthStore } from '../stores/auth'
+import { supabase } from '../lib/supabase'
 
 /**
  * Admin route guard - only allows admin users
@@ -35,28 +36,72 @@ export const adminGuard = (to, from, next) => {
  * @param {Object} from - Route being navigated from
  * @param {Function} next - Navigation function
  */
-export const employeeGuard = (to, from, next) => {
+export const employeeGuard = async (to, from, next) => {
   const authStore = useAuthStore()
-  
-  // Check if user is authenticated
-  if (!authStore.isAuthenticated) {
-    next('/login')
-    return
-  }
-  
-  // Check if user has employee or admin role
-  if (!['employee', 'admin'].includes(authStore.userRole)) {
-    // Redirect to dashboard with error message
-    next({
-      path: '/dashboard',
-      query: { error: 'access_denied', message: 'Employee access required' }
-    })
-    return
-  }
-  
-  next()
-}
+  const loc = to.meta.locale || 'en'
 
+  console.log('🔍 employeeGuard called:', { 
+    to: to.path, 
+    from: from?.path, 
+    locale: loc,
+    isAuthenticated: authStore.isAuthenticated,
+    userRole: authStore.userRole,
+    user: authStore.user
+  })
+
+  // Ensure we have a valid Supabase session, not just local store state
+  const hasSession = await authStore.checkAuthStatus()
+  console.log('🔍 Session check result:', hasSession)
+  
+  if (!hasSession) {
+    console.log('❌ No session, redirecting to login')
+    return next(`/${loc}/login`)
+  }
+
+  // CRITICAL: If store shows not authenticated but session exists, force refresh the entire user profile
+  if (!authStore.isAuthenticated || !authStore.user || authStore.userRole === 'customer') {
+    console.log('🔄 Store out of sync with session, forcing full refresh...')
+    try {
+      // Get fresh session and load user with profile
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await authStore.loadUserWithProfile(session.user)
+        console.log('🔄 Full refresh completed. New state:', {
+          isAuthenticated: authStore.isAuthenticated,
+          userRole: authStore.userRole,
+          user: authStore.user
+        })
+      }
+    } catch (err) {
+      console.error('❌ Full refresh failed:', err)
+    }
+  }
+
+  // If role still not resolved, try the force refresh
+  if (!authStore.userRole || String(authStore.userRole || '').trim() === '' || authStore.userRole === 'customer') {
+    console.log('🔄 Role still not resolved, attempting force refresh...')
+    const refreshResult = await authStore.forceRoleRefresh().catch((err) => {
+      console.error('❌ Force refresh failed:', err)
+      return false
+    })
+    console.log('🔄 Force refresh result:', refreshResult, 'New role:', authStore.userRole)
+  }
+
+  const raw = authStore.userRole
+  const roles = Array.isArray(raw)
+    ? raw.map(r => (typeof r === 'string' ? r : (r?.role || '')).toLowerCase())
+    : [String(raw || '').toLowerCase()]
+
+  console.log('🔍 Role analysis:', { raw, roles, hasEmployee: roles.includes('employee'), hasAdmin: roles.includes('admin') })
+
+  if (roles.includes('employee') || roles.includes('admin')) {
+    console.log('✅ Access granted')
+    return next()
+  }
+  
+  console.log('❌ Access denied, redirecting to dashboard')
+  return next({ path: `/${loc}/dashboard`, query: { error: 'access_denied', message: 'Employee access required' } })
+}
 /**
  * Authenticated user guard - only allows authenticated users
  * @param {Object} to - Route being navigated to

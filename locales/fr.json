@@ -463,6 +463,21 @@
     "customer": "Client",
     "vendor": "Vendeur"
   },
+  "employee": {
+    "dashboard": "Tableau de Bord Employé",
+    "dashboardDescription": "Examiner et approuver les magasins et produits",
+    "proPackStores": "Magasins Pro Pack",
+    "pendingProducts": "Produits en Attente",
+    "todayApprovals": "Approbations d'Aujourd'hui",
+    "quickActions": "Actions Rapides",
+    "reviewStores": "Examiner les Magasins",
+    "reviewStoresDescription": "Examiner les demandes de magasins en attente",
+    "reviewProducts": "Examiner les Produits",
+    "reviewProductsDescription": "Examiner les listes de produits en attente",
+    "noPendingStores": "Aucun Magasin en Attente",
+    "noPendingStoresMessage": "Toutes les demandes de magasins ont été examinées",
+    "pending": "En Attente"
+  },
   "maystro": {
     "title": "Intégration Maystro Delivery",
     "description": "Connectez votre boutique à Maystro pour la gestion automatisée des livraisons",

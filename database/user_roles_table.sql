@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     UNIQUE (user_id, role)
 );
 
+
+ALTER TABLE public.user_roles 
+ADD COLUMN updated_at TIMESTAMPTZ DEFAULT now();
+
 -- ================================
 -- Indexes
 -- ================================
@@ -47,7 +51,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_roles TO authenticated;
 -- Triggers
 -- ================================
 
-CREATE TRIGGER update_user_roles_updated_at 
-BEFORE UPDATE ON public.user_roles 
-FOR EACH ROW 
-EXECUTE FUNCTION update_updated_at_column();
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
