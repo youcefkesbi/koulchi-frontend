@@ -349,7 +349,7 @@ router.beforeEach(async (to, from, next) => {
     console.log('🔐 Auth required, checking session...')
     // Prefer store-based session validation to reduce false negatives on refresh
     try {
-      const { useAuthStore } = await import('../stores/auth')
+      const { useAuthStore } = await import('../stores/useAuthStore')
       const authStore = useAuthStore()
       const hasSession = await authStore.checkAuthStatus()
       console.log('🔐 Session check result:', hasSession)
