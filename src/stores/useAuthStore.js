@@ -98,34 +98,39 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Force role refresh from Supabase
+  // Force role refresh from Supabase (consistent with loadUserWithProfile)
   const forceRoleRefresh = async () => {
     try {
-      
-      // Get current session
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
         console.warn('No active session for role refresh')
         return false
       }
 
-      // Force fresh profile query
+      // Query profile with roles relation
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, role, city')
+        .select(`
+          id,
+          full_name,
+          city,
+          user_roles(role)
+        `)
         .eq('id', session.user.id)
         .single()
 
       if (profileError) {
-        console.error('Error fetching fresh profile:', profileError)
+        console.error('Error fetching fresh profile with roles:', profileError)
         return false
       }
 
       if (profile) {
-        // Update user with fresh role data
+        const refreshedRole = profile.user_roles?.[0]?.role?.toLowerCase() || 'customer'
         user.value = {
           ...user.value,
-          role: profile.role?.toLowerCase() || 'customer'
+          full_name: profile.full_name || user.value?.full_name,
+          city: profile.city,
+          role: refreshedRole
         }
         return true
       }

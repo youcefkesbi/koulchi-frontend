@@ -539,6 +539,21 @@
     "customer": "عميل",
     "vendor": "بائع"
   },
+  "employee": {
+    "dashboard": "لوحة تحكم الموظف",
+    "dashboardDescription": "مراجعة والموافقة على المتاجر والمنتجات",
+    "proPackStores": "متاجر الخطة الاحترافية",
+    "pendingProducts": "المنتجات المعلقة",
+    "todayApprovals": "الموافقات اليوم",
+    "quickActions": "إجراءات سريعة",
+    "reviewStores": "مراجعة المتاجر",
+    "reviewStoresDescription": "مراجعة طلبات المتاجر المعلقة",
+    "reviewProducts": "مراجعة المنتجات",
+    "reviewProductsDescription": "مراجعة قوائم المنتجات المعلقة",
+    "noPendingStores": "لا توجد متاجر معلقة",
+    "noPendingStoresMessage": "تم مراجعة جميع طلبات المتاجر",
+    "pending": "معلق"
+  },
   "maystro": {
     "title": "تكامل Maystro للتوصيل",
     "description": "ربط متجرك بـ Maystro لإدارة التوصيل الآلي",
