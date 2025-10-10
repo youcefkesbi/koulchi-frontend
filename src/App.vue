@@ -5,26 +5,56 @@
     :lang="currentLocale"
     class="min-h-screen bg-white text-gray-900"
   >
-    <Header />
-    <main class="flex-1">
-      <router-view />
-    </main>
-    <Footer />
+    <div class="flex min-h-screen">
+      <!-- Global Admin Sidebar -->
+      <AdminSidebar ref="adminSidebar" :sidebar-open="adminSidebarOpen" @close-sidebar="handleAdminSidebarClose" />
+      
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col">
+        <Header @toggle-admin-sidebar="handleAdminSidebarToggle" />
+        <main class="flex-1">
+          <router-view />
+        </main>
+        <Footer />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/useAuthStore'
 import { languages } from './i18n'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
+import AdminSidebar from './components/AdminSidebar.vue'
 
 const authStore = useAuthStore()
 const { locale } = useI18n()
 const route = useRoute()
+
+// Admin sidebar state - starts closed by default
+const adminSidebarOpen = ref(false)
+const adminSidebar = ref(null)
+
+// Handle admin sidebar toggle
+const handleAdminSidebarToggle = (isOpen) => {
+  adminSidebarOpen.value = isOpen
+  if (adminSidebar.value) {
+    if (isOpen) {
+      adminSidebar.value.toggleSidebar()
+    } else {
+      adminSidebar.value.closeSidebar()
+    }
+  }
+}
+
+// Handle admin sidebar close
+const handleAdminSidebarClose = () => {
+  adminSidebarOpen.value = false
+}
 
 // Computed properties for language direction and locale
 const currentDir = computed(() => {

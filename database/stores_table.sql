@@ -707,6 +707,40 @@ END;
 $function$
 
 -- ================================
+-- Get All Stores for Admin Management
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_all_stores_for_admin()
+RETURNS TABLE (
+    store_id UUID,
+    store_name TEXT,
+    store_description TEXT,
+    owner_name TEXT,
+    pack_name TEXT,
+    status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id as store_id,
+        s.name::TEXT as store_name,
+        COALESCE(s.description, 'No description')::TEXT as store_description,
+        COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
+        COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name,
+        s.status::TEXT as status
+    FROM public.stores s
+    LEFT JOIN public.profiles p ON s.owner_id = p.id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    ORDER BY s.created_at DESC;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_all_stores_for_admin() TO authenticated;
+
+-- ================================
 -- Get User Store Pack Information
 -- ================================
 CREATE OR REPLACE FUNCTION public.get_user_store_pack()
