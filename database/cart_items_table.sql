@@ -5,6 +5,7 @@ create table cart_items (
   product_id uuid references products(id),
   quantity int default 1,
   updated_at timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now(),
   unique(cart_id, product_id) -- prevents duplicate product entries
 );
 

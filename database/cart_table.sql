@@ -6,15 +6,6 @@ CREATE TABLE cart (
   updated_at timestamptz DEFAULT now()
 );
 
-create table cart_items (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  cart_id uuid references cart(id) on delete cascade,
-  product_id uuid references products(id),
-  quantity int default 1,
-  updated_at timestamptz DEFAULT now(),
-  unique(cart_id, product_id) -- prevents duplicate product entries
-);
-
 -- ================================
 -- Policies
 -- ================================
@@ -87,6 +78,8 @@ END;
 $$;
 
 
+
+
 -- Function to decrease or remove cart item
 CREATE OR REPLACE FUNCTION public.decrease_or_remove_row(
   p_product_id uuid,
@@ -119,6 +112,9 @@ BEGIN
     AND quantity <= 0;
 END;
 $$;
+
+
+
 
 -- Function to clear all items from user's cart
 CREATE OR REPLACE FUNCTION public.clear_user_cart()
