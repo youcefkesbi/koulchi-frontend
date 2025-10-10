@@ -78,7 +78,12 @@ export const employeeGuard = async (to, from, next) => {
   }
 
   // If role still not resolved, try the force refresh
-  if (!authStore.userRole || String(authStore.userRole || '').trim() === '' || authStore.userRole === 'customer') {
+  const currentRole = authStore.userRole
+  const isRoleResolved = Array.isArray(currentRole) 
+    ? currentRole.length > 0 && !currentRole.every(r => r === 'customer')
+    : currentRole && currentRole !== 'customer'
+    
+  if (!isRoleResolved) {
     console.log('🔄 Role still not resolved, attempting force refresh...')
     const refreshResult = await authStore.forceRoleRefresh().catch((err) => {
       console.error('❌ Force refresh failed:', err)
@@ -87,6 +92,7 @@ export const employeeGuard = async (to, from, next) => {
     console.log('🔄 Force refresh result:', refreshResult, 'New role:', authStore.userRole)
   }
 
+  // Get current roles after potential refresh
   const raw = authStore.userRole
   const roles = Array.isArray(raw)
     ? raw.map(r => (typeof r === 'string' ? r : (r?.role || '')).toLowerCase())
@@ -230,8 +236,8 @@ export const storeOwnerGuard = async (to, from, next) => {
   
   try {
     // Import store store dynamically to avoid circular dependency
-    const { useStoresStore } = await import('../stores/useStoresStore')
-    const storeStore = useStoresStore()
+    const { useStoreStore } = await import('../stores/useStoresStore')
+    const storeStore = useStoreStore()
     
     // Check if user owns the store
     const isOwner = await storeStore.checkStoreOwnership(storeId, authStore.user.id)

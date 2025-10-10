@@ -294,17 +294,9 @@ async function getUser(next) {
 
 // Global router guard for locale handling and authentication
 router.beforeEach(async (to, from, next) => {
-  console.log('🌐 Global guard:', { 
-    to: to.path, 
-    name: to.name, 
-    meta: to.meta,
-    from: from?.path 
-  })
-
   // Handle root redirect
   if (to.name === 'RootRedirect') {
     const bestLocale = getBestLocale()
-    console.log('🔄 Root redirect to:', `/${bestLocale}`)
     next(`/${bestLocale}`)
     return
   }
@@ -312,7 +304,6 @@ router.beforeEach(async (to, from, next) => {
   // Handle invalid locale redirect
   if (to.name === 'InvalidLocale') {
     const bestLocale = getBestLocale()
-    console.log('🔄 Invalid locale redirect to:', `/${bestLocale}`)
     next(`/${bestLocale}`)
     return
   }
@@ -321,17 +312,9 @@ router.beforeEach(async (to, from, next) => {
   const pathLocaleMatch = to.path.match(/^\/(en|fr|ar)(?:\/|$)/)
   const locale = (pathLocaleMatch && pathLocaleMatch[1]) || to.meta.locale
   
-  console.log('🌐 Locale analysis:', { 
-    path: to.path, 
-    pathLocaleMatch, 
-    metaLocale: to.meta.locale, 
-    finalLocale: locale 
-  })
-  
   // Ensure locale is valid without duplicating the prefix
   if (!locale || !supportedLocales.includes(locale)) {
     const bestLocale = getBestLocale()
-    console.log('🔄 Invalid locale, redirecting to:', `/${bestLocale}${to.path.startsWith('/') ? '' : '/'}${to.path}`)
     // If path already starts with a supported locale but meta is missing, keep path as-is
     if (pathLocaleMatch) {
       next()
@@ -346,27 +329,21 @@ router.beforeEach(async (to, from, next) => {
   
   // Handle authentication requirements
   if (to.meta.requiresAuth) {
-    console.log('🔐 Auth required, checking session...')
     // Prefer store-based session validation to reduce false negatives on refresh
     try {
       const { useAuthStore } = await import('../stores/useAuthStore')
       const authStore = useAuthStore()
       const hasSession = await authStore.checkAuthStatus()
-      console.log('🔐 Session check result:', hasSession)
       if (!hasSession) {
         const currentLocale = to.meta.locale || defaultLocale
-        console.log('❌ No session, redirecting to login:', `/${currentLocale}/login`)
         next(`/${currentLocale}/login`)
         return
       }
-      console.log('✅ Session valid, continuing...')
       next()
     } catch (e) {
-      console.log('⚠️ Store check failed, falling back to getUser:', e.message)
       await getUser(next)
     }
   } else {
-    console.log('✅ No auth required, continuing...')
     next()
   }
 })

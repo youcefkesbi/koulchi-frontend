@@ -402,9 +402,21 @@
            <button
   v-if="currentStep === totalSteps"
   type="submit"
-  class="px-6 py-3 bg-green-600 text-white rounded-lg"
+  :disabled="loading"
+  :class="[
+    'px-6 py-3 rounded-lg transition-colors',
+    loading 
+      ? 'bg-gray-400 cursor-not-allowed' 
+      : 'bg-green-600 hover:bg-green-700'
+  ]"
 >
-  {{ $t('stores.createStore') }}
+  <span v-if="loading" class="flex items-center">
+    <i class="fas fa-spinner fa-spin mr-2"></i>
+    {{ $t('stores.creating') || 'Creating...' }}
+  </span>
+  <span v-else>
+    {{ $t('stores.createStore') }}
+  </span>
 </button>
 
         </div>
@@ -449,13 +461,12 @@
 import { ref, reactive, computed, onMounted , onUnmounted  } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
-const user = ref(null)          // <-- add this
-const isAuthenticated = ref(false)
-const authSubscription = ref(null)
+
 const router = useRouter()
-const session = ref(null) 
 const { t, locale } = useI18n() // locale reactive
+const authStore = useAuthStore()
 const rawPacks = ref([]) // raw fetched packs from DB
 const loadingPacks = ref(false)
 const fetchError = ref(null)
@@ -624,7 +635,6 @@ function handleFileChange(e, key, previewKey) {
 }
 
 // Upload helper
-// Upload helper
 const uploadFile = async (file, bucketName) => {
   if (!file) return null
 
@@ -632,7 +642,7 @@ const uploadFile = async (file, bucketName) => {
   const fileName = `${crypto.randomUUID()}.${ext}`
 
   const { error: uploadError } = await supabase.storage
-    .from(bucketName) // 👈 correct bucket name
+    .from(bucketName)
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: false
@@ -653,20 +663,38 @@ const uploadFile = async (file, bucketName) => {
 
 
 
+
 // Store creation function using RPC
 const createStore = async (storeData) => {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession()
-    if (error || !session) throw new Error('Not authenticated')
+    // Ensure we have the latest user data and role
+    if (!authStore.isAuthenticated) {
+      throw new Error('Not authenticated')
+    }
+
+    // Force refresh the user role to ensure we have the latest data
+    await authStore.forceRoleRefresh()
+    
+    // Double-check authentication after role refresh
+    if (!authStore.user?.id) {
+      throw new Error('Not authenticated')
+    }
+
+    // Log current user role for debugging
+    console.log('Creating store with user role:', authStore.userRole)
+    console.log('User ID:', authStore.user.id)
 
     // Prepare payload for SQL function
     const payload = {
-      p_owner_id: session.user.id,  
+      p_owner_id: authStore.user.id,  
       p_name: storeData.name,
       p_description: storeData.description,
       p_logo_url: storeData.logo || null,
       p_banner_url: storeData.banner || null,
-      p_pack_id: storeData.pack_id || null
+      p_pack_id: storeData.pack_id || null,
+      p_id_document_url: storeData.id_document_url || null,
+      p_commerce_register_url: storeData.commerce_register_url || null,
+      p_payment_receipt_url: storeData.payment_receipt_url || null
     }
 
     const { data, error: rpcError } = await supabase
@@ -763,24 +791,44 @@ const handleSubmit = async () => {
       return;
     }
 
-    // Upload files if present
+    // Upload verification documents first
+    let idDocumentUrl = null;
+    let commerceRegisterUrl = null;
+    let paymentReceiptUrl = null;
+
+    if (formData.identityDoc instanceof File) {
+      idDocumentUrl = await uploadFile(formData.identityDoc, 'verification-documents');
+    }
+    
+    if (isProPack.value) {
+      if (formData.businessRegister instanceof File) {
+        commerceRegisterUrl = await uploadFile(formData.businessRegister, 'verification-documents');
+      }
+      if (formData.paymentReceipt instanceof File) {
+        paymentReceiptUrl = await uploadFile(formData.paymentReceipt, 'verification-documents');
+      }
+    }
+
+    // Upload store files
     let logoUrl = null;
     let bannerUrl = null;
 
     if (formData.logo instanceof File) {
-      logoUrl = await uploadFile(formData.logo, 'stores-logos');
+      logoUrl = await uploadFile(formData.logo, 'verification-documents');
     }
     if (formData.banner instanceof File) {
-      bannerUrl = await uploadFile(formData.banner, 'stores-banners');
+      bannerUrl = await uploadFile(formData.banner, 'verification-documents');
     }
 
     const storeData = {
       name: formData.name.trim(),
       description: formData.description?.trim() || null,
-      // Keys aligned with create_store payload mapping in createStore()
       logo: logoUrl,
       banner: bannerUrl,
-      pack_id: formData.selectedPack, // UUID from DB
+      pack_id: formData.selectedPack,
+      id_document_url: idDocumentUrl,
+      commerce_register_url: commerceRegisterUrl,
+      payment_receipt_url: paymentReceiptUrl
     };
 
     const newStore = await createStore(storeData);
@@ -792,15 +840,19 @@ const handleSubmit = async () => {
     successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
     resetForm();
 
+    // Increased delay to see any error messages
     setTimeout(async () => {
       const currentLocale = router.currentRoute.value.meta?.locale || 'en'
       try {
         await router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
+      } catch (redirectError) {
+        console.error('Redirect error:', redirectError);
+        errorMessage.value = `Redirect failed: ${redirectError.message}`;
       } finally {
         // Force a refresh so header/state updates and the Create button disappears immediately
         window.location.reload()
       }
-    }, 1500);
+    }, 5000); // Increased from 1500ms to 5000ms
   } catch (error) {
     console.error('Error creating store:', error);
     errorMessage.value = getErrorMessage(error);
@@ -841,74 +893,47 @@ const resetForm = () => {
   })
 }
 
-// Initialize authentication and set up auth state listener
+// Check authentication status using auth store
+const checkAuth = () => {
+  if (!authStore.isAuthenticated) {
+    const currentLocale = router.currentRoute.value.meta?.locale || 'en'
+    router.push(`/${currentLocale}/login`)
+    return false
+  }
+  return true
+}
 
-const initAuth = async () => {
+// Debug function to refresh user role
+const refreshUserRole = async () => {
   try {
-    // 1. Get initial session
-    const { data, error } = await supabase.auth.getSession()
-    if (error) throw error
-
-    if (data.session) {
-      session.value = data.session
-      user.value = data.session.user
-      isAuthenticated.value = true
+    console.log('Refreshing user role...')
+    const success = await authStore.forceRoleRefresh()
+    if (success) {
+      console.log('Role refreshed successfully:', authStore.userRole)
     } else {
-      session.value = null
-      user.value = null
-      isAuthenticated.value = false
+      console.log('Failed to refresh role')
     }
-
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-
-        if (newSession?.user) {
-          session.value = newSession
-          user.value = newSession.user
-          isAuthenticated.value = true
-
-          if (event === 'SIGNED_IN') {
-          }
-        } else {
-          session.value = null
-          user.value = null
-          isAuthenticated.value = false
-
-          const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-          router.push(`/${currentLocale}/login`)
-        }
-      }
-    )
-
-    // 3. Store subscription for cleanup
-    authSubscription.value = subscription
-    return subscription
-  } catch (err) {
-    console.error('Auth initialization failed:', err)
-    session.value = null
-    user.value = null
-    isAuthenticated.value = false
+  } catch (error) {
+    console.error('Error refreshing role:', error)
   }
 }
 
 // Lifecycle hooks
 onMounted(async () => {
-  // Initialize authentication
-  await initAuth()
-  
   // Check if user is authenticated, if not redirect to login
-  if (!isAuthenticated.value) {
-    const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-    router.push(`/${currentLocale}/login`)
+  if (!checkAuth()) {
+    return
   }
+  
+  // Debug: Log current user role
+  console.log('CreateStore mounted - User role:', authStore.userRole)
+  console.log('User object:', authStore.user)
+  
+  // Fetch packs
   fetchPacks()
 })
 
 onUnmounted(() => {
-  // Clean up auth subscription
-  if (authSubscription.value) {
-    authSubscription.value.unsubscribe()
-  }
+  // No cleanup needed since we're using the auth store
 })
 </script>
