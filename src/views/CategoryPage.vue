@@ -1,82 +1,32 @@
 <template>
   <div class="my-fade-in">
-    <!-- Category Banner (Hero Section) -->
-    <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft mx-4 sm:mx-6 mb-8 sm:mb-12">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 bg-gradient-to-br from-green-600/20 via-green-500/20 to-green-400/20"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-      <div class="relative z-10 px-4 sm:px-6 py-8 sm:py-12 text-center">
-        <!-- Decorative Elements -->
-        <div class="absolute top-6 left-6 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
-        <div class="absolute bottom-6 right-6 w-24 h-24 bg-green-400/20 rounded-full blur-xl"></div>
-        
-        <!-- Category Icon and Title -->
-        <div class="flex items-center justify-center space-x-3 sm:space-x-4 space-x-reverse mb-4 sm:mb-6 my-slide-up">
-          <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300 category-icon">
-            <i :class="getCategoryIcon(categoryId)" class="text-white text-lg sm:text-2xl"></i>
-          </div>
-          <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
-            {{ getCategoryName(categoryId) }}
-          </h1>
-        </div>
-        
-        <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-green-50 my-slide-up" style="animation-delay: 0.1s">
-          {{ getCategoryDescription(categoryId) }}
-        </p>
-        
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
-          <button @click="scrollToProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-primary-50">
-            <i class="fas fa-shopping-bag ml-1 sm:ml-2"></i>
-            {{ $t('categoryPage.browseProducts') }}
-          </button>
-        </div>
-      </div>
+    <!-- Category Banner Carousel -->
+    <section class="mx-4 sm:mx-6 mb-8 sm:mb-12">
+      <AdCarousel
+        :ads="bannerAds"
+        :loading="bannerLoading"
+        :error="bannerError"
+        :show-main-banner="true"
+        :main-banner-title="getCategoryName(categoryId)"
+        :main-banner-subtitle="getCategoryDescription(categoryId)"
+        @retry="loadBannerAds"
+        @scroll-to-content="scrollToProducts"
+      />
     </section>
 
     <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8">
 
     <!-- Featured Products Section (2 rows of ads products) -->
     <div v-if="categoryId !== 'all'" class="mb-12">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ $t('categoryPage.featuredProducts') }}</h2>
-        <div class="flex items-center space-x-4 space-x-reverse">
-          <button
-            @click="refreshFeaturedProducts"
-            :disabled="featuredLoading"
-            class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
-          >
-            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': featuredLoading }"></i>
-            {{ $t('categoryPage.refresh') }}
-          </button>
-        </div>
-      </div>
-      
-      <!-- Loading State for Featured Products -->
-      <div v-if="featuredLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div v-for="i in 8" :key="i" class="card animate-pulse">
-          <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
-          <div class="h-4 bg-neutral-200 rounded mb-2"></div>
-          <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
-          <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
-        </div>
-      </div>
-      
-      <!-- Featured Products Grid - 2 rows × 4 products per row -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <ProductCard
-          v-for="product in featuredProducts"
-          :key="product.id"
-          :product="product"
-        />
-      </div>
-      
-      <!-- Empty State for Featured Products -->
-      <div v-if="!featuredLoading && featuredProducts.length === 0" class="text-center py-12">
-        <div class="text-neutral-500 text-lg mb-4">
-          <i class="fas fa-star mr-2"></i>
-          {{ $t('categoryPage.noFeaturedProducts') }}
-        </div>
-      </div>
+      <FeaturedProducts
+        :products="featuredProducts"
+        :loading="featuredLoading"
+        :error="featuredError"
+        :title="$t('categoryPage.featuredProducts')"
+        :show-view-all="false"
+        :max-products="8"
+        @refresh="refreshFeaturedProducts"
+      />
     </div>
 
     <!-- Filters and Sort -->
@@ -221,6 +171,9 @@ import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/useProductStore'
 import { useProducts } from '../composables/useProducts'
+import { useAds } from '../composables/useAds'
+import AdCarousel from '../components/AdCarousel.vue'
+import FeaturedProducts from '../components/FeaturedProducts.vue'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t } = useI18n()
@@ -234,21 +187,29 @@ const {
   fetchBestSellingProductsByCategory,
   refreshBestSellingProducts 
 } = useProducts()
+const { 
+  fetchCategoryBannerAds,
+  fetchCategoryFeaturedProducts,
+  transformAdsForDisplay
+} = useAds()
 
 const sortBy = ref('newest')
 const loading = ref(false)
 const featuredLoading = ref(false)
+const featuredError = ref(null)
+
+// State for banner ads
+const bannerAds = ref([])
+const bannerLoading = ref(false)
+const bannerError = ref(null)
 
 // Pagination variables
 const currentPage = ref(1)
 const itemsPerPage = 20
 const categoryId = computed(() => route.params.categoryId)
 
-// Featured products (best-selling products for this category)
-const featuredProducts = computed(() => {
-  if (categoryId.value === 'all') return []
-  return bestSellingProducts.value.slice(0, 8) // 2 rows × 4 products = 8 products
-})
+// Featured products from ads
+const featuredProducts = ref([])
 
 // Get products for this category
 const products = computed(() => {
@@ -380,18 +341,48 @@ const scrollToProducts = () => {
   }
 }
 
-// Refresh featured products
-const refreshFeaturedProducts = async () => {
+// Load banner ads for category
+const loadBannerAds = async () => {
+  if (categoryId.value === 'all') return
+  
+  bannerLoading.value = true
+  bannerError.value = null
+  
+  try {
+    const ads = await fetchCategoryBannerAds(categoryId.value)
+    bannerAds.value = transformAdsForDisplay(ads)
+  } catch (err) {
+    console.error('Error loading banner ads:', err)
+    bannerError.value = err.message || 'Failed to load banner ads'
+    bannerAds.value = []
+  } finally {
+    bannerLoading.value = false
+  }
+}
+
+// Load featured products from ads
+const loadFeaturedProducts = async () => {
   if (categoryId.value === 'all') return
   
   featuredLoading.value = true
+  featuredError.value = null
+  
   try {
-    await fetchBestSellingProductsByCategory(categoryId.value)
-  } catch (error) {
-    console.error('Error refreshing featured products:', error)
+    const ads = await fetchCategoryFeaturedProducts(categoryId.value)
+    const transformedAds = transformAdsForDisplay(ads)
+    featuredProducts.value = transformedAds.map(ad => ad.data)
+  } catch (err) {
+    console.error('Error loading featured products:', err)
+    featuredError.value = err.message || 'Failed to load featured products'
+    featuredProducts.value = []
   } finally {
     featuredLoading.value = false
   }
+}
+
+// Refresh featured products
+const refreshFeaturedProducts = async () => {
+  await loadFeaturedProducts()
 }
 
 // Validate category ID
@@ -412,6 +403,11 @@ watch(() => route.params.categoryId, async (newCategoryId) => {
     // Refetch products for the new category
     if (newCategoryId && newCategoryId !== 'all') {
       await productStore.fetchProducts({ category_id: newCategoryId })
+      // Load ads for the new category
+      await Promise.allSettled([
+        loadBannerAds(),
+        loadFeaturedProducts()
+      ])
     }
   } catch (error) {
     console.error('Error loading new category:', error)
@@ -436,9 +432,12 @@ onMounted(async () => {
     // Fetch products for this specific category
     await productStore.fetchProducts({ category_id: categoryId.value })
     
-    // Load featured products (best-selling products for this category)
+    // Load ads for this category
     if (categoryId.value !== 'all') {
-      await fetchBestSellingProductsByCategory(categoryId.value)
+      await Promise.allSettled([
+        loadBannerAds(),
+        loadFeaturedProducts()
+      ])
     }
     
     validateCategory()

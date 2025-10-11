@@ -483,11 +483,15 @@
   "sections": {
     "newProducts": "New Products",
     "featuredProducts": "Featured Products",
+    "featuredStores": "Featured Stores",
     "saleProducts": "Sale Products",
     "viewAll": "View All",
     "browseByCategory": "Browse by Category",
     "whyChooseUs": "Why Choose Koulchi?",
     "noFeaturedProducts": "No featured products available at the moment.",
+    "noFeaturedProductsDesc": "We're working on adding amazing products for you. Check back soon!",
+    "noFeaturedStores": "No featured stores available",
+    "noFeaturedStoresDesc": "We're working on adding amazing stores for you. Check back soon!",
     "noProductsInCategory": "No products available in {category} category.",
     "noCategoriesAvailable": "No categories available at the moment.",
     "categoriesLoadingFallback": "Categories are being loaded. You can browse all products in the meantime.",
@@ -874,5 +878,21 @@
     "viewProduct": "View Product",
     "loadMore": "Load More",
     "refresh": "Refresh"
+  },
+  "ads": {
+    "noAdsAvailable": "No ads available",
+    "noAdsFound": "No ads found"
+  },
+  "store": {
+    "visitStore": "Visit Store",
+    "featured": "Featured",
+    "comingSoon": "Coming Soon",
+    "products": "Products",
+    "rating": "Rating",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "rejected": "Rejected"
+    }
   }
 }
