@@ -8,12 +8,9 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     role TEXT NOT NULL CHECK (role IN ('admin','employee','vendor','customer')),
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE (user_id, role)
 );
-
-
-ALTER TABLE public.user_roles 
-ADD COLUMN updated_at TIMESTAMPTZ DEFAULT now();
 
 -- ================================
 -- Indexes
@@ -51,10 +48,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_roles TO authenticated;
 -- Triggers
 -- ================================
 
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+CREATE TRIGGER set_user_roles_updated_at
+BEFORE UPDATE ON public.user_roles
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
