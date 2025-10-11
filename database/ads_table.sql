@@ -10,3 +10,9 @@ CREATE TABLE ads (
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
+
+-- Attach triggers for updated_at to the ads table
+CREATE TRIGGER trg_set_updated_at_on_ads
+BEFORE UPDATE ON ads
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

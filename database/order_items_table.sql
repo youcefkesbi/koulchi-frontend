@@ -6,7 +6,8 @@ create table order_items (
   quantity int not null check (quantity > 0),
   price numeric(10,2) not null,     -- snapshot of product price at purchase
   variant jsonb,                     -- size/color/etc.
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  updated_at timestamptz NOT NULL default now()
 );
 
 -- ================================

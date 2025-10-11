@@ -7,6 +7,13 @@ CREATE TABLE ad_requests (
     category_id UUID NULL,
     priority INT DEFAULT 0,
     status VARCHAR(20) DEFAULT 'pending',  -- 'pending', 'approved', 'rejected'
+    ad_id uuid NULL REFERENCES ads(id),        -- filled when request is approved and ad created
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
+
+-- Attach triggers for updated_at to the ad_requests table
+CREATE TRIGGER trg_set_updated_at_on_ad_requests
+BEFORE UPDATE ON ad_requests
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
