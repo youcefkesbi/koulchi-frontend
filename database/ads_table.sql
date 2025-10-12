@@ -1,7 +1,8 @@
 CREATE TABLE ads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     item_type VARCHAR(10) NOT NULL,        -- 'product' or 'store'
-    item_id UUID NOT NULL,                  -- references products(id) OR stores(id)
+    product_id uuid REFERENCES products(id) ON DELETE CASCADE,
+    store_id uuid REFERENCES stores(id) ON DELETE CASCADE,
     slot_type VARCHAR(50) NOT NULL,        -- e.g., 'homepage_banner', 'homepage_featured_products', 'category_banner'
     category_id UUID NULL,                  -- only for category-specific slots
     priority INT DEFAULT 0,                 -- ordering inside slot
@@ -111,3 +112,20 @@ USING (
 -- ===================================================================
 CREATE INDEX IF NOT EXISTS idx_ads_slot_priority ON ads (slot_type, priority);
 CREATE INDEX IF NOT EXISTS idx_ads_dates ON ads (start_date, end_date);
+
+
+-- ================================
+-- Constraints
+-- ================================
+
+ALTER TABLE ads
+ADD CONSTRAINT ads_product_id_fkey
+FOREIGN KEY (product_id)
+REFERENCES products(id)
+ON DELETE CASCADE;
+
+ALTER TABLE ads
+ADD CONSTRAINT ads_store_id_fkey
+FOREIGN KEY (store_id)
+REFERENCES stores(id)
+ON DELETE CASCADE;

@@ -2,10 +2,13 @@ CREATE TABLE ad_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     requester_id UUID REFERENCES profiles(id),
     item_type VARCHAR(10) NOT NULL,        -- 'product' or 'store'
-    item_id UUID NOT NULL,
+    product_id uuid REFERENCES products(id) ON DELETE CASCADE,
+    store_id uuid REFERENCES stores(id) ON DELETE CASCADE,
     slot_type VARCHAR(50) NOT NULL,
     category_id UUID NULL,
     priority INT DEFAULT 0,
+    start_date TIMESTAMPTZ,
+    end_date TIMESTAMPTZ,
     status VARCHAR(20) DEFAULT 'pending',  -- 'pending', 'approved', 'rejected'
     ad_id uuid NULL REFERENCES ads(id),        -- filled when request is approved and ad created
     created_at TIMESTAMP DEFAULT now(),
@@ -39,39 +42,76 @@ EXECUTE FUNCTION handle_ad_request_approval();
 -- Trigger function that will create an ads row when an ad_request is APPROVED
 -- This runs AFTER UPDATE, SECURITY DEFINER, so it can insert into ads even when RLS prevents normal users
 CREATE OR REPLACE FUNCTION handle_ad_request_approval()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS trigger 
+LANGUAGE plpgsql 
+SECURITY DEFINER AS $$
 DECLARE
   created_ad_id uuid;
 BEGIN
-  -- only act when status changed to 'approved'
   IF (TG_OP = 'UPDATE') THEN
     IF (OLD.status IS DISTINCT FROM NEW.status AND NEW.status = 'approved') THEN
-
-      -- avoid double-insert if ad_id already present
       IF NEW.ad_id IS NULL THEN
-        INSERT INTO ads (item_type, item_id, slot_type, category_id, priority, start_date, end_date, created_at, updated_at)
-        VALUES (
-          NEW.item_type,
-          NEW.item_id,
-          NEW.slot_type,
-          NEW.category_id,
-          NEW.priority,
-          COALESCE(NEW.start_date, now()),
-          NEW.end_date,
-          now(),
-          now()
-        )
-        RETURNING id INTO created_ad_id;
 
-        -- store ad_id back on ad_requests for traceability
+        IF NEW.item_type = 'product' THEN
+          INSERT INTO ads (
+            item_type,
+            product_id,
+            slot_type,
+            category_id,
+            priority,
+            start_date,
+            end_date,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            NEW.item_type,
+            NEW.product_id,
+            NEW.slot_type,
+            NEW.category_id,
+            NEW.priority,
+            COALESCE(NEW.start_date, now()),
+            NEW.end_date,
+            now(),
+            now()
+          )
+          RETURNING id INTO created_ad_id;
+
+        ELSIF NEW.item_type = 'store' THEN
+          INSERT INTO ads (
+            item_type,
+            store_id,
+            slot_type,
+            category_id,
+            priority,
+            start_date,
+            end_date,
+            created_at,
+            updated_at
+          )
+          VALUES (
+            NEW.item_type,
+            NEW.store_id,
+            NEW.slot_type,
+            NEW.category_id,
+            NEW.priority,
+            COALESCE(NEW.start_date, now()),
+            NEW.end_date,
+            now(),
+            now()
+          )
+          RETURNING id INTO created_ad_id;
+        END IF;
+
         UPDATE ad_requests SET ad_id = created_ad_id WHERE id = NEW.id;
       END IF;
     END IF;
   END IF;
 
-  RETURN NULL; -- AFTER trigger — returning null indicates no further change to the row is needed here
+  RETURN NULL;
 END;
 $$;
+
 
 -- ================================
 -- RLS policies

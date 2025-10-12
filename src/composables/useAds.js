@@ -16,18 +16,16 @@ export function useAds() {
         .from('ads')
         .select(`
           *,
-          products:item_id(
+          products:product_id(
             id,
             name,
-            name_ar,
-            name_fr,
             price,
             image_urls,
             stock_quantity,
             is_active,
             created_at
           ),
-          stores:item_id(
+          stores:store_id(
             id,
             name,
             logo_url,

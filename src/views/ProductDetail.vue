@@ -6,7 +6,7 @@
       <span class="mx-2">/</span>
       <router-link to="/products" class="hover:text-primary">المنتجات</router-link>
       <span class="mx-2">/</span>
-      <span class="text-dark">{{ product.name || product.nameAr }}</span>
+      <span class="text-dark">{{ product.name }}</span>
     </nav>
 
     <!-- Product Details -->
@@ -17,7 +17,7 @@
         <div class="relative overflow-hidden rounded-lg">
           <img 
             :src="mainImage" 
-            :alt="product.name || product.nameAr"
+            :alt="product.name"
             class="w-full h-96 object-cover"
           />
           
@@ -74,7 +74,7 @@
       <div class="space-y-6">
         <!-- Title and Stock Status -->
         <div>
-          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name || product.nameAr }}</h1>
+          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name }}</h1>
           
           <div class="flex items-center space-x-4 space-x-reverse mb-4">
             <div class="flex items-center">
@@ -339,7 +339,7 @@ const fetchProduct = async () => {
     if (fetchedProduct) {
       product.value = fetchedProduct
       // Update page title
-      document.title = `${fetchedProduct.name || fetchedProduct.nameAr} - كولشي`
+      document.title = `${fetchedProduct.name} - كولشي`
     } else {
       error.value = 'Product not found'
     }
