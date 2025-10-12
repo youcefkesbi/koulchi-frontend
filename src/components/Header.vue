@@ -153,6 +153,9 @@
 >
   <i class="fas fa-store mr-3"></i>{{ $t('stores.myStore') }}
 </button>
+                <router-link v-if="isEmployee" :to="getLocalizedRoute('/employee')" class="dropdown-item">
+                  <i class="fas fa-gavel mr-3"></i>{{ t('header.moderation') }}
+                </router-link>
 
                 <button
                   @click="handleLogout"
@@ -255,6 +258,10 @@ const categories = computed(() => productStore.categories.filter(cat => cat.id !
 const isAdmin = ref(false)
 const adminRoleLoaded = ref(false)
 
+// Employee role check for moderation link
+const isEmployee = ref(false)
+const employeeRoleLoaded = ref(false)
+
 // Fetch admin role once for toggle button
 const fetchAdminRoleForToggle = async () => {
   if (adminRoleLoaded.value) return
@@ -290,6 +297,44 @@ const fetchAdminRoleForToggle = async () => {
     console.error('Error fetching admin role for toggle:', err)
     isAdmin.value = false
     adminRoleLoaded.value = true
+  }
+}
+
+// Fetch employee role once for moderation link
+const fetchEmployeeRoleForModeration = async () => {
+  if (employeeRoleLoaded.value) return
+  
+  try {
+    const hasSession = await authStore.checkAuthStatus()
+    if (!hasSession) {
+      isEmployee.value = false
+      employeeRoleLoaded.value = true
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      
+      if (error) {
+        console.error('Error fetching user roles for moderation:', error)
+        isEmployee.value = false
+      } else {
+        const roles = userRoles?.map(ur => ur.role) || []
+        isEmployee.value = roles.includes('employee')
+      }
+    } else {
+      isEmployee.value = false
+    }
+    
+    employeeRoleLoaded.value = true
+  } catch (err) {
+    console.error('Error fetching employee role for moderation:', err)
+    isEmployee.value = false
+    employeeRoleLoaded.value = true
   }
 }
 
@@ -450,6 +495,7 @@ onMounted(async () => {
   await loadUserStoreStatus()
   await loadVendorRole()
   await fetchAdminRoleForToggle()
+  await fetchEmployeeRoleForModeration()
 })
 
 onUnmounted(() => {

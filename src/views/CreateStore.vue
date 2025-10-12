@@ -461,7 +461,7 @@
 import { ref, reactive, computed, onMounted , onUnmounted  } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
 
 const router = useRouter()

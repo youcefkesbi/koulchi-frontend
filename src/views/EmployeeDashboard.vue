@@ -114,71 +114,33 @@
               <div
                 v-for="store in basicStores"
                 :key="store.id"
-                class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                @click="openBasicStoreDetails(store)"
+                class="border border-gray-200 rounded-xl p-6 hover:shadow-md cursor-pointer transition-shadow"
               >
-                <div class="flex items-start justify-between">
-                  <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <img 
-                        v-if="store.logo_url" 
-                        :src="store.logo_url" 
-                        :alt="store.name"
-                        class="w-full h-full object-cover rounded-xl"
-                      />
-                      <i v-else class="fas fa-store text-blue-600 text-2xl"></i>
-                    </div>
-                    
-                    <div class="flex-1">
-                      <div class="flex items-center space-x-3 space-x-reverse mb-2">
-                        <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                          {{ $t('employee.pending') }}
-                        </span>
+                <div class="flex items-start space-x-4 space-x-reverse">
+                  <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-store text-blue-600 text-2xl"></i>
+                  </div>
+                  
+                  <div class="flex-1">
+                    <div class="space-y-2">
+                      <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
+                      <div class="text-sm text-gray-500">
+                        <strong>{{ $t('employee.storeId') }}:</strong> {{ store.id }}
                       </div>
-                      
-                      <p class="text-gray-600 mb-2">{{ store.description || $t('stores.noDescription') }}</p>
-                      
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
-                        <div>
-                          <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.pack') }}:</strong> {{ store.pack_name_en || 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.location') }}:</strong> {{ store.location }}
-                        </div>
+                      <div class="text-sm text-gray-500">
+                        <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
+                      </div>
+                      <div class="text-sm text-gray-500">
+                        <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
                       </div>
                     </div>
                   </div>
 
-                  <div class="flex items-center space-x-2 space-x-reverse">
-                    <button
-                      @click="approveStore(store.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-check mr-2"></i>
-                      {{ $t('employee.approve') }}
-                    </button>
-                    <button
-                      @click="rejectStore(store.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-times mr-2"></i>
-                      {{ $t('employee.reject') }}
-                    </button>
-                    <button
-                      @click="viewStoreDetails(store)"
-                      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      <i class="fas fa-eye mr-2"></i>
-                      {{ $t('common.view') }}
-                    </button>
+                  <div class="flex items-center">
+                    <span :class="getStatusClass(store.status)">
+                      {{ store.status }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -288,78 +250,196 @@
             <div v-else class="space-y-4">
               <div
                 v-for="product in products"
-                :key="product.id"
-                class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                :key="product.product_id"
+                @click="openProductDetails(product)"
+                class="border border-gray-200 rounded-xl p-6 transition-shadow hover:shadow-md cursor-pointer"
               >
-                <div class="flex items-start justify-between">
-                  <div class="flex items-start space-x-4 space-x-reverse">
-                    <div class="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center">
+                <div class="flex items-start space-x-4 space-x-reverse">
+                    <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
                       <img 
-                        v-if="product.image_urls && product.image_urls.length > 0" 
-                        :src="product.image_urls[0]" 
-                        :alt="product.name"
+                        v-if="product.thumbnail_url" 
+                        :src="product.thumbnail_url" 
+                        :alt="product.product_name"
                         class="w-full h-full object-cover rounded-xl"
                       />
-                      <i v-else class="fas fa-box text-gray-400 text-2xl"></i>
+                      <i v-else class="fas fa-box text-white text-2xl"></i>
                     </div>
-                    
-                    <div class="flex-1">
-                      <div class="flex items-center space-x-3 space-x-reverse mb-2">
-                        <h3 class="text-lg font-semibold text-gray-800">{{ product.name }}</h3>
-                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                          {{ $t('employee.pending') }}
-                        </span>
+                  
+                  <div class="flex-1">
+                    <div class="space-y-2">
+                      <h3 class="text-lg font-semibold text-gray-800">{{ product.product_name }}</h3>
+                      <div class="text-sm text-gray-500">
+                        <strong>{{ $t('employee.owner') }}:</strong> {{ product.seller_name }}
                       </div>
-                      
-                      <p class="text-gray-600 mb-2">{{ product.description || $t('products.noDescription') }}</p>
-                      
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
-                        <div>
-                          <strong>{{ $t('employee.price') }}:</strong> {{ product.price }} DZD
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.stock') }}:</strong> {{ product.stock_quantity }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.store') }}:</strong> {{ product.stores?.name || 'N/A' }}
-                        </div>
-                        <div>
-                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(product.created_at) }}
-                        </div>
+                      <div class="text-sm text-gray-500">
+                        <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(product.created_at) }}
                       </div>
                     </div>
                   </div>
 
-                  <div class="flex items-center space-x-2 space-x-reverse">
-                    <button
-                      @click="approveProduct(product.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-check mr-2"></i>
-                      {{ $t('employee.approve') }}
-                    </button>
-                    <button
-                      @click="rejectProduct(product.id)"
-                      :disabled="processing"
-                      class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
-                    >
-                      <i class="fas fa-times mr-2"></i>
-                      {{ $t('employee.reject') }}
-                    </button>
-                    <button
-                      @click="viewProductDetails(product)"
-                      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      <i class="fas fa-eye mr-2"></i>
-                      {{ $t('common.view') }}
-                    </button>
+                  <div class="flex items-center">
+                    <span :class="getStatusClass(product.status)">
+                      {{ product.status }}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div v-if="showProductDetailsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl shadow-soft max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-800">{{ $t('employee.productDetails') }}</h3>
+          <button
+            @click="closeProductDetails"
+            class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+          <div v-if="selectedProduct" class="space-y-6">
+            <!-- Product Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.productInfo') }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Product Name -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.productName') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.product_name || 'N/A' }}</p>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectElement('name', selectedProduct.product_id, $t('employee.productName'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Product Description -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.productDescription') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.product_description || 'N/A' }}</p>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectElement('description', selectedProduct.product_id, $t('employee.productDescription'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Product Price -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.price') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.product_price }} DZD</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product Details -->
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.productDetails') }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Product Image -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.productImage') }}:</label>
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1">
+                        <img 
+                          v-if="selectedProduct.thumbnail_url" 
+                          :src="selectedProduct.thumbnail_url" 
+                          :alt="selectedProduct.product_name + ' image'"
+                          @click="viewDocument(selectedProduct.thumbnail_url, $t('employee.productImage'))"
+                          class="w-12 h-12 object-cover rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+                        />
+                        <div v-else class="w-12 h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                          <span class="text-gray-400 text-xs">{{ $t('employee.noImage') }}</span>
+                        </div>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectDocument('product_image', selectedProduct.product_id, $t('employee.productImage'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Stock Quantity -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.stock') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.stock_quantity }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Category -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.category') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.category_name || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-3 space-x-reverse pt-4 border-t border-gray-200">
+              <button
+                @click="approveProduct(selectedProduct.product_id)"
+                :disabled="processing"
+                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-check mr-2"></i>
+                {{ $t('employee.approve') }}
+              </button>
+              <button
+                @click="rejectProduct(selectedProduct.product_id)"
+                :disabled="processing"
+                class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-times mr-2"></i>
+                {{ $t('employee.reject') }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -432,7 +512,7 @@
               {{ $t('common.cancel') }}
             </button>
             <button
-              @click="currentRejectionTarget.type === 'document' ? confirmDocumentRejection() : confirmElementRejection()"
+              @click="confirmRejection"
               :disabled="!isDocumentRejectionValid || processing"
               class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
             >
@@ -698,6 +778,131 @@
         </div>
       </div>
     </div>
+
+    <!-- Basic Store Details Modal -->
+    <div v-if="showBasicStoreDetailsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl shadow-soft max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-800">{{ $t('employee.basicStoreDetails') || 'Basic Store Details' }}</h3>
+          <button
+            @click="closeBasicStoreDetails"
+            class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+          <div v-if="selectedBasicStore" class="space-y-6">
+            <!-- Store Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.storeInfo') || 'Store Information' }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Store ID -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.storeId') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2 font-mono text-sm">{{ selectedBasicStore.id }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.ownerInfo') || 'Owner Information' }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Owner Name -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.owner') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedBasicStore.owner_name || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ID Document Section -->
+            <div>
+              <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.idDocument') || 'ID Document' }}</h4>
+              <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <div v-if="selectedBasicStore.id_document_url" class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-center space-x-4 space-x-reverse">
+                    <!-- Document Image -->
+                    <div class="flex-shrink-0">
+                      <img 
+                        :src="selectedBasicStore.id_document_url" 
+                        :alt="$t('verification.idCard') || 'ID Card'"
+                        @click="viewDocument(selectedBasicStore.id_document_url, $t('verification.idCard') || 'ID Card')"
+                        class="w-20 h-20 object-cover rounded-lg border border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+                      />
+                    </div>
+                    
+                    <!-- Document Info and Actions -->
+                    <div class="flex-1 flex items-center justify-between">
+                      <div>
+                        <p class="text-sm font-medium text-gray-800">{{ $t('verification.idCard') || 'ID Card' }}</p>
+                        <p class="text-xs text-gray-500">{{ $t('employee.clickToView') || 'Click to view full size' }}</p>
+                      </div>
+                      
+                      <!-- Document Actions -->
+                      <div class="flex space-x-2 space-x-reverse">
+                        <button
+                          @click="rejectDocument('id_card', selectedBasicStore.id_document_id, $t('verification.idCard') || 'ID Card')"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-center space-x-4 space-x-reverse">
+                    <div class="flex-shrink-0">
+                      <div class="w-20 h-20 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                        <i class="fas fa-id-card text-gray-400 text-2xl"></i>
+                      </div>
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-500">{{ $t('employee.noIdDocument') || 'No ID Document Available' }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-3 space-x-reverse pt-4 border-t border-gray-200">
+              <button
+                @click="approveStore(selectedBasicStore.id)"
+                :disabled="processing"
+                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-check mr-2"></i>
+                {{ $t('employee.approve') }}
+              </button>
+              <button
+                @click="rejectStoreFromDetails(selectedBasicStore.id)"
+                :disabled="processing"
+                class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-times mr-2"></i>
+                {{ $t('employee.reject') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -722,6 +927,23 @@ const currentRejectionTarget = ref(null)
 const viewingDocumentUrl = ref('')
 const viewingDocumentType = ref('')
 const selectedStore = ref(null)
+const showBasicStoreDetailsModal = ref(false)
+const selectedBasicStore = ref(null)
+const showProductDetailsModal = ref(false)
+const selectedProduct = ref(null)
+
+// Store rejection reasons for name and description
+const storeRejectionReasons = ref({
+  name: null,
+  description: null
+})
+
+// Product rejection reasons for name, description, and image
+const productRejectionReasons = ref({
+  name: null,
+  description: null,
+  image: null
+})
 
 // Data
 const basicStores = ref([])
@@ -795,15 +1017,7 @@ const fetchProStores = async () => {
 
 const fetchProducts = async () => {
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select(`
-        *,
-        stores!products_store_id_fkey(name)
-      `)
-      .eq('is_active', false) // Assuming inactive means pending review
-      .order('created_at', { ascending: false })
-
+    const { data, error } = await supabase.rpc('get_products_without_store')
     if (error) throw error
     products.value = data || []
   } catch (error) {
@@ -825,11 +1039,37 @@ const refreshData = async () => {
   }
 }
 
+// Reset store rejection reasons when opening store details
+const resetStoreRejectionReasons = () => {
+  storeRejectionReasons.value = {
+    name: null,
+    description: null
+  }
+}
+
+const resetProductRejectionReasons = () => {
+  productRejectionReasons.value = {
+    name: null,
+    description: null,
+    image: null
+  }
+}
+
 // Store actions
 const approveStore = async (storeId) => {
   try {
     processing.value = true
     
+    // First, get the store owner ID
+    const { data: storeData, error: storeError } = await supabase
+      .from('stores')
+      .select('owner_id')
+      .eq('id', storeId)
+      .single()
+
+    if (storeError) throw storeError
+
+    // Update store status
     const { error } = await supabase
       .from('stores')
       .update({
@@ -841,11 +1081,34 @@ const approveStore = async (storeId) => {
 
     if (error) throw error
 
+    // Add vendor role to the store owner
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .upsert({
+        user_id: storeData.owner_id,
+        role: 'vendor'
+      }, {
+        onConflict: 'user_id,role'
+      })
+
+    if (roleError) throw roleError
+
+    // CASE 2: Approve all documents when store is approved
+    await approveAllDocuments(storeData.owner_id)
+
     // Log the action
     await logEmployeeAction('approve_store', 'store', storeId, { action: 'approve' })
 
+    // Close modals
+    showStoreDetailsModal.value = false
+    showBasicStoreDetailsModal.value = false
+    selectedStore.value = null
+    selectedBasicStore.value = null
+
     // Refresh data
     await refreshData()
+    
+    alert('Store approved successfully')
   } catch (error) {
     console.error('Error approving store:', error)
     alert('Failed to approve store')
@@ -860,40 +1123,101 @@ const rejectStore = (storeId) => {
 }
 
 const rejectStoreFromDetails = async (storeId) => {
-  if (!confirm('Are you sure you want to reject this store?')) {
-    return
-  }
-
+  // Check if this is a basic store (no name/description fields)
+  const isBasicStore = showBasicStoreDetailsModal.value
+  
   try {
     processing.value = true
     
-    // Update store status to rejected
-    const { error } = await supabase
-      .from('stores')
-      .update({
-        status: 'rejected',
-        reviewed_by: (await supabase.auth.getUser()).data.user.id,
-        reviewed_at: new Date().toISOString(),
-        rejection_reason: 'Store rejected by employee'
-      })
-      .eq('id', storeId)
-
-    if (error) throw error
-
-    // Log the action
-    await logEmployeeAction('reject_store', 'store', storeId, { 
-      action: 'reject',
-      reason: 'Store rejected by employee'
-    })
-
-    // Close store details modal
-    showStoreDetailsModal.value = false
-    selectedStore.value = null
-
-    // Refresh data
-    await refreshData()
+    // Get the store owner ID
+    const currentStore = isBasicStore ? selectedBasicStore.value : selectedStore.value
+    const ownerId = currentStore?.owner_id
     
-    alert('Store rejected successfully')
+    if (!ownerId) {
+      alert('Store owner information not found')
+      return
+    }
+
+    // Check if there are any rejected documents for this store owner
+    const { data: rejectedDocs, error: docError } = await supabase
+      .from('verifications')
+      .select('rejection_reason, verification_type')
+      .eq('user_id', ownerId)
+      .eq('status', 'rejected')
+
+    if (docError) {
+      console.error('Error fetching rejected documents:', docError)
+      alert('Error checking rejected documents')
+      return
+    }
+
+    if (rejectedDocs && rejectedDocs.length > 0) {
+      // Concatenate all rejection reasons with clear formatting
+      const docRejectionReasons = rejectedDocs
+        .filter(doc => doc.rejection_reason && doc.rejection_reason.trim())
+        .map(doc => `${doc.verification_type}: ${doc.rejection_reason}`)
+      
+      // Add name and description rejection reasons if they exist
+      const allRejectionReasons = [...docRejectionReasons]
+      
+      if (storeRejectionReasons.value.name) {
+        allRejectionReasons.push(storeRejectionReasons.value.name)
+      }
+      
+      if (storeRejectionReasons.value.description) {
+        allRejectionReasons.push(storeRejectionReasons.value.description)
+      }
+      
+      const finalRejectionReason = allRejectionReasons.length > 0 
+        ? allRejectionReasons.join(' | ')
+        : 'Documents rejected'
+
+      // Update store status with all rejection reasons
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          status: 'rejected',
+          reviewed_by: (await supabase.auth.getUser()).data.user.id,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: finalRejectionReason
+        })
+        .eq('id', storeId)
+
+      if (error) throw error
+
+      // CASE 1: Approve all non-rejected documents when store is rejected
+      await approveNonRejectedDocuments(ownerId)
+
+      // Log the action
+      await logEmployeeAction('reject_store', 'store', storeId, { 
+        action: 'reject',
+        reason: finalRejectionReason,
+        source: 'document_rejection',
+        rejected_documents: rejectedDocs.map(doc => doc.verification_type)
+      })
+
+      // Close modals
+      showStoreDetailsModal.value = false
+      showBasicStoreDetailsModal.value = false
+      selectedStore.value = null
+      selectedBasicStore.value = null
+
+      // Refresh data
+      await refreshData()
+      
+      alert('Store rejected successfully')
+      
+      // Refresh the page to show updated store button
+      window.location.reload()
+    } else {
+      // No rejected documents found, open rejection modal
+      currentRejectionTarget.value = { 
+        type: 'store', 
+        id: storeId,
+        storeId: storeId
+      }
+      showRejectionModal.value = true
+    }
   } catch (error) {
     console.error('Error rejecting store:', error)
     alert('Failed to reject store')
@@ -954,70 +1278,60 @@ const rejectDocument = (verificationType, documentId, documentName) => {
   showRejectionModal.value = true
 }
 
-// Confirm document rejection
-const confirmDocumentRejection = async () => {
-  if (!isDocumentRejectionValid.value) return
-
+// Helper function: Approve all non-rejected documents (Case 1)
+const approveNonRejectedDocuments = async (ownerId) => {
   try {
-    processing.value = true
-    
-    const { id, verificationType } = currentRejectionTarget.value
-    
     const { error } = await supabase
       .from('verifications')
       .update({
-        status: 'rejected',
+        status: 'approved',
         reviewed_by: (await supabase.auth.getUser()).data.user.id,
         reviewed_at: new Date().toISOString(),
-        rejection_reason: rejectionReason.value.trim(),
-        metadata: {
-          custom_reason: customRejectionReason.value.trim()
-        }
+        rejection_reason: null
       })
-      .eq('id', id)
+      .eq('user_id', ownerId)
+      .neq('status', 'rejected') // Only update non-rejected documents
 
-    if (error) throw error
-
-    // Log the action
-    await logEmployeeAction('reject_document', 'verification', id, { 
-      action: 'reject',
-      verification_type: verificationType,
-      reason: rejectionReason.value.trim(),
-      details: customRejectionReason.value.trim()
-    })
-
-    // Reset modal
-    showRejectionModal.value = false
-    rejectionReason.value = ''
-    customRejectionReason.value = ''
-    currentRejectionTarget.value = null
-
-    // Refresh data
-    await refreshData()
-    
-    // Close store details if open
-    if (showStoreDetailsModal.value) {
-      showStoreDetailsModal.value = false
-      selectedStore.value = null
+    if (error) {
+      console.error('Error approving non-rejected documents:', error)
     }
   } catch (error) {
-    console.error('Error rejecting document:', error)
-    alert('Failed to reject document')
-  } finally {
-    processing.value = false
+    console.error('Error in approveNonRejectedDocuments:', error)
+  }
+}
+
+// Helper function: Approve all documents (Case 2)
+const approveAllDocuments = async (ownerId) => {
+  try {
+    const { error } = await supabase
+      .from('verifications')
+      .update({
+        status: 'approved',
+        reviewed_by: (await supabase.auth.getUser()).data.user.id,
+        reviewed_at: new Date().toISOString(),
+        rejection_reason: null
+      })
+      .eq('user_id', ownerId)
+
+    if (error) {
+      console.error('Error approving all documents:', error)
+    }
+  } catch (error) {
+    console.error('Error in approveAllDocuments:', error)
   }
 }
 
 
+
 // Element rejection (logo, banner, name, description)
 const rejectElement = (elementType, elementId, elementName) => {
-  // For verification documents, use the document rejection flow
-  if (['id_card', 'commerce_register', 'payment_receipt'].includes(elementType)) {
+  // For verification documents and product images, use the document rejection flow
+  if (['id_card', 'commerce_register', 'payment_receipt', 'logo', 'banner', 'product_image'].includes(elementType)) {
     rejectDocument(elementType, elementId, elementName)
     return
   }
   
-  // For other elements (logo, banner, name, description)
+  // For other elements (name, description)
   currentRejectionTarget.value = { 
     type: 'element', 
     id: elementId, 
@@ -1027,39 +1341,6 @@ const rejectElement = (elementType, elementId, elementName) => {
   showRejectionModal.value = true
 }
 
-// Confirm element rejection (for non-verification elements only)
-const confirmElementRejection = async () => {
-  if (!isDocumentRejectionValid.value) return
-
-  try {
-    processing.value = true
-    
-    const { elementType, id } = currentRejectionTarget.value
-    
-    // For non-verification elements (logo, banner, name, description), just log the action
-    // since we don't have individual status fields in the stores table
-    await logEmployeeAction('reject_element', 'store_element', id, { 
-      action: 'reject',
-      element_type: elementType,
-      reason: rejectionReason.value.trim(),
-      details: customRejectionReason.value.trim()
-    })
-
-    // Reset modal
-    showRejectionModal.value = false
-    rejectionReason.value = ''
-    customRejectionReason.value = ''
-    currentRejectionTarget.value = null
-
-    // Refresh data
-    await refreshData()
-  } catch (error) {
-    console.error('Error rejecting element:', error)
-    alert('Failed to reject element')
-  } finally {
-    processing.value = false
-  }
-}
 
 
 const approveProduct = async (productId) => {
@@ -1068,7 +1349,11 @@ const approveProduct = async (productId) => {
     
     const { error } = await supabase
       .from('products')
-      .update({ is_active: true })
+      .update({ 
+        is_active: true,
+        status: 'approved',
+        rejection_reason: null
+      })
       .eq('id', productId)
 
     if (error) throw error
@@ -1076,8 +1361,17 @@ const approveProduct = async (productId) => {
     // Log the action
     await logEmployeeAction('approve_product', 'product', productId, { action: 'approve' })
 
+    // Close modal
+    showProductDetailsModal.value = false
+    selectedProduct.value = null
+
+    // Reset rejection reasons
+    resetProductRejectionReasons()
+
     // Refresh data
     await refreshData()
+    
+    alert('Product approved successfully')
   } catch (error) {
     console.error('Error approving product:', error)
     alert('Failed to approve product')
@@ -1086,68 +1380,260 @@ const approveProduct = async (productId) => {
   }
 }
 
-const rejectProduct = (productId) => {
-  currentRejectionTarget.value = { type: 'product', id: productId }
-  showRejectionModal.value = true
-}
-
-
-const confirmRejection = async () => {
-  if (!isRejectionValid.value) return
-
+const rejectProduct = async (productId) => {
   try {
     processing.value = true
     
-    const { type, id } = currentRejectionTarget.value
+    // Check if there are any rejected elements first
+    const rejectedElements = []
     
-    // Prepare rejection details
-    const rejectionDetails = {
-      fields: rejectedFields.value,
-      custom_reason: customRejectionReason.value.trim()
+    if (productRejectionReasons.value.name) {
+      rejectedElements.push(productRejectionReasons.value.name)
     }
-
-    let updateData = {
-      status: 'rejected',
-      reviewed_by: (await supabase.auth.getUser()).data.user.id,
-      reviewed_at: new Date().toISOString(),
-      rejection_reason: rejectionReason.value.trim(),
-      rejection_details: rejectionDetails
-    }
-
-    let tableName = type === 'store' ? 'stores' : 'products'
     
-    if (type === 'product') {
-      updateData = { 
-        is_active: false, 
-        rejection_reason: rejectionReason.value.trim(),
-        rejection_details: rejectionDetails
-      }
+    if (productRejectionReasons.value.description) {
+      rejectedElements.push(productRejectionReasons.value.description)
     }
-
+    
+    if (productRejectionReasons.value.image) {
+      rejectedElements.push(productRejectionReasons.value.image)
+    }
+    
+    // Always combine rejected elements and reject the product
+    let finalRejectionReason = ''
+    
+    if (rejectedElements.length > 0) {
+      finalRejectionReason = rejectedElements.join(' | ')
+    } else {
+      // If no elements were rejected, use a default reason
+      finalRejectionReason = 'Product rejected by employee'
+    }
+    
     const { error } = await supabase
-      .from(tableName)
-      .update(updateData)
-      .eq('id', id)
+      .from('products')
+      .update({
+        status: 'rejected',
+        rejection_reason: finalRejectionReason
+      })
+      .eq('id', productId)
 
     if (error) throw error
 
     // Log the action
-    await logEmployeeAction(`reject_${type}`, type, id, { 
-      action: 'reject', 
-      reason: rejectionReason.value.trim(),
-      fields: rejectedFields.value,
-      details: customRejectionReason.value.trim()
+    await logEmployeeAction('reject_product', 'product', productId, { 
+      action: 'reject',
+      reason: finalRejectionReason
     })
 
-    // Reset modal
-    showRejectionModal.value = false
-    rejectionReason.value = ''
-    rejectedFields.value = []
-    customRejectionReason.value = ''
-    currentRejectionTarget.value = null
+    // Close modal
+    showProductDetailsModal.value = false
+    selectedProduct.value = null
+
+    // Reset rejection reasons
+    resetProductRejectionReasons()
 
     // Refresh data
     await refreshData()
+    
+    alert('Product rejected successfully')
+  } catch (error) {
+    console.error('Error rejecting product:', error)
+    alert('Failed to reject product')
+  } finally {
+    processing.value = false
+  }
+}
+
+
+const confirmRejection = async () => {
+  if (!isDocumentRejectionValid.value) return
+
+  try {
+    processing.value = true
+    
+    const { type, id, verificationType, storeId, elementType } = currentRejectionTarget.value
+    
+    if (type === 'document') {
+      // Update verification document status
+      const { error } = await supabase
+        .from('verifications')
+        .update({
+          status: 'rejected',
+          reviewed_by: (await supabase.auth.getUser()).data.user.id,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: rejectionReason.value.trim(),
+          metadata: {
+            custom_reason: customRejectionReason.value.trim()
+          }
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Log the action
+      await logEmployeeAction('reject_document', 'verification', id, { 
+        action: 'reject',
+        verification_type: verificationType,
+        reason: rejectionReason.value.trim(),
+        details: customRejectionReason.value.trim()
+      })
+
+      // Check if this is a product image rejection
+      if (showProductDetailsModal.value && verificationType === 'product_image') {
+        // For product image rejection, store the reason temporarily
+        if (!productRejectionReasons.value) {
+          productRejectionReasons.value = {}
+        }
+        productRejectionReasons.value.image = `image: ${rejectionReason.value.trim()}`
+        if (customRejectionReason.value.trim()) {
+          productRejectionReasons.value.image += ` - ${customRejectionReason.value.trim()}`
+        }
+
+        // Close rejection modal but keep product details modal open
+        showRejectionModal.value = false
+        rejectionReason.value = ''
+        customRejectionReason.value = ''
+        currentRejectionTarget.value = null
+        
+        alert('Image rejected successfully')
+      } else {
+        // For store document rejection, don't close the store details modal
+        // Just close the rejection modal and refresh data
+        showRejectionModal.value = false
+        rejectionReason.value = ''
+        customRejectionReason.value = ''
+        currentRejectionTarget.value = null
+
+        // Refresh data to update document status
+        await refreshData()
+        
+        alert('Document rejected successfully')
+      }
+    } else if (type === 'element') {
+      // Store rejection reason for name or description
+      let rejectionText = `${elementType}: ${rejectionReason.value.trim()}`
+      if (customRejectionReason.value.trim()) {
+        rejectionText += ` - ${customRejectionReason.value.trim()}`
+      }
+      
+      // Check if this is a product element or store element
+      if (showProductDetailsModal.value) {
+        // For product elements, store in product rejection reasons
+        if (!productRejectionReasons.value) {
+          productRejectionReasons.value = {}
+        }
+        productRejectionReasons.value[elementType] = rejectionText
+
+        // Log the action
+        await logEmployeeAction('reject_element', 'product_element', id, { 
+          action: 'reject',
+          element_type: elementType,
+          reason: rejectionReason.value.trim(),
+          details: customRejectionReason.value.trim()
+        })
+
+        // For product elements, don't refresh data or close modals
+        // Just close the rejection modal and keep product details open
+        showRejectionModal.value = false
+        rejectionReason.value = ''
+        customRejectionReason.value = ''
+        currentRejectionTarget.value = null
+        
+        alert(`${elementType} rejected successfully`)
+      } else {
+        // For store elements, store in store rejection reasons
+        storeRejectionReasons.value[elementType] = rejectionText
+
+        // Log the action
+        await logEmployeeAction('reject_element', 'store_element', id, { 
+          action: 'reject',
+          element_type: elementType,
+          reason: rejectionReason.value.trim(),
+          details: customRejectionReason.value.trim()
+        })
+
+        // Close rejection modal but keep store details modal open
+        showRejectionModal.value = false
+        rejectionReason.value = ''
+        customRejectionReason.value = ''
+        currentRejectionTarget.value = null
+
+        // Refresh data
+        await refreshData()
+        
+        alert(`${elementType} rejected successfully`)
+      }
+    } else if (type === 'store') {
+      // Update store status to rejected
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          status: 'rejected',
+          reviewed_by: (await supabase.auth.getUser()).data.user.id,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: rejectionReason.value.trim()
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Log the action
+      await logEmployeeAction('reject_store', 'store', id, { 
+        action: 'reject',
+        reason: rejectionReason.value.trim(),
+        details: customRejectionReason.value.trim()
+      })
+
+      // Close modals
+      showStoreDetailsModal.value = false
+      showBasicStoreDetailsModal.value = false
+      selectedStore.value = null
+      selectedBasicStore.value = null
+
+      // Reset modal
+      showRejectionModal.value = false
+      rejectionReason.value = ''
+      customRejectionReason.value = ''
+      currentRejectionTarget.value = null
+
+      // Refresh data
+      await refreshData()
+      
+      alert('Store rejected successfully')
+    } else if (type === 'product') {
+      // Update product status to rejected
+      const { error } = await supabase
+        .from('products')
+        .update({
+          status: 'rejected',
+          rejection_reason: rejectionReason.value.trim()
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Log the action
+      await logEmployeeAction('reject_product', 'product', id, { 
+        action: 'reject',
+        reason: rejectionReason.value.trim(),
+        details: customRejectionReason.value.trim()
+      })
+
+      // Close modals
+      showProductDetailsModal.value = false
+      selectedProduct.value = null
+
+      // Reset modal
+      showRejectionModal.value = false
+      rejectionReason.value = ''
+      customRejectionReason.value = ''
+      currentRejectionTarget.value = null
+
+      // Refresh data
+      await refreshData()
+      
+      alert('Product rejected successfully')
+    }
   } catch (error) {
     console.error('Error rejecting item:', error)
     alert('Failed to reject item')
@@ -1166,12 +1652,35 @@ const cancelRejection = () => {
 
 const openStoreDetails = (store) => {
   selectedStore.value = store
+  resetStoreRejectionReasons()
   showStoreDetailsModal.value = true
 }
 
 const closeStoreDetails = () => {
   showStoreDetailsModal.value = false
   selectedStore.value = null
+}
+
+const openBasicStoreDetails = (store) => {
+  selectedBasicStore.value = store
+  resetStoreRejectionReasons()
+  showBasicStoreDetailsModal.value = true
+}
+
+const closeBasicStoreDetails = () => {
+  showBasicStoreDetailsModal.value = false
+  selectedBasicStore.value = null
+}
+
+const openProductDetails = (product) => {
+  selectedProduct.value = product
+  resetProductRejectionReasons()
+  showProductDetailsModal.value = true
+}
+
+const closeProductDetails = () => {
+  showProductDetailsModal.value = false
+  selectedProduct.value = null
 }
 
 const viewDocument = (documentUrl, documentType) => {
@@ -1229,6 +1738,10 @@ const getStatusClass = (status) => {
       return 'px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium'
     case 'rejected':
       return 'px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium'
+    case 'active':
+      return 'px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium'
+    case 'inactive':
+      return 'px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium'
     default:
       return 'px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium'
   }

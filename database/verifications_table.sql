@@ -2,7 +2,7 @@
 -- Stores Table
 -- ================================
 
-CREATE TABLE IF NOT EXISTS public.stores (
+CREATE TABLE IF NOT EXISTS public.verifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE, -- store owner
     name TEXT NOT NULL,
