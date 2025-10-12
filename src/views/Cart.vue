@@ -32,8 +32,7 @@
           
           <!-- Product Info -->
           <div class="flex-1">
-            <h3 class="font-semibold text-lg">{{ item.nameAr }}</h3>
-            <p class="text-neutral-700 text-sm">{{ item.name }}</p>
+            <h3 class="font-semibold text-lg">{{ item.name }}</h3>
             <div class="flex items-center space-x-4 space-x-reverse mt-2">
               <span class="text-lg font-bold text-primary">
                 {{ formatPrice(item.price) }} {{ $t('product.currency') }}

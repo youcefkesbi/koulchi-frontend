@@ -1,96 +1,47 @@
 <template>
   <div class="container-lg space-y-12 sm:space-y-16 lg:space-y-20 my-fade-in section-padding">
-    <!-- Hero Section -->
-    <section class="relative bg-gradient-to-br from-green-900 via-green-800 to-green-700 text-white rounded-3xl overflow-hidden shadow-soft">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 bg-gradient-to-br from-green-600/20 via-green-500/20 to-green-400/20"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-      <div class="relative z-10 px-4 sm:px-6 py-8 sm:py-12 text-center">
-        <!-- Decorative Elements -->
-        <div class="absolute top-6 left-6 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
-        <div class="absolute bottom-6 right-6 w-24 h-24 bg-green-400/20 rounded-full blur-xl"></div>
-        
-        <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 my-slide-up bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
-          {{ t('hero.title') }}
-        </h1>
-        <p class="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-green-50 my-slide-up" style="animation-delay: 0.1s">
-          {{ t('hero.subtitle') }}
-        </p>
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center my-slide-up" style="animation-delay: 0.2s">
-          <button @click="scrollToFeaturedProducts" class="bg-white text-slate-800 font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl shadow-soft hover:shadow-glow transform hover:scale-105 transition-all duration-300 hover:bg-primary-50">
-            <i class="fas fa-shopping-bag ml-1 sm:ml-2"></i>
-            {{ t('hero.shopNow') }}
-          </button>
-          <button class="border-2 border-white/30 text-white font-semibold text-sm sm:text-base px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:border-white/50 transform hover:scale-105 transition-all duration-300">
-            <i class="fas fa-info-circle ml-1 sm:ml-2"></i>
-            {{ t('hero.learnMore') }}
-          </button>
-        </div>
-      </div>
+    <!-- Banner Carousel Section -->
+    <section class="my-slide-up">
+      <AdCarousel
+        :ads="bannerAds"
+        :loading="bannerLoading"
+        :error="bannerError"
+        :show-main-banner="true"
+        :main-banner-title="t('hero.title')"
+        :main-banner-subtitle="t('hero.subtitle')"
+        @retry="loadBannerAds"
+        @scroll-to-content="scrollToFeaturedProducts"
+      />
     </section>
 
     <!-- Featured Products Section -->
     <section id="featured-products" class="my-slide-up">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 space-y-2 sm:space-y-0">
-        <h2 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('sections.featuredProducts') }}</h2>
-        <div class="flex items-center space-x-4 space-x-reverse">
-          <button
-            @click="refreshFeaturedProducts"
-            :disabled="featuredLoading"
-            class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors disabled:opacity-50"
-          >
-            <i class="fas fa-sync-alt mr-1" :class="{ 'animate-spin': featuredLoading }"></i>
-            {{ t('sections.refresh') }}
-          </button>
-        </div>
-      </div>
-      
-      <!-- Loading State -->
-      <div v-if="featuredLoading" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div v-for="i in 8" :key="i" class="card animate-pulse">
-          <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
-          <div class="h-4 bg-neutral-200 rounded mb-2"></div>
-          <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
-          <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
-        </div>
-      </div>
-      
-      <!-- Error State -->
-      <div v-else-if="featuredError" class="text-center py-12">
-        <div class="text-red-500 text-lg mb-4">
-          <i class="fas fa-exclamation-triangle mr-2"></i>
-          {{ featuredError }}
-        </div>
-        <button @click="refreshFeaturedProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-          {{ t('common.retry') }}
-        </button>
-      </div>
-      
-      <!-- Products Grid - 2 rows × 4 products per row -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <ProductCard
-          v-for="product in featuredProducts"
-          :key="product.id"
-          :product="product"
-        />
-      </div>
-      
-      <!-- Empty State -->
-      <div v-if="!featuredLoading && !featuredError && featuredProducts.length === 0" class="text-center py-12">
-        <div class="text-neutral-500 text-lg mb-4">
-          <i class="fas fa-star mr-2"></i>
-          {{ t('sections.noFeaturedProducts') }}
-        </div>
-        <div class="mt-4">
-          <p class="text-neutral-600 mb-4">Try refreshing the page or check your connection.</p>
-          <button @click="refreshFeaturedProducts" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-            {{ t('common.retry') }}
-          </button>
-        </div>
-      </div>
-
+      <FeaturedProducts
+        :products="featuredProducts"
+        :loading="featuredLoading"
+        :error="featuredError"
+        :title="t('sections.featuredProducts')"
+        :show-view-all="true"
+        view-all-link="/products"
+        :max-products="8"
+        @refresh="refreshFeaturedProducts"
+      />
     </section>
 
+
+    <!-- Featured Stores Section -->
+    <section class="my-slide-up">
+      <FeaturedStores
+        :stores="featuredStores"
+        :loading="storesLoading"
+        :error="storesError"
+        :title="t('sections.featuredStores')"
+        :show-view-all="true"
+        view-all-link="/stores"
+        :max-stores="6"
+        @refresh="loadFeaturedStores"
+      />
+    </section>
 
     <!-- Browse by Category Section -->
     <section class="my-slide-up">
@@ -147,43 +98,15 @@
           </router-link>
         </div>
         
-        <!-- Loading State for Category -->
-        <div v-if="categoryLoading[category.id]" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div v-for="i in 8" :key="i" class="card animate-pulse">
-            <div class="w-full h-48 bg-neutral-200 rounded-t-2xl mb-4"></div>
-            <div class="h-4 bg-neutral-200 rounded mb-2"></div>
-            <div class="h-4 bg-neutral-200 rounded w-3/4 mb-2"></div>
-            <div class="h-6 bg-neutral-200 rounded w-1/2"></div>
-          </div>
-        </div>
-        
-        <!-- Error State for Category -->
-        <div v-else-if="categoryErrors[category.id]" class="text-center py-8">
-          <div class="text-red-500 text-lg mb-4">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            {{ categoryErrors[category.id] }}
-          </div>
-          <button @click="loadCategoryProducts(category.id)" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-            {{ t('common.retry') }}
-          </button>
-        </div>
-        
-        <!-- Category Products Grid - 2 rows × 4 products per row -->
-        <div v-else-if="categoryProducts[category.id] && categoryProducts[category.id].length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          <ProductCard
-            v-for="product in categoryProducts[category.id].slice(0, 8)"
-            :key="product.id"
-            :product="product"
-          />
-        </div>
-        
-        <!-- Empty State for Category -->
-        <div v-else class="text-center py-8">
-          <div class="text-neutral-500 text-lg mb-4">
-            <i class="fas fa-box-open mr-2"></i>
-            {{ t('sections.noProductsInCategory', { category: getCategoryName(category.id) }) }}
-          </div>
-        </div>
+        <!-- Category Products using AdGrid -->
+        <AdGrid
+          :ads="categoryProducts[category.id] || []"
+          :loading="categoryLoading[category.id]"
+          :error="categoryErrors[category.id]"
+          :columns="4"
+          :max-items="8"
+          @retry="loadCategoryProducts(category.id)"
+        />
         </div>
       </div>
       
@@ -292,18 +215,40 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/useProductStore'
+import { useAds } from '../composables/useAds'
+import AdCarousel from '../components/AdCarousel.vue'
+import AdGrid from '../components/AdGrid.vue'
+import FeaturedProducts from '../components/FeaturedProducts.vue'
+import FeaturedStores from '../components/FeaturedStores.vue'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
+const { 
+  fetchHomepageBannerAds,
+  fetchHomepageFeaturedProducts,
+  fetchHomepageFeaturedStores,
+  fetchBrowseByCategoryProducts,
+  transformAdsForDisplay
+} = useAds()
 
 const isProd = import.meta.env.PROD
 const isDev = import.meta.env.DEV
+
+// State for banner ads
+const bannerAds = ref([])
+const bannerLoading = ref(false)
+const bannerError = ref(null)
 
 // State for featured products
 const featuredProducts = ref([])
 const featuredLoading = ref(false)
 const featuredError = ref(null)
+
+// State for featured stores
+const featuredStores = ref([])
+const storesLoading = ref(false)
+const storesError = ref(null)
 
 // State for category products
 const categoryProducts = ref({})
@@ -338,24 +283,55 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
+// Load banner ads
+const loadBannerAds = async () => {
+  bannerLoading.value = true
+  bannerError.value = null
+  
+  try {
+    const ads = await fetchHomepageBannerAds()
+    bannerAds.value = transformAdsForDisplay(ads)
+  } catch (err) {
+    console.error('Error loading banner ads:', err)
+    bannerError.value = err.message || 'Failed to load banner ads'
+    bannerAds.value = []
+  } finally {
+    bannerLoading.value = false
+  }
+}
+
+// Load featured products from ads
 const loadFeaturedProducts = async () => {
   featuredLoading.value = true
   featuredError.value = null
   
   try {
-    // Fetch all products and select 10 random ones for featured
-    await productStore.fetchProducts()
-    const allProducts = productStore.products
-    
-    // Shuffle and take first 8 products
-    const shuffled = [...allProducts].sort(() => 0.5 - Math.random())
-    featuredProducts.value = shuffled.slice(0, 8)
+    const ads = await fetchHomepageFeaturedProducts()
+    const transformedAds = transformAdsForDisplay(ads)
+    featuredProducts.value = transformedAds.map(ad => ad.data)
   } catch (err) {
     console.error('Error loading featured products:', err)
     featuredError.value = err.message || 'Failed to load featured products'
     featuredProducts.value = []
   } finally {
     featuredLoading.value = false
+  }
+}
+
+// Load featured stores from ads
+const loadFeaturedStores = async () => {
+  storesLoading.value = true
+  storesError.value = null
+  
+  try {
+    const ads = await fetchHomepageFeaturedStores()
+    featuredStores.value = transformAdsForDisplay(ads)
+  } catch (err) {
+    console.error('Error loading featured stores:', err)
+    storesError.value = err.message || 'Failed to load featured stores'
+    featuredStores.value = []
+  } finally {
+    storesLoading.value = false
   }
 }
 
@@ -368,13 +344,10 @@ const loadCategoryProducts = async (categoryId) => {
   categoryErrors.value[categoryId] = null
   
   try {
-    // Fetch products for this specific category
-    await productStore.fetchProducts({ category_id: categoryId })
-    const categoryProductsList = productStore.products.filter(product => product.category_id === categoryId)
-    
-    // Shuffle and take first 8 products
-    const shuffled = [...categoryProductsList].sort(() => 0.5 - Math.random())
-    categoryProducts.value[categoryId] = shuffled.slice(0, 8)
+    // Fetch ads for this specific category
+    const ads = await fetchBrowseByCategoryProducts(categoryId)
+    const transformedAds = transformAdsForDisplay(ads)
+    categoryProducts.value[categoryId] = transformedAds
   } catch (err) {
     console.error(`Error loading products for category ${categoryId}:`, err)
     categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
@@ -420,6 +393,13 @@ onMounted(async () => {
       categoriesLoaded.value = true
     }, 10000)
     
+    // Load all ads data in parallel
+    const adsPromises = [
+      loadBannerAds(),
+      loadFeaturedProducts(),
+      loadFeaturedStores()
+    ]
+    
     // Load categories if not already loaded
     if (productStore.categories.length === 0) {
       try {
@@ -439,12 +419,13 @@ onMounted(async () => {
         }
       }
     }
+    
+    // Wait for ads to load
+    await Promise.allSettled(adsPromises)
+    
     categoriesLoaded.value = true
     clearTimeout(timeoutId)
     clearTimeout(minTimeout)
-    
-    // Load featured products
-    await loadFeaturedProducts()
     
     // Load category products for each category
     if (categories.value && categories.value.length > 0) {

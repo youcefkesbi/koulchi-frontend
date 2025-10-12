@@ -56,32 +56,17 @@
                     {{ $t('announcement.productInfo') }}
                   </h4>
                   
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ $t('announcement.productName') }} (English) *
-                      </label>
-                      <input
-                        v-model="form.name"
-                        type="text"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        :placeholder="$t('announcement.productNamePlaceholder')"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ $t('announcement.productName') }} (Arabic) *
-                      </label>
-                      <input
-                        v-model="form.nameAr"
-                        type="text"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        :placeholder="$t('announcement.productNameArPlaceholder')"
-                      />
-                    </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      {{ $t('announcement.productName') }} *
+                    </label>
+                    <input
+                      v-model="form.name"
+                      type="text"
+                      required
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      :placeholder="$t('announcement.productNamePlaceholder')"
+                    />
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -213,12 +198,10 @@ const showSuccess = ref(false)
 
 const form = reactive({
   name: '',
-  nameAr: '',
   category: '',
   price: '',
   image: '',
-  description: '',
-  descriptionAr: ''
+  description: ''
 })
 
 const closeModal = () => {
@@ -244,12 +227,10 @@ const submitForm = async () => {
       .insert({
         seller_id: user.id,
         name: form.name,
-        name_ar: form.nameAr,
         price: parseFloat(form.price),
         image: form.image || null,
         category_id: form.category,
         description: form.description || null,
-        description_ar: form.descriptionAr || null,
         in_stock: true,
         is_new: true,
         is_on_sale: false,
