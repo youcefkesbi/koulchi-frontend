@@ -152,6 +152,15 @@
                 <!-- Actions -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-3">
+                    <!-- Promote Button -->
+                    <button 
+                      @click="promoteProduct(product.product_id)"
+                      class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                      title="Promote Product"
+                    >
+                      <i class="fas fa-bullhorn text-lg"></i>
+                    </button>
+                    
                     <!-- Edit Button -->
                     <button 
                       @click="editProduct(product.product_id)"
@@ -928,6 +937,17 @@ const deleteProduct = async (productId, productName) => {
   } finally {
     deleting.value = false
   }
+}
+
+const promoteProduct = (productId) => {
+  // Navigate to ad request form with product pre-filled
+  router.push({
+    name: 'AdRequest',
+    query: {
+      type: 'product',
+      id: productId
+    }
+  })
 }
 
 // Lifecycle

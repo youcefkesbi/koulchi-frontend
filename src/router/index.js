@@ -158,6 +158,13 @@ const baseRoutes = [
     component: () => import('../views/EmployeeDashboard.vue'),
     meta: { requiresAuth: true, requiresEmployee: true },
     beforeEnter: employeeGuard
+  },
+  {
+    path: '/ad-request',
+    name: 'AdRequest',
+    component: () => import('../views/AdRequest.vue'),
+    meta: { requiresAuth: true },
+    beforeEnter: authGuard
   }
 ]
 
