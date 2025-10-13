@@ -92,10 +92,20 @@
             </button>
             
 
-            <!-- Language Switcher (always visible, compact) -->
-            <LanguageSwitcher :compact="true" />
+              <!-- Language Switcher (always visible, compact) -->
+              <LanguageSwitcher :compact="true" />
 
-            <!-- User Menu (auth) -->
+              <!-- Admin Sidebar Toggle -->
+              <button 
+                v-if="isAdmin"
+                @click="toggleAdminSidebar"
+                class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                :title="adminSidebarOpen ? 'Hide Admin Panel' : 'Show Admin Panel'"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+
+              <!-- User Menu (auth) -->
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
                 @click="userMenuOpen = !userMenuOpen"
@@ -143,6 +153,9 @@
 >
   <i class="fas fa-store mr-3"></i>{{ $t('stores.myStore') }}
 </button>
+                <router-link v-if="isEmployee" :to="getLocalizedRoute('/employee')" class="dropdown-item">
+                  <i class="fas fa-gavel mr-3"></i>{{ t('header.moderation') }}
+                </router-link>
 
                 <button
                   @click="handleLogout"
@@ -199,12 +212,18 @@ const wishlistStore = useWishlistStore()
 const productStore = useProductStore()
 const storeStore = useStoreStore()
 
+// Define emits
+const emit = defineEmits(['toggle-admin-sidebar'])
+
 const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const showLoginModal = ref(false)
 const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
 const hasVendorRole = ref(false)
+
+// Admin sidebar state - starts closed by default
+const adminSidebarOpen = ref(false)
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -234,6 +253,90 @@ const handleClickOutside = (event) => {
 
 // Get categories from product store
 const categories = computed(() => productStore.categories.filter(cat => cat.id !== 'all'))
+
+// Admin role check for toggle button
+const isAdmin = ref(false)
+const adminRoleLoaded = ref(false)
+
+// Employee role check for moderation link
+const isEmployee = ref(false)
+const employeeRoleLoaded = ref(false)
+
+// Fetch admin role once for toggle button
+const fetchAdminRoleForToggle = async () => {
+  if (adminRoleLoaded.value) return
+  
+  try {
+    const hasSession = await authStore.checkAuthStatus()
+    if (!hasSession) {
+      isAdmin.value = false
+      adminRoleLoaded.value = true
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      
+      if (error) {
+        console.error('Error fetching user roles for toggle:', error)
+        isAdmin.value = false
+      } else {
+        const roles = userRoles?.map(ur => ur.role) || []
+        isAdmin.value = roles.includes('admin')
+      }
+    } else {
+      isAdmin.value = false
+    }
+    
+    adminRoleLoaded.value = true
+  } catch (err) {
+    console.error('Error fetching admin role for toggle:', err)
+    isAdmin.value = false
+    adminRoleLoaded.value = true
+  }
+}
+
+// Fetch employee role once for moderation link
+const fetchEmployeeRoleForModeration = async () => {
+  if (employeeRoleLoaded.value) return
+  
+  try {
+    const hasSession = await authStore.checkAuthStatus()
+    if (!hasSession) {
+      isEmployee.value = false
+      employeeRoleLoaded.value = true
+      return
+    }
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      
+      if (error) {
+        console.error('Error fetching user roles for moderation:', error)
+        isEmployee.value = false
+      } else {
+        const roles = userRoles?.map(ur => ur.role) || []
+        isEmployee.value = roles.includes('employee')
+      }
+    } else {
+      isEmployee.value = false
+    }
+    
+    employeeRoleLoaded.value = true
+  } catch (err) {
+    console.error('Error fetching employee role for moderation:', err)
+    isEmployee.value = false
+    employeeRoleLoaded.value = true
+  }
+}
 
 // Show vendor-only buttons when user has vendor role
 const hasApprovedStore = computed(() => {
@@ -310,6 +413,13 @@ const handleLogout = async () => {
     console.error('Logout error:', error)
   }
 }
+
+// Admin sidebar toggle
+const toggleAdminSidebar = () => {
+  adminSidebarOpen.value = !adminSidebarOpen.value
+  // Emit event to parent component to control sidebar
+  emit('toggle-admin-sidebar', adminSidebarOpen.value)
+}
 // Load vendor role from user_roles table
 const loadVendorRole = async () => {
   try {
@@ -384,6 +494,8 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   await loadUserStoreStatus()
   await loadVendorRole()
+  await fetchAdminRoleForToggle()
+  await fetchEmployeeRoleForModeration()
 })
 
 onUnmounted(() => {

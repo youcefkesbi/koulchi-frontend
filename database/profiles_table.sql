@@ -118,3 +118,50 @@ FOR EACH ROW EXECUTE FUNCTION public.update_profiles_updated_at();
 GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO postgres, anon, authenticated, service_role;
 
+CREATE OR REPLACE FUNCTION public.get_all_users_for_admin()
+RETURNS TABLE (
+    user_id UUID,
+    email TEXT,
+    full_name TEXT,
+    roles TEXT,
+    store_names TEXT,
+    account_status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        au.id as user_id,
+        au.email::TEXT,
+        COALESCE(p.full_name, 'No Name')::TEXT as full_name,
+        COALESCE(
+            STRING_AGG(DISTINCT ur.role, E'\n'), 
+            'customer'
+        )::TEXT as roles,
+        COALESCE(
+            STRING_AGG(DISTINCT 
+                CASE 
+                    WHEN s.name IS NOT NULL AND s.name != '' THEN s.name
+                    ELSE 'Basic Pack Store'
+                END, E'\n'), 
+            '-'
+        )::TEXT as store_names,
+        CASE 
+            WHEN au.banned_until IS NOT NULL AND au.banned_until > NOW() THEN 'suspended'::TEXT
+            WHEN au.deleted_at IS NOT NULL THEN 'inactive'::TEXT
+            ELSE 'active'::TEXT
+        END as account_status
+    FROM auth.users au
+    LEFT JOIN public.profiles p ON au.id = p.id
+    LEFT JOIN public.user_roles ur ON p.id = ur.user_id
+    LEFT JOIN public.stores s ON p.id = s.owner_id
+    WHERE au.deleted_at IS NULL
+    GROUP BY au.id, au.email, p.full_name, au.banned_until, au.deleted_at
+    ORDER BY au.email;
+END;
+$$;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.get_all_users_for_admin() TO authenticated;

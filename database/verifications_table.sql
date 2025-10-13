@@ -2,7 +2,7 @@
 -- Stores Table
 -- ================================
 
-CREATE TABLE IF NOT EXISTS public.stores (
+CREATE TABLE IF NOT EXISTS public.verifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE ON UPDATE CASCADE, -- store owner
     name TEXT NOT NULL,
@@ -297,7 +297,7 @@ begin
 
     -- Insert payment receipt if provided
     IF p_payment_receipt_url IS NOT NULL THEN
-      BEGIN
+BEGIN
         RAISE NOTICE 'Attempting to insert/update payment receipt for user_id: %, document_url: %', p_owner_id, p_payment_receipt_url;
         
         -- First try to insert, if conflict then update
@@ -341,11 +341,11 @@ BEGIN
     INTO pack_info
     FROM public.packs
     WHERE id = p_pack_id AND is_active = true;
-
+    
     IF NOT FOUND THEN
         RETURN false;
     END IF;
-
+    
     SELECT 
         COALESCE(current_announcements, 0),
         COALESCE(current_images, 0)
@@ -360,7 +360,7 @@ BEGIN
     IF (current_images + p_image_count) > pack_info.max_images THEN
         RETURN false;
     END IF;
-
+    
     RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -8,26 +8,77 @@ import { supabase } from '../lib/supabase'
  * @param {Object} from - Route being navigated from
  * @param {Function} next - Navigation function
  */
-export const adminGuard = (to, from, next) => {
+export const adminGuard = async (to, from, next) => {
   const authStore = useAuthStore()
+  const loc = to.meta.locale || 'en'
+
+  console.log('🔍 adminGuard called:', { 
+    to: to.path, 
+    from: from?.path, 
+    locale: loc,
+    isAuthenticated: authStore.isAuthenticated,
+    userRole: authStore.userRole,
+    user: authStore.user
+  })
+
+  // Ensure we have a valid Supabase session, not just local store state
+  const hasSession = await authStore.checkAuthStatus()
+  console.log('🔍 Session check result:', hasSession)
   
-  // Check if user is authenticated
-  if (!authStore.isAuthenticated) {
-    next('/login')
-    return
+  if (!hasSession) {
+    console.log('❌ No session, redirecting to login')
+    return next(`/${loc}/login`)
   }
-  
-  // Check if user has admin role
-  if (authStore.userRole !== 'admin') {
-    // Redirect to dashboard with error message
-    next({
-      path: '/dashboard',
-      query: { error: 'access_denied', message: 'Admin access required' }
+
+  // CRITICAL: If store shows not authenticated but session exists, force refresh the entire user profile
+  if (!authStore.isAuthenticated || !authStore.user || authStore.userRole === 'customer') {
+    console.log('🔄 Store out of sync with session, forcing full refresh...')
+    try {
+      // Get fresh session and load user with profile
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        await authStore.loadUserWithProfile(session.user)
+        console.log('🔄 Full refresh completed. New state:', {
+          isAuthenticated: authStore.isAuthenticated,
+          userRole: authStore.userRole,
+          user: authStore.user
+        })
+      }
+    } catch (err) {
+      console.error('❌ Full refresh failed:', err)
+    }
+  }
+
+  // If role still not resolved, try the force refresh
+  const currentRole = authStore.userRole
+  const isRoleResolved = Array.isArray(currentRole) 
+    ? currentRole.length > 0 && !currentRole.every(r => r === 'customer')
+    : currentRole && currentRole !== 'customer'
+    
+  if (!isRoleResolved) {
+    console.log('🔄 Role still not resolved, attempting force refresh...')
+    const refreshResult = await authStore.forceRoleRefresh().catch((err) => {
+      console.error('❌ Force refresh failed:', err)
+      return false
     })
-    return
+    console.log('🔄 Force refresh result:', refreshResult, 'New role:', authStore.userRole)
+  }
+
+  // Get current roles after potential refresh
+  const raw = authStore.userRole
+  const roles = Array.isArray(raw)
+    ? raw.map(r => (typeof r === 'string' ? r : (r?.role || '')).toLowerCase())
+    : [String(raw || '').toLowerCase()]
+
+  console.log('🔍 Role analysis:', { raw, roles, hasAdmin: roles.includes('admin') })
+
+  if (roles.includes('admin')) {
+    console.log('✅ Admin access granted')
+    return next()
   }
   
-  next()
+  console.log('❌ Admin access denied, redirecting to dashboard')
+  return next({ path: `/${loc}/dashboard`, query: { error: 'access_denied', message: 'Admin access required' } })
 }
 
 /**

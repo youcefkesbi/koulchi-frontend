@@ -232,19 +232,30 @@ begin
   values (p_owner_id, p_name, p_description, p_logo_url, p_banner_url, p_pack_id, 'pending')
   returning id into new_id;
 
+  -- Clear old verification records for this user to prevent mixing rejection reasons
+  -- This ensures only the current store's verification data is used
+  DELETE FROM public.verifications WHERE user_id = p_owner_id;
+
   -- Insert verification documents based on pack type
-  -- For Basic Pack: only ID document
-  -- For Pro Pack: ID document + commerce register + payment receipt
+  -- For Basic Pack: ID document + logo + banner
+  -- For Pro Pack: ID document + commerce register + payment receipt + logo + banner
   
   -- Always insert ID document if provided
   IF p_id_document_url IS NOT NULL THEN
     INSERT INTO public.verifications (user_id, verification_type, document_url, status)
-    VALUES (p_owner_id, 'id_card', p_id_document_url, 'pending')
-    ON CONFLICT (user_id, verification_type) 
-    DO UPDATE SET 
-      document_url = EXCLUDED.document_url, 
-      status = 'pending', 
-      updated_at = now();
+    VALUES (p_owner_id, 'id_card', p_id_document_url, 'pending');
+  END IF;
+
+  -- Always insert logo if provided
+  IF p_logo_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'logo', p_logo_url, 'pending');
+  END IF;
+
+  -- Always insert banner if provided
+  IF p_banner_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'banner', p_banner_url, 'pending');
   END IF;
 
   -- For Pro Pack: insert additional documents
@@ -252,23 +263,13 @@ begin
     -- Insert commerce register if provided
     IF p_commerce_register_url IS NOT NULL THEN
       INSERT INTO public.verifications (user_id, verification_type, document_url, status)
-      VALUES (p_owner_id, 'commerce_register', p_commerce_register_url, 'pending')
-      ON CONFLICT (user_id, verification_type) 
-      DO UPDATE SET 
-        document_url = EXCLUDED.document_url, 
-        status = 'pending', 
-        updated_at = now();
+      VALUES (p_owner_id, 'commerce_register', p_commerce_register_url, 'pending');
     END IF;
 
     -- Insert payment receipt if provided
     IF p_payment_receipt_url IS NOT NULL THEN
       INSERT INTO public.verifications (user_id, verification_type, document_url, status)
-      VALUES (p_owner_id, 'payment_receipt', p_payment_receipt_url, 'pending')
-      ON CONFLICT (user_id, verification_type) 
-      DO UPDATE SET 
-        document_url = EXCLUDED.document_url, 
-        status = 'pending', 
-        updated_at = now();
+      VALUES (p_owner_id, 'payment_receipt', p_payment_receipt_url, 'pending');
     END IF;
   END IF;
 
@@ -707,6 +708,40 @@ END;
 $function$
 
 -- ================================
+-- Get All Stores for Admin Management
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_all_stores_for_admin()
+RETURNS TABLE (
+    store_id UUID,
+    store_name TEXT,
+    store_description TEXT,
+    owner_name TEXT,
+    pack_name TEXT,
+    status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id as store_id,
+        s.name::TEXT as store_name,
+        COALESCE(s.description, 'No description')::TEXT as store_description,
+        COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
+        COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name,
+        s.status::TEXT as status
+    FROM public.stores s
+    LEFT JOIN public.profiles p ON s.owner_id = p.id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    ORDER BY s.created_at DESC;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_all_stores_for_admin() TO authenticated;
+
+-- ================================
 -- Get User Store Pack Information
 -- ================================
 CREATE OR REPLACE FUNCTION public.get_user_store_pack()
@@ -834,11 +869,18 @@ RETURNS TABLE (
     pack_name_ar TEXT,
     pack_name_fr TEXT,
     id_document_url TEXT,
+    id_document_id UUID,
     id_document_status TEXT,
     commerce_register_url TEXT,
+    commerce_register_id UUID,
     commerce_register_status TEXT,
     payment_receipt_url TEXT,
-    payment_receipt_status TEXT
+    payment_receipt_id UUID,
+    payment_receipt_status TEXT,
+    logo_id UUID,
+    logo_status TEXT,
+    banner_id UUID,
+    banner_status TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -870,17 +912,26 @@ BEGIN
         COALESCE(p.name_ar, 'N/A') as pack_name_ar,
         COALESCE(p.name_fr, 'N/A') as pack_name_fr,
         COALESCE(id_doc.document_url, '') as id_document_url,
+        id_doc.id as id_document_id,
         COALESCE(id_doc.status::TEXT, '') as id_document_status,
         COALESCE(comm_doc.document_url, '') as commerce_register_url,
+        comm_doc.id as commerce_register_id,
         COALESCE(comm_doc.status::TEXT, '') as commerce_register_status,
         COALESCE(pay_doc.document_url, '') as payment_receipt_url,
-        COALESCE(pay_doc.status::TEXT, '') as payment_receipt_status
+        pay_doc.id as payment_receipt_id,
+        COALESCE(pay_doc.status::TEXT, '') as payment_receipt_status,
+        logo_doc.id as logo_id,
+        COALESCE(logo_doc.status::TEXT, '') as logo_status,
+        banner_doc.id as banner_id,
+        COALESCE(banner_doc.status::TEXT, '') as banner_status
     FROM public.stores s
     LEFT JOIN public.profiles prof ON s.owner_id = prof.id
     LEFT JOIN public.packs p ON s.pack_id = p.id
     LEFT JOIN public.verifications id_doc ON s.owner_id = id_doc.user_id AND id_doc.verification_type = 'id_card'
     LEFT JOIN public.verifications comm_doc ON s.owner_id = comm_doc.user_id AND comm_doc.verification_type = 'commerce_register'
     LEFT JOIN public.verifications pay_doc ON s.owner_id = pay_doc.user_id AND pay_doc.verification_type = 'payment_receipt'
+    LEFT JOIN public.verifications logo_doc ON s.owner_id = logo_doc.user_id AND logo_doc.verification_type = 'logo'
+    LEFT JOIN public.verifications banner_doc ON s.owner_id = banner_doc.user_id AND banner_doc.verification_type = 'banner'
     WHERE (
         CASE 
             WHEN pack_type = 'basic' THEN 

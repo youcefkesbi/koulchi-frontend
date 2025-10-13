@@ -19,13 +19,31 @@ import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 import MyStoreInfos from '../views/MyStoreInfos.vue'
 import NotFound from '../views/NotFound.vue'
+import AdminTab from '../components/dashboard/AdminTab.vue'
+import ManageUsers from '../views/ManageUsers.vue'
+import ManageCategories from '../views/ManageCategories.vue'
+import ManageStores from '../views/ManageStores.vue'
+import ManagePacks from '../views/ManagePacks.vue'
 
 // Supported locales configuration
+
 const supportedLocales = ['en', 'fr', 'ar']
 const defaultLocale = 'en'
 
 // Base routes without locale prefix
 const baseRoutes = [
+  {
+    path: '/users',
+    name: 'users',
+    component: ManageUsers,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admintab',
+    name: 'AdminTab',
+    component: AdminTab,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/productCard',
     name: 'productCard',
@@ -110,9 +128,25 @@ const baseRoutes = [
     props: true
   },
   {
+    path: '/categories',
+    name: 'Categories',
+    component: ManageCategories,
+    props: true
+  },
+  {
     path: '/stores',
     name: 'Stores',
     component: Stores
+  },
+  {
+    path: '/managestores',
+    name: 'Stores',
+    component: ManageStores
+  },
+  {
+    path: '/packs',
+    name: 'Packs',
+    component: ManagePacks
   },
   {
     path: '/stores/:id',

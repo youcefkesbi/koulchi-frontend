@@ -88,7 +88,8 @@
     "myPurchases": "My purchases",
     "orders": "Orders",
     "addProduct":"Product",
-    "myStoreProducts": "Products"
+    "myStoreProducts": "Products",
+    "moderation": "Moderation"
   },
   "notFound": {
     "title": "Page Not Found",
@@ -689,7 +690,29 @@
     "recentActivity": "Recent Activity",
     "noRecentActivity": "No Recent Activity",
     "noRecentActivityMessage": "No recent system activity to display",
-    "viewAllLogs": "View All Logs"
+    "viewAllLogs": "View All Logs",
+    "packs": {
+      "title": "Manage Packs",
+      "description": "Manage subscription packs and their features",
+      "searchPlaceholder": "Search packs...",
+      "allStatuses": "All Statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "name": "Name",
+      "description": "Description",
+      "price": "Price",
+      "maxAnnouncements": "Max Announcements",
+      "maxImages": "Max Images",
+      "status": "Status",
+      "actions": "Actions",
+      "free": "Free",
+      "currency": "DZD",
+      "noPacks": "No packs found",
+      "noPacksDescription": "Try adjusting your search or filter criteria",
+      "edit": "Edit pack",
+      "delete": "Delete pack",
+      "showingResults": "Showing {count} results"
+    }
   },
   "employee": {
     "dashboard": "Employee Dashboard",
@@ -713,6 +736,16 @@
     "pack": "Pack",
     "created": "Created",
     "location": "Location",
+    "storeId": "Store ID",
+    "basicStoreDetails": "Basic Store Details",
+    "storeInfo": "Store Information",
+    "storeName": "Store Name",
+    "storeDescription": "Store Description",
+    "ownerInfo": "Owner Information",
+    "status": "Status",
+    "idDocument": "ID Document",
+    "noIdDocument": "No ID Document Available",
+    "clickToView": "Click to view full size",
     "approve": "Approve",
     "reject": "Reject",
     "view": "View",
@@ -764,7 +797,16 @@
     "banner": "Banner",
     "noLogo": "No Logo",
     "noBanner": "No Banner",
-    "verificationDocuments": "Verification Documents"
+    "verificationDocuments": "Verification Documents",
+    "productDetails": "Product Details",
+    "productInfo": "Product Information",
+    "productName": "Product Name",
+    "productDescription": "Product Description",
+    "productImage": "Product Image",
+    "noImage": "No Image",
+    "sellerInfo": "Seller Information",
+    "seller": "Seller",
+    "category": "Category"
   },
   "verification": {
     "idCard": "ID Card",
