@@ -10,10 +10,13 @@ CREATE TABLE ad_requests (
     start_date TIMESTAMPTZ,
     end_date TIMESTAMPTZ,
     status VARCHAR(20) DEFAULT 'pending',  -- 'pending', 'approved', 'rejected'
+    rejection_reason TEXT; 
     ad_id uuid NULL REFERENCES ads(id),        -- filled when request is approved and ad created
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
+
+
 
 -- ================================
 -- Triggers
