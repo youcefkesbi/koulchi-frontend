@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/dist": true,
+			"**/.git": true
+		},
+		"explorer.confirmDelete": false,
+		"explorer.confirmDragAndDrop": false
+	},
+	"extensions": {
+		"recommendations": [
+			"Vue.volar",
+			"Vue.vscode-typescript-vue-plugin",
+			"bradlc.vscode-tailwindcss"
+		]
+	}
+}

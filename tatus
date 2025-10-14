@@ -1,0 +1,72 @@
+[33mcommit 550dddb8cf54a78897bc3a09bee3210875b24fa9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32memployee-dashborad3[m[33m, [m[1;32memployee-dashboard2[m[33m)[m
+Author: BellaNH <bouchranahnah@gmail.com>
+Date:   Mon Oct 13 22:35:50 2025 +0100
+
+    feat: Enhanced Employee Dashboard with Advanced Moderation & Filtering System
+    
+    ## 🎯 Major Features Added
+    
+    ### 📊 Employee Dashboard Restructuring
+    - **Consolidated Store Tabs**: Merged 'Basic Pack Stores' and 'Pro Pack Stores' into single 'Stores' tab with sub-tabs
+    - **Enhanced Ads Tab**: Re-added comprehensive ads moderation with store/product ad request management
+    - **Advanced Filtering System**: Added status-based filtering for stores, products, and ads across all tabs
+    - **Improved UI/UX**: Redesigned filter positioning (sub-tabs left, filters right) with enhanced visual styling
+    
+    ### 🗄️ Database Schema Enhancements
+    
+    #### ad_requests_table.sql
+    - **New Column**: Added ejection_reason TEXT column for detailed rejection feedback
+    - **Enhanced Data Integrity**: Improved rejection tracking for ad request moderation
+    
+    #### products_table.sql (Previous Changes)
+    - **Status Management**: Added status TEXT NOT NULL DEFAULT 'pending' with enum validation
+    - **Rejection Tracking**: Added ejection_reason TEXT column
+    - **Data Validation**: Implemented product_status enum and constraint checks
+    - **Performance**: Added products_status_idx index for optimized queries
+    
+    #### stores_table.sql (Previous Changes)
+    - **Constraint Management**: Replaced unique index with trigger-based approach for store constraints
+    - **Verification System**: Enhanced store verification with document and media tracking
+    - **RPC Functions**: Updated get_stores_by_pack_type with comprehensive field returns
+    
+    ### 🌐 Multi-Language Support (3 Languages)
+    - **English (en.json)**: Added 20+ new translation keys for filtering, moderation, and UI elements
+    - **French (fr.json)**: Complete French translations for all new features
+    - **Arabic (ar.json)**: Full RTL support with Arabic translations
+    
+    ### 🎨 UI/UX Improvements
+    
+    #### Filter System
+    - **Visual Design**: Custom-styled select dropdowns with hover effects and focus states
+    - **Positioning**: Sub-tabs on left, filters on right for better user flow
+    - **Responsive**: Optimized spacing and layout for all screen sizes
+    - **Accessibility**: Enhanced keyboard navigation and visual feedback
+    
+    #### Employee Dashboard Features
+    - **Status Filtering**: Filter stores/products/ads by pending/approved/rejected status
+    - **Real-time Counts**: Dynamic badge counts reflecting filtered results
+    - **Modal Enhancements**: Improved ad request detail forms with element-specific rejection
+    - **Consistent Spacing**: Standardized spacing between tabs and sub-tabs
+    
+    ### 🔧 Technical Improvements
+    
+    #### Component Architecture
+    - **State Management**: Added reactive filters (storesFilter, productsFilter, dsFilter)
+    - **Computed Properties**: Implemented filtered data views for all content types
+    - **Event Handling**: Enhanced rejection workflow with temporary reason storage
+    - **Performance**: Optimized data fetching and rendering
+    
+    #### Admin Dashboard
+    - **Simplified Structure**: Converted to redirect component for better routing
+    - **Clean Architecture**: Removed redundant code, improved maintainability
+    
+    ### 📋 New Translation Keys Added
+    - employee.stores, employee.ads - Main tab labels
+    - employee.filterByStatus, employee.allStatuses - Filter functionality
+    - employee.noAds, employee.noStoreAds, employee.noProductAds - Empty states
+    - employee.adDetails, employee.campaignDetails - Ad request details
+    - employee.priority, employee.categoryTargeting - Ad campaign info
+    - employee.inappropriateSlot, employee.invalidDuration - Rejection categories
+    
+    ### 🚀 Functionality Enhancements
+    - **Ad Request Moderation**: Complete approval/rejecti
