@@ -519,6 +519,7 @@
     "sale": "Sale",
     "cod": "Cash on Delivery",
     "addToCart": "Add to Cart",
+    "promote": "Promote",
     "outOfStock": "Out of Stock",
     "view": "View",
     "viewProduct": "View Product",
@@ -1052,6 +1053,40 @@
       "pending": "Pending",
       "rejected": "Rejected"
     }
+  },
+  "adRequest": {
+    "title": "Promote Your Item",
+    "subtitle": "Create an ad request to promote your products or store",
+    "success": "Ad Request Submitted!",
+    "successMessage": "Your ad request has been submitted successfully. Our team will review it and get back to you soon.",
+    "error": "Error",
+    "itemSelection": "Item Selection",
+    "itemType": "What would you like to promote?",
+    "product": "Product",
+    "productDesc": "Promote a specific product",
+    "store": "Store",
+    "storeDesc": "Promote your entire store",
+    "selectProduct": "Select Product",
+    "selectStore": "Select Store",
+    "pleaseSelect": "Please select an item",
+    "adConfiguration": "Ad Configuration",
+    "slotType": "Ad Placement",
+    "selectSlotType": "Select where you want your ad to appear",
+    "homepageBanner": "Homepage Banner",
+    "homepageFeaturedProducts": "Homepage Featured Products",
+    "homepageFeaturedStores": "Homepage Featured Stores",
+    "categoryBanner": "Category Banner",
+    "categoryFeaturedProducts": "Category Featured Products",
+    "browseByCategoryProducts": "Browse by Category Products",
+    "category": "Category",
+    "selectCategory": "Select Category (Optional)",
+    "priority": "Priority",
+    "priorityPlaceholder": "0-100 (higher = more prominent)",
+    "priorityHelp": "Higher priority ads appear first in their slot",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "submitting": "Submitting...",
+    "submit": "Submit Ad Request"
   }
 }
 

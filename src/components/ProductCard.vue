@@ -87,26 +87,48 @@
 
       <!-- Actions -->
       <div class="flex space-x-3 space-x-reverse">
-        <button
-          @click="handleAddToCart"
-          :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
-          :class="(product.stock_quantity || 0) <= 0 
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
-        >
-          <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
-          <i v-else class="fas fa-spinner fa-spin"></i>
-          <span>{{ getCartButtonText() }}</span>
-        </button>
+        <!-- Owner Controls -->
+        <template v-if="showOwnerControls">
+          <button
+            @click="handlePromote"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white hover:scale-105"
+          >
+            <i class="fas fa-bullhorn"></i>
+            <span>{{ $t('product.promote') }}</span>
+          </button>
+          
+          <router-link
+            :to="`/${$i18n.locale.value}/product/${product.id}`"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </router-link>
+        </template>
         
-        <router-link
-          :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
-          :title="$t('product.viewProduct')"
-        >
-          <i class="fas fa-eye"></i>
-        </router-link>
+        <!-- Regular User Controls -->
+        <template v-else>
+          <button
+            @click="handleAddToCart"
+            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            :class="(product.stock_quantity || 0) <= 0 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
+          >
+            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>{{ getCartButtonText() }}</span>
+          </button>
+          
+          <router-link
+            :to="`/${$i18n.locale.value}/product/${product.id}`"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </router-link>
+        </template>
       </div>
 
       <!-- Error Message -->
@@ -119,6 +141,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
 
@@ -126,9 +149,14 @@ const props = defineProps({
   product: {
     type: Object,
     required: true
+  },
+  showOwnerControls: {
+    type: Boolean,
+    default: false
   }
 })
 
+const router = useRouter()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
@@ -194,6 +222,17 @@ const toggleWishlist = async () => {
   } finally {
     wishlistLoading.value = false
   }
+}
+
+const handlePromote = () => {
+  // Navigate to ad request form with product pre-filled
+  router.push({
+    name: 'AdRequest',
+    query: {
+      type: 'product',
+      id: props.product.id
+    }
+  })
 }
 
 const handleImageError = (event) => {
