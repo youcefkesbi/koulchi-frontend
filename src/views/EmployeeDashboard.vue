@@ -61,13 +61,13 @@
       <!-- Tabs -->
       <div class="bg-white rounded-2xl shadow-soft mb-8">
         <div class="border-b border-gray-200">
-          <nav class="flex space-x-8 space-x-reverse px-6">
+          <nav class="flex space-x-12 space-x-reverse px-6">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               @click="activeTab = tab.id"
               :class="[
-                'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                'py-5 px-1 border-b-2 font-medium text-sm transition-colors',
                 activeTab === tab.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -83,134 +83,171 @@
         </div>
 
         <div class="p-6">
-          <!-- Basic Pack Stores Tab -->
-          <div v-if="activeTab === 'basicStores'" class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.basicPackStores') }}</h2>
-              <button
-                @click="refreshData"
-                :disabled="loading"
-                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                <i class="fas fa-sync-alt mr-2" :class="{ 'animate-spin': loading }"></i>
-                {{ $t('common.refresh') }}
-              </button>
-            </div>
-
-            <div v-if="loading" class="text-center py-8">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p class="text-gray-600">{{ $t('common.loading') }}</p>
-            </div>
-
-            <div v-else-if="basicStores.length === 0" class="text-center py-12">
-              <div class="text-gray-400 text-5xl mb-4">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noBasicStores') }}</h3>
-              <p class="text-gray-600">{{ $t('employee.noBasicStoresMessage') }}</p>
-            </div>
-
-            <div v-else class="space-y-4">
-              <div
-                v-for="store in basicStores"
-                :key="store.id"
-                @click="openBasicStoreDetails(store)"
-                class="border border-gray-200 rounded-xl p-6 hover:shadow-md cursor-pointer transition-shadow"
-              >
-                <div class="flex items-start space-x-4 space-x-reverse">
-                  <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-store text-blue-600 text-2xl"></i>
-                  </div>
-                  
-                  <div class="flex-1">
-                    <div class="space-y-2">
-                      <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
-                      <div class="text-sm text-gray-500">
-                        <strong>{{ $t('employee.storeId') }}:</strong> {{ store.id }}
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
-                      </div>
+          <!-- Stores Tab -->
+          <div v-if="activeTab === 'stores'" class="space-y-6">
+            <!-- Stores Sub-tabs with Filter -->
+            <div class="border-b border-gray-200">
+              <div class="flex items-center justify-between">
+                <!-- Sub-tabs -->
+                <nav class="flex space-x-16 space-x-reverse">
+                <button
+                  @click="activeStoresTab = 'basic'"
+                  :class="[
+                    'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    activeStoresTab === 'basic'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ]"
+                >
+                  <i class="fas fa-store mr-2"></i>
+                  {{ $t('employee.basicPackStores') }}
+                  <span v-if="filteredBasicStores.length > 0" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
+                    {{ filteredBasicStores.length }}
+                  </span>
+                </button>
+                <button
+                  @click="activeStoresTab = 'pro'"
+                  :class="[
+                    'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    activeStoresTab === 'pro'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ]"
+                >
+                  <i class="fas fa-crown mr-2"></i>
+                  {{ $t('employee.proPackStores') }}
+                  <span v-if="filteredProStores.length > 0" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
+                    {{ filteredProStores.length }}
+                  </span>
+                </button>
+                </nav>
+                
+                <!-- Filter Button -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                  <div class="relative">
+                    <select
+                      v-model="storesFilter"
+                      class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 hover:border-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors cursor-pointer"
+                    >
+                      <option value="all">{{ $t('employee.allStatuses') }}</option>
+                      <option value="pending">{{ $t('employee.pending') }}</option>
+                      <option value="approved">{{ $t('employee.approved') }}</option>
+                      <option value="rejected">{{ $t('employee.rejected') }}</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
                     </div>
                   </div>
+                  <span class="text-xs text-gray-500 font-medium">{{ $t('employee.filterByStatus') }}</span>
+                </div>
+              </div>
+            </div>
 
-                  <div class="flex items-center">
-                    <span :class="getStatusClass(store.status)">
-                      {{ store.status }}
-                    </span>
+            <!-- Basic Pack Stores Sub-tab -->
+            <div v-if="activeStoresTab === 'basic'">
+              <div v-if="loading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                <p class="text-gray-600">{{ $t('common.loading') }}</p>
+              </div>
+
+              <div v-else-if="filteredBasicStores.length === 0" class="text-center py-12">
+                <div class="text-gray-400 text-5xl mb-4">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noBasicStores') }}</h3>
+                <p class="text-gray-600">{{ $t('employee.noBasicStoresMessage') }}</p>
+              </div>
+
+              <div v-else class="space-y-4">
+                <div
+                  v-for="store in filteredBasicStores"
+                  :key="store.id"
+                  @click="openBasicStoreDetails(store)"
+                  class="border border-gray-200 rounded-xl p-6 hover:shadow-md cursor-pointer transition-shadow"
+                >
+                  <div class="flex items-start space-x-4 space-x-reverse">
+                    <div class="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <i class="fas fa-store text-blue-600 text-2xl"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                      <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.storeId') }}:</strong> {{ store.id }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center">
+                      <span :class="getStatusClass(store.status)">
+                        {{ store.status }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Pro Pack Stores Tab -->
-          <div v-if="activeTab === 'proStores'" class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.proPackStores') }}</h2>
-              <button
-                @click="refreshData"
-                :disabled="loading"
-                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                <i class="fas fa-sync-alt mr-2" :class="{ 'animate-spin': loading }"></i>
-                {{ $t('common.refresh') }}
-              </button>
-            </div>
-
-            <div v-if="loading" class="text-center py-8">
-              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p class="text-gray-600">{{ $t('common.loading') }}</p>
-            </div>
-
-            <div v-else-if="proStores.length === 0" class="text-center py-12">
-              <div class="text-gray-400 text-5xl mb-4">
-                <i class="fas fa-check-circle"></i>
+            <!-- Pro Pack Stores Sub-tab -->
+            <div v-if="activeStoresTab === 'pro'">
+              <div v-if="loading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                <p class="text-gray-600">{{ $t('common.loading') }}</p>
               </div>
-              <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noPendingStores') }}</h3>
-              <p class="text-gray-600">{{ $t('employee.noPendingStoresMessage') }}</p>
-            </div>
-            <!--Pro pack stores list -->
-            <div v-else class="space-y-4">
-              <div
-                v-for="store in proStores"
-                :key="store.id"
-                @click="store.status === 'pending' ? openStoreDetails(store) : null"
-                :class="[
-                  'border border-gray-200 rounded-xl p-6 transition-shadow',
-                  store.status === 'pending' ? 'hover:shadow-md cursor-pointer' : 'cursor-default'
-                ]"
-              >
-                <div class="flex items-start space-x-4 space-x-reverse">
-                  <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
-                    <img 
-                      v-if="store.logo_url" 
-                      :src="store.logo_url" 
-                      :alt="store.name"
-                      class="w-full h-full object-cover rounded-xl"
-                    />
-                    <i v-else class="fas fa-store text-white text-2xl"></i>
-                  </div>
-                  
-                  <div class="flex-1">
-                    <div class="space-y-2">
-                      <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
-                      <div class="text-sm text-gray-500">
-                        <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
+
+              <div v-else-if="filteredProStores.length === 0" class="text-center py-12">
+                <div class="text-gray-400 text-5xl mb-4">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noPendingStores') }}</h3>
+                <p class="text-gray-600">{{ $t('employee.noPendingStoresMessage') }}</p>
+              </div>
+
+              <div v-else class="space-y-4">
+                <div
+                  v-for="store in filteredProStores"
+                  :key="store.id"
+                  @click="store.status === 'pending' ? openStoreDetails(store) : null"
+                  :class="[
+                    'border border-gray-200 rounded-xl p-6 transition-shadow',
+                    store.status === 'pending' ? 'hover:shadow-md cursor-pointer' : 'cursor-default'
+                  ]"
+                >
+                  <div class="flex items-start space-x-4 space-x-reverse">
+                    <div class="w-16 h-16 bg-primary rounded-xl flex items-center justify-center">
+                      <img 
+                        v-if="store.logo_url" 
+                        :src="store.logo_url" 
+                        :alt="store.name"
+                        class="w-full h-full object-cover rounded-xl"
+                      />
+                      <i v-else class="fas fa-store text-white text-2xl"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                      <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-800">{{ store.name || $t('stores.defaultStoreName') }}</h3>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.owner') }}:</strong> {{ store.owner_name || 'N/A' }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(store.created_at) }}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="flex items-center">
-                    <span :class="getStatusClass(store.status)">
-                      {{ store.status }}
-                    </span>
+                    <div class="flex items-center">
+                      <span :class="getStatusClass(store.status)">
+                        {{ store.status }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -222,16 +259,25 @@
 
           <!-- Products Tab -->
           <div v-if="activeTab === 'products'" class="space-y-6">
-            <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-800">{{ $t('employee.products') }}</h2>
-              <button
-                @click="refreshData"
-                :disabled="loading"
-                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
-                <i class="fas fa-sync-alt mr-2" :class="{ 'animate-spin': loading }"></i>
-                {{ $t('common.refresh') }}
-              </button>
+            <!-- Products Filter -->
+            <div class="flex items-center justify-start">
+              <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="relative">
+                  <select
+                    v-model="productsFilter"
+                    class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 hover:border-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors cursor-pointer"
+                  >
+                    <option value="all">{{ $t('employee.allStatuses') }}</option>
+                    <option value="pending">{{ $t('employee.pending') }}</option>
+                    <option value="approved">{{ $t('employee.approved') }}</option>
+                    <option value="rejected">{{ $t('employee.rejected') }}</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500 font-medium">{{ $t('employee.filterByStatus') }}</span>
+              </div>
             </div>
 
             <div v-if="loading" class="text-center py-8">
@@ -239,7 +285,7 @@
               <p class="text-gray-600">{{ $t('common.loading') }}</p>
             </div>
 
-            <div v-else-if="products.length === 0" class="text-center py-12">
+            <div v-else-if="filteredProducts.length === 0" class="text-center py-12">
               <div class="text-gray-400 text-5xl mb-4">
                 <i class="fas fa-check-circle"></i>
               </div>
@@ -249,7 +295,7 @@
 
             <div v-else class="space-y-4">
               <div
-                v-for="product in products"
+                v-for="product in filteredProducts"
                 :key="product.product_id"
                 @click="openProductDetails(product)"
                 class="border border-gray-200 rounded-xl p-6 transition-shadow hover:shadow-md cursor-pointer"
@@ -281,6 +327,172 @@
                     <span :class="getStatusClass(product.status)">
                       {{ product.status }}
                     </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ads Tab -->
+          <div v-if="activeTab === 'ads'" class="space-y-6">
+            <!-- Ads Sub-tabs with Filter -->
+            <div class="border-b border-gray-200">
+              <div class="flex items-center justify-between">
+                <!-- Sub-tabs -->
+                <nav class="flex space-x-12 space-x-reverse">
+                <button
+                  @click="activeAdsTab = 'stores'"
+                  :class="[
+                    'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    activeAdsTab === 'stores'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ]"
+                >
+                  <i class="fas fa-store mr-2"></i>
+                  {{ $t('employee.stores') }}
+                  <span v-if="filteredStoreAds.length > 0" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
+                    {{ filteredStoreAds.length }}
+                  </span>
+                </button>
+                <button
+                  @click="activeAdsTab = 'products'"
+                  :class="[
+                    'py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                    activeAdsTab === 'products'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ]"
+                >
+                  <i class="fas fa-box mr-2"></i>
+                  {{ $t('employee.products') }}
+                  <span v-if="filteredProductAds.length > 0" class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
+                    {{ filteredProductAds.length }}
+                  </span>
+                </button>
+                </nav>
+                
+                <!-- Filter Button -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                  <div class="relative">
+                    <select
+                      v-model="adsFilter"
+                      class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-700 hover:border-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors cursor-pointer"
+                    >
+                      <option value="all">{{ $t('employee.allStatuses') }}</option>
+                      <option value="pending">{{ $t('employee.pending') }}</option>
+                      <option value="approved">{{ $t('employee.approved') }}</option>
+                      <option value="rejected">{{ $t('employee.rejected') }}</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    </div>
+                  </div>
+                  <span class="text-xs text-gray-500 font-medium">{{ $t('employee.filterByStatus') }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Store Ads Sub-tab -->
+            <div v-if="activeAdsTab === 'stores'">
+              <div v-if="loading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                <p class="text-gray-600">{{ $t('common.loading') }}</p>
+              </div>
+
+              <div v-else-if="filteredStoreAds.length === 0" class="text-center py-12">
+                <div class="text-gray-400 text-5xl mb-4">
+                  <i class="fas fa-store"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noStoreAds') }}</h3>
+                <p class="text-gray-600">{{ $t('employee.noStoreAdsMessage') }}</p>
+              </div>
+
+              <div v-else class="space-y-4">
+                <div
+                  v-for="ad in filteredStoreAds"
+                  :key="ad.id"
+                  @click="openAdDetails(ad)"
+                  class="border border-gray-200 rounded-xl p-6 transition-shadow hover:shadow-md cursor-pointer"
+                >
+                  <div class="flex items-start space-x-4 space-x-reverse">
+                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <i class="fas fa-store text-purple-600 text-2xl"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                      <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                          {{ ad.store_name || 'Basic Store' }}
+                        </h3>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.requester') }}:</strong> {{ ad.requester_name || 'N/A' }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(ad.created_at) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center">
+                      <span :class="getStatusClass(ad.status)">
+                        {{ ad.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Ads Sub-tab -->
+            <div v-if="activeAdsTab === 'products'">
+              <div v-if="loading" class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                <p class="text-gray-600">{{ $t('common.loading') }}</p>
+              </div>
+
+              <div v-else-if="filteredProductAds.length === 0" class="text-center py-12">
+                <div class="text-gray-400 text-5xl mb-4">
+                  <i class="fas fa-box"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('employee.noProductAds') }}</h3>
+                <p class="text-gray-600">{{ $t('employee.noProductAdsMessage') }}</p>
+              </div>
+
+              <div v-else class="space-y-4">
+                <div
+                  v-for="ad in filteredProductAds"
+                  :key="ad.id"
+                  @click="openAdDetails(ad)"
+                  class="border border-gray-200 rounded-xl p-6 transition-shadow hover:shadow-md cursor-pointer"
+                >
+                  <div class="flex items-start space-x-4 space-x-reverse">
+                    <div class="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <i class="fas fa-box text-purple-600 text-2xl"></i>
+                    </div>
+                    
+                    <div class="flex-1">
+                      <div class="space-y-2">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                          {{ ad.product_name }}
+                        </h3>
+                        <div class="text-sm text-gray-500" v-if="ad.store_name">
+                          <strong>{{ $t('employee.store') }}:</strong> {{ ad.store_name }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.requester') }}:</strong> {{ ad.requester_name || 'N/A' }}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                          <strong>{{ $t('employee.created') }}:</strong> {{ formatDate(ad.created_at) }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center">
+                      <span :class="getStatusClass(ad.status)">
+                        {{ ad.status }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -444,6 +656,197 @@
       </div>
     </div>
 
+    <!-- Ad Details Modal -->
+    <div v-if="showAdDetailsModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl shadow-soft max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-800">{{ $t('employee.adDetails') }}</h3>
+          <button
+            @click="closeAdDetails"
+            class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto max-h-[70vh]">
+          <div v-if="selectedAd" class="space-y-6">
+            <!-- Ad Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.adInfo') }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Item Name -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">
+                      {{ selectedAd.item_type === 'product' ? $t('employee.productName') : $t('employee.storeName') }}:
+                    </label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.item_type === 'product' ? selectedAd.product_name : (selectedAd.store_name || 'Basic Store') }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Store Name (for products) -->
+                  <div v-if="selectedAd.item_type === 'product' && selectedAd.store_name" class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.storeName') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.store_name }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Requester Info -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.requester') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.requester_name || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ad Campaign Details -->
+              <div class="flex flex-col">
+                <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.campaignDetails') }}</h4>
+                <div class="space-y-4 flex-1">
+                  <!-- Slot Type -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.slotType') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.slot_type }}</p>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectAdElement('slot_type', selectedAd.id, $t('employee.slotType'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Priority Level -->
+                  <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.priority') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.priority }}</p>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectAdElement('priority', selectedAd.id, $t('employee.priority'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Category Targeting -->
+                  <div v-if="selectedAd.category_id" class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                    <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.categoryTargeting') }}:</label>
+                    <div class="flex items-start justify-between">
+                      <div class="flex-1">
+                        <p class="text-gray-800 mb-2">{{ selectedAd.category_name || 'N/A' }}</p>
+                      </div>
+                      <div class="flex space-x-2 space-x-reverse ml-3">
+                        <button
+                          @click="rejectAdElement('category', selectedAd.id, $t('employee.categoryTargeting'))"
+                          :disabled="processing"
+                          class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                        >
+                          <i class="fas fa-times mr-1"></i>
+                          {{ $t('employee.reject') }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ad Duration - Full Width -->
+            <div class="mt-6">
+              <h4 class="text-md font-semibold text-gray-800 mb-3">{{ $t('employee.adDuration') }}</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Start Date -->
+                <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                  <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.startDate') }}:</label>
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <p class="text-gray-800 mb-2">{{ selectedAd.start_date ? formatDate(selectedAd.start_date) : 'N/A' }}</p>
+                    </div>
+                    <div class="flex space-x-2 space-x-reverse ml-3">
+                      <button
+                        @click="rejectAdElement('start_date', selectedAd.id, $t('employee.startDate'))"
+                        :disabled="processing"
+                        class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                      >
+                        <i class="fas fa-times mr-1"></i>
+                        {{ $t('employee.reject') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- End Date -->
+                <div class="border border-gray-200 rounded-lg p-4 h-24 flex flex-col justify-between">
+                  <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.endDate') }}:</label>
+                  <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                      <p class="text-gray-800 mb-2">{{ selectedAd.end_date ? formatDate(selectedAd.end_date) : 'N/A' }}</p>
+                    </div>
+                    <div class="flex space-x-2 space-x-reverse ml-3">
+                      <button
+                        @click="rejectAdElement('end_date', selectedAd.id, $t('employee.endDate'))"
+                        :disabled="processing"
+                        class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors disabled:opacity-50"
+                      >
+                        <i class="fas fa-times mr-1"></i>
+                        {{ $t('employee.reject') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-4 space-x-reverse pt-6 border-t border-gray-200">
+              <button
+                @click="rejectAd(selectedAd.id)"
+                :disabled="processing"
+                class="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-times mr-2"></i>
+                {{ $t('employee.reject') }}
+              </button>
+              <button
+                @click="approveAd(selectedAd.id)"
+                :disabled="processing"
+                class="px-6 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+              >
+                <i class="fas fa-check mr-2"></i>
+                {{ $t('employee.approve') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Document Rejection Modal -->
     <div v-if="showRejectionModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
       <div class="bg-white rounded-2xl shadow-soft max-w-md w-full">
@@ -471,7 +874,7 @@
                     <option value="other">{{ $t('employee.other') }}</option>
                   </template>
                   <!-- Text content categories for name/description -->
-                  <template v-else>
+                  <template v-else-if="currentRejectionTarget.type === 'element'">
                     <option value="inappropriate_content">{{ $t('employee.inappropriateContent') }}</option>
                     <option value="incomplete_information">{{ $t('employee.incompleteInformation') }}</option>
                     <option value="not_descriptive">{{ $t('employee.notDescriptive') }}</option>
@@ -479,6 +882,23 @@
                     <option value="too_long">{{ $t('employee.tooLong') }}</option>
                     <option value="unclear_language">{{ $t('employee.unclearLanguage') }}</option>
                     <option value="policy_violation">{{ $t('employee.policyViolation') }}</option>
+                    <option value="other">{{ $t('employee.other') }}</option>
+                  </template>
+                  <!-- Ad element categories -->
+                  <template v-else-if="currentRejectionTarget.type === 'ad_element'">
+                    <option value="inappropriate_slot">{{ $t('employee.inappropriateSlot') }}</option>
+                    <option value="invalid_duration">{{ $t('employee.invalidDuration') }}</option>
+                    <option value="invalid_priority">{{ $t('employee.invalidPriority') }}</option>
+                    <option value="invalid_category">{{ $t('employee.invalidCategory') }}</option>
+                    <option value="policy_violation">{{ $t('employee.policyViolation') }}</option>
+                    <option value="other">{{ $t('employee.other') }}</option>
+                  </template>
+                  <!-- Ad rejection categories -->
+                  <template v-else-if="currentRejectionTarget.type === 'ad'">
+                    <option value="inappropriate_content">{{ $t('employee.inappropriateContent') }}</option>
+                    <option value="invalid_campaign">{{ $t('employee.invalidCampaign') }}</option>
+                    <option value="policy_violation">{{ $t('employee.policyViolation') }}</option>
+                    <option value="insufficient_budget">{{ $t('employee.insufficientBudget') }}</option>
                     <option value="other">{{ $t('employee.other') }}</option>
                   </template>
                 </select>
@@ -907,7 +1327,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
 
@@ -915,7 +1335,14 @@ const { t: $t } = useI18n()
 
 // State
 const activeTab = ref('stores')
+const activeStoresTab = ref('basic')
+const activeAdsTab = ref('stores')
 const loading = ref(false)
+
+// Filter states
+const storesFilter = ref('all')
+const productsFilter = ref('all')
+const adsFilter = ref('all')
 const processing = ref(false)
 const showRejectionModal = ref(false)
 const showDocumentViewer = ref(false)
@@ -931,6 +1358,8 @@ const showBasicStoreDetailsModal = ref(false)
 const selectedBasicStore = ref(null)
 const showProductDetailsModal = ref(false)
 const selectedProduct = ref(null)
+const showAdDetailsModal = ref(false)
+const selectedAd = ref(null)
 
 // Store rejection reasons for name and description
 const storeRejectionReasons = ref({
@@ -945,37 +1374,84 @@ const productRejectionReasons = ref({
   image: null
 })
 
+// Ad rejection reasons for elements
+const adRejectionReasons = ref({
+  slot_type: null,
+  priority: null,
+  category: null,
+  start_date: null,
+  end_date: null
+})
+
 // Data
 const basicStores = ref([])
 const proStores = ref([])
 const products = ref([])
+const ads = ref([])
 
 // Tabs configuration
-const tabs = computed(() => [
-  {
-    id: 'basicStores',
-    name: $t('employee.basicPackStores'),
-    icon: 'fas fa-store',
-    count: basicStores.value.length
-  },
-  {
-    id: 'proStores',
-    name: $t('employee.proPackStores'),
-    icon: 'fas fa-crown',
-    count: proStores.value.length
-  },
-  {
-    id: 'products',
-    name: $t('employee.products'),
-    icon: 'fas fa-box',
-    count: products.value.length
-  }
-])
+const tabs = computed(() => {
+  console.log('Tabs computed - ads count:', ads.value.length)
+  return [
+    {
+      id: 'stores',
+      name: $t('employee.stores'),
+      icon: 'fas fa-store',
+      count: basicStores.value.length + proStores.value.length
+    },
+    {
+      id: 'products',
+      name: $t('employee.products'),
+      icon: 'fas fa-box',
+      count: products.value.length
+    },
+    {
+      id: 'ads',
+      name: $t('employee.ads'),
+      icon: 'fas fa-bullhorn',
+      count: ads.value.length
+    }
+  ]
+})
 
 // Computed properties
 const basicStoresCount = computed(() => basicStores.value.length)
 const proStoresCount = computed(() => proStores.value.length)
 const productsCount = computed(() => products.value.length)
+const adsCount = computed(() => ads.value.length)
+
+// Filtered ads for sub-tabs
+const storeAds = computed(() => ads.value.filter(ad => ad.item_type === 'store'))
+const productAds = computed(() => ads.value.filter(ad => ad.item_type === 'product'))
+const storeAdsCount = computed(() => storeAds.value.length)
+const productAdsCount = computed(() => productAds.value.length)
+
+// Filtered data based on status
+const filteredBasicStores = computed(() => {
+  if (storesFilter.value === 'all') return basicStores.value
+  return basicStores.value.filter(store => store.status === storesFilter.value)
+})
+
+const filteredProStores = computed(() => {
+  if (storesFilter.value === 'all') return proStores.value
+  return proStores.value.filter(store => store.status === storesFilter.value)
+})
+
+const filteredProducts = computed(() => {
+  if (productsFilter.value === 'all') return products.value
+  return products.value.filter(product => product.status === productsFilter.value)
+})
+
+const filteredStoreAds = computed(() => {
+  if (adsFilter.value === 'all') return storeAds.value
+  return storeAds.value.filter(ad => ad.status === adsFilter.value)
+})
+
+const filteredProductAds = computed(() => {
+  if (adsFilter.value === 'all') return productAds.value
+  return productAds.value.filter(ad => ad.status === adsFilter.value)
+})
+
 const todayApprovalsCount = computed(() => 0) // TODO: Implement today's approvals count
 
 // Rejection validation
@@ -1025,6 +1501,71 @@ const fetchProducts = async () => {
   }
 }
 
+const fetchAds = async () => {
+  try {
+    console.log('Fetching ads...')
+    
+    // First try a simple query without joins to see if basic data works
+    const { data: simpleData, error: simpleError } = await supabase
+      .from('ad_requests')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (simpleError) {
+      console.error('Simple query error:', simpleError)
+      throw simpleError
+    }
+    
+    console.log('Simple ads data received:', simpleData)
+    
+    // If simple query works, try with join
+    const { data, error } = await supabase
+      .from('ad_requests')
+      .select(`
+        *,
+        profiles!requester_id (
+          first_name,
+          last_name
+        ),
+        products!product_id (
+          name as product_name,
+          stores!store_id (
+            name as store_name
+          )
+        ),
+        stores!store_id (
+          name as store_name
+        )
+      `)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Join query error:', error)
+      // Fallback to simple data if join fails
+      ads.value = (simpleData || []).map(ad => ({
+        ...ad,
+        requester_name: 'N/A',
+        product_name: null,
+        store_name: null
+      }))
+      return
+    }
+    
+    console.log('Join ads data received:', data)
+    
+    // Transform data to include requester name, product name, and store name
+    ads.value = (data || []).map(ad => ({
+      ...ad,
+      requester_name: ad.profiles ? `${ad.profiles.first_name} ${ad.profiles.last_name}` : 'N/A',
+      product_name: ad.products?.product_name || null,
+      store_name: ad.stores?.store_name || ad.products?.stores?.store_name || null
+    }))
+    
+    console.log('Processed ads:', ads.value)
+  } catch (error) {
+    console.error('Error fetching ads:', error)
+  }
+}
 
 const refreshData = async () => {
   loading.value = true
@@ -1032,7 +1573,8 @@ const refreshData = async () => {
     await Promise.all([
       fetchBasicStores(),
       fetchProStores(),
-      fetchProducts()
+      fetchProducts(),
+      fetchAds()
     ])
   } finally {
     loading.value = false
@@ -1052,6 +1594,16 @@ const resetProductRejectionReasons = () => {
     name: null,
     description: null,
     image: null
+  }
+}
+
+const resetAdRejectionReasons = () => {
+  adRejectionReasons.value = {
+    slot_type: null,
+    priority: null,
+    category: null,
+    start_date: null,
+    end_date: null
   }
 }
 
@@ -1633,6 +2185,66 @@ const confirmRejection = async () => {
       await refreshData()
       
       alert('Product rejected successfully')
+    } else if (type === 'ad_element') {
+      // Handle ad element rejection - store rejection reason temporarily
+      let rejectionText = `${elementType}: ${rejectionReason.value.trim()}`
+      if (customRejectionReason.value.trim()) {
+        rejectionText += ` - ${customRejectionReason.value.trim()}`
+      }
+      
+      // Store rejection reason for the specific element
+      adRejectionReasons.value[elementType] = rejectionText
+
+      // Log the action
+      await logEmployeeAction('reject_element', 'ad_element', id, { 
+        action: 'reject',
+        element_type: elementType,
+        reason: rejectionReason.value.trim(),
+        details: customRejectionReason.value.trim()
+      })
+
+      // Close rejection modal but keep ad details modal open
+      showRejectionModal.value = false
+      rejectionReason.value = ''
+      customRejectionReason.value = ''
+      currentRejectionTarget.value = null
+      
+      alert(`${elementType} rejected successfully`)
+    } else if (type === 'ad') {
+      // Handle ad rejection with manual reason
+      const { error } = await supabase
+        .from('ad_requests')
+        .update({ 
+          status: 'rejected',
+          rejection_reason: rejectionReason.value.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // Log the action
+      await logEmployeeAction('reject_ad', 'ad_request', id, { 
+        action: 'reject',
+        reason: rejectionReason.value.trim(),
+        details: customRejectionReason.value.trim()
+      })
+
+      // Reset ad rejection reasons
+      resetAdRejectionReasons()
+
+      // Close modals
+      showRejectionModal.value = false
+      showAdDetailsModal.value = false
+      selectedAd.value = null
+      rejectionReason.value = ''
+      customRejectionReason.value = ''
+      currentRejectionTarget.value = null
+
+      // Refresh ads data
+      await fetchAds()
+      
+      alert('Ad request rejected successfully')
     }
   } catch (error) {
     console.error('Error rejecting item:', error)
@@ -1681,6 +2293,106 @@ const openProductDetails = (product) => {
 const closeProductDetails = () => {
   showProductDetailsModal.value = false
   selectedProduct.value = null
+}
+
+const openAdDetails = (ad) => {
+  selectedAd.value = ad
+  showAdDetailsModal.value = true
+}
+
+const closeAdDetails = () => {
+  showAdDetailsModal.value = false
+  selectedAd.value = null
+  resetAdRejectionReasons()
+}
+
+const rejectAdElement = (elementType, adId, elementName) => {
+  currentRejectionTarget.value = {
+    type: 'ad_element',
+    elementType,
+    adId,
+    elementName
+  }
+  showRejectionModal.value = true
+}
+
+const approveAd = async (adId) => {
+  processing.value = true
+  try {
+    const { error } = await supabase
+      .from('ad_requests')
+      .update({ 
+        status: 'approved',
+        rejection_reason: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', adId)
+
+    if (error) throw error
+
+    // Log the action
+    await logEmployeeAction('approve_ad', 'ad_request', adId, { action: 'approve' })
+
+    // Refresh ads data
+    await fetchAds()
+    closeAdDetails()
+  } catch (error) {
+    console.error('Error approving ad:', error)
+  } finally {
+    processing.value = false
+  }
+}
+
+const rejectAd = async (adId) => {
+  processing.value = true
+  
+  try {
+    // Check if there are any element rejection reasons
+    const elementRejections = Object.entries(adRejectionReasons.value)
+      .filter(([key, value]) => value !== null)
+      .map(([key, value]) => value)
+    
+    let rejectionReason = ''
+    if (elementRejections.length > 0) {
+      // Combine all element rejection reasons
+      rejectionReason = elementRejections.join(' | ')
+    } else {
+      // If no element rejections, open rejection modal for manual rejection
+      currentRejectionTarget.value = { type: 'ad', id: adId }
+      showRejectionModal.value = true
+      processing.value = false
+      return
+    }
+
+    const { error } = await supabase
+      .from('ad_requests')
+      .update({ 
+        status: 'rejected',
+        rejection_reason: rejectionReason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', adId)
+
+    if (error) throw error
+
+    // Log the action
+    await logEmployeeAction('reject_ad', 'ad_request', adId, { 
+      action: 'reject',
+      reason: rejectionReason,
+      element_rejections: elementRejections
+    })
+
+    // Reset ad rejection reasons
+    resetAdRejectionReasons()
+
+    // Refresh ads data
+    await fetchAds()
+    closeAdDetails()
+  } catch (error) {
+    console.error('Error rejecting ad:', error)
+  } finally {
+    processing.value = false
+  }
 }
 
 const viewDocument = (documentUrl, documentType) => {
@@ -1763,6 +2475,14 @@ const logEmployeeAction = async (action, targetType, targetId, details = {}) => 
     console.error('Error logging employee action:', error)
   }
 }
+
+// Watchers
+watch(activeTab, (newTab) => {
+  if (newTab === 'ads') {
+    console.log('Ads tab clicked, fetching ads...')
+    fetchAds()
+  }
+})
 
 // Lifecycle
 onMounted(() => {
