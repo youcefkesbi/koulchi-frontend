@@ -129,6 +129,65 @@ FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
 -- ================================
+-- RPC Functions
+-- ================================
+
+-- Function to get all packs with their features for admin management
+CREATE OR REPLACE FUNCTION public.get_all_packs_with_features()
+RETURNS TABLE (
+    pack_id UUID,
+    name_en TEXT,
+    name_ar TEXT,
+    name_fr TEXT,
+    description_en TEXT,
+    description_ar TEXT,
+    description_fr TEXT,
+    price DECIMAL(10,2),
+    max_announcements INTEGER,
+    max_images INTEGER,
+    is_active BOOLEAN,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    features JSONB,
+    feature_names TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        p.id as pack_id,
+        p.name_en::TEXT,
+        p.name_ar::TEXT,
+        p.name_fr::TEXT,
+        p.description_en::TEXT,
+        p.description_ar::TEXT,
+        p.description_fr::TEXT,
+        p.price,
+        p.max_announcements,
+        p.max_images,
+        p.is_active,
+        p.created_at,
+        p.updated_at,
+        p.features,
+        COALESCE(
+            STRING_AGG(DISTINCT f.display_name, E'\n'), 
+            'No features'
+        )::TEXT as feature_names
+    FROM public.packs p
+    LEFT JOIN public.pack_features pf ON p.id = pf.pack_id
+    LEFT JOIN public.features f ON pf.feature_id = f.id AND pf.is_enabled = true
+    GROUP BY p.id, p.name_en, p.name_ar, p.name_fr, p.description_en, p.description_ar, p.description_fr, 
+             p.price, p.max_announcements, p.max_images, p.is_active, p.created_at, p.updated_at, p.features
+    ORDER BY p.price ASC, p.created_at DESC;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION public.get_all_packs_with_features() TO authenticated;
+
+-- ================================
 -- Seed data
 -- ================================
 INSERT INTO public.packs (name, description, price, max_announcements, max_images) VALUES

@@ -39,15 +39,31 @@ export const useAuthStore = defineStore('auth', () => {
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
   const userRole = computed(() => {
     const role = user.value?.role || 'customer'
+    // Handle both single role (string) and multiple roles (array)
+    if (Array.isArray(role)) {
+      return role.map(r => r?.toLowerCase() || 'customer')
+    }
     // Normalize role to lowercase for case-insensitive comparison
     return role?.toLowerCase() || 'customer'
   })
   
   // Role-based access helpers
-  const isAdmin = computed(() => userRole.value === 'admin')
-  const isEmployee = computed(() => userRole.value === 'employee')
-  const isCustomer = computed(() => userRole.value === 'customer')
-  const isVendor = computed(() => userRole.value === 'vendor')
+  const isAdmin = computed(() => {
+    const roles = Array.isArray(userRole.value) ? userRole.value : [userRole.value]
+    return roles.includes('admin')
+  })
+  const isEmployee = computed(() => {
+    const roles = Array.isArray(userRole.value) ? userRole.value : [userRole.value]
+    return roles.includes('employee')
+  })
+  const isCustomer = computed(() => {
+    const roles = Array.isArray(userRole.value) ? userRole.value : [userRole.value]
+    return roles.includes('customer')
+  })
+  const isVendor = computed(() => {
+    const roles = Array.isArray(userRole.value) ? userRole.value : [userRole.value]
+    return roles.includes('vendor')
+  })
   const hasAdminAccess = computed(() => isAdmin.value)
   const hasEmployeeAccess = computed(() => isEmployee.value || isAdmin.value)
   const hasVendorAccess = computed(() => isVendor.value || isAdmin.value)
@@ -150,12 +166,15 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       if (profile) {
-        const refreshedRole = profile.user_roles?.[0]?.role?.toLowerCase() || 'customer'
+        // Collect all roles from user_roles relation
+        const roles = profile.user_roles?.map(ur => ur.role?.toLowerCase()) || ['customer']
+        const userRoles = roles.length > 0 ? roles : ['customer']
+        
         user.value = {
           ...user.value,
           full_name: profile.full_name || user.value?.full_name,
           city: profile.city,
-          role: refreshedRole
+          role: userRoles
         }
         return true
       }
@@ -562,8 +581,10 @@ const loadUserWithProfile = async (authUser) => {
     }
 
     if (profile) {
-      // Pick the first role (or fallback)
-      const role = profile.user_roles?.[0]?.role?.toLowerCase() || 'customer'
+      // Collect all roles from user_roles relation
+      const roles = profile.user_roles?.map(ur => ur.role?.toLowerCase()) || ['customer']
+      // If no roles found, default to customer
+      const userRoles = roles.length > 0 ? roles : ['customer']
 
       user.value = {
         ...authUser,
@@ -572,7 +593,7 @@ const loadUserWithProfile = async (authUser) => {
           authUser.user_metadata?.full_name ||
           authUser.raw_user_meta_data?.full_name,
         city: profile.city,
-        role
+        role: userRoles
       }
     } else {
       // No profile found
@@ -581,7 +602,7 @@ const loadUserWithProfile = async (authUser) => {
         full_name:
           authUser.user_metadata?.full_name ||
           authUser.raw_user_meta_data?.full_name,
-        role: 'customer'
+        role: ['customer']
       }
     }
   } catch (err) {
@@ -593,7 +614,7 @@ const loadUserWithProfile = async (authUser) => {
       ...authUser,
       full_name:
         authUser.user_metadata?.full_name || authUser.raw_user_meta_data?.full_name,
-      role: 'customer'
+      role: ['customer']
     }
   } finally {
     profileLoading.value = false
@@ -729,6 +750,7 @@ const loadUserWithProfile = async (authUser) => {
     checkAuthStatus,
     refreshAuth,
     refreshProfile,
-    forceRoleRefresh
+    forceRoleRefresh,
+    loadUserWithProfile
   }
 })

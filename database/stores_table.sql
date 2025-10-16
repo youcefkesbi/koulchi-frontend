@@ -171,29 +171,107 @@ EXECUTE FUNCTION update_updated_at_column();
 -- ================================
 -- Functions
 -- ================================
+
 create or replace function create_store(
-  p_owner_id uuid,
-  p_name text,
-  p_description text,
-  p_logo_url text,
   p_banner_url text,
-  p_pack_id uuid
+  p_commerce_register_url text,
+  p_description text,
+  p_id_document_url text,
+  p_logo_url text,
+  p_name text,
+  p_owner_id uuid,
+  p_pack_id uuid,
+  p_payment_receipt_url text
 ) returns uuid
-language plpgsql as $$
+language plpgsql security definer as $$
 declare
   new_id uuid;
+  pack_name_val text;
+  is_pro_pack boolean := false;
+  current_user_id uuid;
+  user_roles text[];
 begin
+  -- Debug: Check current user and roles
+  current_user_id := auth.uid();
+  RAISE NOTICE 'create_store called with p_owner_id: %, current_user_id: %', p_owner_id, current_user_id;
+  
+  -- Check if p_owner_id matches current user
+  IF p_owner_id != current_user_id THEN
+    RAISE EXCEPTION 'Owner ID does not match authenticated user';
+  END IF;
+  
+  -- Check if user has customer or vendor role (optimized)
+  IF NOT (public.has_role(current_user_id, 'customer') OR public.has_role(current_user_id, 'vendor')) THEN
+    RAISE EXCEPTION 'User does not have permission to create stores. Required roles: customer or vendor';
+  END IF;
+  
   -- Check if user already has a non-rejected store (pending or approved)
   -- This matches the database constraint: stores_one_non_rejected_per_owner
   if exists (select 1 from public.stores where owner_id = p_owner_id and status in ('pending', 'approved')) then
-
     raise exception 'User already has a store';
   end if;
+
+  -- Get pack name to determine if it's pro pack
+  SELECT p.name_en INTO pack_name_val
+  FROM public.packs p
+  WHERE p.id = p_pack_id;
+
+  -- Determine if it's a pro pack
+  IF pack_name_val IS NOT NULL THEN
+    SELECT 
+      CASE 
+        WHEN LOWER(pack_name_val) LIKE '%pro%' 
+          OR LOWER(pack_name_val) LIKE '%premium%'
+        THEN TRUE
+        ELSE FALSE
+      END INTO is_pro_pack;
+  END IF;
 
   -- Insert store
   insert into public.stores (owner_id, name, description, logo_url, banner_url, pack_id, status)
   values (p_owner_id, p_name, p_description, p_logo_url, p_banner_url, p_pack_id, 'pending')
   returning id into new_id;
+
+  -- Clear old verification records for this user to prevent mixing rejection reasons
+  -- This ensures only the current store's verification data is used
+  DELETE FROM public.verifications WHERE user_id = p_owner_id;
+
+  -- Insert verification documents based on pack type
+  -- For Basic Pack: ID document + logo + banner
+  -- For Pro Pack: ID document + commerce register + payment receipt + logo + banner
+  
+  -- Always insert ID document if provided
+  IF p_id_document_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'id_card', p_id_document_url, 'pending');
+  END IF;
+
+  -- Always insert logo if provided
+  IF p_logo_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'logo', p_logo_url, 'pending');
+  END IF;
+
+  -- Always insert banner if provided
+  IF p_banner_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'banner', p_banner_url, 'pending');
+  END IF;
+
+  -- For Pro Pack: insert additional documents
+  IF is_pro_pack THEN
+    -- Insert commerce register if provided
+    IF p_commerce_register_url IS NOT NULL THEN
+      INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+      VALUES (p_owner_id, 'commerce_register', p_commerce_register_url, 'pending');
+    END IF;
+
+    -- Insert payment receipt if provided
+    IF p_payment_receipt_url IS NOT NULL THEN
+      INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+      VALUES (p_owner_id, 'payment_receipt', p_payment_receipt_url, 'pending');
+    END IF;
+  END IF;
 
   return new_id;
 end;
@@ -258,6 +336,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION check_pack_limits TO authenticated;
 GRANT EXECUTE ON FUNCTION update_store_counts TO authenticated;
+GRANT EXECUTE ON FUNCTION create_store TO authenticated;
 
 -- Create an RPC function to get the authenticated user's store status
 create or replace function public.get_user_store_status(auth_uid uuid)
@@ -629,6 +708,40 @@ END;
 $function$
 
 -- ================================
+-- Get All Stores for Admin Management
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_all_stores_for_admin()
+RETURNS TABLE (
+    store_id UUID,
+    store_name TEXT,
+    store_description TEXT,
+    owner_name TEXT,
+    pack_name TEXT,
+    status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id as store_id,
+        s.name::TEXT as store_name,
+        COALESCE(s.description, 'No description')::TEXT as store_description,
+        COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
+        COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name,
+        s.status::TEXT as status
+    FROM public.stores s
+    LEFT JOIN public.profiles p ON s.owner_id = p.id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    ORDER BY s.created_at DESC;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_all_stores_for_admin() TO authenticated;
+
+-- ================================
 -- Get User Store Pack Information
 -- ================================
 CREATE OR REPLACE FUNCTION public.get_user_store_pack()
@@ -734,4 +847,109 @@ BEGIN
         is_pro_pack as is_pro;
 END;
 $function$
+
+-- RPC function to get stores by pack type for employee dashboard
+CREATE OR REPLACE FUNCTION get_stores_by_pack_type(pack_type TEXT)
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    description TEXT,
+    location TEXT,
+    logo_url TEXT,
+    banner_url TEXT,
+    status TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    owner_id UUID,
+    pack_id UUID,
+    external_buttons JSONB,
+    owner_name TEXT,
+    owner_city TEXT,
+    pack_name_en TEXT,
+    pack_name_ar TEXT,
+    pack_name_fr TEXT,
+    id_document_url TEXT,
+    id_document_id UUID,
+    id_document_status TEXT,
+    commerce_register_url TEXT,
+    commerce_register_id UUID,
+    commerce_register_status TEXT,
+    payment_receipt_url TEXT,
+    payment_receipt_id UUID,
+    payment_receipt_status TEXT,
+    logo_id UUID,
+    logo_status TEXT,
+    banner_id UUID,
+    banner_status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    -- Validate pack_type parameter
+    IF pack_type NOT IN ('basic', 'pro') THEN
+        RAISE EXCEPTION 'Invalid pack_type. Must be ''basic'' or ''pro''';
+    END IF;
+    
+    -- Return stores based on pack type
+    RETURN QUERY
+    SELECT 
+        s.id,
+        s.name,
+        s.description,
+        s.location,
+        s.logo_url,
+        s.banner_url,
+        s.status::TEXT,
+        s.created_at,
+        s.updated_at,
+        s.owner_id,
+        s.pack_id,
+        s.external_buttons,
+        COALESCE(prof.full_name, 'N/A') as owner_name,
+        COALESCE(prof.city, 'N/A') as owner_city,
+        COALESCE(p.name_en, 'N/A') as pack_name_en,
+        COALESCE(p.name_ar, 'N/A') as pack_name_ar,
+        COALESCE(p.name_fr, 'N/A') as pack_name_fr,
+        COALESCE(id_doc.document_url, '') as id_document_url,
+        id_doc.id as id_document_id,
+        COALESCE(id_doc.status::TEXT, '') as id_document_status,
+        COALESCE(comm_doc.document_url, '') as commerce_register_url,
+        comm_doc.id as commerce_register_id,
+        COALESCE(comm_doc.status::TEXT, '') as commerce_register_status,
+        COALESCE(pay_doc.document_url, '') as payment_receipt_url,
+        pay_doc.id as payment_receipt_id,
+        COALESCE(pay_doc.status::TEXT, '') as payment_receipt_status,
+        logo_doc.id as logo_id,
+        COALESCE(logo_doc.status::TEXT, '') as logo_status,
+        banner_doc.id as banner_id,
+        COALESCE(banner_doc.status::TEXT, '') as banner_status
+    FROM public.stores s
+    LEFT JOIN public.profiles prof ON s.owner_id = prof.id
+    LEFT JOIN public.packs p ON s.pack_id = p.id
+    LEFT JOIN public.verifications id_doc ON s.owner_id = id_doc.user_id AND id_doc.verification_type = 'id_card'
+    LEFT JOIN public.verifications comm_doc ON s.owner_id = comm_doc.user_id AND comm_doc.verification_type = 'commerce_register'
+    LEFT JOIN public.verifications pay_doc ON s.owner_id = pay_doc.user_id AND pay_doc.verification_type = 'payment_receipt'
+    LEFT JOIN public.verifications logo_doc ON s.owner_id = logo_doc.user_id AND logo_doc.verification_type = 'logo'
+    LEFT JOIN public.verifications banner_doc ON s.owner_id = banner_doc.user_id AND banner_doc.verification_type = 'banner'
+    WHERE (
+        CASE 
+            WHEN pack_type = 'basic' THEN 
+                LOWER(COALESCE(p.name_en, '')) LIKE '%basic%' 
+                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%أساسي%'
+                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%basique%'
+            WHEN pack_type = 'pro' THEN 
+                LOWER(COALESCE(p.name_en, '')) LIKE '%pro%' 
+                OR LOWER(COALESCE(p.name_en, '')) LIKE '%premium%'
+                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%برو%'
+                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%بريميوم%'
+                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%pro%'
+                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%premium%'
+        END
+    )
+    ORDER BY s.created_at DESC;
+END;
+$$;
+
+
 
