@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/useAuthStore'
@@ -25,6 +25,23 @@ import Footer from './components/Footer.vue'
 const authStore = useAuthStore()
 const { locale } = useI18n()
 const route = useRoute()
+
+// Watch for auth state changes to trigger component re-renders
+watch(() => authStore.user, async (newUser, oldUser) => {
+  console.log('🔄 Auth state changed:', { 
+    wasAuthenticated: !!oldUser, 
+    isAuthenticated: !!newUser,
+    userId: newUser?.id || 'none'
+  })
+  
+  // Force re-render of components that depend on auth state
+  await nextTick()
+  
+  // Emit a custom event that components can listen to
+  window.dispatchEvent(new CustomEvent('auth-state-changed', {
+    detail: { user: newUser, isAuthenticated: !!newUser }
+  }))
+}, { deep: true })
 
 // Computed properties for language direction and locale
 const currentDir = computed(() => {
@@ -60,12 +77,20 @@ watch(() => route.meta.locale, (newLocale) => {
   }
 }, { immediate: true })
 
-// Initialize auth on mount
-onMounted(() => {
-  authStore.initAuth()
+// Initialize auth on mount with enhanced error handling
+onMounted(async () => {
+  try {
+    console.log('🚀 App mounting, initializing authentication...')
+    await authStore.initAuth()
+    console.log('✅ App authentication initialized')
+  } catch (error) {
+    console.error('❌ Failed to initialize authentication:', error)
+  }
 })
 
+// Cleanup on unmount
 onUnmounted(() => {
+  console.log('🧹 App unmounting, cleaning up authentication...')
   authStore.cleanup()
 })
 </script>

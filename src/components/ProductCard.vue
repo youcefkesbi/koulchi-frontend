@@ -87,8 +87,8 @@
 
       <!-- Actions -->
       <div class="flex space-x-3 space-x-reverse">
-        <!-- Owner Controls -->
-        <template v-if="showOwnerControls">
+        <!-- Owner View: Promote and View buttons -->
+        <template v-if="viewState === 'owner'">
           <button
             @click="handlePromote"
             class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white hover:scale-105"
@@ -98,7 +98,7 @@
           </button>
           
           <router-link
-            :to="`/${$i18n.locale.value}/product/${product.id}`"
+            :to="{ name: `ProductDetail_${$i18n.locale.value}`, params: { id: product.id } }"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             :title="$t('product.viewProduct')"
           >
@@ -106,8 +106,8 @@
           </router-link>
         </template>
         
-        <!-- Regular User Controls -->
-        <template v-else>
+        <!-- Buyer View: Add to Cart and View buttons -->
+        <template v-else-if="viewState === 'buyer'">
           <button
             @click="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
@@ -121,13 +121,38 @@
             <span>{{ getCartButtonText() }}</span>
           </button>
           
-          <router-link
-            :to="`/${$i18n.locale.value}/product/${product.id}`"
+          <button
+            @click="handleViewProduct"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             :title="$t('product.viewProduct')"
           >
             <i class="fas fa-eye"></i>
-          </router-link>
+          </button>
+        </template>
+        
+        <!-- Guest View: Add to Cart (redirects to login) and View buttons -->
+        <template v-else-if="viewState === 'guest'">
+          <button
+            @click="handleAddToCart"
+            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            :class="(product.stock_quantity || 0) <= 0 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
+            :title="!isAuthenticated ? 'تسجيل الدخول مطلوب' : ''"
+          >
+            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>{{ getCartButtonText() }}</span>
+          </button>
+          
+          <button
+            @click="handleViewProduct"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
         </template>
       </div>
 
@@ -140,10 +165,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
+import { useAuthStore } from '../stores/useAuthStore'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   product: {
@@ -159,6 +186,8 @@ const props = defineProps({
 const router = useRouter()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
+const authStore = useAuthStore()
+const { locale } = useI18n()
 
 // Local state for better UX
 const cartLoading = ref(false)
@@ -182,6 +211,26 @@ const isInWishlist = computed(() => {
   return wishlistStore.isInWishlist(props.product.id)
 })
 
+// Authentication and ownership computed properties
+const isAuthenticated = computed(() => !!authStore.user)
+const currentUser = computed(() => authStore.user)
+const isProductOwner = computed(() => {
+  return isAuthenticated.value && 
+         currentUser.value && 
+         props.product.owner_id === currentUser.value.id
+})
+
+// View state logic - determines which buttons to show
+const viewState = computed(() => {
+  if (!isAuthenticated.value) {
+    return 'guest' // Not logged in
+  } else if (isProductOwner.value) {
+    return 'owner' // Logged in and owns the product
+  } else {
+    return 'buyer' // Logged in but doesn't own the product
+  }
+})
+
 const getCartButtonText = () => {
   if (cartLoading.value) return 'جاري الإضافة...'
   if ((props.product.stock_quantity || 0) <= 0) return 'غير متوفر'
@@ -190,6 +239,13 @@ const getCartButtonText = () => {
 
 const handleAddToCart = async () => {
   if ((props.product.stock_quantity || 0) <= 0) return
+  
+  // If user is not authenticated, redirect to login
+  if (!isAuthenticated.value) {
+    // You can customize this behavior - show login modal or redirect
+    router.push(`/${locale.value}/login`)
+    return
+  }
   
   try {
     cartLoading.value = true
@@ -207,6 +263,12 @@ const handleAddToCart = async () => {
 }
 
 const toggleWishlist = async () => {
+  // If user is not authenticated, redirect to login
+  if (!isAuthenticated.value) {
+    router.push(`/${locale.value}/login`)
+    return
+  }
+  
   try {
     wishlistLoading.value = true
     error.value = ''
@@ -235,16 +297,69 @@ const handlePromote = () => {
   })
 }
 
+const handleViewProduct = () => {
+  // Navigate to product detail page using localized route
+  console.log('🔄 ProductCard: Navigating to product detail', {
+    productId: props.product.id,
+    routeName: `ProductDetail_${locale.value}`,
+    locale: locale.value
+  })
+  
+  router.push({
+    name: `ProductDetail_${locale.value}`,
+    params: { id: props.product.id }
+  })
+}
+
 const handleImageError = (event) => {
   // Hide the image if it fails to load
   event.target.style.display = 'none'
 }
 
-onMounted(async () => {
+// Watch for auth state changes to trigger re-renders
+watch(() => authStore.user, (newUser, oldUser) => {
+  console.log('🔄 ProductCard: Auth state changed', {
+    wasAuthenticated: !!oldUser,
+    isAuthenticated: !!newUser,
+    userId: newUser?.id || 'none',
+    productOwnerId: props.product.owner_id,
+    viewState: viewState.value,
+    productId: props.product.id
+  })
+}, { deep: true })
+
+// Watch for viewState changes to debug
+watch(viewState, (newState, oldState) => {
+  console.log('🔄 ProductCard: View state changed', {
+    from: oldState,
+    to: newState,
+    isAuthenticated: isAuthenticated.value,
+    isProductOwner: isProductOwner.value,
+    productId: props.product.id,
+    productOwnerId: props.product.owner_id,
+    userId: currentUser.value?.id
+  })
+})
+
+// Listen for global auth state changes
+onMounted(() => {
+  const handleAuthStateChange = (event) => {
+    console.log('🔄 ProductCard: Received auth state change event', event.detail)
+    // Force reactivity update
+    nextTick()
+  }
+  
+  window.addEventListener('auth-state-changed', handleAuthStateChange)
+  
+  // Cleanup listener on unmount
+  onUnmounted(() => {
+    window.removeEventListener('auth-state-changed', handleAuthStateChange)
+  })
+  
   // Fetch wishlist if user is authenticated
-  if (wishlistStore.wishlistItems.length === 0) {
+  if (isAuthenticated.value && wishlistStore.wishlistItems.length === 0) {
     try {
-      await wishlistStore.fetchWishlist()
+      wishlistStore.fetchWishlist()
     } catch (error) {
       // User might not be authenticated, which is fine
     }

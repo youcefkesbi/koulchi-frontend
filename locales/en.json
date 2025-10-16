@@ -882,7 +882,13 @@
   },
   "ads": {
     "noAdsAvailable": "No ads available",
-    "noAdsFound": "No ads found"
+    "noAdsFound": "No ads found",
+    "noBannerAds": "No banner ads available",
+    "noFeaturedProducts": "No featured products available",
+    "noFeaturedStores": "No featured stores available",
+    "noCategoryProducts": "No category products available",
+    "noCategoryBannerAds": "No category banner ads available",
+    "noCategoryFeaturedProducts": "No category featured products available"
   },
   "store": {
     "visitStore": "Visit Store",
