@@ -195,11 +195,13 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/store'
 import { useProductStore } from '../stores/useProductStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const $router = useRouter()
 const { t: $t } = useI18n()
 const storeStore = useStoreStore()
 const productStore = useProductStore()
+const { navigateToPath } = useLocaleRouter()
 
 const showCreateModal = ref(false)
 const editingStore = ref(null)
@@ -250,7 +252,7 @@ const handleSubmit = async () => {
       const newStore = await storeStore.createStore(storeData)
       
       // Redirect to store dashboard for new stores
-      $router.push(`/dashboard/store/${newStore.id}`)
+      navigateToPath(`/store/${newStore.id}`)
     }
 
     closeModal()

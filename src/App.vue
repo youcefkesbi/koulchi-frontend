@@ -37,12 +37,6 @@ const route = useRoute()
 
 // Watch for auth state changes to trigger component re-renders
 watch(() => authStore.user, async (newUser, oldUser) => {
-  console.log('🔄 Auth state changed:', { 
-    wasAuthenticated: !!oldUser, 
-    isAuthenticated: !!newUser,
-    userId: newUser?.id || 'none'
-  })
-  
   // Force re-render of components that depend on auth state
   await nextTick()
   
@@ -109,17 +103,14 @@ watch(() => route.meta.locale, (newLocale) => {
 // Initialize auth on mount with enhanced error handling
 onMounted(async () => {
   try {
-    console.log('🚀 App mounting, initializing authentication...')
     await authStore.initAuth()
-    console.log('✅ App authentication initialized')
   } catch (error) {
-    console.error('❌ Failed to initialize authentication:', error)
+    console.error('Failed to initialize authentication:', error)
   }
 })
 
 // Cleanup on unmount
 onUnmounted(() => {
-  console.log('🧹 App unmounting, cleaning up authentication...')
   authStore.cleanup()
 })
 </script>

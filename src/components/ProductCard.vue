@@ -87,26 +87,28 @@
 
       <!-- Actions -->
       <div class="flex space-x-3 space-x-reverse">
-        <!-- Owner View: Promote and View buttons -->
+        <!-- Owner View: Edit and Delete buttons -->
         <template v-if="viewState === 'owner'">
           <button
-            @click="handlePromote"
-            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white hover:scale-105"
+            @click="handleEditProduct"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105"
           >
-            <i class="fas fa-bullhorn"></i>
-            <span>{{ $t('product.promote') }}</span>
+            <i class="fas fa-edit"></i>
+            <span>Edit</span>
           </button>
           
-          <router-link
-            :to="{ name: `ProductDetail_${$i18n.locale.value}`, params: { id: product.id } }"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
-            :title="$t('product.viewProduct')"
+          <button
+            @click="handleDeleteProduct"
+            :disabled="productLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <i class="fas fa-eye"></i>
-          </router-link>
+            <i v-if="!productLoading" class="fas fa-trash"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>Delete</span>
+          </button>
         </template>
         
-        <!-- Buyer View: Add to Cart and View buttons -->
+        <!-- Buyer View: Add to Cart, Add to Wishlist, and View buttons -->
         <template v-else-if="viewState === 'buyer'">
           <button
             @click="handleAddToCart"
@@ -122,28 +124,13 @@
           </button>
           
           <button
-            @click="handleViewProduct"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
-            :title="$t('product.viewProduct')"
+            @click="handleToggleWishlist"
+            :disabled="wishlistLoading"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
           >
-            <i class="fas fa-eye"></i>
-          </button>
-        </template>
-        
-        <!-- Guest View: Add to Cart (redirects to login) and View buttons -->
-        <template v-else-if="viewState === 'guest'">
-          <button
-            @click="handleAddToCart"
-            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
-            :class="(product.stock_quantity || 0) <= 0 
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
-            :title="!isAuthenticated ? 'تسجيل الدخول مطلوب' : ''"
-          >
-            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
             <i v-else class="fas fa-spinner fa-spin"></i>
-            <span>{{ getCartButtonText() }}</span>
           </button>
           
           <button
@@ -154,6 +141,68 @@
             <i class="fas fa-eye"></i>
           </button>
         </template>
+        
+        <!-- Guest View: Add to Cart, Add to Wishlist, and View buttons -->
+        <template v-else-if="viewState === 'guest'">
+          <button
+            @click="handleAddToCart"
+            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            :class="(product.stock_quantity || 0) <= 0 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
+          >
+            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>{{ getCartButtonText() }}</span>
+          </button>
+          
+          <button
+            @click="handleToggleWishlist"
+            :disabled="wishlistLoading"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
+          >
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+          </button>
+          
+          <button
+            @click="handleViewProduct"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+        </template>
+      </div>
+
+      <!-- Feedback Messages -->
+      <div v-if="cartFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': cartFeedback.type === 'success',
+             'bg-red-100 text-red-800': cartFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': cartFeedback.type === 'info'
+           }">
+        {{ cartFeedback.message }}
+      </div>
+      
+      <div v-if="wishlistFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': wishlistFeedback.type === 'success',
+             'bg-red-100 text-red-800': wishlistFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': wishlistFeedback.type === 'info'
+           }">
+        {{ wishlistFeedback.message }}
+      </div>
+      
+      <div v-if="productFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': productFeedback.type === 'success',
+             'bg-red-100 text-red-800': productFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': productFeedback.type === 'info'
+           }">
+        {{ productFeedback.message }}
       </div>
 
       <!-- Error Message -->
@@ -167,10 +216,12 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCartStore } from '../stores/useCartStore'
-import { useWishlistStore } from '../stores/useWishlistStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
+import { useCart } from '../composables/useCart'
+import { useWishlist } from '../composables/useWishlist'
+import { useProduct } from '../composables/useProduct'
 
 const props = defineProps({
   product: {
@@ -184,14 +235,33 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const cartStore = useCartStore()
-const wishlistStore = useWishlistStore()
 const authStore = useAuthStore()
 const { locale } = useI18n()
+const { navigateTo, navigateToPath, getLocalizedRoute } = useLocaleRouter()
 
-// Local state for better UX
-const cartLoading = ref(false)
-const wishlistLoading = ref(false)
+// New composables
+const { 
+  addToCart, 
+  loading: cartLoading, 
+  feedback: cartFeedback 
+} = useCart()
+
+const { 
+  toggleWishlist, 
+  isInWishlist, 
+  loading: wishlistLoading, 
+  feedback: wishlistFeedback 
+} = useWishlist()
+
+const { 
+  deleteProduct, 
+  editProduct, 
+  viewProduct, 
+  loading: productLoading, 
+  feedback: productFeedback 
+} = useProduct()
+
+// Local state
 const error = ref('')
 
 const productImage = computed(() => {
@@ -207,9 +277,7 @@ const formatPrice = (price) => {
   return price.toLocaleString('ar-DZ')
 }
 
-const isInWishlist = computed(() => {
-  return wishlistStore.isInWishlist(props.product.id)
-})
+// isInWishlist is now provided by useWishlist composable
 
 // Authentication and ownership computed properties
 const isAuthenticated = computed(() => !!authStore.user)
@@ -217,7 +285,7 @@ const currentUser = computed(() => authStore.user)
 const isProductOwner = computed(() => {
   return isAuthenticated.value && 
          currentUser.value && 
-         props.product.owner_id === currentUser.value.id
+         props.product.seller_id === currentUser.value.id
 })
 
 // View state logic - determines which buttons to show
@@ -237,78 +305,31 @@ const getCartButtonText = () => {
   return 'أضف للسلة'
 }
 
+// Handler functions using new composables
 const handleAddToCart = async () => {
-  if ((props.product.stock_quantity || 0) <= 0) return
-  
-  // If user is not authenticated, redirect to login
-  if (!isAuthenticated.value) {
-    // You can customize this behavior - show login modal or redirect
-    router.push(`/${locale.value}/login`)
-    return
-  }
-  
-  try {
-    cartLoading.value = true
-    error.value = ''
-    
-    // Use the cart store method which handles both RPC call and state update
-    await cartStore.addToCart(props.product.id, 1)
-    
-  } catch (err) {
-    console.error('Failed to add to cart:', err)
-    error.value = err.message || 'فشل في إضافة المنتج للسلة'
-  } finally {
-    cartLoading.value = false
-  }
+  await addToCart(props.product)
 }
 
-const toggleWishlist = async () => {
-  // If user is not authenticated, redirect to login
-  if (!isAuthenticated.value) {
-    router.push(`/${locale.value}/login`)
-    return
-  }
-  
-  try {
-    wishlistLoading.value = true
-    error.value = ''
-    
-    if (isInWishlist.value) {
-      await wishlistStore.removeProductFromWishlist(props.product.id)
-    } else {
-      await wishlistStore.addToWishlist(props.product.id)
-    }
-  } catch (err) {
-    console.error('Failed to toggle wishlist:', err)
-    error.value = err.message || 'فشل في تحديث قائمة الأمنيات'
-  } finally {
-    wishlistLoading.value = false
-  }
+const handleToggleWishlist = async () => {
+  await toggleWishlist(props.product)
 }
 
-const handlePromote = () => {
-  // Navigate to ad request form with product pre-filled
-  router.push({
-    name: 'AdRequest',
-    query: {
-      type: 'product',
-      id: props.product.id
+const handleEditProduct = () => {
+  editProduct(props.product.id)
+}
+
+const handleDeleteProduct = async () => {
+  const confirmed = confirm('Are you sure you want to delete this product? This action cannot be undone.')
+  if (confirmed) {
+    const success = await deleteProduct(props.product.id)
+    if (success) {
+      emit('product-deleted', props.product.id)
     }
-  })
+  }
 }
 
 const handleViewProduct = () => {
-  // Navigate to product detail page using localized route
-  console.log('🔄 ProductCard: Navigating to product detail', {
-    productId: props.product.id,
-    routeName: `ProductDetail_${locale.value}`,
-    locale: locale.value
-  })
-  
-  router.push({
-    name: `ProductDetail_${locale.value}`,
-    params: { id: props.product.id }
-  })
+  viewProduct(props.product.id)
 }
 
 const handleImageError = (event) => {
@@ -318,33 +339,19 @@ const handleImageError = (event) => {
 
 // Watch for auth state changes to trigger re-renders
 watch(() => authStore.user, (newUser, oldUser) => {
-  console.log('🔄 ProductCard: Auth state changed', {
-    wasAuthenticated: !!oldUser,
-    isAuthenticated: !!newUser,
-    userId: newUser?.id || 'none',
-    productOwnerId: props.product.owner_id,
-    viewState: viewState.value,
-    productId: props.product.id
-  })
+  // Force reactivity update when auth state changes
+  nextTick()
 }, { deep: true })
 
-// Watch for viewState changes to debug
+// Watch for viewState changes
 watch(viewState, (newState, oldState) => {
-  console.log('🔄 ProductCard: View state changed', {
-    from: oldState,
-    to: newState,
-    isAuthenticated: isAuthenticated.value,
-    isProductOwner: isProductOwner.value,
-    productId: props.product.id,
-    productOwnerId: props.product.owner_id,
-    userId: currentUser.value?.id
-  })
+  // Force reactivity update when view state changes
+  nextTick()
 })
 
 // Listen for global auth state changes
 onMounted(() => {
   const handleAuthStateChange = (event) => {
-    console.log('🔄 ProductCard: Received auth state change event', event.detail)
     // Force reactivity update
     nextTick()
   }
@@ -356,14 +363,7 @@ onMounted(() => {
     window.removeEventListener('auth-state-changed', handleAuthStateChange)
   })
   
-  // Fetch wishlist if user is authenticated
-  if (isAuthenticated.value && wishlistStore.wishlistItems.length === 0) {
-    try {
-      wishlistStore.fetchWishlist()
-    } catch (error) {
-      // User might not be authenticated, which is fine
-    }
-  }
+  // Wishlist is now handled by the useWishlist composable
 })
 </script>
 

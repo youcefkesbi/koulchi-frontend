@@ -16,10 +16,10 @@ export const useAuthStore = defineStore('auth', () => {
     paths: ['user'], // Only persist the user object
     storage: localStorage, // Use localStorage for persistence
     beforeRestore: (context) => {
-      console.log('Restoring auth state from localStorage')
+      // Restoring auth state from localStorage
     },
     afterRestore: (context) => {
-      console.log('Auth state restored from localStorage')
+      // Auth state restored from localStorage
     }
   }
 
@@ -90,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Verify session is still valid (not expired)
       const now = Math.floor(Date.now() / 1000)
       if (session.expires_at && session.expires_at < now) {
-        console.log('Session expired, attempting refresh...')
+        // Session expired, attempting refresh
         const refreshed = await refreshAuth()
         return refreshed
       }
@@ -625,7 +625,7 @@ const loadUserWithProfile = async (authUser) => {
   // Compatible with new Supabase publishable key system
   const initAuth = async () => {
     try {
-      console.log('🔐 Initializing authentication system...')
+      // Initializing authentication system
       
       // Verify Supabase client is properly initialized with auth
       const isAuthReady = await verifySupabaseAuth()
@@ -643,34 +643,31 @@ const loadUserWithProfile = async (authUser) => {
       }
       
       if (session?.user) {
-        console.log('✅ Found existing session, loading user profile...')
+        // Found existing session, loading user profile
         await loadUserWithProfile(session.user)
 
         // Double-check role after a short delay for reliability
         setTimeout(async () => {
           if (user.value && (!user.value.role || user.value.role === 'customer')) {
-            console.log('🔄 Re-validating user role...')
+            // Re-validating user role
             await loadUserWithProfile(session.user)
           }
         }, 1000)
       } else {
-        console.log('ℹ️ No existing session found')
+        // No existing session found
         user.value = null
       }
 
       // Set up auth state change listener with enhanced handling
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, newSession) => {
-          console.log(`🔄 Auth state change: ${event}`, { 
-            hasSession: !!newSession, 
-            hasUser: !!newSession?.user 
-          })
+          // Auth state change: ${event}
           
           if (newSession?.user) {
             await loadUserWithProfile(newSession.user)
 
             if (event === 'SIGNED_IN') {
-              console.log('🎉 User signed in, initializing user data...')
+              // User signed in, initializing user data
               try {
                 // Initialize cart and wishlist stores after login
                 const { useCartStore } = await import('./useCartStore.js')
@@ -684,15 +681,15 @@ const loadUserWithProfile = async (authUser) => {
                   cartStore.fetchCartItems(),
                   wishlistStore.fetchWishlist()
                 ])
-                console.log('✅ User data initialized successfully')
+                // User data initialized successfully
               } catch (err) {
                 console.error('❌ Error initializing stores after login:', err)
               }
             } else if (event === 'TOKEN_REFRESHED') {
-              console.log('🔄 Token refreshed successfully')
+              // Token refreshed successfully
             }
           } else {
-            console.log('👋 User signed out or session expired')
+            // User signed out or session expired
             user.value = null
           }
         }
@@ -700,7 +697,7 @@ const loadUserWithProfile = async (authUser) => {
 
       // Save subscription for cleanup
       authSubscription.value = subscription
-      console.log('✅ Authentication system initialized successfully')
+      // Authentication system initialized successfully
       return subscription
     } catch (err) {
       console.error('❌ Auth initialization failed:', err)

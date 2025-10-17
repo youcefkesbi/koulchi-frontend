@@ -147,6 +147,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const props = defineProps({
   ads: {
@@ -175,6 +176,7 @@ const emit = defineEmits(['retry'])
 
 const { t } = useI18n()
 const router = useRouter()
+const { navigateToPath } = useLocaleRouter()
 
 // Computed properties
 const gridItems = computed(() => {
@@ -208,11 +210,11 @@ const handleImageError = (event) => {
 }
 
 const navigateToProduct = (productId) => {
-  router.push(`/product/${productId}`)
+  navigateToPath(`/product/${productId}`)
 }
 
 const navigateToStore = (storeId) => {
-  router.push(`/store/${storeId}`)
+  navigateToPath(`/store/${storeId}`)
 }
 </script>
 

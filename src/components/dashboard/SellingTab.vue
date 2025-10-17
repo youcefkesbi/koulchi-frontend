@@ -11,7 +11,7 @@ import { useAuthStore } from '../../stores/useAuthStore'
 import { useOrdersStore } from '../../stores/useOrdersStore'
 import { useProductStore } from '../../stores/useProductStore'
 import { useStoreStore } from '../../stores/useStoresStore'
-import { getLocalizedPath } from '../../lib/i18n-utils'
+import { useLocaleRouter } from '../../composables/useLocaleRouter'
 
 const { t: $t } = useI18n()
 const route = useRoute()
@@ -34,10 +34,7 @@ const userStores = computed(() =>
 )
 
 // Get localized route path
-const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
-  return getLocalizedPath(path, currentLocale)
-}
+const { getLocalizedPath } = useLocaleRouter()
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {

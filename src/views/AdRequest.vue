@@ -247,12 +247,14 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import i18n from '../i18n'
 
 const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
+const { navigateToPath } = useLocaleRouter()
 
 const loading = ref(false)
 const error = ref('')
@@ -413,7 +415,7 @@ const submitForm = async () => {
     
     // Redirect to dashboard after 3 seconds
     setTimeout(() => {
-      router.push('/dashboard')
+      navigateToPath('/dashboard')
     }, 3000)
     
   } catch (err) {

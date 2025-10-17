@@ -467,12 +467,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
 const { t: $t } = useI18n()
 const route = useRoute()
-
 const router = useRouter()
+const { navigateTo } = useLocaleRouter()
 
 // Reactive data
 const products = ref([])
@@ -941,8 +942,7 @@ const deleteProduct = async (productId, productName) => {
 
 const promoteProduct = (productId) => {
   // Navigate to ad request form with product pre-filled
-  router.push({
-    name: 'AdRequest',
+  navigateTo('AdRequest', {
     query: {
       type: 'product',
       id: productId

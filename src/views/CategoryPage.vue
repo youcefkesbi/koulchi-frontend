@@ -168,6 +168,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/useProductStore'
 import { useProducts } from '../composables/useProducts'
 import { useAdsStore } from '../stores/useAdsStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import CategoryBanner from '../components/ads/CategoryBanner.vue'
 import CategoryFeaturedProducts from '../components/ads/CategoryFeaturedProducts.vue'
 import FeaturedProducts from '../components/FeaturedProducts.vue'
@@ -178,6 +179,7 @@ const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const adsStore = useAdsStore()
+const { navigateToPath } = useLocaleRouter()
 const { 
   bestSellingProducts, 
   loading: bestSellingLoading, 
@@ -339,7 +341,7 @@ const validateCategory = () => {
   const validCategories = productStore.categories.map(cat => cat.id)
   if (!validCategories.includes(categoryId.value)) {
     // Use router to go back to home instead of hardcoded 404
-    router.push('/')
+    navigateToPath('/')
   }
 }
 
