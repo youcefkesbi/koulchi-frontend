@@ -3,13 +3,21 @@
 
 CREATE TABLE IF NOT EXISTS public.features (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE,      -- e.g., 'store_logo', 'store_banner'
-    display_name TEXT NOT NULL,     -- Human-readable name
-    description TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+
+-- Add multi-language columns to features table
+ALTER TABLE public.features 
+ADD COLUMN IF NOT EXISTS name_en TEXT,
+ADD COLUMN IF NOT EXISTS name_ar TEXT,
+ADD COLUMN IF NOT EXISTS name_fr TEXT,
+ADD COLUMN IF NOT EXISTS description_en TEXT,
+ADD COLUMN IF NOT EXISTS description_ar TEXT,
+ADD COLUMN IF NOT EXISTS description_fr TEXT;
+
 
 -- ================================
 -- Indexes
@@ -22,24 +30,13 @@ CREATE INDEX IF NOT EXISTS features_name_idx ON public.features(name);
 -- ================================
 ALTER TABLE public.features ENABLE ROW LEVEL SECURITY;
 
--- Admins can manage features
+-- Admins can manage features (multi-role support) - DEBUG VERSION
+DROP POLICY IF EXISTS "Admins can manage features" ON public.features;
 CREATE POLICY "Admins can manage features"
-    ON public.features
-    FOR ALL TO authenticated
-    USING (
-      EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid()
-          AND ur.role = 'admin'
-      )
-    )
-    WITH CHECK (
-      EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid()
-          AND ur.role = 'admin'
-      )
-    );
+ON public.features
+FOR ALL TO authenticated
+USING (public.has_role_debug(auth.uid(), 'admin'))
+WITH CHECK (public.has_role_debug(auth.uid(), 'admin'));
 
 -------- SELECT --------
 -- Anyone can view active features

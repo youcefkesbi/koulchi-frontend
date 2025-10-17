@@ -22,22 +22,16 @@ CREATE INDEX IF NOT EXISTS pack_features_enabled_idx ON public.pack_features(is_
 -- ================================
 ALTER TABLE public.pack_features ENABLE ROW LEVEL SECURITY;
 
--- Only admins can manage pack features
+-- Only admins can manage pack features (multi-role support) - DEBUG VERSION
+DROP POLICY IF EXISTS "Admins can manage pack features" ON public.pack_features;
 CREATE POLICY "Admins can manage pack features"
 ON public.pack_features
 FOR ALL TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-)
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-);
+USING (public.has_role_debug(auth.uid(), 'admin'))
+WITH CHECK (public.has_role_debug(auth.uid(), 'admin'));
+
+
+
 -------- SELECT --------
 -- Anyone can view pack features
 CREATE POLICY "Anyone can view pack features"

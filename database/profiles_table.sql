@@ -143,20 +143,22 @@ BEGIN
         COALESCE(
             STRING_AGG(DISTINCT 
                 CASE 
-                    WHEN s.name IS NOT NULL AND s.name != '' THEN s.name
-                    ELSE 'Basic Pack Store'
+                    WHEN s.name IS NOT NULL AND s.name != '' AND pack.price > 0 THEN s.name
+                    WHEN s.name IS NOT NULL AND s.name != '' AND pack.price = 0 THEN 'Basic Pack Store'
+                    WHEN s.id IS NOT NULL AND pack.price = 0 THEN 'Basic Pack Store'
+                    ELSE '-'
                 END, E'\n'), 
             '-'
         )::TEXT as store_names,
-        CASE 
-            WHEN au.banned_until IS NOT NULL AND au.banned_until > NOW() THEN 'suspended'::TEXT
-            WHEN au.deleted_at IS NOT NULL THEN 'inactive'::TEXT
-            ELSE 'active'::TEXT
-        END as account_status
+        COALESCE(
+            STRING_AGG(DISTINCT ur.status, E'\n'), 
+            'active'
+        )::TEXT as account_status
     FROM auth.users au
     LEFT JOIN public.profiles p ON au.id = p.id
     LEFT JOIN public.user_roles ur ON p.id = ur.user_id
     LEFT JOIN public.stores s ON p.id = s.owner_id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
     WHERE au.deleted_at IS NULL
     GROUP BY au.id, au.email, p.full_name, au.banned_until, au.deleted_at
     ORDER BY au.email;

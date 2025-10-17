@@ -44,7 +44,7 @@ BEGIN
         CREATE TYPE store_status AS ENUM ('pending', 'approved', 'rejected');
     END IF;
 END$$;
-
+ALTER TYPE store_status ADD VALUE IF NOT EXISTS 'suspended'; 
 -- 2. Drop the existing default
 ALTER TABLE public.stores
 ALTER COLUMN status DROP DEFAULT;
@@ -740,6 +740,101 @@ $$;
 
 -- Grant permissions
 GRANT EXECUTE ON FUNCTION public.get_all_stores_for_admin() TO authenticated;
+
+-- ================================
+-- Get Detailed Store Information for Admin
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_store_details_for_admin(store_uuid UUID)
+RETURNS TABLE (
+    store_id UUID,
+    store_name TEXT,
+    store_description TEXT,
+    store_location TEXT,
+    logo_url TEXT,
+    banner_url TEXT,
+    status TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    owner_id UUID,
+    owner_name TEXT,
+    owner_city TEXT,
+    pack_id UUID,
+    pack_name_en TEXT,
+    pack_name_ar TEXT,
+    pack_name_fr TEXT,
+    pack_price DECIMAL(10,2),
+    max_announcements INTEGER,
+    max_images INTEGER,
+    current_announcements INTEGER,
+    current_images INTEGER,
+    external_buttons JSONB,
+    customization_settings JSONB,
+    features JSONB,
+    total_products INTEGER,
+    total_orders INTEGER,
+    total_sales NUMERIC(10,2)
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id as store_id,
+        s.name::TEXT as store_name,
+        COALESCE(s.description, 'No description')::TEXT as store_description,
+        COALESCE(s.location, 'No location')::TEXT as store_location,
+        COALESCE(s.logo_url, '')::TEXT as logo_url,
+        COALESCE(s.banner_url, '')::TEXT as banner_url,
+        s.status::TEXT as status,
+        s.created_at,
+        s.updated_at,
+        s.owner_id,
+        COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
+        COALESCE(p.city, 'Unknown City')::TEXT as owner_city,
+        s.pack_id,
+        COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name_en,
+        COALESCE(pack.name_ar, 'لا توجد باقة')::TEXT as pack_name_ar,
+        COALESCE(pack.name_fr, 'Aucun Pack')::TEXT as pack_name_fr,
+        COALESCE(pack.price, 0) as pack_price,
+        COALESCE(pack.max_announcements, 0) as max_announcements,
+        COALESCE(pack.max_images, 0) as max_images,
+        s.current_announcements,
+        s.current_images,
+        COALESCE(s.external_buttons, '[]'::jsonb) as external_buttons,
+        COALESCE(s.customization_settings, '{}'::jsonb) as customization_settings,
+        COALESCE(
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'id', f.id,
+                        'name_en', f.name_en,
+                        'name_ar', f.name_ar,
+                        'name_fr', f.name_fr,
+                        'description_en', f.description_en,
+                        'description_ar', f.description_ar,
+                        'description_fr', f.description_fr,
+                        'enabled', pf.is_enabled
+                    )
+                )
+                FROM public.pack_features pf
+                JOIN public.features f ON pf.feature_id = f.id
+                WHERE pf.pack_id = s.pack_id AND pf.is_enabled = true
+            ),
+            '[]'::jsonb
+        ) as features,
+        COALESCE(public.get_store_total_products(s.id), 0) as total_products,
+        COALESCE(public.get_store_total_orders(s.id), 0) as total_orders,
+        COALESCE(public.get_store_total_sales(s.id), 0) as total_sales
+    FROM public.stores s
+    LEFT JOIN public.profiles p ON s.owner_id = p.id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    WHERE s.id = store_uuid;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_store_details_for_admin(UUID) TO authenticated;
 
 -- ================================
 -- Get User Store Pack Information

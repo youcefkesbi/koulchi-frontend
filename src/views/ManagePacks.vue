@@ -7,6 +7,16 @@
           <div>
             <h1 class="text-2xl font-bold text-gray-800">{{ $t('admin.packs.title') || 'Manage Packs' }}</h1>
             <p class="text-gray-600 mt-1">{{ $t('admin.packs.description') || 'Manage subscription packs and their features' }}</p>
+            <div v-if="roleLoaded" class="mt-2">
+              <span v-if="isAdmin" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <i class="fas fa-check-circle mr-1"></i>
+                Admin Access Granted
+              </span>
+              <span v-else class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <i class="fas fa-times-circle mr-1"></i>
+                Admin Access Denied
+              </span>
+            </div>
           </div>
           <button
             @click="refreshPacks"
@@ -120,22 +130,26 @@
               v-else
               v-for="pack in filteredPacks"
               :key="pack.pack_id"
-              class="hover:bg-gray-50 transition-colors"
+              class="hover:bg-gray-50 transition-colors cursor-pointer"
+              @click="openPackDetails(pack)"
             >
               <!-- Name -->
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
                     <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <i class="fas fa-crown text-primary"></i>
+                      <i :class="pack.rawPrice === 0 ? 'fas fa-gift text-green-500' : 'fas fa-crown text-primary'"></i>
                     </div>
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-gray-900">
                       {{ getLocalizedPackName(pack) }}
                     </div>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-500 relative group cursor-pointer" :title="pack.pack_id">
                       ID: {{ pack.pack_id.substring(0, 8) }}...
+                      <div class="absolute bottom-full left-0 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 whitespace-nowrap">
+                        {{ pack.pack_id }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -182,23 +196,7 @@
                   >
                     {{ pack.is_active ? ($t('admin.packs.active') || 'Active') : ($t('admin.packs.inactive') || 'Inactive') }}
                   </span>
-                  <!-- Actions -->
-                  <div class="flex items-center space-x-2">
-                    <button
-                      @click="editPack(pack)"
-                      class="text-primary hover:text-primary/80 transition-colors"
-                      :title="$t('admin.packs.edit') || 'Edit pack'"
-                    >
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button
-                      @click="deletePack(pack)"
-                      class="text-red-600 hover:text-red-800 transition-colors"
-                      :title="$t('admin.packs.delete') || 'Delete pack'"
-                    >
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
+                  <!-- Actions removed - click on row to open details -->
                 </div>
               </td>
             </tr>
@@ -213,6 +211,320 @@
         </div>
       </div>
     </div>
+
+    <!-- Pack Details Modal -->
+    <div v-if="selectedPack" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <i :class="selectedPack.rawPrice === 0 ? 'fas fa-gift text-green-500' : 'fas fa-crown text-primary'"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-gray-800">{{ getLocalizedPackName(selectedPack) }}</h2>
+              <p class="text-sm text-gray-500">Pack Management</p>
+            </div>
+          </div>
+          <button @click="closePackDetails" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6 flex-1 overflow-y-auto">
+          <!-- Pack Information -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Basic Info -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">Basic Information</h3>
+              
+              <!-- Pack Names -->
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Name</label>
+                  <input v-model="editingPack.name_en" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Name</label>
+                  <input v-model="editingPack.name_ar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Name</label>
+                  <input v-model="editingPack.name_fr" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pricing & Limits -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">Pricing & Limits</h3>
+              
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Price (DZD)</label>
+                  <input v-model.number="editingPack.price" type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Max Announcements</label>
+                  <input v-model.number="editingPack.max_announcements" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Max Images</label>
+                  <input v-model.number="editingPack.max_images" type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div class="flex items-center space-x-3">
+                  <label class="flex items-center">
+                    <input v-model="editingPack.is_active" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" />
+                    <span class="ml-2 text-sm font-medium text-gray-700">Active</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pack Descriptions - Full Width 3 Columns -->
+          <div class="space-y-4 mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">Pack Descriptions</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">English Description</label>
+                <textarea v-model="editingPack.description_en" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter English description..."></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Description</label>
+                <textarea v-model="editingPack.description_ar" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter Arabic description..."></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">French Description</label>
+                <textarea v-model="editingPack.description_fr" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Features Management -->
+          <div class="border-t border-gray-200 pt-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-800">Pack Features</h3>
+              <button @click="addFeatureToPack" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Feature
+              </button>
+            </div>
+
+            <!-- Pack's Current Features -->
+            <div v-if="packFeaturesDetails.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div v-for="(feature, index) in packFeaturesDetails" :key="feature.id" class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="font-medium text-gray-800">{{ feature.name_en }}</h4>
+                  <div class="flex items-center space-x-2">
+                    <button 
+                      @click="editFeature(index)"
+                      class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
+                      title="Edit feature"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button 
+                      @click="removeFeatureFromPack(index)"
+                      class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                      title="Remove feature"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600 mb-2">{{ feature.description_en || 'No description available' }}</p>
+                <div class="text-xs text-gray-500">
+                  <div>AR: {{ feature.name_ar }}</div>
+                  <div>FR: {{ feature.name_fr }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Features Message -->
+            <div v-else class="text-center py-8 text-gray-500">
+              <i class="fas fa-list-ul text-4xl mb-4"></i>
+              <p class="text-lg font-medium">No features assigned to this pack</p>
+              <p class="text-sm">Click "Add Feature" to assign features to this pack</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <button @click="deletePack" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+              <i class="fas fa-trash mr-2"></i>Delete Pack
+            </button>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button @click="closePackDetails" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+              Cancel
+            </button>
+            <button @click="savePackChanges" :disabled="saving" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+              <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
+              {{ saving ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Edit Modal -->
+    <div v-if="editingFeature" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <i class="fas fa-edit text-blue-600"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-gray-800">Edit Feature</h2>
+              <p class="text-sm text-gray-500">Update feature information in all languages</p>
+            </div>
+          </div>
+          <button @click="closeFeatureEdit" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6 flex-1 overflow-y-auto">
+          <form @submit.prevent="saveFeatureChanges">
+            <!-- Feature Names -->
+            <div class="space-y-4 mb-6">
+              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Names</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Name</label>
+                  <input v-model="featureEditForm.name_en" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter English name" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Name</label>
+                  <input v-model="featureEditForm.name_ar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter Arabic name" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Name</label>
+                  <input v-model="featureEditForm.name_fr" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter French name" required />
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature Descriptions -->
+            <div class="space-y-4">
+              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Descriptions</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Description</label>
+                  <textarea v-model="featureEditForm.description_en" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter English description"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Description</label>
+                  <textarea v-model="featureEditForm.description_ar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter Arabic description"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Description</label>
+                  <textarea v-model="featureEditForm.description_fr" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end space-x-3">
+          <button @click="closeFeatureEdit" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+            Cancel
+          </button>
+          <button @click="saveFeatureChanges" :disabled="saving" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+            <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
+            {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Feature Modal -->
+    <div v-if="addingFeature" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+              <i class="fas fa-plus text-green-600"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-gray-800">Add New Feature</h2>
+              <p class="text-sm text-gray-500">Create a new feature and add it to this pack</p>
+            </div>
+          </div>
+          <button @click="closeAddFeature" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="p-6 flex-1 overflow-y-auto">
+          <form @submit.prevent="saveNewFeature">
+            <!-- Feature Names -->
+            <div class="space-y-4 mb-6">
+              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Names</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Name</label>
+                  <input v-model="featureAddForm.name_en" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter English name" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Name</label>
+                  <input v-model="featureAddForm.name_ar" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter Arabic name" required />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Name</label>
+                  <input v-model="featureAddForm.name_fr" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" placeholder="Enter French name" required />
+                </div>
+              </div>
+            </div>
+
+            <!-- Feature Descriptions -->
+            <div class="space-y-4">
+              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Descriptions</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Description</label>
+                  <textarea v-model="featureAddForm.description_en" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter English description"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Description</label>
+                  <textarea v-model="featureAddForm.description_ar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter Arabic description"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Description</label>
+                  <textarea v-model="featureAddForm.description_fr" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end space-x-3">
+          <button @click="closeAddFeature" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+            Cancel
+          </button>
+          <button @click="saveNewFeature" :disabled="saving" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
+            <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
+            {{ saving ? 'Creating...' : 'Create Feature' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -220,8 +532,57 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const { t, locale } = useI18n()
+
+// Auth store
+const authStore = useAuthStore()
+
+// Role checking
+const isAdmin = ref(false)
+const roleLoaded = ref(false)
+
+// Fetch admin role (same pattern as AdminSidebar.vue)
+const fetchAdminRoleOnce = async () => {
+  if (roleLoaded.value) return // Only fetch once
+  
+  try {
+    const hasSession = await authStore.checkAuthStatus()
+    if (!hasSession) {
+      isAdmin.value = false
+      roleLoaded.value = true
+      return
+    }
+
+    // Get fresh role from database
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      // Fetch user roles directly from database
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+      
+      if (error) {
+        console.error('Error fetching user roles:', error)
+        isAdmin.value = false
+      } else {
+        const roles = userRoles?.map(ur => ur.role) || []
+        isAdmin.value = roles.includes('admin')
+        console.log('🔍 ManagePacks: Direct role fetch result:', roles, 'isAdmin:', isAdmin.value)
+      }
+    } else {
+      isAdmin.value = false
+    }
+    
+    roleLoaded.value = true
+  } catch (err) {
+    console.error('❌ ManagePacks: Error fetching admin role:', err)
+    isAdmin.value = false
+    roleLoaded.value = true
+  }
+}
 
 // Reactive data
 const packs = ref([])
@@ -229,6 +590,37 @@ const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
 const statusFilter = ref('')
+
+// Modal and editing state
+const selectedPack = ref(null)
+const editingPack = ref({})
+const saving = ref(false)
+
+// Feature editing state
+const editingFeature = ref(null)
+const editingFeatureIndex = ref(-1)
+const featureEditForm = ref({
+  name_en: '',
+  name_ar: '',
+  name_fr: '',
+  description_en: '',
+  description_ar: '',
+  description_fr: ''
+})
+
+// Temporary feature changes storage
+const tempFeatureChanges = ref({})
+
+// Feature adding state
+const addingFeature = ref(false)
+const featureAddForm = ref({
+  name_en: '',
+  name_ar: '',
+  name_fr: '',
+  description_en: '',
+  description_ar: '',
+  description_fr: ''
+})
 
 // Computed properties
 const filteredPacks = computed(() => {
@@ -311,19 +703,387 @@ const refreshPacks = () => {
   fetchPacks()
 }
 
-// Action handlers
-const editPack = (pack) => {
-  console.log('Edit pack:', pack)
-  // TODO: Implement edit functionality
+// Modal functions
+const openPackDetails = async (pack) => {
+  selectedPack.value = pack
+  editingPack.value = { ...pack }
 }
 
-const deletePack = (pack) => {
-  console.log('Delete pack:', pack)
-  // TODO: Implement delete functionality
+const closePackDetails = () => {
+  // Clear all data and close modal
+  selectedPack.value = null
+  editingPack.value = {}
+  // Clear temporary feature changes when closing without saving
+  tempFeatureChanges.value = {}
+  
+  // Also close any open feature modals
+  editingFeature.value = null
+  editingFeatureIndex.value = -1
+  addingFeature.value = false
+}
+
+// Computed property to get pack features from RPC data
+const packFeaturesDetails = computed(() => {
+  if (!selectedPack.value?.features) return []
+  
+  const features = selectedPack.value.features
+  const maxLength = Math.max(
+    features.en?.length || 0,
+    features.ar?.length || 0,
+    features.fr?.length || 0
+  )
+  
+  return Array.from({ length: maxLength }, (_, index) => ({
+    id: `feature-${index}`,
+    name_en: features.en?.[index] || '',
+    name_ar: features.ar?.[index] || '',
+    name_fr: features.fr?.[index] || '',
+    description_en: '', // RPC doesn't include descriptions
+    description_ar: '',
+    description_fr: ''
+  }))
+})
+
+const removeFeatureFromPack = async (featureIndex) => {
+  try {
+    // Check admin role before proceeding
+    if (!isAdmin.value) {
+      alert('You do not have permission to perform this action.')
+      return
+    }
+    
+    // Get the feature name to find the actual feature ID
+    const featureName = selectedPack.value.features.en[featureIndex]
+    
+    // First get the feature ID from the features table
+    const { data: featureData, error: featureError } = await supabase
+      .from('features')
+      .select('id')
+      .eq('name_en', featureName)
+      .single()
+    
+    if (featureError) throw featureError
+    
+    // Remove the feature from pack_features
+    const { error } = await supabase
+      .from('pack_features')
+      .delete()
+      .eq('pack_id', selectedPack.value.pack_id)
+      .eq('feature_id', featureData.id)
+    
+    if (error) throw error
+    
+    // Refresh the packs list to get updated data
+    await fetchPacks()
+    
+    // Update the selected pack with the new data
+    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
+    if (updatedPack) {
+      selectedPack.value = updatedPack
+    }
+  } catch (err) {
+    console.error('Error removing feature from pack:', err)
+  }
+}
+
+const editFeature = async (featureIndex) => {
+  try {
+    // Get the feature name to find the actual feature ID
+    const featureName = selectedPack.value.features.en[featureIndex]
+    
+    // Find the feature ID from the features table
+    const { data: featureData, error: featureError } = await supabase
+      .from('features')
+      .select('*')
+      .eq('name_en', featureName)
+      .single()
+    
+    if (featureError) throw featureError
+    
+    // Set up the editing state
+    editingFeature.value = featureData
+    editingFeatureIndex.value = featureIndex
+    
+    // Populate the form with current feature data
+    featureEditForm.value = {
+      name_en: featureData.name_en || '',
+      name_ar: featureData.name_ar || '',
+      name_fr: featureData.name_fr || '',
+      description_en: featureData.description_en || '',
+      description_ar: featureData.description_ar || '',
+      description_fr: featureData.description_fr || ''
+    }
+  } catch (err) {
+    console.error('Error loading feature for editing:', err)
+  }
+}
+
+const closeFeatureEdit = () => {
+  editingFeature.value = null
+  editingFeatureIndex.value = -1
+  featureEditForm.value = {
+    name_en: '',
+    name_ar: '',
+    name_fr: '',
+    description_en: '',
+    description_ar: '',
+    description_fr: ''
+  }
+  // Note: We don't clear tempFeatureChanges here as user might want to save later
+}
+
+const saveFeatureChanges = () => {
+  // Store changes temporarily instead of saving to database
+  tempFeatureChanges.value[editingFeature.value.id] = {
+    name_en: featureEditForm.value.name_en,
+    name_ar: featureEditForm.value.name_ar,
+    name_fr: featureEditForm.value.name_fr,
+    description_en: featureEditForm.value.description_en,
+    description_ar: featureEditForm.value.description_ar,
+    description_fr: featureEditForm.value.description_fr
+  }
+  
+  // Update the selected pack's features temporarily for display
+  if (selectedPack.value && selectedPack.value.features) {
+    const featureIndex = editingFeatureIndex.value
+    if (selectedPack.value.features.en && selectedPack.value.features.en[featureIndex]) {
+      selectedPack.value.features.en[featureIndex] = featureEditForm.value.name_en
+      selectedPack.value.features.ar[featureIndex] = featureEditForm.value.name_ar
+      selectedPack.value.features.fr[featureIndex] = featureEditForm.value.name_fr
+    }
+  }
+  
+  // Close the edit modal
+  closeFeatureEdit()
+}
+
+const addFeatureToPack = () => {
+  // Reset the form
+  featureAddForm.value = {
+    name_en: '',
+    name_ar: '',
+    name_fr: '',
+    description_en: '',
+    description_ar: '',
+    description_fr: ''
+  }
+  
+  // Open the add feature modal
+  addingFeature.value = true
+}
+
+const closeAddFeature = () => {
+  addingFeature.value = false
+  featureAddForm.value = {
+    name_en: '',
+    name_ar: '',
+    name_fr: '',
+    description_en: '',
+    description_ar: '',
+    description_fr: ''
+  }
+}
+
+const saveNewFeature = async () => {
+  try {
+    // Check admin role before proceeding
+    if (!isAdmin.value) {
+      alert('You do not have permission to perform this action.')
+      return
+    }
+    
+    saving.value = true
+    
+    // Create the new feature in the database
+    const { data: newFeature, error: featureError } = await supabase
+      .from('features')
+      .insert({
+        name_en: featureAddForm.value.name_en,
+        name_ar: featureAddForm.value.name_ar,
+        name_fr: featureAddForm.value.name_fr,
+        description_en: featureAddForm.value.description_en,
+        description_ar: featureAddForm.value.description_ar,
+        description_fr: featureAddForm.value.description_fr
+      })
+      .select()
+      .single()
+    
+    if (featureError) throw featureError
+    
+    // Add the feature to the current pack
+    const { error: packFeatureError } = await supabase
+      .from('pack_features')
+      .insert({
+        pack_id: selectedPack.value.pack_id,
+        feature_id: newFeature.id,
+        is_enabled: true
+      })
+    
+    if (packFeatureError) throw packFeatureError
+    
+    // Refresh the packs list to get updated data
+    await fetchPacks()
+    
+    // Update the selected pack with the new data
+    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
+    if (updatedPack) {
+      selectedPack.value = updatedPack
+    }
+    
+    // Close the add feature modal
+    closeAddFeature()
+  } catch (err) {
+    console.error('Error creating new feature:', err)
+  } finally {
+    saving.value = false
+  }
+}
+
+const savePackChanges = async () => {
+  try {
+    // Check admin role before proceeding
+    if (!isAdmin.value) {
+      alert('You do not have permission to perform this action.')
+      return
+    }
+    
+    // Add detailed debugging
+    console.log('🔍 Debug Info:');
+    console.log('- isAdmin.value:', isAdmin.value);
+    console.log('- roleLoaded.value:', roleLoaded.value);
+    
+    // Test the has_role function directly
+    const { data: hasRoleData, error: hasRoleError } = await supabase
+      .rpc('has_role', { check_user: (await supabase.auth.getUser()).data.user.id, check_role: 'admin' });
+    
+    console.log('- has_role function result:', hasRoleData, hasRoleError);
+    
+    // Test debug function
+    const { data: debugData, error: debugError } = await supabase
+      .rpc('debug_admin_permissions');
+    
+    console.log('- Debug function result:', debugData, debugError);
+    
+    // Test pack update with debug function
+    if (selectedPack.value?.pack_id) {
+      const { data: testData, error: testError } = await supabase
+        .rpc('test_pack_update', { 
+          test_pack_id: selectedPack.value.pack_id, 
+          test_name_en: 'Debug Test' 
+        });
+      
+      console.log('- Test pack update result:', testData, testError);
+    }
+    
+    saving.value = true
+    
+    // Save pack changes
+    const { error } = await supabase
+      .from('packs')
+      .update({
+        name_en: editingPack.value.name_en,
+        name_ar: editingPack.value.name_ar,
+        name_fr: editingPack.value.name_fr,
+        description_en: editingPack.value.description_en,
+        description_ar: editingPack.value.description_ar,
+        description_fr: editingPack.value.description_fr,
+        price: editingPack.value.price,
+        max_announcements: editingPack.value.max_announcements,
+        max_images: editingPack.value.max_images,
+        is_active: editingPack.value.is_active
+      })
+      .eq('id', selectedPack.value.pack_id)
+    
+    if (error) throw error
+    
+    // Save temporary feature changes to database
+    for (const [featureId, changes] of Object.entries(tempFeatureChanges.value)) {
+      const { error: featureError } = await supabase
+        .from('features')
+        .update(changes)
+        .eq('id', featureId)
+      
+      if (featureError) {
+        console.error('Error updating feature:', featureId, featureError)
+        throw featureError
+      }
+    }
+    
+    // Clear temporary changes
+    tempFeatureChanges.value = {}
+    
+    // Refresh packs list
+    await fetchPacks()
+    
+    // Close the modal after successful save
+    closePackDetails()
+    
+    // Show success message
+    alert('Pack and features updated successfully!')
+  } catch (err) {
+    console.error('Error saving pack changes:', err)
+    alert('Failed to save changes. Please try again.')
+  } finally {
+    saving.value = false
+  }
+}
+
+const deletePack = async () => {
+  // Check admin role before proceeding
+  if (!isAdmin.value) {
+    alert('You do not have permission to perform this action.')
+    return
+  }
+  
+  if (!confirm('Are you sure you want to delete this pack? This action cannot be undone.')) {
+    return
+  }
+  
+  try {
+    saving.value = true
+    
+    // First delete pack features
+    const { error: featuresError } = await supabase
+      .from('pack_features')
+      .delete()
+      .eq('pack_id', selectedPack.value.pack_id)
+    
+    if (featuresError) throw featuresError
+    
+    // Then delete the pack
+    const { error: packError } = await supabase
+      .from('packs')
+      .delete()
+      .eq('id', selectedPack.value.pack_id)
+    
+    if (packError) throw packError
+    
+    // Refresh packs list
+    await fetchPacks()
+    closePackDetails()
+  } catch (err) {
+    console.error('Error deleting pack:', err)
+  } finally {
+    saving.value = false
+  }
+}
+
+// Action handlers (legacy)
+const editPack = (pack) => {
+  openPackDetails(pack)
+}
+
+const deletePackLegacy = (pack) => {
+  selectedPack.value = pack
+  editingPack.value = { ...pack }
+  deletePack()
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  // Fetch admin role first
+  await fetchAdminRoleOnce()
+  // Then fetch packs
   fetchPacks()
 })
 </script>

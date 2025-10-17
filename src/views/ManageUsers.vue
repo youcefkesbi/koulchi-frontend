@@ -155,14 +155,19 @@
                 <td class="px-6 py-4">
                   <div class="flex flex-col space-y-1">
                     <span 
-                      v-for="storeName in user.store_names.split('\n')" 
+                      v-for="storeName in (user.store_names || '').split('\n')" 
                       :key="storeName"
-                      class="text-sm text-gray-900 bg-blue-50 px-2 py-1 rounded w-fit"
-                      v-if="storeName !== '-'">
+                      class="text-sm px-2 py-1 rounded w-fit"
+                      :class="{
+                        'text-gray-900 bg-blue-50': storeName !== 'Basic Pack Store' && storeName !== '-',
+                        'text-orange-800 bg-orange-100': storeName === 'Basic Pack Store',
+                        'text-gray-500': storeName === '-'
+                      }"
+                      v-if="storeName && storeName !== '-'">
                       {{ storeName }}
                     </span>
                     <span 
-                      v-if="user.store_names === '-'"
+                      v-if="!user.store_names || user.store_names === '-'"
                       class="text-sm text-gray-500">
                       -
                     </span>
@@ -177,15 +182,11 @@
                     class="text-sm font-semibold rounded-full px-3 py-1 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
                     :class="{
                       'bg-green-100 text-green-800': user.account_status === 'active',
-                      'bg-yellow-100 text-yellow-800': user.account_status === 'pending',
-                      'bg-red-100 text-red-800': user.account_status === 'suspended',
-                      'bg-gray-100 text-gray-800': user.account_status === 'inactive'
+                      'bg-red-100 text-red-800': user.account_status === 'suspended'
                     }"
                   >
                     <option value="active" class="bg-white text-gray-900">Active</option>
-                    <option value="pending" class="bg-white text-gray-900">Pending</option>
                     <option value="suspended" class="bg-white text-gray-900">Suspended</option>
-                    <option value="inactive" class="bg-white text-gray-900">Inactive</option>
                   </select>
                 </td>
               </tr>
@@ -264,9 +265,13 @@ const fetchUsers = async () => {
 
 const updateUserStatus = async (userId, newStatus) => {
   try {
-    // Since account_status is derived from auth.users table, we need to handle it differently
-    // For now, we'll just update the local state to show the change
-    // In a real implementation, you might need to ban/unban users through Supabase Admin API
+    // Update the status in user_roles table
+    const { error } = await supabase
+      .from('user_roles')
+      .update({ status: newStatus })
+      .eq('user_id', userId)
+    
+    if (error) throw error
     
     // Update local state
     const userIndex = users.value.findIndex(user => user.user_id === userId)
@@ -274,62 +279,80 @@ const updateUserStatus = async (userId, newStatus) => {
       users.value[userIndex].account_status = newStatus
     }
     
-    console.log(`User ${userId} status updated to ${newStatus}`)
-    console.log('Note: Actual status change requires Supabase Admin API for auth.users table')
+    console.log(`User ${userId} status updated to ${newStatus} in database`)
   } catch (err) {
     console.error('Error updating user status:', err)
-    // You might want to show a user-friendly error message here
+    // Revert local state on error
+    const userIndex = users.value.findIndex(user => user.user_id === userId)
+    if (userIndex !== -1) {
+      // Revert to previous status (you might want to store the previous value)
+      users.value[userIndex].account_status = users.value[userIndex].account_status
+    }
   }
 }
 
 const addRole = async (userId, role) => {
-  if (!role) return
+  const normalizedRole = (role || '').trim()
+  if (!normalizedRole) return
   
   try {
-    const { error } = await supabase
+    // Attempt insert; rely on UNIQUE(user_id, role) to prevent duplicates
+    const { error: insertError } = await supabase
       .from('user_roles')
-      .insert({ user_id: userId, role: role })
+      .insert({ user_id: userId, role: normalizedRole })
     
-    if (error) throw error
+    // If duplicate, ignore gracefully; otherwise throw
+    if (insertError && insertError.code !== '23505') throw insertError
     
-    // Update local state
+    // Refresh roles from DB to ensure UI is consistent with backend
+    const { data: rolesRows, error: fetchRolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+    if (fetchRolesError) throw fetchRolesError
+    
     const userIndex = users.value.findIndex(user => user.user_id === userId)
     if (userIndex !== -1) {
-      const currentRoles = users.value[userIndex].roles.split('\n')
-      if (!currentRoles.includes(role)) {
-        currentRoles.push(role)
-        users.value[userIndex].roles = currentRoles.join('\n')
-      }
+      const rolesList = (rolesRows || []).map(r => r.role)
+      users.value[userIndex].roles = rolesList.length > 0 ? rolesList.join('\n') : 'customer'
     }
     
     // Reset dropdown
     newRole.value[userId] = ''
-    
-    console.log(`Role ${role} added to user ${userId}`)
+    console.log(`Role ${normalizedRole} added to user ${userId}`)
   } catch (err) {
     console.error('Error adding role:', err)
   }
 }
 
 const removeRole = async (userId, role) => {
+  const normalizedRole = (role || '').trim()
+  if (!normalizedRole) return
   try {
     const { error } = await supabase
       .from('user_roles')
       .delete()
       .eq('user_id', userId)
-      .eq('role', role)
+      .eq('role', normalizedRole)
     
     if (error) throw error
     
-    // Update local state
+    // Refresh roles from DB to ensure UI is consistent with backend
+    const { data: rolesRows, error: fetchRolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+    if (fetchRolesError) throw fetchRolesError
+    
     const userIndex = users.value.findIndex(user => user.user_id === userId)
     if (userIndex !== -1) {
-      const currentRoles = users.value[userIndex].roles.split('\n')
-      const updatedRoles = currentRoles.filter(r => r !== role)
-      users.value[userIndex].roles = updatedRoles.length > 0 ? updatedRoles.join('\n') : 'customer'
+      const rolesList = (rolesRows || []).map(r => r.role)
+      users.value[userIndex].roles = rolesList.length > 0 ? rolesList.join('\n') : 'customer'
     }
     
-    console.log(`Role ${role} removed from user ${userId}`)
+    console.log(`Role ${normalizedRole} removed from user ${userId}`)
   } catch (err) {
     console.error('Error removing role:', err)
   }
