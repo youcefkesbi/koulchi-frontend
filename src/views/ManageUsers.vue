@@ -21,7 +21,7 @@
                 <input
                   v-model="searchQuery"
                   type="text"
-                  placeholder="Search users..."
+                  placeholder="Search by name..."
                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -182,7 +182,11 @@
                     class="text-sm font-semibold rounded-full px-3 py-1 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
                     :class="{
                       'bg-green-100 text-green-800': user.account_status === 'active',
-                      'bg-red-100 text-red-800': user.account_status === 'suspended'
+                      'bg-gray-100 text-gray-800': user.account_status === 'suspended'
+                    }"
+                    :style="{
+                      backgroundColor: user.account_status === 'active' ? '#dcfce7' : user.account_status === 'suspended' ? '#f3f4f6' : '',
+                      color: user.account_status === 'active' ? '#166534' : user.account_status === 'suspended' ? '#374151' : ''
                     }"
                   >
                     <option value="active" class="bg-white text-gray-900">Active</option>
@@ -226,13 +230,11 @@ const newRole = ref({}) // Track new role selections per user
 const filteredUsers = computed(() => {
   let filtered = users.value
 
-  // Filter by search query
+  // Filter by search query (user name only)
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(user => 
-      user.email.toLowerCase().includes(query) ||
-      (user.full_name && user.full_name.toLowerCase().includes(query)) ||
-      user.user_id.toLowerCase().includes(query)
+      user.full_name && user.full_name.toLowerCase().includes(query)
     )
   }
 
@@ -265,29 +267,20 @@ const fetchUsers = async () => {
 
 const updateUserStatus = async (userId, newStatus) => {
   try {
-    // Update the status in user_roles table
+    // Update the status in profiles table
     const { error } = await supabase
-      .from('user_roles')
+      .from('profiles')
       .update({ status: newStatus })
-      .eq('user_id', userId)
+      .eq('id', userId)
     
     if (error) throw error
     
-    // Update local state
-    const userIndex = users.value.findIndex(user => user.user_id === userId)
-    if (userIndex !== -1) {
-      users.value[userIndex].account_status = newStatus
-    }
-    
     console.log(`User ${userId} status updated to ${newStatus} in database`)
+    
+    // Refresh the page to ensure latest data
+    window.location.reload()
   } catch (err) {
     console.error('Error updating user status:', err)
-    // Revert local state on error
-    const userIndex = users.value.findIndex(user => user.user_id === userId)
-    if (userIndex !== -1) {
-      // Revert to previous status (you might want to store the previous value)
-      users.value[userIndex].account_status = users.value[userIndex].account_status
-    }
   }
 }
 

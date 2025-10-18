@@ -80,9 +80,6 @@
                   Pack
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Roles
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
               </tr>
@@ -111,44 +108,6 @@
                 <!-- Pack -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ store.pack_name }}</div>
-                </td>
-                
-                <!-- Roles -->
-                <td class="px-6 py-4" @click.stop>
-                  <div class="flex flex-col space-y-2">
-                    <!-- Current Roles Display -->
-                    <div class="flex flex-wrap gap-1">
-                      <span 
-                        v-for="role in store.roles || []" 
-                        :key="role"
-                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                      >
-                        {{ role }}
-                        <button 
-                          @click="removeRole(store.store_id, role)"
-                          class="ml-1 text-blue-600 hover:text-blue-800"
-                        >
-                          <i class="fas fa-times text-xs"></i>
-                        </button>
-                      </span>
-                    </div>
-                    
-                    <!-- Add Role Select -->
-                    <div class="flex items-center space-x-2">
-                      <select 
-                        v-model="newRole[store.store_id]"
-                        @change="addRole(store.store_id, $event.target.value)"
-                        class="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        @click.stop
-                      >
-                        <option value="">Add Role</option>
-                        <option value="customer">Customer</option>
-                        <option value="vendor">Vendor</option>
-                        <option value="employee">Employee</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                  </div>
                 </td>
                 
                 <!-- Status -->
@@ -403,8 +362,6 @@ const storeDetails = ref(null)
 const storeDetailsLoading = ref(false)
 const storeDetailsError = ref(null)
 
-// Role management
-const newRole = ref({})
 
 // Computed properties
 const filteredStores = computed(() => {
@@ -436,22 +393,7 @@ const fetchStores = async () => {
     
     if (fetchError) throw fetchError
     
-    // Fetch roles for each store owner
-    const storesWithRoles = await Promise.all(
-      (data || []).map(async (store) => {
-        const { data: rolesData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', store.owner_id)
-        
-        return {
-          ...store,
-          roles: rolesData?.map(r => r.role) || []
-        }
-      })
-    )
-    
-    stores.value = storesWithRoles
+    stores.value = data || []
   } catch (err) {
     console.error('Error fetching stores:', err)
     error.value = err.message || 'Failed to fetch stores'
@@ -590,103 +532,6 @@ const formatPrice = (price) => {
   return `${price.toLocaleString()} DZD`
 }
 
-// Role management methods
-const addRole = async (storeId, role) => {
-  console.log('🔍 addRole called:', { storeId, role })
-  
-  if (!role) {
-    console.log('❌ No role provided')
-    return
-  }
-  
-  try {
-    // Find the store to get owner_id
-    const store = stores.value.find(s => s.store_id === storeId)
-    if (!store) {
-      console.log('❌ Store not found:', storeId)
-      return
-    }
-    
-    console.log('📝 Adding role to database:', { user_id: store.owner_id, role })
-    
-    // Add role to database
-    const { error } = await supabase
-      .from('user_roles')
-      .insert({
-        user_id: store.owner_id,
-        role: role,
-        status: 'active'
-      })
-    
-    if (error) {
-      console.log('❌ Database error:', error)
-      if (error.code === '23505') { // Unique constraint violation
-        alert('User already has this role')
-      } else {
-        throw error
-      }
-      return
-    }
-    
-    // Update local state
-    const storeIndex = stores.value.findIndex(s => s.store_id === storeId)
-    if (storeIndex !== -1) {
-      if (!stores.value[storeIndex].roles) {
-        stores.value[storeIndex].roles = []
-      }
-      stores.value[storeIndex].roles.push(role)
-      console.log('✅ Role added to frontend:', stores.value[storeIndex].roles)
-    }
-    
-    // Clear the select
-    newRole.value[storeId] = ''
-    
-    console.log(`✅ Role ${role} added to store ${storeId}`)
-  } catch (err) {
-    console.error('❌ Error adding role:', err)
-    alert(`Error: ${err.message}`)
-  }
-}
-
-const removeRole = async (storeId, role) => {
-  console.log('🔍 removeRole called:', { storeId, role })
-  
-  try {
-    // Find the store to get owner_id
-    const store = stores.value.find(s => s.store_id === storeId)
-    if (!store) {
-      console.log('❌ Store not found:', storeId)
-      return
-    }
-    
-    console.log('📝 Removing role from database:', { user_id: store.owner_id, role })
-    
-    // Remove role from database
-    const { error } = await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', store.owner_id)
-      .eq('role', role)
-    
-    if (error) {
-      console.log('❌ Database error:', error)
-      throw error
-    }
-    
-    // Update local state
-    const storeIndex = stores.value.findIndex(s => s.store_id === storeId)
-    if (storeIndex !== -1) {
-      const oldRoles = [...stores.value[storeIndex].roles]
-      stores.value[storeIndex].roles = stores.value[storeIndex].roles.filter(r => r !== role)
-      console.log('✅ Role removed from frontend:', { old: oldRoles, new: stores.value[storeIndex].roles })
-    }
-    
-    console.log(`✅ Role ${role} removed from store ${storeId}`)
-  } catch (err) {
-    console.error('❌ Error removing role:', err)
-    alert(`Error: ${err.message}`)
-  }
-}
 
 const getPackNameByLanguage = () => {
   if (!storeDetails.value) return 'N/A'

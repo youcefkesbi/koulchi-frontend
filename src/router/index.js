@@ -24,6 +24,8 @@ import ManageUsers from '../views/ManageUsers.vue'
 import ManageCategories from '../views/ManageCategories.vue'
 import ManageStores from '../views/ManageStores.vue'
 import ManagePacks from '../views/ManagePacks.vue'
+import ManageOrders from '../views/ManageOrders.vue'
+import ManageProducts from '../views/ManageProducts.vue'
 
 // Supported locales configuration
 
@@ -147,6 +149,20 @@ const baseRoutes = [
     path: '/packs',
     name: 'Packs',
     component: ManagePacks
+  },
+  {
+    path: '/orders',
+    name: 'Orders',
+    component: ManageOrders,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
+    path: '/products',
+    name: 'Products',
+    component: ManageProducts,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
   },
   {
     path: '/stores/:id',

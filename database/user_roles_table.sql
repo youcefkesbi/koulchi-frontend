@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS public.user_roles (
     UNIQUE (user_id, role)
 );
 
-ALTER TABLE public.user_roles ADD COLUMN status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active';
+-- Status column moved to profiles table
+-- ALTER TABLE public.user_roles ADD COLUMN status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active';
 -- ================================
 -- Indexes
 -- ================================
@@ -29,8 +30,8 @@ DROP POLICY IF EXISTS "Admin can manage all user_roles" ON public.user_roles;
 CREATE POLICY "Admin can manage all user_roles"
 ON public.user_roles
 FOR ALL TO authenticated
-USING (public.has_role_debug(auth.uid(), 'admin'))
-WITH CHECK (public.has_role_debug(auth.uid(), 'admin'));
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 -- ================================
 -- Grants
@@ -81,7 +82,7 @@ BEGIN
     -- Check admin role existence and status
     SELECT 
         EXISTS(SELECT 1 FROM user_roles WHERE user_id = current_user_id AND role = 'admin'),
-        COALESCE((SELECT status FROM user_roles WHERE user_id = current_user_id AND role = 'admin'), 'NO_ROLE')
+        COALESCE((SELECT p.status FROM profiles p WHERE p.id = current_user_id), 'NO_PROFILE')
     INTO admin_role_exists, admin_status;
     
     -- Test has_role function
@@ -90,9 +91,10 @@ BEGIN
     -- Test RLS policy logic
     SELECT EXISTS (
         SELECT 1 FROM user_roles ur
+        JOIN profiles p ON p.id = ur.user_id
         WHERE ur.user_id = current_user_id 
         AND ur.role = 'admin'
-        AND ur.status = 'active'
+        AND p.status = 'active'
     ) INTO rls_policy_result;
     
     -- Return debug information
@@ -109,9 +111,9 @@ BEGIN
         COALESCE((SELECT array_agg(role)::TEXT FROM user_roles WHERE user_id = current_user_id), 'NONE')::TEXT,
         'All roles for current user'::TEXT;
     
-    RETURN QUERY SELECT 'All User Statuses'::TEXT,
-        COALESCE((SELECT array_agg(status)::TEXT FROM user_roles WHERE user_id = current_user_id), 'NONE')::TEXT,
-        'All statuses for current user'::TEXT;
+    RETURN QUERY SELECT 'User Profile Status'::TEXT,
+        COALESCE((SELECT p.status::TEXT FROM profiles p WHERE p.id = current_user_id), 'NO_PROFILE')::TEXT,
+        'Status from profiles table for current user'::TEXT;
 END;
 $$;
 

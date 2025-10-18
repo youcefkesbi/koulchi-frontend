@@ -314,10 +314,10 @@
             </div>
 
             <!-- Pack's Current Features -->
-            <div v-if="packFeaturesDetails.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div v-for="(feature, index) in packFeaturesDetails" :key="feature.id" class="border border-gray-200 rounded-lg p-4">
+            <div v-if="selectedPack?.features && selectedPack.features.en && selectedPack.features.en.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div v-for="(featureName, index) in selectedPack.features.en" :key="`feature-${index}`" class="border border-gray-200 rounded-lg p-4">
                 <div class="flex items-center justify-between mb-2">
-                  <h4 class="font-medium text-gray-800">{{ feature.name_en }}</h4>
+                  <h4 class="font-medium text-gray-800">{{ featureName }}</h4>
                   <div class="flex items-center space-x-2">
                     <button 
                       @click="editFeature(index)"
@@ -335,10 +335,9 @@
                     </button>
                   </div>
                 </div>
-                <p class="text-sm text-gray-600 mb-2">{{ feature.description_en || 'No description available' }}</p>
                 <div class="text-xs text-gray-500">
-                  <div>AR: {{ feature.name_ar }}</div>
-                  <div>FR: {{ feature.name_fr }}</div>
+                  <div v-if="selectedPack.features.ar && selectedPack.features.ar[index]">AR: {{ selectedPack.features.ar[index] }}</div>
+                  <div v-if="selectedPack.features.fr && selectedPack.features.fr[index]">FR: {{ selectedPack.features.fr[index] }}</div>
                 </div>
               </div>
             </div>
@@ -626,13 +625,12 @@ const featureAddForm = ref({
 const filteredPacks = computed(() => {
   let filtered = packs.value
 
-  // Filter by search query
+  // Filter by search query (pack names only)
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(pack => {
       const name = getLocalizedPackName(pack).toLowerCase()
-      const description = getLocalizedPackDescription(pack).toLowerCase()
-      return name.includes(query) || description.includes(query)
+      return name.includes(query)
     })
   }
 
@@ -683,6 +681,7 @@ const fetchPacks = async () => {
     loading.value = true
     error.value = null
 
+    // Fetch packs with their features using the RPC function
     const { data, error: fetchError } = await supabase
       .rpc('get_all_packs_with_features')
 
@@ -706,7 +705,20 @@ const refreshPacks = () => {
 // Modal functions
 const openPackDetails = async (pack) => {
   selectedPack.value = pack
-  editingPack.value = { ...pack }
+  // Map the pack fields correctly for editing
+  editingPack.value = {
+    id: pack.pack_id, // Map pack_id to id for database operations
+    name_en: pack.name_en,
+    name_ar: pack.name_ar,
+    name_fr: pack.name_fr,
+    description_en: pack.description_en,
+    description_ar: pack.description_ar,
+    description_fr: pack.description_fr,
+    price: pack.price,
+    max_announcements: pack.max_announcements,
+    max_images: pack.max_images,
+    is_active: pack.is_active
+  }
 }
 
 const closePackDetails = () => {
@@ -829,32 +841,49 @@ const closeFeatureEdit = () => {
     description_ar: '',
     description_fr: ''
   }
-  // Note: We don't clear tempFeatureChanges here as user might want to save later
 }
 
-const saveFeatureChanges = () => {
-  // Store changes temporarily instead of saving to database
-  tempFeatureChanges.value[editingFeature.value.id] = {
-    name_en: featureEditForm.value.name_en,
-    name_ar: featureEditForm.value.name_ar,
-    name_fr: featureEditForm.value.name_fr,
-    description_en: featureEditForm.value.description_en,
-    description_ar: featureEditForm.value.description_ar,
-    description_fr: featureEditForm.value.description_fr
-  }
-  
-  // Update the selected pack's features temporarily for display
-  if (selectedPack.value && selectedPack.value.features) {
-    const featureIndex = editingFeatureIndex.value
-    if (selectedPack.value.features.en && selectedPack.value.features.en[featureIndex]) {
-      selectedPack.value.features.en[featureIndex] = featureEditForm.value.name_en
-      selectedPack.value.features.ar[featureIndex] = featureEditForm.value.name_ar
-      selectedPack.value.features.fr[featureIndex] = featureEditForm.value.name_fr
+const saveFeatureChanges = async () => {
+  try {
+    // Check admin role before proceeding
+    if (!isAdmin.value) {
+      alert('You do not have permission to perform this action.')
+      return
     }
+
+    // Update the feature in the database
+    const { error } = await supabase
+      .from('features')
+      .update({
+        name_en: featureEditForm.value.name_en,
+        name_ar: featureEditForm.value.name_ar,
+        name_fr: featureEditForm.value.name_fr,
+        description_en: featureEditForm.value.description_en,
+        description_ar: featureEditForm.value.description_ar,
+        description_fr: featureEditForm.value.description_fr
+      })
+      .eq('id', editingFeature.value.id)
+    
+    if (error) throw error
+    
+    // Refresh the packs list to get updated data
+    await fetchPacks()
+    
+    // Update the selected pack with the new data
+    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
+    if (updatedPack) {
+      selectedPack.value = updatedPack
+    }
+    
+    // Close the edit modal
+    closeFeatureEdit()
+    
+    // Show success message
+    alert('Feature updated successfully!')
+  } catch (err) {
+    console.error('Error updating feature:', err)
+    alert(`Error: ${err.message}`)
   }
-  
-  // Close the edit modal
-  closeFeatureEdit()
 }
 
 const addFeatureToPack = () => {
@@ -939,7 +968,7 @@ const saveNewFeature = async () => {
   }
 }
 
-const savePackChanges = async () => {
+const savePackChanges = async (retryCount = 0) => {
   try {
     // Check admin role before proceeding
     if (!isAdmin.value) {
@@ -947,54 +976,84 @@ const savePackChanges = async () => {
       return
     }
     
-    // Add detailed debugging
-    console.log('🔍 Debug Info:');
-    console.log('- isAdmin.value:', isAdmin.value);
-    console.log('- roleLoaded.value:', roleLoaded.value);
+    saving.value = true
+    error.value = null // Clear any previous errors
     
-    // Test the has_role function directly
-    const { data: hasRoleData, error: hasRoleError } = await supabase
-      .rpc('has_role', { check_user: (await supabase.auth.getUser()).data.user.id, check_role: 'admin' });
-    
-    console.log('- has_role function result:', hasRoleData, hasRoleError);
-    
-    // Test debug function
-    const { data: debugData, error: debugError } = await supabase
-      .rpc('debug_admin_permissions');
-    
-    console.log('- Debug function result:', debugData, debugError);
-    
-    // Test pack update with debug function
-    if (selectedPack.value?.pack_id) {
-      const { data: testData, error: testError } = await supabase
-        .rpc('test_pack_update', { 
-          test_pack_id: selectedPack.value.pack_id, 
-          test_name_en: 'Debug Test' 
-        });
-      
-      console.log('- Test pack update result:', testData, testError);
+    // Check if user has admin role before proceeding
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      throw new Error('You must be logged in to perform this action')
     }
     
-    saving.value = true
+    // Verify admin role
+    const { data: userRoles, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
     
-    // Save pack changes
-    const { error } = await supabase
+    if (roleError) {
+      console.error('Error checking user roles:', roleError)
+      throw new Error('Unable to verify permissions')
+    }
+    
+    const hasAdminRole = userRoles?.some(ur => ur.role === 'admin')
+    if (!hasAdminRole) {
+      throw new Error('Admin access required to manage packs')
+    }
+    
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout - please try again')), 15000)
+    })
+    
+    // Update existing pack - only update changed fields
+    const updateData = {
+      name_en: editingPack.value.name_en,
+      name_ar: editingPack.value.name_ar,
+      name_fr: editingPack.value.name_fr,
+      description_en: editingPack.value.description_en,
+      description_ar: editingPack.value.description_ar,
+      description_fr: editingPack.value.description_fr,
+      price: editingPack.value.price,
+      max_announcements: editingPack.value.max_announcements,
+      max_images: editingPack.value.max_images,
+      is_active: editingPack.value.is_active
+    }
+    
+    const operationPromise = supabase
       .from('packs')
-      .update({
-        name_en: editingPack.value.name_en,
-        name_ar: editingPack.value.name_ar,
-        name_fr: editingPack.value.name_fr,
-        description_en: editingPack.value.description_en,
-        description_ar: editingPack.value.description_ar,
-        description_fr: editingPack.value.description_fr,
-        price: editingPack.value.price,
-        max_announcements: editingPack.value.max_announcements,
-        max_images: editingPack.value.max_images,
-        is_active: editingPack.value.is_active
-      })
-      .eq('id', selectedPack.value.pack_id)
+      .update(updateData)
+      .eq('id', editingPack.value.id)
+      .select()
     
-    if (error) throw error
+    // Race between operation and timeout
+    const { data, error: operationError } = await Promise.race([
+      operationPromise,
+      timeoutPromise
+    ])
+    
+    if (operationError) {
+      console.error('Database operation error:', operationError)
+      
+      // Handle specific error types
+      if (operationError.code === 'PGRST301') {
+        throw new Error('Permission denied - you may not have admin access')
+      } else if (operationError.code === '23505') {
+        throw new Error('A pack with this name already exists')
+      } else if (operationError.code === '23514') {
+        throw new Error('Invalid data provided - please check all fields')
+      } else if (operationError.code === 'PGRST116') {
+        // Retry on connection issues
+        if (retryCount < 2) {
+          console.log(`Retrying operation (attempt ${retryCount + 1})`)
+          await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second
+          return savePackChanges(retryCount + 1)
+        }
+        throw new Error('Connection issue - please try again')
+      } else {
+        throw new Error(operationError.message || 'Database operation failed')
+      }
+    }
     
     // Save temporary feature changes to database
     for (const [featureId, changes] of Object.entries(tempFeatureChanges.value)) {
@@ -1012,8 +1071,11 @@ const savePackChanges = async () => {
     // Clear temporary changes
     tempFeatureChanges.value = {}
     
-    // Refresh packs list
-    await fetchPacks()
+    // Update local state
+    const index = packs.value.findIndex(p => p.pack_id === selectedPack.value.pack_id)
+    if (index !== -1) {
+      packs.value[index] = { ...packs.value[index], ...updateData }
+    }
     
     // Close the modal after successful save
     closePackDetails()
@@ -1022,7 +1084,7 @@ const savePackChanges = async () => {
     alert('Pack and features updated successfully!')
   } catch (err) {
     console.error('Error saving pack changes:', err)
-    alert('Failed to save changes. Please try again.')
+    alert(`Error: ${err.message}`)
   } finally {
     saving.value = false
   }

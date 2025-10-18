@@ -27,8 +27,8 @@ DROP POLICY IF EXISTS "Admins can manage pack features" ON public.pack_features;
 CREATE POLICY "Admins can manage pack features"
 ON public.pack_features
 FOR ALL TO authenticated
-USING (public.has_role_debug(auth.uid(), 'admin'))
-WITH CHECK (public.has_role_debug(auth.uid(), 'admin'));
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 
 
@@ -50,8 +50,8 @@ GRANT SELECT ON public.pack_features TO anon;
 INSERT INTO public.pack_features (pack_id, feature_id, is_enabled)
 SELECT p.id, f.id, true
 FROM public.packs p
-JOIN public.features f ON f.name IN ('external_buttons', 'location_input')
-WHERE p.name = 'Basic Pack'
+JOIN public.features f ON f.name_en IN ('External Buttons', 'Location Input')
+WHERE p.name_en = 'Basic Plan'
 ON CONFLICT (pack_id, feature_id) DO NOTHING;
 
 -- Pro Pack features (all features)
@@ -59,5 +59,5 @@ INSERT INTO public.pack_features (pack_id, feature_id, is_enabled)
 SELECT p.id, f.id, true
 FROM public.packs p
 JOIN public.features f
-WHERE p.name = 'Pro Pack'
+WHERE p.name_en = 'Pro Plan'
 ON CONFLICT (pack_id, feature_id) DO NOTHING;

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
     city TEXT,
+    status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -132,6 +133,26 @@ SECURITY DEFINER
 AS $$
 BEGIN
     RETURN QUERY
+    WITH user_stores AS (
+        SELECT 
+            s.owner_id,
+            s.name,
+            s.status,
+            pack.price,
+            ROW_NUMBER() OVER (
+                PARTITION BY s.owner_id 
+                ORDER BY 
+                    CASE 
+                        WHEN s.status = 'approved' THEN 1
+                        WHEN s.status = 'suspended' THEN 2
+                        WHEN s.status = 'pending' THEN 3
+                        WHEN s.status = 'rejected' THEN 4
+                        ELSE 5
+                    END
+            ) as rn
+        FROM public.stores s
+        LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    )
     SELECT 
         au.id as user_id,
         au.email::TEXT,
@@ -141,29 +162,30 @@ BEGIN
             'customer'
         )::TEXT as roles,
         COALESCE(
-            STRING_AGG(DISTINCT 
-                CASE 
-                    WHEN s.name IS NOT NULL AND s.name != '' AND pack.price > 0 THEN s.name
-                    WHEN s.name IS NOT NULL AND s.name != '' AND pack.price = 0 THEN 'Basic Pack Store'
-                    WHEN s.id IS NOT NULL AND pack.price = 0 THEN 'Basic Pack Store'
-                    ELSE '-'
-                END, E'\n'), 
+            CASE 
+                WHEN us.name IS NOT NULL AND us.name != '' AND us.price > 0 THEN us.name
+                WHEN us.name IS NOT NULL AND us.name != '' AND us.price = 0 THEN 'Basic Pack Store'
+                WHEN us.owner_id IS NOT NULL AND us.price = 0 THEN 'Basic Pack Store'
+                ELSE '-'
+            END, 
             '-'
         )::TEXT as store_names,
-        COALESCE(
-            STRING_AGG(DISTINCT ur.status, E'\n'), 
-            'active'
-        )::TEXT as account_status
+        COALESCE(p.status, 'active')::TEXT as account_status
     FROM auth.users au
     LEFT JOIN public.profiles p ON au.id = p.id
     LEFT JOIN public.user_roles ur ON p.id = ur.user_id
-    LEFT JOIN public.stores s ON p.id = s.owner_id
-    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    LEFT JOIN user_stores us ON p.id = us.owner_id AND us.rn = 1
     WHERE au.deleted_at IS NULL
-    GROUP BY au.id, au.email, p.full_name, au.banned_until, au.deleted_at
+    GROUP BY au.id, au.email, p.full_name, au.banned_until, au.deleted_at, us.name, us.price, us.owner_id
     ORDER BY au.email;
 END;
 $$;
 
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION public.get_all_users_for_admin() TO authenticated;
+
+-- Add status column to existing profiles if it doesn't exist
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active';
+
+-- Update existing profiles to have active status if they don't have one
+UPDATE public.profiles SET status = 'active' WHERE status IS NULL;

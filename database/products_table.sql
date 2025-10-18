@@ -58,12 +58,8 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 -- Admin can manage all products
 CREATE POLICY "Admin can manage all products"
 ON public.products FOR ALL TO authenticated
-USING (
-    EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin')
-)
-WITH CHECK (
-    EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = auth.uid() AND ur.role = 'admin')
-);
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
 -------- INSERT --------
 -- Vendor and customer can insert products in their own stores
 CREATE POLICY "Vendor and customer can manage their own products"
