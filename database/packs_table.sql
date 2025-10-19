@@ -2,7 +2,7 @@
 -- Packs table structure
 -- ================================
 CREATE TABLE IF NOT EXISTS public.packs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     price DECIMAL(10,2) NOT NULL DEFAULT 0, -- Price in DZD
     max_announcements INTEGER NOT NULL DEFAULT 0, -- Max product announcements
     max_images INTEGER NOT NULL DEFAULT 0, -- Max storage images

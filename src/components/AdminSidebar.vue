@@ -39,11 +39,11 @@
           <ul class="space-y-2">
             <li>
               <router-link 
-                to="/admin"
+                :to="`/${$route.meta.locale || 'en'}/admintab`"
                 @click="closeSidebarOnMobile"
                 :class="[
                   'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                  $route.path === '/admin' 
+                  $route.path.includes('/admintab') 
                     ? 'bg-primary-100 text-primary-700' 
                     : 'text-gray-700 hover:bg-gray-100'
                 ]"

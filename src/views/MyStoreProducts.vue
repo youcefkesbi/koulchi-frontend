@@ -7,6 +7,46 @@
         <p class="mt-2 text-gray-600">{{ $t('storeProducts.subtitle') }}</p>
       </div>
 
+      <!-- Success Message -->
+      <div v-if="successMessage" class="mb-6 p-6 bg-green-50 border-l-4 border-green-400 rounded-lg shadow-sm animate-fade-in">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start">
+            <i class="fas fa-check-circle text-green-500 text-xl mt-1 mr-4"></i>
+            <div>
+              <h4 class="text-green-800 font-semibold text-lg mb-2">{{ $t('storeProducts.success') }}</h4>
+              <p class="text-green-700 text-base">{{ successMessage }}</p>
+            </div>
+          </div>
+          <button 
+            @click="successMessage = ''"
+            class="text-green-600 hover:text-green-800 ml-4 p-1 rounded-full hover:bg-green-100 transition-colors"
+            title="Dismiss message"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="mb-6 p-6 bg-red-50 border-l-4 border-red-400 rounded-lg shadow-sm animate-fade-in">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle text-red-500 text-xl mt-1 mr-4"></i>
+            <div>
+              <h4 class="text-red-800 font-semibold text-lg mb-2">{{ $t('storeProducts.error') }}</h4>
+              <p class="text-red-700 text-base">{{ errorMessage }}</p>
+            </div>
+          </div>
+          <button 
+            @click="errorMessage = ''"
+            class="text-red-600 hover:text-red-800 ml-4 p-1 rounded-full hover:bg-red-100 transition-colors"
+            title="Dismiss message"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+      </div>
+
       <!-- Products Table -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="relative px-6 py-4 border-b border-gray-200"> 
@@ -74,6 +114,7 @@
             {{ $t('storeProducts.tryAgain') }}
           </button>
         </div>
+
         
         <!-- Access Guard -->
         <div v-else-if="!hasVendorRole" class="text-center py-12">
@@ -241,7 +282,7 @@
           </div>
 
            <!-- Form -->
-           <form @submit.prevent="handleFormSubmit" class="space-y-6">
+           <form @submit.prevent="handleFormSubmit" @submit="console.log('Form submit event triggered')" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Product Name -->
               <div class="md:col-span-2">
@@ -438,9 +479,9 @@
                 {{ $t('storeProducts.cancel') }}
               </button>
                <button
-                 type="button"
-                 @click="handleFormSubmit"
+                 type="submit"
                  :disabled="creating"
+                 @click="console.log('Submit button clicked')"
                  class="px-6 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  <i v-if="creating" class="fas fa-spinner fa-spin mr-2"></i>
@@ -472,6 +513,10 @@ const error = ref(null)
 const showDeleteModal = ref(false)
 const productToDelete = ref({ id: null, name: '' })
 const deleting = ref(false)
+
+// Success and error messages for form operations
+const successMessage = ref('')
+const errorMessage = ref('')
 
 // Filtering state
 const sortFilter = ref('created_at')
@@ -631,6 +676,8 @@ const closeAddForm = () => {
   showAddForm.value = false
   editing.value = false
   editingProductId.value = null
+  errorMessage.value = ''
+  // Don't clear successMessage here - let it auto-clear after 5 seconds
   resetForm()
 }
 
@@ -754,11 +801,14 @@ const uploadImage = async (file, bucket = 'product-images') => {
   }
 }
 
-const handleFormSubmit = (event) => {
+const handleFormSubmit = async (event) => {
   event.preventDefault()
   event.stopPropagation()
   console.log('Form submitted, editing:', editing.value)
-  createProduct()
+  console.log('Form data before submission:', newProduct.value)
+  console.log('Thumbnail file:', thumbnailFile.value)
+  console.log('Image files:', imageFiles.value)
+  await createProduct()
 }
 
 const createProduct = async () => {
@@ -768,38 +818,78 @@ const createProduct = async () => {
     return
   }
   
+  console.log('Starting createProduct function')
+  console.log('Form data:', newProduct.value)
+  console.log('Editing mode:', editing.value)
+  
   try {
     creating.value = true
     error.value = null
+    errorMessage.value = ''
+    successMessage.value = ''
 
     // Validate required fields
+    console.log('Validating required fields:')
+    console.log('Name:', newProduct.value.name)
+    console.log('Description:', newProduct.value.description)
+    console.log('Price:', newProduct.value.price)
+    console.log('Stock quantity:', newProduct.value.stock_quantity)
+    console.log('Category ID:', newProduct.value.category_id)
+    
     if (!newProduct.value.name || !newProduct.value.description || !newProduct.value.price || !newProduct.value.stock_quantity || !newProduct.value.category_id) {
-      error.value = 'Please fill in all required fields'
+      errorMessage.value = 'Please fill in all required fields'
+      creating.value = false
+      console.log('Validation failed: Missing required fields')
       return
     }
 
     // For new products, thumbnail is required. For editing, it's optional if already exists
+    console.log('Checking thumbnail requirement:')
+    console.log('Editing mode:', editing.value)
+    console.log('Thumbnail file:', thumbnailFile.value)
+    
     if (!editing.value && !thumbnailFile.value) {
-      error.value = 'Please upload a thumbnail image'
+      errorMessage.value = 'Please upload a thumbnail image'
+      creating.value = false
+      console.log('Validation failed: No thumbnail uploaded for new product')
       return
     }
+    
+    console.log('Validation passed, proceeding with product creation')
 
     // Get current user
+    console.log('Getting current user...')
     const { data: { user } } = await supabase.auth.getUser()
+    console.log('User:', user)
     if (!user) {
-      error.value = 'User not authenticated'
+      errorMessage.value = 'User not authenticated'
+      creating.value = false
       return
     }
 
     // Get user's store ID
-    const { data: storeData, error: storeError } = await supabase
+    console.log('Getting user store...')
+    const { data: storesData, error: storeError } = await supabase
       .from('stores')
-      .select('id')
+      .select('id, status')
       .eq('owner_id', user.id)
-      .single()
+      .order('created_at', { ascending: false })
 
-    if (storeError || !storeData) {
-      error.value = 'Store not found'
+    console.log('Stores data:', storesData)
+    console.log('Store error:', storeError)
+
+    if (storeError || !storesData || storesData.length === 0) {
+      errorMessage.value = 'Store not found. Please create a store first.'
+      creating.value = false
+      return
+    }
+
+    // Get the first approved store, or the first store if no approved store exists
+    const storeData = storesData.find(store => store.status === 'approved') || storesData[0]
+    
+    if (!storeData) {
+      errorMessage.value = 'No valid store found. Please create a store first.'
+      creating.value = false
       return
     }
 
@@ -807,12 +897,16 @@ const createProduct = async () => {
     let imageUrls = []
 
     // Handle thumbnail upload
+    console.log('Handling thumbnail upload...')
     if (thumbnailFile.value) {
       // New thumbnail uploaded
+      console.log('Uploading new thumbnail...')
       thumbnailUrl = await uploadImage(thumbnailFile.value)
+      console.log('Thumbnail uploaded:', thumbnailUrl)
     } else if (editing.value && thumbnailPreview.value && !thumbnailPreview.value.startsWith('data:')) {
       // Keep existing thumbnail (it's a URL, not a data URL)
       thumbnailUrl = thumbnailPreview.value
+      console.log('Using existing thumbnail:', thumbnailUrl)
     }
 
     // Handle product images
@@ -829,6 +923,7 @@ const createProduct = async () => {
 
     if (editing.value) {
       // Update existing product
+      console.log('Updating existing product...')
       const { data: productData, error: productError } = await supabase
         .from('products')
         .update({
@@ -846,9 +941,26 @@ const createProduct = async () => {
         .select()
 
       if (productError) throw productError
+      successMessage.value = 'Product updated successfully!'
       console.log('Product updated successfully!')
     } else {
       // Create new product
+      console.log('Creating new product...')
+      console.log('Product data to insert:', {
+        name: newProduct.value.name,
+        description: newProduct.value.description,
+        price: parseFloat(newProduct.value.price),
+        stock_quantity: parseInt(newProduct.value.stock_quantity),
+        category_id: newProduct.value.category_id,
+        seller_id: user.id,
+        store_id: storeData.id,
+        is_new: newProduct.value.is_new,
+        thumbnail_url: thumbnailUrl,
+        image_urls: imageUrls,
+        is_active: true,
+        status: 'pending'
+      })
+      
       const { data: productData, error: productError } = await supabase
         .from('products')
         .insert({
@@ -862,23 +974,35 @@ const createProduct = async () => {
           is_new: newProduct.value.is_new,
           thumbnail_url: thumbnailUrl,
           image_urls: imageUrls,
-          is_active: true
+          is_active: true,
+          status: 'pending'
         })
         .select()
 
+      console.log('Product creation result:', productData)
+      console.log('Product creation error:', productError)
+      
       if (productError) throw productError
+      successMessage.value = 'Product created successfully!'
       console.log('Product created successfully!')
     }
 
     // Refresh products list
     await fetchProducts()
     
-    // Close form
-    closeAddForm()
+    // Clear success message after 5 seconds
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
+    
+    // Close form after a short delay to show the success message
+    setTimeout(() => {
+      closeAddForm()
+    }, 1500)
     
   } catch (err) {
     console.error('Error saving product:', err)
-    error.value = err.message || `Failed to ${editing.value ? 'update' : 'create'} product`
+    errorMessage.value = getErrorMessage(err)
   } finally {
     creating.value = false
   }
@@ -896,10 +1020,12 @@ const editProduct = (productId) => {
 
 const addProduct = () => {
   // Open the form for adding a new product
+  console.log('Opening add product form')
   editing.value = false
   editingProductId.value = null
   showAddForm.value = true
   resetForm()
+  console.log('Form opened, newProduct:', newProduct.value)
 }
 
 const confirmDeleteProduct = (productId, productName) => {
@@ -910,6 +1036,8 @@ const confirmDeleteProduct = (productId, productName) => {
 const deleteProduct = async (productId, productName) => {
   try {
     deleting.value = true
+    errorMessage.value = ''
+    successMessage.value = ''
     
     const { error: deleteError } = await supabase
       .from('products')
@@ -921,12 +1049,43 @@ const deleteProduct = async (productId, productName) => {
     // Remove product from local array
     products.value = products.value.filter(p => p.product_id !== productId)
     
+    successMessage.value = `Product "${productName}" deleted successfully!`
     console.log(`Product "${productName}" deleted successfully!`)
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3000)
   } catch (err) {
-    error.value = err.message
+    errorMessage.value = getErrorMessage(err)
     console.error('Error deleting product:', err)
   } finally {
     deleting.value = false
+  }
+}
+
+// Error message helper function
+const getErrorMessage = (error) => {
+  const message = error.message || ''
+  
+  if (message.includes('User not authenticated')) {
+    return 'Please log in to manage products'
+  } else if (message.includes('permission denied')) {
+    return 'Permission denied. Please check your account permissions.'
+  } else if (message.includes('Store not found')) {
+    return 'Store not found. Please create a store first.'
+  } else if (message.includes('network') || message.includes('fetch')) {
+    return 'Network error. Please check your internet connection and try again.'
+  } else if (message.includes('upload')) {
+    return 'Failed to upload images. Please try again.'
+  } else if (message.includes('duplicate key') || message.includes('unique constraint')) {
+    return 'A product with this name already exists. Please choose a different name.'
+  } else if (message.includes('foreign key')) {
+    return 'Invalid category selected. Please choose a valid category.'
+  } else if (message.includes('not null')) {
+    return 'Please fill in all required fields.'
+  } else {
+    return message || 'An error occurred while saving the product. Please try again.'
   }
 }
 
@@ -977,5 +1136,21 @@ onMounted(async () => {
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Animation for messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 </style>

@@ -72,6 +72,7 @@
 
             <!-- Post Announcement Button -->
             <button
+              v-if="shouldShowProductButton"
               @click="handlePostAnnouncement"
               class="w-28 flex gap-2 items-center text-xs sm:text-sm  sm:px-3 py-1 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
@@ -346,6 +347,11 @@ const hasApprovedStore = computed(() => {
 // Check if user should see the "Create Store" button
 const shouldShowCreateStoreButton = computed(() => {
   return authStore.isAuthenticated && userStoreStatus.value.can_create
+})
+
+// Check if user should see the "Add Product" button (only if user doesn't have vendor role)
+const shouldShowProductButton = computed(() => {
+  return authStore.isAuthenticated && !hasVendorRole.value
 })
 
 // Get category icon based on category ID
