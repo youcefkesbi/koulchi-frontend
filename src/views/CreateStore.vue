@@ -478,16 +478,54 @@ const fetchPacks = async () => {
     loadingPacks.value = true
     fetchError.value = null
 
+    // Fetch packs with their features using the new relational structure
     const { data, error } = await supabase
       .from('packs')
-      .select('*')
+      .select(`
+        *,
+        pack_features!inner(
+          is_enabled,
+          features(
+            name_en,
+            name_ar,
+            name_fr,
+            description_en,
+            description_ar,
+            description_fr
+          )
+        )
+      `)
       .eq('is_active', true)
       .order('price', { ascending: true })
 
     if (error) throw error
 
+    // Transform the data to match the expected structure
+    const transformedPacks = (data || []).map(pack => {
+      // Extract enabled features and organize by language
+      const features = {
+        en: [],
+        ar: [],
+        fr: []
+      }
+
+      pack.pack_features?.forEach(pf => {
+        if (pf.is_enabled && pf.features) {
+          const feature = pf.features
+          features.en.push(feature.name_en)
+          features.ar.push(feature.name_ar)
+          features.fr.push(feature.name_fr)
+        }
+      })
+
+      return {
+        ...pack,
+        features: features
+      }
+    })
+
     // Keep raw data and localize via computed for reactive locale updates
-    rawPacks.value = data || []
+    rawPacks.value = transformedPacks
   } catch (err) {
     console.error('Failed to fetch packs:', err)
     fetchError.value = err.message || 'Failed to load packs'

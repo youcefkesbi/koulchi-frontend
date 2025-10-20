@@ -22,22 +22,16 @@ CREATE INDEX IF NOT EXISTS pack_features_enabled_idx ON public.pack_features(is_
 -- ================================
 ALTER TABLE public.pack_features ENABLE ROW LEVEL SECURITY;
 
--- Only admins can manage pack features
+-- Only admins can manage pack features (multi-role support) - DEBUG VERSION
+DROP POLICY IF EXISTS "Admins can manage pack features" ON public.pack_features;
 CREATE POLICY "Admins can manage pack features"
 ON public.pack_features
 FOR ALL TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-)
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-);
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+
+
 -------- SELECT --------
 -- Anyone can view pack features
 CREATE POLICY "Anyone can view pack features"
@@ -56,8 +50,8 @@ GRANT SELECT ON public.pack_features TO anon;
 INSERT INTO public.pack_features (pack_id, feature_id, is_enabled)
 SELECT p.id, f.id, true
 FROM public.packs p
-JOIN public.features f ON f.name IN ('external_buttons', 'location_input')
-WHERE p.name = 'Basic Pack'
+JOIN public.features f ON f.name_en IN ('External Buttons', 'Location Input')
+WHERE p.name_en = 'Basic Plan'
 ON CONFLICT (pack_id, feature_id) DO NOTHING;
 
 -- Pro Pack features (all features)
@@ -65,5 +59,5 @@ INSERT INTO public.pack_features (pack_id, feature_id, is_enabled)
 SELECT p.id, f.id, true
 FROM public.packs p
 JOIN public.features f
-WHERE p.name = 'Pro Pack'
+WHERE p.name_en = 'Pro Plan'
 ON CONFLICT (pack_id, feature_id) DO NOTHING;

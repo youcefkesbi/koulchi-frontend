@@ -3,8 +3,6 @@
 -- ================================
 CREATE TABLE IF NOT EXISTS public.packs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE, -- e.g., 'Basic Pack', 'Pro Pack'
-    description TEXT,
     price DECIMAL(10,2) NOT NULL DEFAULT 0, -- Price in DZD
     max_announcements INTEGER NOT NULL DEFAULT 0, -- Max product announcements
     max_images INTEGER NOT NULL DEFAULT 0, -- Max storage images
@@ -82,29 +80,21 @@ ON CONFLICT (name_en) DO NOTHING;
 -- Indexes
 -- ================================
 CREATE INDEX IF NOT EXISTS packs_is_active_idx ON public.packs(is_active);
-CREATE INDEX IF NOT EXISTS packs_name_idx ON public.packs(name);
+CREATE INDEX IF NOT EXISTS packs_name_en_idx ON public.packs(name_en);
 
 -- ================================
 -- Policies
 -- ================================
 ALTER TABLE public.packs ENABLE ROW LEVEL SECURITY;
 
--- Admins can manage packs
+-- Admins can manage packs (multi-role support) - DEBUG VERSION
+DROP POLICY IF EXISTS "Admins can manage packs" ON public.packs;
 CREATE POLICY "Admins can manage packs"
 ON public.packs
 FOR ALL TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-)
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = auth.uid() AND ur.role = 'admin'
-    )
-);
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
 -------- SELECT --------
 -- Anyone can view active packs (SELECT)
 CREATE POLICY "Anyone can view active packs"
@@ -170,16 +160,39 @@ BEGIN
         p.is_active,
         p.created_at,
         p.updated_at,
-        p.features,
+        -- Build features JSONB from relational data
         COALESCE(
-            STRING_AGG(DISTINCT f.display_name, E'\n'), 
+            jsonb_build_object(
+                'en', COALESCE(
+                    jsonb_agg(
+                        CASE WHEN pf.is_enabled = true THEN f.name_en END
+                    ) FILTER (WHERE pf.is_enabled = true AND f.name_en IS NOT NULL),
+                    '[]'::jsonb
+                ),
+                'ar', COALESCE(
+                    jsonb_agg(
+                        CASE WHEN pf.is_enabled = true THEN f.name_ar END
+                    ) FILTER (WHERE pf.is_enabled = true AND f.name_ar IS NOT NULL),
+                    '[]'::jsonb
+                ),
+                'fr', COALESCE(
+                    jsonb_agg(
+                        CASE WHEN pf.is_enabled = true THEN f.name_fr END
+                    ) FILTER (WHERE pf.is_enabled = true AND f.name_fr IS NOT NULL),
+                    '[]'::jsonb
+                )
+            ),
+            '{"en": [], "ar": [], "fr": []}'::jsonb
+        ) as features,
+        COALESCE(
+            STRING_AGG(DISTINCT f.name_en, E'\n'), 
             'No features'
         )::TEXT as feature_names
     FROM public.packs p
     LEFT JOIN public.pack_features pf ON p.id = pf.pack_id
-    LEFT JOIN public.features f ON pf.feature_id = f.id AND pf.is_enabled = true
+    LEFT JOIN public.features f ON pf.feature_id = f.id
     GROUP BY p.id, p.name_en, p.name_ar, p.name_fr, p.description_en, p.description_ar, p.description_fr, 
-             p.price, p.max_announcements, p.max_images, p.is_active, p.created_at, p.updated_at, p.features
+             p.price, p.max_announcements, p.max_images, p.is_active, p.created_at, p.updated_at
     ORDER BY p.price ASC, p.created_at DESC;
 END;
 $$;
@@ -188,9 +201,6 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_all_packs_with_features() TO authenticated;
 
 -- ================================
--- Seed data
+-- Additional Seed data (if needed)
 -- ================================
-INSERT INTO public.packs (name, description, price, max_announcements, max_images) VALUES
-('Basic Pack', 'Free pack with basic features', 0.00, 150, 300),
-('Pro Pack', 'Premium pack with advanced features', 1000.00, 3000, 6000)
-ON CONFLICT (name) DO NOTHING;
+-- Note: Main seed data is already provided above with proper column names

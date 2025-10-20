@@ -44,7 +44,7 @@ BEGIN
         CREATE TYPE store_status AS ENUM ('pending', 'approved', 'rejected');
     END IF;
 END$$;
-
+ALTER TYPE store_status ADD VALUE IF NOT EXISTS 'suspended'; 
 -- 2. Drop the existing default
 ALTER TABLE public.stores
 ALTER COLUMN status DROP DEFAULT;
@@ -631,7 +631,7 @@ GRANT EXECUTE ON FUNCTION public.get_my_store_products TO authenticated;
 
 -- Function to get authenticated user's store products with filtering
 CREATE OR REPLACE FUNCTION public.get_my_store_products_filtered(p_price_min numeric DEFAULT NULL::numeric, p_price_max numeric DEFAULT NULL::numeric, p_category_id uuid DEFAULT NULL::uuid, p_stock_filter text DEFAULT NULL::text, p_sort_by text DEFAULT 'created_at'::text, p_sort_order text DEFAULT 'desc'::text)
- RETURNS TABLE(product_id uuid, product_name text, product_description text, product_price numeric, product_image text, category_id uuid, category_name text, stock_quantity integer, sold_count integer, is_active boolean, is_new boolean, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(product_id uuid, product_name text, product_description text, product_price numeric, product_image text, category_id uuid, category_name text, category_name_en text, category_name_ar text, category_name_fr text, stock_quantity integer, sold_count integer, is_active boolean, is_new boolean, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE plpgsql
  SECURITY DEFINER
 AS $function$
@@ -642,10 +642,12 @@ BEGIN
     -- Get the current user's store ID
     SELECT s.id INTO user_store_id
     FROM public.stores s
-    JOIN public.user_roles ur ON s.owner_id = ur.user_id
-    WHERE ur.user_id = auth.uid() 
-      AND ur.role = 'vendor'
+    WHERE s.owner_id = auth.uid() 
       AND s.status = 'approved'
+      AND EXISTS (
+        SELECT 1 FROM public.user_roles ur
+        WHERE ur.user_id = auth.uid() AND ur.role = 'vendor'
+      )
     ORDER BY s.created_at DESC
     LIMIT 1;
     
@@ -671,9 +673,12 @@ BEGIN
         p.name as product_name,
         p.description as product_description,
         p.price as product_price,
-        COALESCE(p.image_urls[1], p.thumbnail_url, '') as product_image,
+        COALESCE(p.thumbnail_url, p.image_urls[1], '') as product_image,
         p.category_id,
         COALESCE(c.name_en, 'No Category') as category_name,
+        COALESCE(c.name_en, 'No Category') as category_name_en,
+        COALESCE(c.name_ar, 'No Category') as category_name_ar,
+        COALESCE(c.name_fr, 'No Category') as category_name_fr,
         p.stock_quantity,
         p.sold_count,
         p.is_active,
@@ -740,6 +745,101 @@ $$;
 
 -- Grant permissions
 GRANT EXECUTE ON FUNCTION public.get_all_stores_for_admin() TO authenticated;
+
+-- ================================
+-- Get Detailed Store Information for Admin
+-- ================================
+CREATE OR REPLACE FUNCTION public.get_store_details_for_admin(store_uuid UUID)
+RETURNS TABLE (
+    store_id UUID,
+    store_name TEXT,
+    store_description TEXT,
+    store_location TEXT,
+    logo_url TEXT,
+    banner_url TEXT,
+    status TEXT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ,
+    owner_id UUID,
+    owner_name TEXT,
+    owner_city TEXT,
+    pack_id UUID,
+    pack_name_en TEXT,
+    pack_name_ar TEXT,
+    pack_name_fr TEXT,
+    pack_price DECIMAL(10,2),
+    max_announcements INTEGER,
+    max_images INTEGER,
+    current_announcements INTEGER,
+    current_images INTEGER,
+    external_buttons JSONB,
+    customization_settings JSONB,
+    features JSONB,
+    total_products INTEGER,
+    total_orders INTEGER,
+    total_sales NUMERIC(10,2)
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id as store_id,
+        s.name::TEXT as store_name,
+        COALESCE(s.description, 'No description')::TEXT as store_description,
+        COALESCE(s.location, 'No location')::TEXT as store_location,
+        COALESCE(s.logo_url, '')::TEXT as logo_url,
+        COALESCE(s.banner_url, '')::TEXT as banner_url,
+        s.status::TEXT as status,
+        s.created_at,
+        s.updated_at,
+        s.owner_id,
+        COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
+        COALESCE(p.city, 'Unknown City')::TEXT as owner_city,
+        s.pack_id,
+        COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name_en,
+        COALESCE(pack.name_ar, 'لا توجد باقة')::TEXT as pack_name_ar,
+        COALESCE(pack.name_fr, 'Aucun Pack')::TEXT as pack_name_fr,
+        COALESCE(pack.price, 0) as pack_price,
+        COALESCE(pack.max_announcements, 0) as max_announcements,
+        COALESCE(pack.max_images, 0) as max_images,
+        s.current_announcements,
+        s.current_images,
+        COALESCE(s.external_buttons, '[]'::jsonb) as external_buttons,
+        COALESCE(s.customization_settings, '{}'::jsonb) as customization_settings,
+        COALESCE(
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'id', f.id,
+                        'name_en', f.name_en,
+                        'name_ar', f.name_ar,
+                        'name_fr', f.name_fr,
+                        'description_en', f.description_en,
+                        'description_ar', f.description_ar,
+                        'description_fr', f.description_fr,
+                        'enabled', pf.is_enabled
+                    )
+                )
+                FROM public.pack_features pf
+                JOIN public.features f ON pf.feature_id = f.id
+                WHERE pf.pack_id = s.pack_id AND pf.is_enabled = true
+            ),
+            '[]'::jsonb
+        ) as features,
+        COALESCE(public.get_store_total_products(s.id), 0) as total_products,
+        COALESCE(public.get_store_total_orders(s.id), 0) as total_orders,
+        COALESCE(public.get_store_total_sales(s.id), 0) as total_sales
+    FROM public.stores s
+    LEFT JOIN public.profiles p ON s.owner_id = p.id
+    LEFT JOIN public.packs pack ON s.pack_id = pack.id
+    WHERE s.id = store_uuid;
+END;
+$$;
+
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.get_store_details_for_admin(UUID) TO authenticated;
 
 -- ================================
 -- Get User Store Pack Information
@@ -849,42 +949,29 @@ END;
 $function$
 
 -- RPC function to get stores by pack type for employee dashboard
-CREATE OR REPLACE FUNCTION get_stores_by_pack_type(pack_type TEXT)
+CREATE OR REPLACE FUNCTION public.get_stores_by_pack_type(pack_type text)
 RETURNS TABLE (
-    id UUID,
-    name TEXT,
-    description TEXT,
-    location TEXT,
-    logo_url TEXT,
-    banner_url TEXT,
-    status TEXT,
-    created_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ,
-    owner_id UUID,
-    pack_id UUID,
-    external_buttons JSONB,
-    owner_name TEXT,
-    owner_city TEXT,
-    pack_name_en TEXT,
-    pack_name_ar TEXT,
-    pack_name_fr TEXT,
-    id_document_url TEXT,
-    id_document_id UUID,
-    id_document_status TEXT,
-    commerce_register_url TEXT,
-    commerce_register_id UUID,
-    commerce_register_status TEXT,
-    payment_receipt_url TEXT,
-    payment_receipt_id UUID,
-    payment_receipt_status TEXT,
-    logo_id UUID,
-    logo_status TEXT,
-    banner_id UUID,
-    banner_status TEXT
+    id uuid, 
+    name text, 
+    description text, 
+    location text, 
+    logo_url text, 
+    banner_url text, 
+    status text, 
+    created_at timestamp with time zone, 
+    updated_at timestamp with time zone, 
+    owner_id uuid, 
+    pack_id uuid, 
+    external_buttons jsonb, 
+    owner_name text, 
+    owner_city text, 
+    pack_name_en text, 
+    pack_name_ar text, 
+    pack_name_fr text
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$
+AS $function$
 BEGIN
     -- Validate pack_type parameter
     IF pack_type NOT IN ('basic', 'pro') THEN
@@ -906,38 +993,21 @@ BEGIN
         s.owner_id,
         s.pack_id,
         s.external_buttons,
-        COALESCE(prof.full_name, 'N/A') as owner_name,
-        COALESCE(prof.city, 'N/A') as owner_city,
-        COALESCE(p.name_en, 'N/A') as pack_name_en,
-        COALESCE(p.name_ar, 'N/A') as pack_name_ar,
-        COALESCE(p.name_fr, 'N/A') as pack_name_fr,
-        COALESCE(id_doc.document_url, '') as id_document_url,
-        id_doc.id as id_document_id,
-        COALESCE(id_doc.status::TEXT, '') as id_document_status,
-        COALESCE(comm_doc.document_url, '') as commerce_register_url,
-        comm_doc.id as commerce_register_id,
-        COALESCE(comm_doc.status::TEXT, '') as commerce_register_status,
-        COALESCE(pay_doc.document_url, '') as payment_receipt_url,
-        pay_doc.id as payment_receipt_id,
-        COALESCE(pay_doc.status::TEXT, '') as payment_receipt_status,
-        logo_doc.id as logo_id,
-        COALESCE(logo_doc.status::TEXT, '') as logo_status,
-        banner_doc.id as banner_id,
-        COALESCE(banner_doc.status::TEXT, '') as banner_status
+        COALESCE(prof.full_name, 'N/A')::TEXT as owner_name,
+        COALESCE(prof.city, 'N/A')::TEXT as owner_city,
+        COALESCE(p.name_en, 'N/A')::TEXT as pack_name_en,
+        COALESCE(p.name_ar, 'N/A')::TEXT as pack_name_ar,
+        COALESCE(p.name_fr, 'N/A')::TEXT as pack_name_fr
     FROM public.stores s
     LEFT JOIN public.profiles prof ON s.owner_id = prof.id
     LEFT JOIN public.packs p ON s.pack_id = p.id
-    LEFT JOIN public.verifications id_doc ON s.owner_id = id_doc.user_id AND id_doc.verification_type = 'id_card'
-    LEFT JOIN public.verifications comm_doc ON s.owner_id = comm_doc.user_id AND comm_doc.verification_type = 'commerce_register'
-    LEFT JOIN public.verifications pay_doc ON s.owner_id = pay_doc.user_id AND pay_doc.verification_type = 'payment_receipt'
-    LEFT JOIN public.verifications logo_doc ON s.owner_id = logo_doc.user_id AND logo_doc.verification_type = 'logo'
-    LEFT JOIN public.verifications banner_doc ON s.owner_id = banner_doc.user_id AND banner_doc.verification_type = 'banner'
     WHERE (
         CASE 
             WHEN pack_type = 'basic' THEN 
                 LOWER(COALESCE(p.name_en, '')) LIKE '%basic%' 
                 OR LOWER(COALESCE(p.name_ar, '')) LIKE '%أساسي%'
                 OR LOWER(COALESCE(p.name_fr, '')) LIKE '%basique%'
+                OR p.name_en = 'Basic Plan'
             WHEN pack_type = 'pro' THEN 
                 LOWER(COALESCE(p.name_en, '')) LIKE '%pro%' 
                 OR LOWER(COALESCE(p.name_en, '')) LIKE '%premium%'
@@ -945,11 +1015,12 @@ BEGIN
                 OR LOWER(COALESCE(p.name_ar, '')) LIKE '%بريميوم%'
                 OR LOWER(COALESCE(p.name_fr, '')) LIKE '%pro%'
                 OR LOWER(COALESCE(p.name_fr, '')) LIKE '%premium%'
+                OR p.name_en = 'Pro Plan'
         END
     )
     ORDER BY s.created_at DESC;
 END;
-$$;
+$function$;
 
 
 

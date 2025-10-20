@@ -1524,17 +1524,17 @@ const fetchAds = async () => {
       .select(`
         *,
         profiles!requester_id (
-          first_name,
-          last_name
+          full_name
         ),
         products!product_id (
-          name as product_name,
-          stores!store_id (
-            name as store_name
+          name,
+          store_id,
+          stores (
+            name
           )
         ),
         stores!store_id (
-          name as store_name
+          name
         )
       `)
       .order('created_at', { ascending: false })
@@ -1556,9 +1556,9 @@ const fetchAds = async () => {
     // Transform data to include requester name, product name, and store name
     ads.value = (data || []).map(ad => ({
       ...ad,
-      requester_name: ad.profiles ? `${ad.profiles.first_name} ${ad.profiles.last_name}` : 'N/A',
-      product_name: ad.products?.product_name || null,
-      store_name: ad.stores?.store_name || ad.products?.stores?.store_name || null
+      requester_name: ad.profiles?.full_name || 'N/A',
+      product_name: ad.products?.name || null,
+      store_name: ad.stores?.name || ad.products?.stores?.name || null
     }))
     
     console.log('Processed ads:', ads.value)

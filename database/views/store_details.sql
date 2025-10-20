@@ -1,10 +1,12 @@
--- Store details view
--- This view provides comprehensive store information with pack details
+-- Drop and recreate the view without features.name
+DROP VIEW IF EXISTS public.store_details CASCADE;
 
-CREATE OR REPLACE VIEW store_details AS
+CREATE VIEW public.store_details AS
 SELECT 
     s.*,
-    p.name as pack_name,
+    p.name_en as pack_name,
+    p.name_ar as pack_name_ar,
+    p.name_fr as pack_name_fr,
     p.max_announcements,
     p.max_images,
     p.price as pack_price,
@@ -17,8 +19,12 @@ LEFT JOIN (
         json_agg(
             json_build_object(
                 'id', f.id,
-                'name', f.name,
-                'display_name', f.display_name,
+                'name_en', f.name_en,
+                'name_ar', f.name_ar,
+                'name_fr', f.name_fr,
+                'description_en', f.description_en,
+                'description_ar', f.description_ar,
+                'description_fr', f.description_fr,
                 'enabled', pf.is_enabled
             )
         ) as features
@@ -29,5 +35,5 @@ LEFT JOIN (
 ) pf ON s.pack_id = pf.pack_id;
 
 -- Grant permissions on the view
-GRANT SELECT ON store_details TO authenticated;
-GRANT SELECT ON store_details TO anon;
+GRANT SELECT ON public.store_details TO authenticated;
+GRANT SELECT ON public.store_details TO anon;
