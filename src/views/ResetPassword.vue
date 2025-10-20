@@ -100,10 +100,12 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
+const { navigateToPath } = useLocaleRouter()
 
 const loading = ref(false)
 const error = ref('')
@@ -150,7 +152,7 @@ const handleResetPassword = async () => {
       
       // Redirect to login after a delay
       setTimeout(() => {
-        router.push('/')
+        navigateToPath('/')
       }, 2000)
     }
   } catch (err) {

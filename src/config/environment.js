@@ -38,7 +38,7 @@ export const environment = {
 
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
-    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+    publishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'placeholder-key'
   },
 
 
@@ -67,8 +67,8 @@ export const validateEnvironment = () => {
     errors.push('VITE_SUPABASE_URL is not configured')
   }
   
-  if (!environment.supabase.anonKey || environment.supabase.anonKey === 'placeholder-key') {
-    errors.push('VITE_SUPABASE_ANON_KEY is not configured')
+  if (!environment.supabase.publishableKey || environment.supabase.publishableKey === 'placeholder-key') {
+    errors.push('VITE_SUPABASE_PUBLISHABLE_KEY is not configured')
   }
   
   

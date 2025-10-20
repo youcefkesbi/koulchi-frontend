@@ -18,7 +18,7 @@ let supabase = null;
 try {
   supabase = createClient(
     environment.supabase.url,
-    environment.supabase.anonKey,
+    environment.supabase.publishableKey,
     {
       auth: {
         // Use PKCE flow for better security

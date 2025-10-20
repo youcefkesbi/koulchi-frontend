@@ -54,9 +54,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
 const router = useRouter()
+const { navigateToPath } = useLocaleRouter()
 
 // State
 const fullName = ref('')
@@ -78,7 +80,7 @@ const fetchProfile = async () => {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
-      router.push('/')
+      navigateToPath('/')
       return
     }
 

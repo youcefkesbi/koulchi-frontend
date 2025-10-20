@@ -28,208 +28,194 @@ import ManageOrders from '../views/ManageOrders.vue'
 import ManageProducts from '../views/ManageProducts.vue'
 
 // Supported locales configuration
-
 const supportedLocales = ['en', 'fr', 'ar']
 const defaultLocale = 'en'
 
-// Base routes without locale prefix
+// Base routes without locale prefix - these will be nested under /:locale
+// Note: Using relative paths (no leading slash) so they inherit the locale param from parent
 const baseRoutes = [
   {
-    path: '/users',
-    name: 'users',
-    component: ManageUsers,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admintab',
-    name: 'AdminTab',
-    component: AdminTab,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/productCard',
-    name: 'productCard',
-    component: () => import('../components/ProductCard.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/',
+    path: '',
     name: 'Home',
     component: Home
   },
   {
-    path: '/login',
-    name: 'LoginModal',
-    component: Home
-  },
-  {
-    path: '/products',
+    path: 'products',
     name: 'Products',
     component: Products
   },
   {
-    path: '/product/:id',
+    path: 'product/:id',
     name: 'ProductDetail',
     component: ProductDetail,
     props: true
   },
   {
-    path: '/cart',
+    path: 'cart',
     name: 'Cart',
     component: Cart
   },
   {
-    path: '/checkout',
+    path: 'checkout',
     name: 'Checkout',
     component: Checkout
   },
   {
-    path: '/order-confirmation',
+    path: 'order-confirmation',
     name: 'OrderConfirmation',
     component: OrderConfirmation
   },
   {
-    path: '/dashboard',
+    path: 'dashboard',
     name: 'StoreDashboard',
     component: StoreDashboard,
     meta: { requiresAuth: true },
     beforeEnter: authGuard
   },
   {
-    path: '/profile',
+    path: 'profile',
     name: 'Profile',
     component: Profile,
     meta: { requiresAuth: true }
   },
   {
-    path: '/wishlist',
+    path: 'wishlist',
     name: 'Wishlist',
     component: Wishlist,
     meta: { requiresAuth: true }
   },
   {
-    path: '/myannouncements/new',
+    path: 'myannouncements/new',
     name: 'NewAnnouncement',
     component: () => import('../views/NewAnnouncement.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/auth/callback',
+    path: 'auth/callback',
     name: 'AuthCallback',
     component: AuthCallback
   },
   {
-    path: '/reset-password',
+    path: 'reset-password',
     name: 'ResetPassword',
     component: ResetPassword
   },
   {
-    path: '/category/:categoryId',
+    path: 'category/:categoryId',
     name: 'CategoryPage',
     component: CategoryPage,
     props: true
   },
   {
-    path: '/categories',
+    path: 'categories',
     name: 'Categories',
     component: ManageCategories,
     props: true
   },
   {
-    path: '/stores',
+    path: 'stores',
     name: 'Stores',
     component: Stores
   },
   {
-    path: '/managestores',
-    name: 'Stores',
+    path: 'managestores',
+    name: 'ManageStores',
     component: ManageStores
   },
   {
-    path: '/packs',
+    path: 'packs',
     name: 'Packs',
     component: ManagePacks
   },
   {
-    path: '/orders',
+    path: 'orders',
     name: 'Orders',
     component: ManageOrders,
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
   },
   {
-    path: '/products',
+    path: 'products',
     name: 'Products',
     component: ManageProducts,
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
   },
   {
-    path: '/stores/:id',
+    path: 'stores/:id',
     name: 'StoreDetail',
     component: StoreDetail,
     props: true
   },
   {
-    path: '/dashboard/store/create',
+    path: 'dashboard/store/create',
     name: 'CreateStore',
     component: () => import('../views/CreateStore.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/store/:id',
+    path: 'store/:id',
     name: 'MyStoreInfos',
     component: MyStoreInfos,
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
   },
   {
-    path: '/mypurchases',
+    path: 'mypurchases',
     name: 'MyPurchases',
     component: () => import('../views/MyPurchases.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/mystoreproducts',
+    path: 'mystoreproducts',
     name: 'MyStoreProducts',
     component: () => import('../views/MyStoreProducts.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin',
+    path: 'admin',
     name: 'AdminDashboard',
     component: () => import('../views/AdminDashboard.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
   },
   {
-    path: '/employee',
+    path: 'employee',
     name: 'EmployeeDashboard',
     component: () => import('../views/EmployeeDashboard.vue'),
     meta: { requiresAuth: true, requiresEmployee: true },
     beforeEnter: employeeGuard
+  },
+  {
+    path: 'ad-request',
+    name: 'AdRequest',
+    component: () => import('../views/AdRequest.vue'),
+    meta: { requiresAuth: true },
+    beforeEnter: authGuard
+  },
+  {
+    path: 'users',
+    name: 'ManageUsers',
+    component: ManageUsers,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: 'admintab',
+    name: 'AdminTab',
+    component: AdminTab,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: 'productCard',
+    name: 'ProductCard',
+    component: () => import('../components/ProductCard.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
 // Create localized routes with locale parameter
 const createLocalizedRoutes = () => {
   const routes = []
-  
-  // Add localized routes for each supported locale
-  supportedLocales.forEach(locale => {
-    baseRoutes.forEach(route => {
-      routes.push({
-        ...route,
-        path: `/${locale}${route.path === '/' ? '' : route.path}`,
-        name: `${route.name}_${locale}`,
-        meta: { 
-          ...route.meta, 
-          locale,
-          requiresAuth: route.meta?.requiresAuth || false
-        }
-      })
-    })
-  })
   
   // Add root redirect route
   routes.push({
@@ -241,14 +227,28 @@ const createLocalizedRoutes = () => {
     }
   })
   
-  // Add catch-all route for invalid locales
+  // Create main locale route with children
   routes.push({
-    path: '/:locale(.*)',
-    name: 'InvalidLocale',
-    redirect: () => {
-      const bestLocale = getBestLocale()
-      return `/${bestLocale}`
-    }
+    path: '/:locale',
+    name: 'LocaleRoot',
+    component: { template: '<router-view />' },
+    beforeEnter: (to, from, next) => {
+      const locale = to.params.locale
+      if (!supportedLocales.includes(locale)) {
+        const bestLocale = getBestLocale()
+        next(`/${bestLocale}`)
+        return
+      }
+      next()
+    },
+    children: baseRoutes.map(route => ({
+      ...route,
+      meta: { 
+        ...route.meta, 
+        locale: route.meta?.locale || 'en', // Will be overridden by parent
+        requiresAuth: route.meta?.requiresAuth || false
+      }
+    }))
   })
   
   // Add catch-all route for unknown routes - show 404 component
@@ -351,31 +351,27 @@ router.beforeEach(async (to, from, next) => {
     return
   }
   
-  // Handle invalid locale redirect
-  if (to.name === 'InvalidLocale') {
-    const bestLocale = getBestLocale()
-    next(`/${bestLocale}`)
-    return
-  }
+  // Extract locale from route params (new structure)
+  const locale = to.params.locale
   
-  // Extract locale from URL path first, fallback to meta
-  const pathLocaleMatch = to.path.match(/^\/(en|fr|ar)(?:\/|$)/)
-  const locale = (pathLocaleMatch && pathLocaleMatch[1]) || to.meta.locale
-  
-  // Ensure locale is valid without duplicating the prefix
+  // Ensure locale is valid
   if (!locale || !supportedLocales.includes(locale)) {
     const bestLocale = getBestLocale()
-    // If path already starts with a supported locale but meta is missing, keep path as-is
-    if (pathLocaleMatch) {
-      next()
+    // If we're in a locale route but locale is invalid, redirect to best locale
+    if (to.name === 'LocaleRoot') {
+      next(`/${bestLocale}`)
       return
     }
-    next(`/${bestLocale}${to.path.startsWith('/') ? '' : '/'}${to.path}`)
+    // For other routes, redirect to localized version
+    next(`/${bestLocale}${to.path}`)
     return
   }
   
   // Set locale in i18n and localStorage
   setLocale(locale)
+  
+  // Update route meta with locale
+  to.meta.locale = locale
   
   // Handle authentication requirements
   if (to.meta.requiresAuth) {
@@ -385,8 +381,7 @@ router.beforeEach(async (to, from, next) => {
       const authStore = useAuthStore()
       const hasSession = await authStore.checkAuthStatus()
       if (!hasSession) {
-        const currentLocale = to.meta.locale || defaultLocale
-        next(`/${currentLocale}/login`)
+        next(`/${locale}/login`)
         return
       }
       next()

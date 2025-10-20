@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase'
  */
 export const adminGuard = async (to, from, next) => {
   const authStore = useAuthStore()
-  const loc = to.meta.locale || 'en'
+  const loc = to.params.locale || to.meta.locale || 'en'
 
   console.log('🔍 adminGuard called:', { 
     to: to.path, 
@@ -89,7 +89,7 @@ export const adminGuard = async (to, from, next) => {
  */
 export const employeeGuard = async (to, from, next) => {
   const authStore = useAuthStore()
-  const loc = to.meta.locale || 'en'
+  const loc = to.params.locale || to.meta.locale || 'en'
 
   console.log('🔍 employeeGuard called:', { 
     to: to.path, 

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="bg-white shadow-soft border-b border-gray-100">
       <div class="container mx-auto px-4 py-6 flex items-center space-x-4">
-        <router-link to="/dashboard" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+        <router-link :to="getLocalizedPath('/dashboard')" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
           <i class="fas fa-arrow-left text-xl"></i>
         </router-link>
         <div>
@@ -429,7 +429,7 @@
               <h4 class="text-red-800 font-medium mb-2">{{ $t('stores.verificationRequired') }}</h4>
               <p class="text-red-700 text-sm mb-3">{{ $t('stores.verificationRequiredMessage') }}</p>
               <router-link 
-                :to="`/${$i18n.locale}/dashboard`"
+                :to="getLocalizedPath('/dashboard')"
                 class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
               >
                 <i class="fas fa-upload mr-2"></i>
@@ -462,11 +462,13 @@ import { ref, reactive, computed, onMounted , onUnmounted  } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
 const router = useRouter()
 const { t, locale } = useI18n() // locale reactive
 const authStore = useAuthStore()
+const { navigateToPath, getLocalizedPath } = useLocaleRouter()
 const rawPacks = ref([]) // raw fetched packs from DB
 const loadingPacks = ref(false)
 const fetchError = ref(null)
@@ -880,9 +882,8 @@ const handleSubmit = async () => {
 
     // Increased delay to see any error messages
     setTimeout(async () => {
-      const currentLocale = router.currentRoute.value.meta?.locale || 'en'
       try {
-        await router.push(`/${currentLocale}/dashboard/store/${newStore.id}`)
+        await navigateToPath(`/store/${newStore.id}`)
       } catch (redirectError) {
         console.error('Redirect error:', redirectError);
         errorMessage.value = `Redirect failed: ${redirectError.message}`;
@@ -934,8 +935,7 @@ const resetForm = () => {
 // Check authentication status using auth store
 const checkAuth = () => {
   if (!authStore.isAuthenticated) {
-    const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-    router.push(`/${currentLocale}/login`)
+    navigateToPath('/login')
     return false
   }
   return true
