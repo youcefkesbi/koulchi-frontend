@@ -1902,7 +1902,7 @@ const approveProduct = async (productId) => {
     const { error } = await supabase
       .from('products')
       .update({ 
-        is_active: true,
+        status: 'approved',
         status: 'approved',
         rejection_reason: null
       })

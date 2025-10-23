@@ -500,6 +500,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
+import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 const { t: $t } = useI18n()
 const route = useRoute()
@@ -556,24 +557,19 @@ const fetchProducts = async () => {
     loading.value = true
     error.value = null
 
-    // Ensure vendor access
     if (!hasVendorRole.value) {
       products.value = []
       return
     }
 
-    const { data, error: fetchError } = await supabase.rpc('get_my_store_products_filtered', {
-      p_price_min: priceMin.value ? parseFloat(priceMin.value) : null,
-      p_price_max: priceMax.value ? parseFloat(priceMax.value) : null,
-      p_category_id: categoryFilter.value || null,
-      p_stock_filter: stockFilter.value || null,
-      p_sort_by: sortFilter.value,
-      p_sort_order: sortOrder.value
-    })
-
-    if (fetchError) throw fetchError
-
-    products.value = data || []
+    const response = await maystroApi.getProducts(1)
+    
+    // Transform Maystro response to frontend format
+    const transformedProducts = response.list.results.map(product => 
+      transformFromMaystro(product)
+    )
+    
+    products.value = transformedProducts
   } catch (err) {
     error.value = err.message
     console.error('Error fetching products:', err)
@@ -652,7 +648,7 @@ const fetchCategories = async () => {
     const { data, error: fetchError } = await supabase
       .from('categories')
       .select('id, name_en, name_ar, name_fr')
-      .eq('is_active', true)
+      .eq('status', 'approved')
       .order('name_en')
 
     if (fetchError) throw fetchError
@@ -957,7 +953,7 @@ const createProduct = async () => {
         is_new: newProduct.value.is_new,
         thumbnail_url: thumbnailUrl,
         image_urls: imageUrls,
-        is_active: true,
+        status: 'approved',
         status: 'pending'
       })
       
@@ -974,7 +970,7 @@ const createProduct = async () => {
           is_new: newProduct.value.is_new,
           thumbnail_url: thumbnailUrl,
           image_urls: imageUrls,
-          is_active: true,
+          status: 'approved',
           status: 'pending'
         })
         .select()

@@ -12,7 +12,7 @@ export const usePackStore = defineStore('pack', () => {
   // Getters
   const basicPack = computed(() => packs.value.find(p => p.name === 'Basic Pack'))
   const proPack = computed(() => packs.value.find(p => p.name === 'Pro Pack'))
-  const activePacks = computed(() => packs.value.filter(p => p.is_active))
+  const activePacks = computed(() => packs.value.filter(p => p.status === 'approved'))
 
   // Actions
   const fetchPacks = async () => {
@@ -23,7 +23,7 @@ export const usePackStore = defineStore('pack', () => {
       const { data, error: fetchError } = await supabase
         .from('packs')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'approved')
         .order('price', { ascending: true })
 
       if (fetchError) throw fetchError
@@ -45,7 +45,7 @@ export const usePackStore = defineStore('pack', () => {
       const { data, error: fetchError } = await supabase
         .from('features')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'approved')
         .order('name')
 
       if (fetchError) throw fetchError

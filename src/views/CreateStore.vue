@@ -493,7 +493,7 @@ const fetchPacks = async () => {
           )
         )
       `)
-      .eq('is_active', true)
+      .eq('status', 'approved')
       .order('price', { ascending: true })
 
     if (error) throw error

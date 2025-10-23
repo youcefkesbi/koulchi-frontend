@@ -410,11 +410,11 @@ onMounted(async () => {
         // Use fallback categories in production
         if (import.meta.env.PROD) {
           productStore.categories = [
-            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
-            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
-            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
-            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
-            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
+            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', status: 'approved' },
+            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', status: 'approved' },
+            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', status: 'approved' },
+            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', status: 'approved' },
+            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', status: 'approved' }
           ]
         }
       }

@@ -189,12 +189,12 @@
                   <span
                     :class="[
                       'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                      pack.is_active
+                      pack.status === 'approved'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     ]"
                   >
-                    {{ pack.is_active ? ($t('admin.packs.active') || 'Active') : ($t('admin.packs.inactive') || 'Inactive') }}
+                    {{ pack.status === 'approved' ? ($t('admin.packs.active') || 'Active') : ($t('admin.packs.inactive') || 'Inactive') }}
                   </span>
                   <!-- Actions removed - click on row to open details -->
                 </div>
@@ -276,7 +276,7 @@
                 </div>
                 <div class="flex items-center space-x-3">
                   <label class="flex items-center">
-                    <input v-model="editingPack.is_active" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" />
+                    <input v-model="editingPack.status" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" />
                     <span class="ml-2 text-sm font-medium text-gray-700">Active</span>
                   </label>
                 </div>
@@ -637,7 +637,7 @@ const filteredPacks = computed(() => {
   // Filter by status
   if (statusFilter.value !== '') {
     const isActive = statusFilter.value === 'true'
-    filtered = filtered.filter(pack => pack.is_active === isActive)
+    filtered = filtered.filter(pack => pack.status === (isActive ? 'approved' : 'inactive'))
   }
 
   return filtered
@@ -717,7 +717,7 @@ const openPackDetails = async (pack) => {
     price: pack.price,
     max_announcements: pack.max_announcements,
     max_images: pack.max_images,
-    is_active: pack.is_active
+    status: pack.status
   }
 }
 
@@ -1017,7 +1017,7 @@ const savePackChanges = async (retryCount = 0) => {
       price: editingPack.value.price,
       max_announcements: editingPack.value.max_announcements,
       max_images: editingPack.value.max_images,
-      is_active: editingPack.value.is_active
+      status: editingPack.value.status
     }
     
     const operationPromise = supabase

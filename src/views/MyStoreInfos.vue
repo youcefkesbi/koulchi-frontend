@@ -612,9 +612,9 @@ const fetchStoreProducts = async () => {
   try {
     const { data, error } = await supabase
       .from('products')
-      .select('*, categories(id, name_en, name_ar, name_fr, description, icon_url, is_active)')
+      .select('*, categories(id, name_en, name_ar, name_fr, description, icon_url, status)')
       .eq('store_id', route.params.id)
-      .eq('is_active', true)
+      .eq('status', 'approved')
       .order('created_at', { ascending: false })
 
     if (error) throw error

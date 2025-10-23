@@ -221,7 +221,7 @@
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">Active:</span>
-                    <span class="font-medium">{{ productDetails.is_active ? 'Yes' : 'No' }}</span>
+                    <span class="font-medium">{{ productDetails.status === 'approved' ? 'Yes' : 'No' }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600">New:</span>
@@ -315,6 +315,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../lib/supabase'
+import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 // Reactive data
 const products = ref([])
@@ -357,11 +358,14 @@ const fetchProducts = async () => {
     loading.value = true
     error.value = null
 
-    const { data, error: fetchError } = await supabase.rpc('get_all_products_for_admin')
+    const response = await maystroApi.getProducts(1)
     
-    if (fetchError) throw fetchError
+    // Transform Maystro response to frontend format
+    const transformedProducts = response.list.results.map(product => 
+      transformFromMaystro(product)
+    )
     
-    products.value = data || []
+    products.value = transformedProducts
   } catch (err) {
     console.error('Error fetching products:', err)
     error.value = err.message || 'Failed to fetch products'

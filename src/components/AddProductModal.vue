@@ -345,8 +345,8 @@ const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
-      .eq('is_active', true)
+      .select('id, name_en, name_ar, name_fr, description, icon_url, status, created_at, updated_at')
+      .eq('status', 'approved')
       .order('name_en')
     if (error) throw error
     categories.value = data || []

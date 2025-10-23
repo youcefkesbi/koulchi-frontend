@@ -14,7 +14,7 @@ export function useBestSellers() {
       let query = supabase
         .from('products')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .limit(20);
 

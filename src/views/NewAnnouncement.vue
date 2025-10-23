@@ -193,7 +193,7 @@
               
               <div class="flex items-center space-x-3 space-x-reverse">
                 <input
-                  v-model="form.is_active"
+                  v-model="form.status"
                   type="checkbox"
                   id="isActive"
                   class="w-6 h-6 text-primary border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-primary/20 focus:ring-offset-0"
@@ -282,7 +282,7 @@ const form = reactive({
   category_id: '',
   stock_quantity: 0,
   is_new: true,
-  is_active: true
+  status: 'approved'
 })
 
 // Fetch categories on component mount
@@ -465,7 +465,7 @@ const submitForm = async () => {
       category_id: form.category_id,
       seller_id: user.id,
       stock_quantity: parseInt(form.stock_quantity),
-      is_active: form.is_active,
+      status: form.status,
       is_new: form.is_new
     }
 

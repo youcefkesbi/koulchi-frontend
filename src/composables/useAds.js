@@ -22,7 +22,7 @@ export function useAds() {
             price,
             image_urls,
             stock_quantity,
-            is_active,
+            status,
             created_at
           ),
           stores:store_id(

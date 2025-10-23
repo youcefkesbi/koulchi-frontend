@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS public.products (
     seller_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     stock_quantity INTEGER DEFAULT 1,
     sold_count INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT true,
     is_new BOOLEAN DEFAULT true,
     store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE,
     rejection_reason TEXT,
@@ -31,14 +30,14 @@ ALTER TABLE public.products ADD COLUMN thumbnail_url TEXT;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'product_status') THEN
-        CREATE TYPE product_status AS ENUM ('active', 'inactive', 'approved', 'rejected', 'pending');
+        CREATE TYPE product_status AS ENUM ('inactive', 'approved', 'rejected', 'pending');
     END IF;
 END$$;
 
 -- Add constraint to ensure status is one of the enum values
 ALTER TABLE public.products 
 ADD CONSTRAINT products_status_check 
-CHECK (status IN ('active', 'inactive', 'approved', 'rejected', 'pending'));
+CHECK (status IN ('inactive', 'approved', 'rejected', 'pending'));
 
 -- ================================
 -- Indexes
@@ -46,7 +45,6 @@ CHECK (status IN ('active', 'inactive', 'approved', 'rejected', 'pending'));
 CREATE INDEX IF NOT EXISTS products_category_id_idx ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS products_seller_id_idx ON public.products(seller_id);
 CREATE INDEX IF NOT EXISTS products_store_id_idx ON public.products(store_id);
-CREATE INDEX IF NOT EXISTS products_is_active_idx ON public.products(is_active);
 CREATE INDEX IF NOT EXISTS products_status_idx ON public.products(status);
 CREATE INDEX IF NOT EXISTS products_created_at_idx ON public.products(created_at);
 
@@ -75,7 +73,7 @@ WITH CHECK (
 -- Anyone can view products
 CREATE POLICY "Anyone can view products"
 ON public.products FOR SELECT
-USING (is_active = true);
+USING (status = 'approved');
 
 -------- UPDATE --------
 -- Vendor and customer can update products in their own stores
@@ -136,7 +134,6 @@ RETURNS TABLE (
     seller_name TEXT,
     stock_quantity INTEGER,
     sold_count INTEGER,
-    is_active BOOLEAN,
     is_new BOOLEAN,
     status TEXT,
     rejection_reason TEXT,
@@ -161,7 +158,6 @@ BEGIN
         COALESCE(prof.full_name, 'Unknown Seller') as seller_name,
         p.stock_quantity,
         p.sold_count,
-        p.is_active,
         p.is_new,
         p.status::TEXT as status,
         p.rejection_reason,

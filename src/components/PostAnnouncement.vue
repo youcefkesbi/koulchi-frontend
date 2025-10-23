@@ -234,7 +234,7 @@ const submitForm = async () => {
         in_stock: true,
         is_new: true,
         is_on_sale: false,
-        is_active: true,
+        status: 'approved',
         rating: 0,
         reviews: 0
       })
