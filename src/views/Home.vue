@@ -2,114 +2,44 @@
   <div class="container-lg space-y-12 sm:space-y-16 lg:space-y-20 my-fade-in section-padding">
     <!-- Banner Carousel Section -->
     <section class="my-slide-up">
-      <AdCarousel
-        :ads="bannerAds"
-        :loading="bannerLoading"
-        :error="bannerError"
+      <HomepageBanner
         :show-main-banner="true"
         :main-banner-title="t('hero.title')"
         :main-banner-subtitle="t('hero.subtitle')"
-        @retry="loadBannerAds"
+        @retry="loadAds"
         @scroll-to-content="scrollToFeaturedProducts"
       />
     </section>
 
     <!-- Featured Products Section -->
     <section id="featured-products" class="my-slide-up">
-      <FeaturedProducts
-        :products="featuredProducts"
-        :loading="featuredLoading"
-        :error="featuredError"
+      <HomepageFeaturedProducts
         :title="t('sections.featuredProducts')"
         :show-view-all="true"
         view-all-link="/products"
         :max-products="8"
-        @refresh="refreshFeaturedProducts"
+        @retry="loadAds"
       />
     </section>
 
-
     <!-- Featured Stores Section -->
     <section class="my-slide-up">
-      <FeaturedStores
-        :stores="featuredStores"
-        :loading="storesLoading"
-        :error="storesError"
+      <HomepageFeaturedStores
         :title="t('sections.featuredStores')"
         :show-view-all="true"
         view-all-link="/stores"
         :max-stores="6"
-        @refresh="loadFeaturedStores"
+        @retry="loadAds"
       />
     </section>
 
     <!-- Browse by Category Section -->
     <section class="my-slide-up">
-      <h2 class="text-2xl sm:text-3xl font-bold text-dark mb-6 sm:mb-8 text-center">{{ t('sections.browseByCategory') }}</h2>
-      
-      <!-- Loading State for Categories -->
-      <div v-if="!categoriesLoaded" class="text-center py-12">
-        <div class="inline-flex items-center space-x-2 space-x-reverse">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          <span class="text-neutral-600">{{ t('common.loading') }}</span>
-        </div>
-      </div>
-      
-      <!-- Error State for Categories -->
-      <div v-else-if="categories.length === 0" class="text-center py-12">
-        <div class="text-neutral-500 text-lg mb-4">
-          <i class="fas fa-exclamation-triangle mr-2"></i>
-          {{ t('sections.noCategoriesAvailable') }}
-        </div>
-        <button @click="retryCategoryLoading" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-          {{ t('common.retry') }}
-        </button>
-        
-        <!-- Fallback: Show a message that categories are being loaded -->
-        <div class="mt-8 p-6 bg-neutral-50 rounded-lg">
-          <p class="text-neutral-600 mb-4">{{ t('sections.categoriesLoadingFallback') }}</p>
-          <div class="flex justify-center space-x-4">
-            <router-link to="/products" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors">
-              {{ t('sections.browseAllProducts') }}
-            </router-link>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Category Products -->
-      <div v-else>
-        <!-- Debug info for production troubleshooting -->
-        <div v-if="isDev" class="text-xs text-neutral-400 mb-4">
-          Categories loaded: {{ categories.length }}, Categories: {{ categories.map(c => c.id).join(', ') }}
-        </div>
-        
-        <!-- Production debug info -->
-        <div v-if="isProd" class="text-xs text-neutral-400 mb-4">
-          <div>Categories loaded: {{ categories.length }}</div>
-          <div>Categories loaded flag: {{ categoriesLoaded }}</div>
-          <div>Product store categories: {{ productStore.categories.length }}</div>
-          <div>Category products: {{ Object.keys(categoryProducts).length }}</div>
-        </div>
-        <div v-for="category in categories" :key="category.id" class="mb-12">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-2 sm:space-y-0">
-          <h3 class="text-xl sm:text-2xl font-bold text-dark">{{ getCategoryName(category.id) }}</h3>
-          <router-link :to="`/category/${category.id}`" class="text-primary hover:text-primary-dark text-sm sm:text-base font-semibold hover:underline transition-colors">
-            {{ t('sections.viewAll') }} <i class="fas fa-arrow-left mr-1 sm:mr-2"></i>
-          </router-link>
-        </div>
-        
-        <!-- Category Products using AdGrid -->
-        <AdGrid
-          :ads="categoryProducts[category.id] || []"
-          :loading="categoryLoading[category.id]"
-          :error="categoryErrors[category.id]"
-          :columns="4"
-          :max-items="8"
-          @retry="loadCategoryProducts(category.id)"
-        />
-        </div>
-      </div>
-      
+      <BrowseByCategoryProducts
+        :title="t('sections.browseByCategory')"
+        :max-products-per-category="8"
+        @retry="loadAds"
+      />
     </section>
 
     <!-- Features Section -->
@@ -215,164 +145,28 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/useProductStore'
-import { useAds } from '../composables/useAds'
-import AdCarousel from '../components/AdCarousel.vue'
-import AdGrid from '../components/AdGrid.vue'
+import { useAdsStore } from '../stores/useAdsStore'
+import HomepageBanner from '../components/ads/HomepageBanner.vue'
+import HomepageFeaturedProducts from '../components/ads/HomepageFeaturedProducts.vue'
+import HomepageFeaturedStores from '../components/ads/HomepageFeaturedStores.vue'
+import BrowseByCategoryProducts from '../components/ads/BrowseByCategoryProducts.vue'
 import FeaturedProducts from '../components/FeaturedProducts.vue'
 import FeaturedStores from '../components/FeaturedStores.vue'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t, locale } = useI18n()
 const productStore = useProductStore()
-const { 
-  fetchHomepageBannerAds,
-  fetchHomepageFeaturedProducts,
-  fetchHomepageFeaturedStores,
-  fetchBrowseByCategoryProducts,
-  transformAdsForDisplay
-} = useAds()
+const adsStore = useAdsStore()
 
 const isProd = import.meta.env.PROD
 const isDev = import.meta.env.DEV
 
-// State for banner ads
-const bannerAds = ref([])
-const bannerLoading = ref(false)
-const bannerError = ref(null)
-
-// State for featured products
-const featuredProducts = ref([])
-const featuredLoading = ref(false)
-const featuredError = ref(null)
-
-// State for featured stores
-const featuredStores = ref([])
-const storesLoading = ref(false)
-const storesError = ref(null)
-
-// State for category products
-const categoryProducts = ref({})
-const categoryLoading = ref({})
-const categoryErrors = ref({})
-const categoriesLoaded = ref(false)
-
-const categories = computed(() => {
-  if (!productStore.categories || !Array.isArray(productStore.categories)) {
-    return []
-  }
-  return productStore.categories.filter(cat => cat.id !== 'all')
-})
-
-const getCategoryName = (categoryId) => {
-  const category = categories.value.find(cat => cat.id === categoryId)
-  if (category) {
-    // Check if we have a localized name for the current language
-    const currentLocale = locale.value
-    
-    if (currentLocale === 'ar' && category.name_ar) {
-      return category.name_ar
-    }
-    
-    if (currentLocale === 'fr' && category.name_fr) {
-      return category.name_fr
-    }
-    
-    // Fall back to the English name field
-    return category.name_en
-  }
-  return categoryId
-}
-
-// Load banner ads
-const loadBannerAds = async () => {
-  bannerLoading.value = true
-  bannerError.value = null
-  
+// Load all ads data
+const loadAds = async () => {
   try {
-    const ads = await fetchHomepageBannerAds()
-    bannerAds.value = transformAdsForDisplay(ads)
+    await adsStore.fetchAds()
   } catch (err) {
-    console.error('Error loading banner ads:', err)
-    bannerError.value = err.message || 'Failed to load banner ads'
-    bannerAds.value = []
-  } finally {
-    bannerLoading.value = false
-  }
-}
-
-// Load featured products from ads
-const loadFeaturedProducts = async () => {
-  featuredLoading.value = true
-  featuredError.value = null
-  
-  try {
-    const ads = await fetchHomepageFeaturedProducts()
-    const transformedAds = transformAdsForDisplay(ads)
-    featuredProducts.value = transformedAds.map(ad => ad.data)
-  } catch (err) {
-    console.error('Error loading featured products:', err)
-    featuredError.value = err.message || 'Failed to load featured products'
-    featuredProducts.value = []
-  } finally {
-    featuredLoading.value = false
-  }
-}
-
-// Load featured stores from ads
-const loadFeaturedStores = async () => {
-  storesLoading.value = true
-  storesError.value = null
-  
-  try {
-    const ads = await fetchHomepageFeaturedStores()
-    featuredStores.value = transformAdsForDisplay(ads)
-  } catch (err) {
-    console.error('Error loading featured stores:', err)
-    storesError.value = err.message || 'Failed to load featured stores'
-    featuredStores.value = []
-  } finally {
-    storesLoading.value = false
-  }
-}
-
-const refreshFeaturedProducts = async () => {
-  await loadFeaturedProducts()
-}
-
-const loadCategoryProducts = async (categoryId) => {
-  categoryLoading.value[categoryId] = true
-  categoryErrors.value[categoryId] = null
-  
-  try {
-    // Fetch ads for this specific category
-    const ads = await fetchBrowseByCategoryProducts(categoryId)
-    const transformedAds = transformAdsForDisplay(ads)
-    categoryProducts.value[categoryId] = transformedAds
-  } catch (err) {
-    console.error(`Error loading products for category ${categoryId}:`, err)
-    categoryErrors.value[categoryId] = err.message || 'Failed to load category products'
-    categoryProducts.value[categoryId] = []
-  } finally {
-    categoryLoading.value[categoryId] = false
-  }
-}
-
-const retryCategoryLoading = async () => {
-  categoriesLoaded.value = false
-  try {
-    await productStore.fetchCategories()
-    categoriesLoaded.value = true
-    
-    // Reload category products
-    if (categories.value && categories.value.length > 0) {
-      const categoryPromises = categories.value.map(category => 
-        loadCategoryProducts(category.id)
-      )
-      await Promise.allSettled(categoryPromises)
-    }
-  } catch (error) {
-    console.error('Retry failed:', error)
-    categoriesLoaded.value = true
+    console.error('Error loading ads:', err)
   }
 }
 
@@ -384,22 +178,7 @@ const scrollToFeaturedProducts = () => {
 }
 
 onMounted(async () => {
-  const minTimeout = setTimeout(() => {
-    categoriesLoaded.value = true
-  }, 3000)
-  
   try {
-    const timeoutId = setTimeout(() => {
-      categoriesLoaded.value = true
-    }, 10000)
-    
-    // Load all ads data in parallel
-    const adsPromises = [
-      loadBannerAds(),
-      loadFeaturedProducts(),
-      loadFeaturedStores()
-    ]
-    
     // Load categories if not already loaded
     if (productStore.categories.length === 0) {
       try {
@@ -420,24 +199,10 @@ onMounted(async () => {
       }
     }
     
-    // Wait for ads to load
-    await Promise.allSettled(adsPromises)
-    
-    categoriesLoaded.value = true
-    clearTimeout(timeoutId)
-    clearTimeout(minTimeout)
-    
-    // Load category products for each category
-    if (categories.value && categories.value.length > 0) {
-      const categoryPromises = categories.value.map(category => 
-        loadCategoryProducts(category.id)
-      )
-      await Promise.allSettled(categoryPromises)
-    }
+    // Load all ads data
+    await loadAds()
   } catch (error) {
     console.error('Error loading homepage data:', error)
-    categoriesLoaded.value = true
-    clearTimeout(minTimeout)
   }
 })
 </script>

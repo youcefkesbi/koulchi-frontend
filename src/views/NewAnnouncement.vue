@@ -240,12 +240,14 @@ import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
 import { useRouter } from 'vue-router'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import { useProductStore } from '../stores/useProductStore'
 
 const { t } = useI18n()
 const router = useRouter()
 const productStore = useProductStore()
+const { navigateToPath } = useLocaleRouter()
 
 const loading = ref(false)
 const error = ref('')
@@ -496,7 +498,7 @@ const submitForm = async () => {
     
     // Redirect to dashboard after 2 seconds
     setTimeout(() => {
-      router.push('/dashboard')
+      navigateToPath('/dashboard')
     }, 2000)
   } catch (err) {
     error.value = err.message || $t('announcement.validation.errorCreatingProduct')

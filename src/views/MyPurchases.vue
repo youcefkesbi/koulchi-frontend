@@ -123,7 +123,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useOrdersStore } from '../stores/useOrdersStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
-import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
 const { t: $t } = useI18n()
@@ -138,10 +138,7 @@ const filteredOrders = ref([])
 const buyerOrders = ref([])
 
 // Get localized route path
-const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
-  return getLocalizedPath(path, currentLocale)
-}
+const { getLocalizedPath } = useLocaleRouter()
 
 // Get category select classes based on language direction
 const getCategorySelectClasses = () => {

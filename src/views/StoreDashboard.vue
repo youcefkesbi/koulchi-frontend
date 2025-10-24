@@ -288,7 +288,7 @@ import { supabase } from '../lib/supabase'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
-import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -485,10 +485,7 @@ const handleEmployeeNavigation = (section) => {
 }
 
 // Get localized route path
-const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
-  return getLocalizedPath(path, currentLocale)
-}
+const { getLocalizedPath } = useLocaleRouter()
 
 // Check if user has access to a specific tab
 const hasAccessToTab = (tabId) => {
@@ -550,7 +547,6 @@ const updateOrderStatus = async (orderId, productId, newStatus) => {
       ordersStore.orders[orderIndex].order_status = newStatus
     }
     
-    console.log(`Order status updated to ${newStatus}`)
   } catch (error) {
     console.error('Error updating order status:', error)
     // You might want to show a user-friendly error message here

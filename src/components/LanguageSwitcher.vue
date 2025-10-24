@@ -51,11 +51,13 @@ const props = defineProps({
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { languages, supportedLocales } from '../i18n'
 
 const router = useRouter()
 const route = useRoute()
 const { locale } = useI18n()
+const { switchLocale } = useLocaleRouter()
 const isOpen = ref(false)
 
 const buttonClass = computed(() => {
@@ -73,7 +75,7 @@ const languagesArray = Object.keys(languages).map(code => ({
 
 // Current language info
 const currentLanguage = computed(() => {
-  const currentLocale = route.meta.locale || locale.value || 'en'
+  const currentLocale = route.params.locale || route.meta.locale || locale.value || 'en'
   return {
     code: currentLocale,
     name: languages[currentLocale]?.name || 'English'
@@ -88,26 +90,8 @@ const selectLanguage = async (newLocale) => {
   }
 
   try {
-    // Update localStorage
-    localStorage.setItem('locale', newLocale)
-    
-    // Update Vue i18n locale
-    locale.value = newLocale
-    
-    // Navigate to the same route but with new locale
-    const currentPath = route.path
-    const currentLocale = route.meta.locale
-    
-    if (currentLocale && currentLocale !== newLocale) {
-      // Replace the locale in the current path
-      const newPath = currentPath.replace(`/${currentLocale}`, `/${newLocale}`)
-      await router.push(newPath)
-    } else {
-      // If no locale in current route, add it
-      const newPath = `/${newLocale}${currentPath === '/' ? '' : currentPath}`
-      await router.push(newPath)
-    }
-    
+    // Use the new locale router composable for switching
+    await switchLocale(newLocale)
     isOpen.value = false
   } catch (error) {
     console.error('Error switching language:', error)

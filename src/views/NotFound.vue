@@ -22,7 +22,7 @@
             
             <div class="flex flex-col space-y-3">
               <router-link
-                :to="`/${$i18n.locale.value}`"
+                :to="getLocalizedPath('/')"
                 class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-200"
               >
                 {{ $t('notFound.goHome') }}
@@ -45,15 +45,17 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const router = useRouter()
 const { t } = useI18n()
+const { navigateToPath } = useLocaleRouter()
 
 const goBack = () => {
   if (window.history.length > 1) {
     router.go(-1)
   } else {
-    router.push(`/${t('locale')}`)
+    navigateToPath('/')
   }
 }
 </script>

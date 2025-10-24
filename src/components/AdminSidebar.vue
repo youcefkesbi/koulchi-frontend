@@ -54,7 +54,7 @@
             </li>
             <li>
               <router-link 
-                :to="`/${$route.meta.locale || 'en'}/users`"
+                :to="getLocalizedPath('/users')"
                 @click="closeSidebarOnMobile"
                 :class="[
                   'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
@@ -69,7 +69,7 @@
             </li>
             <li>
               <router-link 
-                :to="`/${$route.meta.locale || 'en'}/categories`"
+                :to="getLocalizedPath('/categories')"
                 @click="closeSidebarOnMobile"
                 :class="[
                   'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
@@ -84,7 +84,7 @@
             </li>
             <li>
               <router-link 
-                :to="`/${$route.meta.locale || 'en'}/managestores`"
+                :to="getLocalizedPath('/managestores')"
                 @click="closeSidebarOnMobile"
                 :class="[
                   'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
@@ -99,7 +99,7 @@
             </li>
             <li>
               <router-link 
-                :to="`/${$route.meta.locale || 'en'}/packs`"
+                :to="getLocalizedPath('/packs')"
                 @click="closeSidebarOnMobile"
                 :class="[
                   'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
@@ -152,9 +152,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
 const authStore = useAuthStore()
+const { getLocalizedPath } = useLocaleRouter()
 
 // Props
 const props = defineProps({

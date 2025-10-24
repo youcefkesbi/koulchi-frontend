@@ -334,7 +334,7 @@
       <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
         <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <router-link v-if="storeStore.currentStore?.id" :to="`/stores/${storeStore.currentStore.id}`" class="btn-secondary text-center py-4">
+            <router-link v-if="storeStore.currentStore?.id" :to="getLocalizedPath(`/stores/${storeStore.currentStore.id}`)" class="btn-secondary text-center py-4">
             <i class="fas fa-eye text-2xl mb-2 block"></i>
             {{ $t('stores.viewPublicStore') }}
           </router-link>
@@ -372,6 +372,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useStoreStore } from '../stores/useStoresStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -379,6 +380,7 @@ const route = useRoute()
 const router = useRouter()
 const { t: $t } = useI18n()
 const storeStore = useStoreStore()
+const { getLocalizedPath } = useLocaleRouter()
 
 const showEditModal = ref(false)
 const showAnalytics = ref(false)
