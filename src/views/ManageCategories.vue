@@ -104,10 +104,10 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                         :class="{
-                          'bg-green-100 text-green-800': category.is_active,
-                          'bg-red-100 text-red-800': !category.is_active
+                          'bg-green-100 text-green-800': category.status === 'approved',
+                          'bg-red-100 text-red-800': category.status !== 'approved'
                         }">
-                    {{ category.is_active ? 'Active' : 'Inactive' }}
+                    {{ category.status === 'approved' ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
                 
@@ -221,7 +221,7 @@
               <div>
                 <label class="flex items-center">
                   <input
-                    v-model="categoryForm.is_active"
+                    v-model="categoryForm.status"
                     type="checkbox"
                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   >
@@ -279,7 +279,7 @@ const categoryForm = ref({
   name_fr: '',
   description: '',
   icon_url: '',
-  is_active: true
+  status: 'approved'
 })
 
 // Get category name based on current locale
@@ -328,7 +328,7 @@ const openAddCategoryModal = () => {
     name_fr: '',
     description: '',
     icon_url: '',
-    is_active: true
+    status: 'approved'
   }
   showModal.value = true
 }
@@ -341,7 +341,7 @@ const editCategory = (category) => {
     name_fr: category.name_fr || '',
     description: category.description || '',
     icon_url: category.icon_url || '',
-    is_active: category.is_active
+    status: category.status
   }
   showModal.value = true
 }
@@ -355,7 +355,7 @@ const closeModal = () => {
     name_fr: '',
     description: '',
     icon_url: '',
-    is_active: true
+    status: 'approved'
   }
 }
 

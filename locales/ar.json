@@ -292,11 +292,15 @@
   "sections": {
     "newProducts": "المنتجات الجديدة",
     "featuredProducts": "المنتجات المميزة",
+    "featuredStores": "المتاجر المميزة",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
     "browseByCategory": "تصفح حسب الفئة",
     "whyChooseUs": "لماذا تختار كولشي؟",
     "noFeaturedProducts": "لا توجد منتجات مميزة متاحة في الوقت الحالي.",
+    "noFeaturedProductsDesc": "نعمل على إضافة منتجات رائعة لك. تحقق مرة أخرى قريباً!",
+    "noFeaturedStores": "لا توجد متاجر مميزة متاحة",
+    "noFeaturedStoresDesc": "نعمل على إضافة متاجر رائعة لك. تحقق مرة أخرى قريباً!",
     "noProductsInCategory": "لا توجد منتجات متاحة في فئة {category}.",
     "noCategoriesAvailable": "لا توجد فئات متاحة في الوقت الحالي.",
     "categoriesLoadingFallback": "يتم تحميل الفئات. يمكنك تصفح جميع المنتجات في الوقت الحالي.",
@@ -1056,5 +1060,9 @@
     "viewProduct": "عرض المنتج",
     "loadMore": "تحميل المزيد",
     "refresh": "تحديث"
+  },
+  "ads": {
+    "noAdsAvailable": "لا توجد إعلانات متاحة",
+    "noAdsFound": "لم يتم العثور على إعلانات"
   }
 }

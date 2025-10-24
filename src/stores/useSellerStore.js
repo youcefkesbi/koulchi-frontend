@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
+import { maystroApi, transformToMaystro, transformFromMaystro } from '../services/maystroApi'
 
 export const useSellerStore = defineStore('seller', () => {
   const products = ref([])
@@ -9,8 +10,8 @@ export const useSellerStore = defineStore('seller', () => {
 
   // Getters
   const totalProducts = computed(() => products.value.length)
-  const activeProducts = computed(() => products.value.filter(p => p.is_active))
-  const inactiveProducts = computed(() => products.value.filter(p => !p.is_active))
+  const activeProducts = computed(() => products.value.filter(p => p.status === 'approved'))
+  const inactiveProducts = computed(() => products.value.filter(p => p.status !== 'approved'))
 
   // Actions
   const fetchSellerProducts = async () => {
@@ -18,18 +19,14 @@ export const useSellerStore = defineStore('seller', () => {
       loading.value = true
       error.value = null
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
-      const { data, error: fetchError } = await supabase
-        .from('products')
-        .select('*, categories(name, name_ar)')
-        .eq('seller_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (fetchError) throw fetchError
-
-      products.value = data || []
+      const response = await maystroApi.getProducts(1)
+      
+      // Transform Maystro response to frontend format
+      const transformedProducts = response.list.results.map(product => 
+        transformFromMaystro(product)
+      )
+      
+      products.value = transformedProducts
     } catch (err) {
       error.value = err.message
       console.error('Error fetching seller products:', err)
@@ -43,29 +40,16 @@ export const useSellerStore = defineStore('seller', () => {
       loading.value = true
       error.value = null
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
-      const { data, error: createError } = await supabase
-        .from('products')
-        .insert({
-          seller_id: user.id,
-          name: productData.name,
-          price: productData.price,
-          category_id: productData.category_id,
-          description: productData.description,
-          stock_quantity: productData.stock_quantity,
-          is_new: productData.is_new,
-          store_id: productData.store_id,
-          is_active: true
-        })
-        .select()
-        .single()
-
-      if (createError) throw createError
-
-      products.value.unshift(data)
-      return data
+      // Transform data to Maystro format
+      const maystroData = transformToMaystro(productData)
+      
+      const response = await maystroApi.createProduct(maystroData)
+      
+      // Transform back to frontend format
+      const transformedProduct = transformFromMaystro(response)
+      
+      products.value.unshift(transformedProduct)
+      return transformedProduct
     } catch (err) {
       error.value = err.message
       console.error('Error creating product:', err)
@@ -80,21 +64,20 @@ export const useSellerStore = defineStore('seller', () => {
       loading.value = true
       error.value = null
 
-      const { data, error: updateError } = await supabase
-        .from('products')
-        .update(updates)
-        .eq('id', productId)
-        .select()
-        .single()
-
-      if (updateError) throw updateError
+      // Transform updates to Maystro format
+      const maystroData = transformToMaystro(updates)
+      
+      const response = await maystroApi.updateProduct(productId, maystroData)
+      
+      // Transform back to frontend format
+      const transformedProduct = transformFromMaystro(response)
 
       const index = products.value.findIndex(p => p.id === productId)
       if (index !== -1) {
-        products.value[index] = data
+        products.value[index] = transformedProduct
       }
 
-      return data
+      return transformedProduct
     } catch (err) {
       error.value = err.message
       console.error('Error updating product:', err)
@@ -109,12 +92,7 @@ export const useSellerStore = defineStore('seller', () => {
       loading.value = true
       error.value = null
 
-      const { error: deleteError } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId)
-
-      if (deleteError) throw deleteError
+      await maystroApi.deleteProduct(productId)
 
       products.value = products.value.filter(p => p.id !== productId)
     } catch (err) {
@@ -127,7 +105,7 @@ export const useSellerStore = defineStore('seller', () => {
   }
 
   const toggleProductStatus = async (productId, isActive) => {
-    return await updateProduct(productId, { is_active: isActive })
+    return await updateProduct(productId, { status: isActive ? 'approved' : 'inactive' })
   }
 
   const clearError = () => {

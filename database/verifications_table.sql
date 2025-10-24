@@ -437,7 +437,7 @@ BEGIN
     RETURN (
         SELECT COUNT(*)
         FROM public.products p
-        WHERE p.store_id = store_uuid AND p.is_active = true
+        WHERE p.store_id = store_uuid AND p.status = 'approved'
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -603,7 +603,6 @@ returns table(
   category_name_en text,
   category_name_ar text,
   category_name_fr text,
-  is_active boolean,
   is_new boolean,
   image_urls text[],
   product_image text,
@@ -656,7 +655,6 @@ begin
     coalesce(c.name_en, 'No Category') as category_name_en,
     coalesce(c.name_ar, 'No Category') as category_name_ar,
     coalesce(c.name_fr, 'No Category') as category_name_fr,
-    p.is_active,
     p.is_new,
     p.image_urls,
     coalesce(p.image_urls[1], p.thumbnail_url) as product_image,
@@ -679,7 +677,7 @@ GRANT EXECUTE ON FUNCTION public.get_my_store_products TO authenticated;
 
 -- Function to get authenticated user's store products with filtering
 CREATE OR REPLACE FUNCTION public.get_my_store_products_filtered(p_price_min numeric DEFAULT NULL::numeric, p_price_max numeric DEFAULT NULL::numeric, p_category_id uuid DEFAULT NULL::uuid, p_stock_filter text DEFAULT NULL::text, p_sort_by text DEFAULT 'created_at'::text, p_sort_order text DEFAULT 'desc'::text)
- RETURNS TABLE(product_id uuid, product_name text, product_description text, product_price numeric, product_image text, category_id uuid, category_name text, stock_quantity integer, sold_count integer, is_active boolean, is_new boolean, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(product_id uuid, product_name text, product_description text, product_price numeric, product_image text, category_id uuid, category_name text, stock_quantity integer, sold_count integer, is_new boolean, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE plpgsql
  SECURITY DEFINER
 AS $function$
@@ -724,7 +722,6 @@ BEGIN
         COALESCE(c.name_en, 'No Category') as category_name,
         p.stock_quantity,
         p.sold_count,
-        p.is_active,
         p.is_new,
         p.created_at,
         p.updated_at

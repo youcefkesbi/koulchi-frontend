@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '../lib/supabase';
+import { maystroApi, transformFromMaystro } from '../services/maystroApi';
 
 export const useProductStore = defineStore('product', () => {
   // State
@@ -18,22 +19,21 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      let query = supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await maystroApi.getProducts(1)
       
-      // Apply filters if provided
+      // Transform Maystro response to frontend format
+      const transformedProducts = response.list.results.map(product => 
+        transformFromMaystro(product)
+      )
+      
+      // Apply client-side filtering if needed
+      let filteredProducts = transformedProducts
       if (params.category_id && params.category_id !== 'all') {
-        query = query.eq('category_id', params.category_id);
+        filteredProducts = transformedProducts.filter(p => p.category_id === params.category_id)
       }
       
-      const { data, error: supabaseError } = await query;
-      
-      if (supabaseError) throw supabaseError;
-      
-      products.value = data || [];
-      return data;
+      products.value = filteredProducts
+      return filteredProducts
     } catch (err) {
       error.value = err.message || 'Failed to fetch products';
       throw err;
@@ -47,20 +47,16 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      // Use a simpler query that doesn't trigger user_roles policy
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at, stock_quantity')
-        .eq('is_active', true)
-        .order('sold_count', { ascending: false })
-        .limit(limit);
+      const response = await maystroApi.getProducts(1)
       
-      if (supabaseError) {
-        console.error('Supabase error in fetchMostSoldProducts:', supabaseError);
-        throw supabaseError;
-      }
+      // Transform and sort by sold_count (if available) or use default sorting
+      const transformedProducts = response.list.results
+        .map(product => transformFromMaystro(product))
+        .filter(product => product.status === 'approved')
+        .sort((a, b) => (b.sold_count || 0) - (a.sold_count || 0))
+        .slice(0, limit)
       
-      return data || [];
+      return transformedProducts
     } catch (err) {
       console.error('Error in fetchMostSoldProducts:', err);
       error.value = err.message || 'Failed to fetch most sold products';
@@ -76,21 +72,16 @@ export const useProductStore = defineStore('product', () => {
     error.value = null;
     
     try {
-      // Use a simpler query that doesn't trigger user_roles policy
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .select('id, name, price, description, image_urls, sold_count, category_id, is_active, created_at, stock_quantity')
-        .eq('category_id', categoryId)
-        .eq('is_active', true)
-        .order('sold_count', { ascending: false })
-        .limit(limit);
+      const response = await maystroApi.getProducts(1)
       
-      if (supabaseError) {
-        console.error('Supabase error in fetchBestSellingProductsByCategory:', supabaseError);
-        throw supabaseError;
-      }
+      // Transform and filter by category, then sort by sold_count
+      const transformedProducts = response.list.results
+        .map(product => transformFromMaystro(product))
+        .filter(product => product.category_id === categoryId && product.status === 'approved')
+        .sort((a, b) => (b.sold_count || 0) - (a.sold_count || 0))
+        .slice(0, limit)
       
-      return data || [];
+      return transformedProducts
     } catch (err) {
       console.error('Error in fetchBestSellingProductsByCategory:', err);
       error.value = err.message || 'Failed to fetch best-selling products by category';
@@ -277,8 +268,8 @@ export const useProductStore = defineStore('product', () => {
       // Fetch categories with multilingual names - use public access
       const { data, error: supabaseError } = await supabase
         .from('categories')
-        .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
-        .eq('is_active', true)
+        .select('id, name_en, name_ar, name_fr, description, icon_url, status, created_at, updated_at')
+        .eq('status', 'approved')
         .order('name_en');
       
       if (supabaseError) {
