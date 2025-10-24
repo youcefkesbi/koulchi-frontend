@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     is_new BOOLEAN DEFAULT true,
     store_id UUID REFERENCES public.stores(id) ON DELETE CASCADE,
     rejection_reason TEXT,
-    status TEXT NOT NULL DEFAULT 'pending', --'inactive', 'approved', 'rejected', 'pending'
+    status TEXT NOT NULL DEFAULT 'pending', --'pending', 'approved', 'rejected', 'inactive'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
