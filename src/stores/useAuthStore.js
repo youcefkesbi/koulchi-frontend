@@ -677,9 +677,12 @@ const loadUserWithProfile = async (authUser) => {
                 const wishlistStore = useWishlistStore()
                 
                 // Fetch user's cart and wishlist data
+                // After login
+                await cartStore.fetchCart() // ensures the cart exists
+
                 await Promise.all([
-                  cartStore.fetchCartItems(),
-                  wishlistStore.fetchWishlist()
+                  cartStore.fetchCartItems(), // fetch items for that cart
+                  wishlistStore.fetchWishlist() // independent call
                 ])
                 // User data initialized successfully
               } catch (err) {

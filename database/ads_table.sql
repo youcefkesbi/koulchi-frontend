@@ -12,8 +12,6 @@ CREATE TABLE ads (
     updated_at TIMESTAMP DEFAULT now()
 );
 
-
-
 -- ================================
 -- Triggers
 -- ================================
