@@ -2,6 +2,8 @@
 CREATE TABLE cart (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  status text DEFAULT 'active',
+  total_price numeric DEFAULT 0,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -45,35 +47,32 @@ WITH CHECK (
 -- Functions
 -- ================================
 
--- Create a function to add items to the cart
-CREATE OR REPLACE FUNCTION public.add_to_cart(
-  p_product_id uuid,
-  p_quantity int DEFAULT 1
-)
+CREATE OR REPLACE FUNCTION add_to_cart(p_product_id uuid, p_quantity int DEFAULT 1)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
 DECLARE
   v_cart_id uuid;
 BEGIN
-  -- 1. Find the current user's cart
-  SELECT id INTO v_cart_id 
-  FROM public.cart 
-  WHERE user_id = auth.uid();
-  
-  -- 2. Create cart if it doesn't exist
-  IF NOT FOUND THEN
-    INSERT INTO public.cart(user_id) 
-    VALUES (auth.uid()) 
+  -- 1. Find or create cart
+  SELECT id INTO v_cart_id FROM cart
+  WHERE user_id = auth.uid() AND status = 'active'
+  LIMIT 1;
+
+  IF v_cart_id IS NULL THEN
+    INSERT INTO cart (user_id, status)
+    VALUES (auth.uid(), 'active')
     RETURNING id INTO v_cart_id;
   END IF;
 
-  -- 3. Insert or update item in cart_items
-  INSERT INTO public.cart_items(cart_id, product_id, quantity)
+  -- 2. Insert or update cart item
+  INSERT INTO cart_items (cart_id, product_id, quantity)
   VALUES (v_cart_id, p_product_id, p_quantity)
   ON CONFLICT (cart_id, product_id)
   DO UPDATE SET quantity = cart_items.quantity + EXCLUDED.quantity;
 
+  -- 3. Update cart’s timestamp
+  UPDATE cart SET updated_at = NOW() WHERE id = v_cart_id;
 END;
 $$;
 

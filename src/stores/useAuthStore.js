@@ -678,7 +678,7 @@ const loadUserWithProfile = async (authUser) => {
                 
                 // Fetch user's cart and wishlist data
                 await Promise.all([
-                  cartStore.fetchCartItems(),
+                  cartStore.fetchCart(),
                   wishlistStore.fetchWishlist()
                 ])
                 // User data initialized successfully
