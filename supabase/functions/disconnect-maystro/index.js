@@ -44,7 +44,7 @@ serve(async (req) => {
 
     // Delete the Maystro integration for this seller
     const { error } = await supabase
-      .from('seller_integrations')
+      .from('seller_shipping')
       .delete()
       .eq('seller_id', user.id)
       .eq('provider', 'maystro')

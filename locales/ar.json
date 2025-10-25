@@ -1064,5 +1064,51 @@
   "ads": {
     "noAdsAvailable": "لا توجد إعلانات متاحة",
     "noAdsFound": "لم يتم العثور على إعلانات"
+  },
+  "maystro": {
+    "integration": {
+      "title": "تكامل مايسترو للشحن",
+      "description": "قم بتوصيل متجرك بمايسترو لإدارة الشحن التلقائية",
+      "enabled": "مفعل",
+      "disabled": "معطل",
+      "connect": "التوصيل بمايسترو",
+      "disconnect": "قطع الاتصال",
+      "manage": "إدارة الإعدادات",
+      "connectedSince": "متصل منذ",
+      "expiresAt": "ينتهي في",
+      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بمايسترو؟ سيتم حذف جميع بيانات التكامل."
+    },
+    "modal": {
+      "title": "التوصيل بمايسترو للشحن",
+      "description": "اختر كيف تريد التوصيل بخدمة الشحن مايسترو",
+      "createAccount": "إنشاء حساب",
+      "loginAccount": "تسجيل الدخول للحساب"
+    },
+    "form": {
+      "accountId": "معرف الحساب",
+      "accountIdPlaceholder": "أدخل معرف حساب مايسترو الخاص بك",
+      "accessToken": "رمز الوصول",
+      "accessTokenPlaceholder": "أدخل رمز الوصول لمايسترو",
+      "refreshToken": "رمز التحديث",
+      "refreshTokenPlaceholder": "أدخل رمز تحديث مايسترو (اختياري)",
+      "expiresAt": "انتهاء صلاحية الرمز",
+      "connect": "توصيل"
+    },
+    "shipping": {
+      "title": "إدارة الشحن",
+      "description": "إدارة تكاملات خدمات التوصيل الخاصة بك",
+      "loadingIntegrations": "جاري تحميل تكاملات الشحن...",
+      "noIntegrations": "لم يتم العثور على تكاملات شحن",
+      "noIntegrationsDescription": "قم بتوصيل خدمة توصيل لبدء إدارة شحناتك تلقائياً.",
+      "addIntegration": "إضافة تكامل",
+      "chooseProvider": "اختر مزود خدمة التوصيل",
+      "connectedSince": "متصل منذ",
+      "enabled": "مفعل",
+      "disabled": "معطل",
+      "enable": "تفعيل",
+      "disable": "إلغاء التفعيل",
+      "disconnect": "قطع الاتصال",
+      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بهذا التكامل؟ لا يمكن التراجع عن هذا الإجراء."
+    }
   }
 }

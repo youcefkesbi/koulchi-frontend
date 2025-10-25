@@ -519,6 +519,7 @@
     "sale": "Sale",
     "cod": "Cash on Delivery",
     "addToCart": "Add to Cart",
+    "promote": "Promote",
     "outOfStock": "Out of Stock",
     "view": "View",
     "viewProduct": "View Product",
@@ -1129,7 +1130,13 @@
   },
   "ads": {
     "noAdsAvailable": "No ads available",
-    "noAdsFound": "No ads found"
+    "noAdsFound": "No ads found",
+    "noBannerAds": "No banner ads available",
+    "noFeaturedProducts": "No featured products available",
+    "noFeaturedStores": "No featured stores available",
+    "noCategoryProducts": "No category products available",
+    "noCategoryBannerAds": "No category banner ads available",
+    "noCategoryFeaturedProducts": "No category featured products available"
   },
   "store": {
     "visitStore": "Visit Store",
@@ -1142,6 +1149,87 @@
       "pending": "Pending",
       "rejected": "Rejected"
     }
+  },
+  "adRequest": {
+    "title": "Promote Your Item",
+    "subtitle": "Create an ad request to promote your products or store",
+    "success": "Ad Request Submitted!",
+    "successMessage": "Your ad request has been submitted successfully. Our team will review it and get back to you soon.",
+    "error": "Error",
+    "itemSelection": "Item Selection",
+    "itemType": "What would you like to promote?",
+    "product": "Product",
+    "productDesc": "Promote a specific product",
+    "store": "Store",
+    "storeDesc": "Promote your entire store",
+    "selectProduct": "Select Product",
+    "selectStore": "Select Store",
+    "pleaseSelect": "Please select an item",
+    "adConfiguration": "Ad Configuration",
+    "slotType": "Ad Placement",
+    "selectSlotType": "Select where you want your ad to appear",
+    "homepageBanner": "Homepage Banner",
+    "homepageFeaturedProducts": "Homepage Featured Products",
+    "homepageFeaturedStores": "Homepage Featured Stores",
+    "categoryBanner": "Category Banner",
+    "categoryFeaturedProducts": "Category Featured Products",
+    "browseByCategoryProducts": "Browse by Category Products",
+    "category": "Category",
+    "selectCategory": "Select Category (Optional)",
+    "priority": "Priority",
+    "priorityPlaceholder": "0-100 (higher = more prominent)",
+    "priorityHelp": "Higher priority ads appear first in their slot",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "submitting": "Submitting...",
+    "submit": "Submit Ad Request"
+  },
+  "maystro": {
+    "integration": {
+      "title": "Maystro Delivery Integration",
+      "description": "Connect your store to Maystro for automated delivery management",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "connect": "Connect to Maystro",
+      "disconnect": "Disconnect",
+      "manage": "Manage Settings",
+      "connectedSince": "Connected since",
+      "expiresAt": "Expires at",
+      "confirmDisconnect": "Are you sure you want to disconnect from Maystro? This will remove all integration data."
+    }
+    ,"modal": {
+      "title": "Connect to Maystro Delivery",
+      "description": "Choose how you want to connect to Maystro delivery service",
+      "createAccount": "Create Account",
+      "loginAccount": "Login to Account"
+    },
+    "form": {
+      "accountId": "Account ID",
+      "accountIdPlaceholder": "Enter your Maystro account ID",
+      "accessToken": "Access Token",
+      "accessTokenPlaceholder": "Enter your Maystro access token",
+      "refreshToken": "Refresh Token",
+      "refreshTokenPlaceholder": "Enter your Maystro refresh token (optional)",
+      "expiresAt": "Token Expiry",
+      "connect": "Connect"
+    },
+    "shipping": {
+      "title": "Shipping Management",
+      "description": "Manage your delivery service integrations",
+      "loadingIntegrations": "Loading shipping integrations...",
+      "noIntegrations": "No shipping integrations found",
+      "noIntegrationsDescription": "Connect a delivery service to start managing your shipments automatically.",
+      "addIntegration": "Add Integration",
+      "chooseProvider": "Choose a delivery service provider",
+      "connectedSince": "Connected since",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "disconnect": "Disconnect",
+      "confirmDisconnect": "Are you sure you want to disconnect this integration? This action cannot be undone."
+    }
   }
 }
+
 

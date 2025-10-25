@@ -165,6 +165,13 @@ const baseRoutes = [
     beforeEnter: adminGuard
   },
   {
+    path: '/shipping',
+    name: 'ShippingManagement',
+    component: () => import('../views/ShippingManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
     path: '/stores/:id',
     name: 'StoreDetail',
     component: StoreDetail,

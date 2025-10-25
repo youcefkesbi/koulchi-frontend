@@ -1050,6 +1050,52 @@
     "outOfStockFilter": "Rupture de Stock",
     "success": "Succès",
     "error": "Erreur"
+  },
+  "maystro": {
+    "integration": {
+      "title": "Intégration Maystro Delivery",
+      "description": "Connectez votre magasin à Maystro pour la gestion automatisée des livraisons",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "connect": "Se connecter à Maystro",
+      "disconnect": "Se déconnecter",
+      "manage": "Gérer les paramètres",
+      "connectedSince": "Connecté depuis",
+      "expiresAt": "Expire le",
+      "confirmDisconnect": "Êtes-vous sûr de vouloir vous déconnecter de Maystro ? Cela supprimera toutes les données d'intégration."
+    },
+    "modal": {
+      "title": "Se connecter à Maystro Delivery",
+      "description": "Choisissez comment vous voulez vous connecter au service de livraison Maystro",
+      "createAccount": "Créer un compte",
+      "loginAccount": "Se connecter au compte"
+    },
+    "form": {
+      "accountId": "ID du compte",
+      "accountIdPlaceholder": "Entrez votre ID de compte Maystro",
+      "accessToken": "Token d'accès",
+      "accessTokenPlaceholder": "Entrez votre token d'accès Maystro",
+      "refreshToken": "Token de rafraîchissement",
+      "refreshTokenPlaceholder": "Entrez votre token de rafraîchissement Maystro (optionnel)",
+      "expiresAt": "Expiration du token",
+      "connect": "Se connecter"
+    },
+    "shipping": {
+      "title": "Gestion des Expéditions",
+      "description": "Gérez vos intégrations de services de livraison",
+      "loadingIntegrations": "Chargement des intégrations d'expédition...",
+      "noIntegrations": "Aucune intégration d'expédition trouvée",
+      "noIntegrationsDescription": "Connectez un service de livraison pour commencer à gérer vos expéditions automatiquement.",
+      "addIntegration": "Ajouter une Intégration",
+      "chooseProvider": "Choisissez un fournisseur de service de livraison",
+      "connectedSince": "Connecté depuis",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "disconnect": "Déconnecter",
+      "confirmDisconnect": "Êtes-vous sûr de vouloir déconnecter cette intégration ? Cette action ne peut pas être annulée."
+    }
   }
 }
 

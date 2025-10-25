@@ -96,13 +96,25 @@ serve(async (req) => {
     // Parse expiry date
     const expiresAt = new Date(body.expiresAt).toISOString()
 
+    // Get user's store ID
+    const { data: storeData, error: storeError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('owner_id', user.id)
+      .eq('status', 'approved')
+      .single()
+
+    if (storeError || !storeData) {
+      throw new Error('No approved store found for user')
+    }
+
     // Insert or update the integration
     const { data, error } = await supabase
-      .from('seller_integrations')
+      .from('seller_shipping')
       .upsert({
         seller_id: user.id,
+        store_id: storeData.id,
         provider: 'maystro',
-        account_id: body.accountId,
         access_token: encryptedAccessToken,
         refresh_token: encryptedRefreshToken,
         expires_at: expiresAt,

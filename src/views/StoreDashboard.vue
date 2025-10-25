@@ -92,16 +92,21 @@
       </div>      
   </div>
 
+    <!-- Maystro Integration Section -->
+    <div class="px-4 mt-8 sm:px-6 lg:px-8">
+      <MaystroIntegration />
+    </div>
+
     <!-- Orders tab + best selling products tab -->
-    <div :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-2' : 'flex px-4 mt-2 sm:px-6 lg:px-8 pb-8 gap-2'">
+    <div :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-2' : 'px-4 mt-2 sm:px-6 lg:px-8 pb-8'">
       <!-- Loading State -->
-      <div v-if="statsLoading" class="text-center py-12">
+      <div v-if="statsLoading" :class="packInfo.is_pro ? 'col-span-2 text-center py-12' : 'text-center py-12'">
         <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-4"></i>
         <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('common.loading') }}</h3>
         <p class="text-gray-600">{{ t('dashboard.loadingProfile') }}</p>
       </div>
       <!-- Manage orders -->
-      <div :class="packInfo.is_pro ? 'relative bg-white rounded-lg shadow-md px-3 pb-6' : 'relative bg-white rounded-lg shadow-md px-3 pb-6 flex-1'">
+      <div :class="packInfo.is_pro ? 'relative bg-white rounded-lg shadow-md px-3 pb-6' : 'relative bg-white rounded-lg shadow-md px-3 pb-6 w-full'">
         <div class="flex pb-2 items-center">
         <h3 
         class="ml-4 mt-3 text-lg font-semibold text-gray-800 mb-4">{{ t('dashboard.orders.title') }}</h3>
@@ -205,7 +210,7 @@
         </div>
       </div>
       <!-- Best selling products - Only show for Pro pack users -->
-      <div v-if="packInfo.is_pro" class="w-60 bg-white mt-8 rounded-lg shadow-md px-3 pb-6">
+      <div v-if="packInfo.is_pro" class="bg-white rounded-lg shadow-md px-3 pb-6">
         <h3 class="text-lg -mt-4 font-semibold text-gray-800 mb-4">{{ t('bestSelling.title') }}</h3>
         
         <!-- Loading State -->
@@ -288,6 +293,7 @@ import { supabase } from '../lib/supabase'
 import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
+import MaystroIntegration from '../components/MaystroIntegration.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 import { Line } from 'vue-chartjs'
 import {
@@ -639,6 +645,28 @@ onMounted(async () => {
   if (authStore.isAuthenticated) {
     statsLoading.value = true
     try {
+      // Fetch user's store first so MaystroIntegration can access it
+      await storeStore.fetchUserStores()
+      
+      console.log('🔍 Debug - User stores:', storeStore.userStores)
+      console.log('🔍 Debug - User stores length:', storeStore.userStores.length)
+      
+      // If user has stores, fetch complete store details and set as current store
+      if (storeStore.userStores.length > 0) {
+        const storeId = storeStore.userStores[0].id
+        console.log('🔍 Debug - Fetching store details for ID:', storeId)
+        
+        // Fetch complete store information from store_details view
+        await storeStore.fetchStoreById(storeId)
+        console.log('🔍 Debug - Current store set:', storeStore.currentStore)
+        
+        // Small delay to ensure store data is fully propagated to components
+        await new Promise(resolve => setTimeout(resolve, 100))
+        console.log('🔍 Debug - Store data propagation delay completed')
+      } else {
+        console.warn('⚠️ No stores found for user')
+      }
+      
       await storeStore.fetchStoreStatistics()
       await fetchFilteredOrders() // Use filtered orders instead of regular fetch
       await fetchPackInfo() // Fetch pack information

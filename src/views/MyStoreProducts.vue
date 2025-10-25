@@ -193,6 +193,15 @@
                 <!-- Actions -->
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-3">
+                    <!-- Promote Button -->
+                    <button 
+                      @click="promoteProduct(product.product_id)"
+                      class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                      title="Promote Product"
+                    >
+                      <i class="fas fa-bullhorn text-lg"></i>
+                    </button>
+                    
                     <!-- Edit Button -->
                     <button 
                       @click="editProduct(product.product_id)"
@@ -499,13 +508,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 const { t: $t } = useI18n()
 const route = useRoute()
-
 const router = useRouter()
+const { navigateTo } = useLocaleRouter()
 
 // Reactive data
 const products = ref([])
@@ -1083,6 +1093,14 @@ const getErrorMessage = (error) => {
   } else {
     return message || 'An error occurred while saving the product. Please try again.'
   }
+const promoteProduct = (productId) => {
+  // Navigate to ad request form with product pre-filled
+  navigateTo('AdRequest', {
+    query: {
+      type: 'product',
+      id: productId
+    }
+  })
 }
 
 // Lifecycle
