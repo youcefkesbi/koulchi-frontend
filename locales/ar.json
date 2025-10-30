@@ -243,7 +243,24 @@
     "noChangesToSave": "لا توجد تغييرات للحفظ",
     "socialLinkPlaceholder": "https://example.com/الملف-الشخصي"
   },
+  "profile.title": "ملفي الشخصي",
+  "profile.subtitle": "تحديث معلوماتك الشخصية وتفضيلاتك",
+  "profile.email": "البريد الإلكتروني",
+  "profile.emailNote": "لا يمكن تغيير البريد الإلكتروني",
+  "profile.fullName": "الاسم الكامل",
+  "profile.fullNamePlaceholder": "أدخل اسمك الكامل",
   "profile.fullNameNote": "الاسم الكامل اختياري",
+  "profile.changePassword": "تغيير كلمة المرور",
+  "profile.passwordInfo": "يرجى إدخال كلمة المرور الحالية للتحقق من هويتك",
+  "profile.currentPassword": "كلمة المرور الحالية",
+  "profile.currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
+  "profile.newPassword": "كلمة المرور الجديدة",
+  "profile.newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+  "profile.passwordHelp": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+  "profile.confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+  "profile.confirmNewPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+  "profile.updateProfile": "تحديث الملف الشخصي",
+  "profile.updating": "جاري التحديث...",
   "profile.phone": "الهاتف",
   "profile.phonePlaceholder": "أدخل رقم هاتفك",
   "profile.phoneNote": "رقم الهاتف يُدار من إعدادات حسابك",
@@ -539,6 +556,7 @@
     "save": "حفظ",
     "retry": "حاول مرة أخرى",
     "next": "التالي",
+    "connecting": "جارٍ الاتصال...",
     "loading": "جاري التحميل...",
     "price": "السعر",
     "currency": "دج",
@@ -1076,7 +1094,10 @@
       "manage": "إدارة الإعدادات",
       "connectedSince": "متصل منذ",
       "expiresAt": "ينتهي في",
-      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بمايسترو؟ سيتم حذف جميع بيانات التكامل."
+      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بمايسترو؟ سيتم حذف جميع بيانات التكامل.",
+      "status": {
+        "disconnected": "غير متصل"
+      }
     },
     "modal": {
       "title": "التوصيل بمايسترو للشحن",
@@ -1085,14 +1106,93 @@
       "loginAccount": "تسجيل الدخول للحساب"
     },
     "form": {
-      "accountId": "معرف الحساب",
-      "accountIdPlaceholder": "أدخل معرف حساب مايسترو الخاص بك",
-      "accessToken": "رمز الوصول",
-      "accessTokenPlaceholder": "أدخل رمز الوصول لمايسترو",
-      "refreshToken": "رمز التحديث",
-      "refreshTokenPlaceholder": "أدخل رمز تحديث مايسترو (اختياري)",
-      "expiresAt": "انتهاء صلاحية الرمز",
-      "connect": "توصيل"
+      "apiToken": "رمز API",
+      "apiTokenPlaceholder": "أدخل رمز API لمايسترو",
+      "apiTokenHelp": "لقد تلقيت هذا الرمز من فريق مايسترو",
+      "connect": "توصيل",
+      "instructions": {
+        "title": "كيفية الحصول على رمز API الخاص بك:",
+        "step1": "أنشئ حساباً على مايسترو إذا لم يكن لديك واحد بالفعل",
+        "step2": "اتصل بفريق مايسترو للحصول على رمز API الخاص بك",
+        "step3": "انسخ والصق الرمز أدناه",
+        "step4": "انقر على توصيل لإكمال التكامل"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "مايسترو",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "synced": "متزامن",
+        "notInMaystro": "غير موجود في مايسترو"
+      },
+      "actions": {
+        "history": "السجل",
+        "viewHistory": "عرض سجل الحالة",
+        "createMaystro": "إنشاء في مايسترو",
+        "createInMaystro": "إنشاء هذا الطلب في مايسترو",
+        "cancelMaystro": "إلغاء في مايسترو",
+        "cancelInMaystro": "إلغاء هذا الطلب في مايسترو"
+      },
+      "success": {
+        "created": "تم إنشاء الطلب في مايسترو بنجاح",
+        "cancelled": "تم إلغاء الطلب في مايسترو بنجاح"
+      },
+      "error": {
+        "createFailed": "فشل إنشاء الطلب في مايسترو",
+        "cancelFailed": "فشل إلغاء الطلب في مايسترو"
+      },
+      "confirm": {
+        "cancel": "هل أنت متأكد من إلغاء هذا الطلب في مايسترو؟"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "إرسال إشعار التأكيد",
+        "shipped": "إرسال إشعار الشحن",
+        "delivered": "إرسال إشعار التسليم",
+        "cancelled": "إرسال إشعار الإلغاء",
+        "urgent": "إرسال إشعار عاجل",
+        "sendConfirmation": "إرسال التأكيد",
+        "sendShipped": "إرسال تم الشحن",
+        "sendDelivered": "إرسال تم التسليم",
+        "sendCancelled": "إرسال تم الإلغاء",
+        "sendUrgent": "إرسال عاجل"
+      },
+      "disabled": "هذا النوع من الإشعارات معطل في الإعدادات",
+      "success": { "sent": "تم إرسال الإشعار بنجاح" },
+      "error": { "sendFailed": "فشل في إرسال الإشعار" },
+      "settings": {
+        "title": "إعدادات الإشعارات",
+        "description": "اختر الإشعارات التي تريد إرسالها لعملائك."
+      },
+      "types": {
+        "confirmation": {
+          "title": "تأكيد الطلب",
+          "description": "إشعار العميل عند تأكيد الطلب."
+        },
+        "shipped": {
+          "title": "تم شحن الطلب",
+          "description": "إشعار عند شحن الطلب."
+        },
+        "delivered": {
+          "title": "تم تسليم الطلب",
+          "description": "إشعار عند تسليم الطلب."
+        },
+        "cancelled": {
+          "title": "تم إلغاء الطلب",
+          "description": "إشعار عند إلغاء الطلب."
+        },
+        "urgent": {
+          "title": "تسليم عاجل",
+          "description": "إرسال إشعار تسليم عاجل للعميل."
+        }
+      },
+      "test": {
+        "title": "إرسال إشعار تجريبي",
+        "description": "أرسل رسالة تجريبية للتحقق من إعدادات الإشعار."
+      }
     },
     "shipping": {
       "title": "إدارة الشحن",

@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, environment } from './supabase'
 
 /**
  * MaystroClient - Utility class for all Maystro-related operations
@@ -9,7 +9,7 @@ import { supabase } from './supabase'
 export class MaystroClient {
   constructor() {
     this.baseUrl = 'https://backend.maystro-delivery.com/api/stores'
-    this.edgeFunctionUrl = supabase.supabaseUrl + '/functions/v1'
+    console.log('🔧 MaystroClient constructed')
   }
 
   /**
@@ -18,7 +18,18 @@ export class MaystroClient {
    */
   async validateSession() {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('🔑 validateSession - start')
+      // Log env quick check
+      try {
+        console.log('🌍 Supabase URL:', environment?.supabase?.url)
+      } catch {}
+
+      // Fail fast if auth hangs
+      const timeoutMs = 6000
+      const sessionPromise = supabase.auth.getSession()
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Supabase getSession timeout. Check VITE_SUPABASE_URL/KEY and network.')), timeoutMs))
+      const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise])
+      console.log('🔑 validateSession - got session response', { hasError: !!error, hasSession: !!(session && session.user) })
       
       if (error) {
         console.error('Session validation error:', error)
@@ -29,6 +40,7 @@ export class MaystroClient {
         throw new Error('User not authenticated')
       }
       
+      console.log('🔑 validateSession - success for user', session.user.id)
       return session
     } catch (err) {
       console.error('Session validation error:', err)
@@ -44,24 +56,28 @@ export class MaystroClient {
    */
   async callEdgeFunction(functionName, options = {}) {
     try {
-      const session = await this.validateSession()
-      
-      const response = await fetch(`${this.edgeFunctionUrl}/${functionName}`, {
+      // Use supabase-js to invoke the function (handles headers/auth)
+      const safeBody = options.body ? { ...options.body, apiToken: options.body.apiToken ? `***${String(options.body.apiToken).slice(-4)}` : undefined } : undefined
+      console.log('🔗 MaystroClient.invoke', { functionName, method: options.method || 'POST', body: safeBody })
+
+      const timeoutMs = 15000
+      const invokePromise = supabase.functions.invoke(functionName, {
         method: options.method || 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-          ...options.headers
+          'Content-Type': 'application/json'
         },
-        body: options.body ? JSON.stringify(options.body) : undefined
+        body: options.body
       })
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Edge Function timeout or unreachable')), timeoutMs))
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Edge Function request failed: ${response.status}`)
+      if (error) {
+        console.error('❌ supabase.functions.invoke error:', error)
+        throw new Error(error.message || 'Function invoke failed')
       }
 
-      return await response.json()
+      console.log('✅ MaystroClient.invoke success:', { functionName })
+      return data
     } catch (error) {
       console.error(`Error calling ${functionName}:`, error)
       throw error
@@ -127,23 +143,26 @@ export class MaystroClient {
   /**
    * Connect to Maystro delivery service
    * @param {Object} credentials - Maystro credentials
-   * @param {string} credentials.accountId - Maystro account ID
-   * @param {string} credentials.accessToken - Maystro access token
-   * @param {string} credentials.refreshToken - Maystro refresh token (optional)
-   * @param {string} credentials.expiresAt - Token expiry date (optional)
+   * @param {string} credentials.apiToken - Maystro API token (received via email)
    * @returns {Promise<Object>} - Connection result
    */
   async connect(credentials) {
     try {
       // Validate credentials
-      if (!credentials.accountId || !credentials.accessToken) {
-        throw new Error('Account ID and access token are required')
+      if (!credentials.apiToken) {
+        throw new Error('API token is required')
+      }
+      if (!credentials.storeId) {
+        throw new Error('Store ID is required for Maystro integration')
       }
 
-      // Call connect-maystro Edge Function
+      // Call connect-maystro Edge Function with simplified credentials
       const result = await this.callEdgeFunction('connect-maystro', {
         method: 'POST',
-        body: credentials
+        body: {
+          apiToken: credentials.apiToken,
+          storeId: credentials.storeId
+        }
       })
 
       return {

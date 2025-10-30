@@ -510,7 +510,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
-import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 const { t: $t } = useI18n()
 const route = useRoute()
@@ -572,14 +571,49 @@ const fetchProducts = async () => {
       return
     }
 
-    const response = await maystroApi.getProducts(1)
-    
-    // Transform Maystro response to frontend format
-    const transformedProducts = response.list.results.map(product => 
-      transformFromMaystro(product)
-    )
-    
-    products.value = transformedProducts
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      error.value = 'User not authenticated'
+      return
+    }
+
+    // Get user's store ID
+    const { data: storesData, error: storeError } = await supabase
+      .from('stores')
+      .select('id, status')
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (storeError || !storesData || storesData.length === 0) {
+      error.value = 'Store not found'
+      return
+    }
+
+    const storeData = storesData.find(store => store.status === 'approved') || storesData[0]
+    if (!storeData) {
+      error.value = 'No valid store found'
+      return
+    }
+
+    // Fetch products from Supabase
+    const { data: productsData, error: productsError } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories (
+          id,
+          name_en,
+          name_ar,
+          name_fr
+        )
+      `)
+      .eq('store_id', storeData.id)
+      .order('created_at', { ascending: false })
+
+    if (productsError) throw productsError
+
+    products.value = productsData || []
   } catch (err) {
     error.value = err.message
     console.error('Error fetching products:', err)

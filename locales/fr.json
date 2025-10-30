@@ -313,7 +313,24 @@
     "noChangesToSave": "Aucune modification à enregistrer",
     "socialLinkPlaceholder": "https://exemple.com/votre-profil"
   },
+  "profile.title": "Mon Profil",
+  "profile.subtitle": "Mettez à jour vos informations personnelles et préférences",
+  "profile.email": "E-mail",
+  "profile.emailNote": "L'e-mail ne peut pas être modifié",
+  "profile.fullName": "Nom Complet",
+  "profile.fullNamePlaceholder": "Entrez votre nom complet",
   "profile.fullNameNote": "Le nom complet est optionnel",
+  "profile.changePassword": "Changer le Mot de Passe",
+  "profile.passwordInfo": "Veuillez entrer votre mot de passe actuel pour vérifier votre identité",
+  "profile.currentPassword": "Mot de Passe Actuel",
+  "profile.currentPasswordPlaceholder": "Entrez votre mot de passe actuel",
+  "profile.newPassword": "Nouveau Mot de Passe",
+  "profile.newPasswordPlaceholder": "Entrez votre nouveau mot de passe",
+  "profile.passwordHelp": "Le mot de passe doit comporter au moins 6 caractères",
+  "profile.confirmNewPassword": "Confirmer le Nouveau Mot de Passe",
+  "profile.confirmNewPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
+  "profile.updateProfile": "Mettre à Jour le Profil",
+  "profile.updating": "Mise à jour...",
   "profile.phone": "Téléphone",
   "profile.phonePlaceholder": "Entrez votre numéro de téléphone",
   "profile.phoneNote": "Le numéro de téléphone est géré par vos paramètres de compte",
@@ -460,6 +477,7 @@
     "save": "Enregistrer",
     "retry": "Réessayer",
     "next": "Suivant",
+    "connecting": "Connexion en cours...",
     "loading": "Chargement...",
     "price": "Prix",
     "currency": "DZD",
@@ -1062,7 +1080,10 @@
       "manage": "Gérer les paramètres",
       "connectedSince": "Connecté depuis",
       "expiresAt": "Expire le",
-      "confirmDisconnect": "Êtes-vous sûr de vouloir vous déconnecter de Maystro ? Cela supprimera toutes les données d'intégration."
+      "confirmDisconnect": "Êtes-vous sûr de vouloir vous déconnecter de Maystro ? Cela supprimera toutes les données d'intégration.",
+      "status": {
+        "disconnected": "Déconnecté"
+      }
     },
     "modal": {
       "title": "Se connecter à Maystro Delivery",
@@ -1071,14 +1092,93 @@
       "loginAccount": "Se connecter au compte"
     },
     "form": {
-      "accountId": "ID du compte",
-      "accountIdPlaceholder": "Entrez votre ID de compte Maystro",
-      "accessToken": "Token d'accès",
-      "accessTokenPlaceholder": "Entrez votre token d'accès Maystro",
-      "refreshToken": "Token de rafraîchissement",
-      "refreshTokenPlaceholder": "Entrez votre token de rafraîchissement Maystro (optionnel)",
-      "expiresAt": "Expiration du token",
-      "connect": "Se connecter"
+      "apiToken": "Token API",
+      "apiTokenPlaceholder": "Entrez votre token API Maystro",
+      "apiTokenHelp": "Vous avez reçu ce token de l'équipe Maystro",
+      "connect": "Se connecter",
+      "instructions": {
+        "title": "Comment obtenir votre token API :",
+        "step1": "Créez un compte sur Maystro si vous n'en avez pas déjà un",
+        "step2": "Contactez l'équipe Maystro pour obtenir votre token API",
+        "step3": "Copiez et collez le token ci-dessous",
+        "step4": "Cliquez sur Se connecter pour terminer l'intégration"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "Maystro",
+        "actions": "Actions"
+      },
+      "status": {
+        "synced": "Synchronisé",
+        "notInMaystro": "Non présent sur Maystro"
+      },
+      "actions": {
+        "history": "Historique",
+        "viewHistory": "Voir l'historique des statuts",
+        "createMaystro": "Créer sur Maystro",
+        "createInMaystro": "Créer cette commande sur Maystro",
+        "cancelMaystro": "Annuler sur Maystro",
+        "cancelInMaystro": "Annuler cette commande sur Maystro"
+      },
+      "success": {
+        "created": "Commande créée sur Maystro avec succès",
+        "cancelled": "Commande annulée sur Maystro avec succès"
+      },
+      "error": {
+        "createFailed": "Échec de la création sur Maystro",
+        "cancelFailed": "Échec de l'annulation sur Maystro"
+      },
+      "confirm": {
+        "cancel": "Êtes-vous sûr de vouloir annuler cette commande sur Maystro ?"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "Envoyer une notification de confirmation",
+        "shipped": "Envoyer une notification d'expédition",
+        "delivered": "Envoyer une notification de livraison",
+        "cancelled": "Envoyer une notification d'annulation",
+        "urgent": "Envoyer une notification urgente",
+        "sendConfirmation": "Envoyer Confirmation",
+        "sendShipped": "Envoyer Expédiée",
+        "sendDelivered": "Envoyer Livrée",
+        "sendCancelled": "Envoyer Annulée",
+        "sendUrgent": "Envoyer Urgente"
+      },
+      "disabled": "Ce type de notification est désactivé dans les paramètres",
+      "success": { "sent": "Notification envoyée avec succès" },
+      "error": { "sendFailed": "Échec de l'envoi de la notification" },
+      "settings": {
+        "title": "Paramètres de notification",
+        "description": "Choisissez quelles notifications envoyer à vos clients."
+      },
+      "types": {
+        "confirmation": {
+          "title": "Confirmation de commande",
+          "description": "Notifier le client lorsque la commande est confirmée."
+        },
+        "shipped": {
+          "title": "Commande expédiée",
+          "description": "Notifier lorsque la commande a été expédiée."
+        },
+        "delivered": {
+          "title": "Commande livrée",
+          "description": "Notifier lorsque la commande a été livrée."
+        },
+        "cancelled": {
+          "title": "Commande annulée",
+          "description": "Notifier lorsque la commande a été annulée."
+        },
+        "urgent": {
+          "title": "Livraison urgente",
+          "description": "Envoyer un avis de livraison urgente au client."
+        }
+      },
+      "test": {
+        "title": "Envoyer une notification de test",
+        "description": "Envoyez un message de test pour vérifier vos paramètres de notification."
+      }
     },
     "shipping": {
       "title": "Gestion des Expéditions",

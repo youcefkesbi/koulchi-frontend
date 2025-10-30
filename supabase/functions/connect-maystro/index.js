@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Match the simple CORS pattern used in other functions
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 }
 
 // Encryption function using Web Crypto API
@@ -52,24 +53,23 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Create Supabase client
+    // Create Supabase client (pattern: use ANON key and forward Authorization header)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
+    const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')
+    if (!supabaseUrl || !supabaseAnon) {
       throw new Error('Missing environment variables')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
+    const supabase = createClient(supabaseUrl, supabaseAnon, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
       }
     })
 
-    // Verify the JWT token
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    // Verify the JWT token via forwarded Authorization
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       throw new Error('Invalid token')
@@ -77,10 +77,11 @@ serve(async (req) => {
 
     // Get the request body
     const body = await req.json()
+    console.log('🔍 connect-maystro received body keys:', Object.keys(body || {}))
     
-    // Validate required fields
-    if (!body.accountId || !body.accessToken || !body.refreshToken || !body.expiresAt) {
-      throw new Error('Missing required fields')
+    // Validate required fields (updated)
+    if (!body.apiToken) {
+      throw new Error('Missing required fields: apiToken')
     }
 
     // Get encryption secret from environment
@@ -89,31 +90,42 @@ serve(async (req) => {
       throw new Error('Missing encryption secret')
     }
 
-    // Encrypt sensitive tokens
-    const encryptedAccessToken = await encryptToken(body.accessToken, encryptionSecret)
-    const encryptedRefreshToken = await encryptToken(body.refreshToken, encryptionSecret)
+    // Encrypt token (no refresh/expires in simplified flow)
+    const encryptedAccessToken = await encryptToken(body.apiToken, encryptionSecret)
+    const encryptedRefreshToken = null
+    const expiresAt = null
 
-    // Parse expiry date
-    const expiresAt = new Date(body.expiresAt).toISOString()
-
-    // Get user's store ID
-    const { data: storeData, error: storeError } = await supabase
-      .from('stores')
-      .select('id')
-      .eq('owner_id', user.id)
-      .eq('status', 'approved')
-      .single()
-
-    if (storeError || !storeData) {
-      throw new Error('No approved store found for user')
+    // Resolve store ID
+    let storeId = body.storeId || null
+    if (storeId) {
+      const { data: checkStore, error: checkError } = await supabase
+        .from('stores')
+        .select('id, owner_id, status')
+        .eq('id', storeId)
+        .single()
+      if (checkError || !checkStore || checkStore.owner_id !== user.id || checkStore.status !== 'approved') {
+        throw new Error('Invalid storeId or store not approved for this user')
+      }
+    } else {
+      const { data: storeData, error: storeError } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user.id)
+        .eq('status', 'approved')
+        .single()
+      if (storeError || !storeData) {
+        throw new Error('No approved store found for user')
+      }
+      storeId = storeData.id
     }
+    console.log('✅ connect-maystro using storeId:', storeId)
 
     // Insert or update the integration
     const { data, error } = await supabase
       .from('seller_shipping')
       .upsert({
         seller_id: user.id,
-        store_id: storeData.id,
+        store_id: storeId,
         provider: 'maystro',
         access_token: encryptedAccessToken,
         refresh_token: encryptedRefreshToken,
@@ -134,8 +146,8 @@ serve(async (req) => {
         success: true, 
         message: 'Maystro integration connected successfully',
         data: {
-          id: data?.[0]?.id,
-          account_id: body.accountId,
+          id: Array.isArray(data) ? data?.[0]?.id : data?.id,
+          store_id: storeId,
           enabled: true
         }
       }),

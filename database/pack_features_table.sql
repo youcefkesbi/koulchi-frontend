@@ -40,10 +40,8 @@ FOR SELECT
 USING (true);
 
 -- Grant necessary permissions
-REVOKE ALL ON public.pack_features FROM anon;
-REVOKE ALL ON public.pack_features FROM authenticated;
+GRANT SELECT ON public.pack_features TO authenticated;
 GRANT SELECT ON public.pack_features TO anon;
-GRANT ALL ON public.pack_features TO authenticated;
 
 -- ================================
 -- Seed data

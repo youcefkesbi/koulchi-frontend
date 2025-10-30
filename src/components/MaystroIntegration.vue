@@ -34,48 +34,108 @@
       </div>
     </div>
 
-    <!-- Status Display -->
-    <div v-if="hasIntegration" class="mt-4">
-      <div
+    <!-- Status Badge -->
+    <div class="mt-4">
+      <span
         :class="[
-          'rounded-md p-4',
-          integrationStatus.connected && integrationStatus.enabled
-            ? 'bg-green-50 border border-green-200'
-            : 'bg-yellow-50 border border-yellow-200'
+          'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
+          isEnabled
+            ? 'bg-green-100 text-green-800'
+            : 'bg-gray-100 text-gray-800'
         ]"
       >
+        <svg
+          v-if="isEnabled"
+          class="w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <svg
+          v-else
+          class="w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        {{ isEnabled ? $t('maystro.integration.status.connected') : $t('maystro.integration.status.disconnected') }}
+      </span>
+    </div>
+
+    <!-- Success Message -->
+    <div
+      v-if="successMessage"
+      class="mt-4 rounded-md bg-green-50 border border-green-200 p-4"
+    >
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-green-800">
+            {{ successMessage }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warning Message (When Disconnected) -->
+    <div
+      v-if="!isEnabled && hasIntegration"
+      class="mt-4 rounded-md bg-yellow-50 border border-yellow-200 p-4"
+    >
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-yellow-800">
+            {{ $t('maystro.integration.warning.disconnected') }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Status Display -->
+    <div v-if="hasIntegration && integrationStatus.integration" class="mt-4">
+      <div class="rounded-md p-4 bg-blue-50 border border-blue-200">
         <div class="flex">
           <div class="flex-shrink-0">
-            <svg
-              v-if="integrationStatus.connected && integrationStatus.enabled"
-              class="h-5 w-5 text-green-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
+            <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
               <path
                 fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            <svg
-              v-else
-              class="h-5 w-5 text-yellow-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                 clip-rule="evenodd"
               />
             </svg>
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium">
+            <h3 class="text-sm font-medium text-blue-800">
               {{ integrationStatus.message }}
             </h3>
-            <div v-if="integrationStatus.integration" class="mt-2 text-sm text-gray-600">
+            <div class="mt-2 text-sm text-blue-700">
               <p>
                 {{ $t('maystro.integration.connectedSince') }}: 
                 {{ formatDate(integrationStatus.integration.created_at) }}
@@ -182,58 +242,36 @@
 
                   <!-- Credentials Form -->
                   <div v-if="showCredentialsForm" class="mt-6">
+                    <!-- Instructions -->
+                    <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                      <p class="text-sm text-blue-800 mb-2">
+                        <strong>How to get your API token:</strong>
+                      </p>
+                      <ol class="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                        <li>Create an account on Maystro if you haven't already</li>
+                        <li>Contact the Maystro team to get your API token</li>
+                        <li>They will send you the token via email</li>
+                        <li>Copy and paste the token below</li>
+                      </ol>
+                    </div>
+
                     <form @submit.prevent="submitCredentials" class="space-y-4">
+                      <!-- API Token Field -->
                       <div>
-                        <label for="accountId" class="block text-sm font-medium text-gray-700">
-                          {{ $t('maystro.form.accountId') }}
+                        <label for="apiToken" class="block text-sm font-medium text-gray-700">
+                          API Token *
                         </label>
                         <input
-                          v-model="credentialsForm.accountId"
-                          type="text"
-                          id="accountId"
+                          v-model="credentialsForm.apiToken"
+                          type="password"
+                          id="apiToken"
                           required
                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          :placeholder="$t('maystro.form.accountIdPlaceholder')"
+                          placeholder="Enter your Maystro API token"
                         />
-                      </div>
-
-                      <div>
-                        <label for="accessToken" class="block text-sm font-medium text-gray-700">
-                          {{ $t('maystro.form.accessToken') }}
-                        </label>
-                        <input
-                          v-model="credentialsForm.accessToken"
-                          type="text"
-                          id="accessToken"
-                          required
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          :placeholder="$t('maystro.form.accessTokenPlaceholder')"
-                        />
-                      </div>
-
-                      <div>
-                        <label for="refreshToken" class="block text-sm font-medium text-gray-700">
-                          {{ $t('maystro.form.refreshToken') }}
-                        </label>
-                        <input
-                          v-model="credentialsForm.refreshToken"
-                          type="text"
-                          id="refreshToken"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                          :placeholder="$t('maystro.form.refreshTokenPlaceholder')"
-                        />
-                      </div>
-
-                      <div>
-                        <label for="expiresAt" class="block text-sm font-medium text-gray-700">
-                          {{ $t('maystro.form.expiresAt') }}
-                        </label>
-                        <input
-                          v-model="credentialsForm.expiresAt"
-                          type="datetime-local"
-                          id="expiresAt"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        />
+                        <p class="mt-1 text-xs text-gray-500">
+                          You received this token via email from Maystro team
+                        </p>
                       </div>
 
                       <div class="flex justify-end space-x-3">
@@ -296,6 +334,7 @@ export default {
     // Reactive state
     const loading = ref(false)
     const error = ref(null)
+    const successMessage = ref(null)
     const integrationStatus = ref(null)
     const showConnectionModal = ref(false)
     const showCredentialsForm = ref(false)
@@ -305,10 +344,7 @@ export default {
     
     // Credentials form
     const credentialsForm = ref({
-      accountId: '',
-      accessToken: '',
-      refreshToken: '',
-      expiresAt: ''
+      apiToken: ''
     })
 
     // Computed properties
@@ -395,26 +431,41 @@ export default {
           throw new Error('No approved store found. Please ensure your store is approved before connecting to Maystro.')
         }
 
-        const result = await maystroClient.connect(credentialsForm.value)
+        console.log('🔍 MaystroIntegration.submitCredentials - submitting with storeId:', currentStore.value.id)
+        const result = await maystroClient.connect({
+          apiToken: credentialsForm.value.apiToken,
+          storeId: currentStore.value.id
+        })
+        console.log('🔍 MaystroIntegration.submitCredentials - result:', result)
         
         if (result.success) {
+          // Show success message
+          successMessage.value = t('maystro.integration.success.connected')
+          
+          // Hide modal and reset form
           showConnectionModal.value = false
           showCredentialsForm.value = false
           credentialsForm.value = {
-            accountId: '',
-            accessToken: '',
-            refreshToken: '',
-            expiresAt: ''
+            apiToken: ''
           }
+          
+          // Reload integration status
           await loadIntegrationStatus()
+          
+          // Clear success message after 5 seconds
+          setTimeout(() => {
+            successMessage.value = null
+          }, 5000)
         } else {
-          error.value = result.message
+          error.value = result.message || result.error || 'Failed to connect Maystro integration'
+          successMessage.value = null
         }
       } catch (err) {
         error.value = err.message
         console.error('Error submitting credentials:', err)
       } finally {
         loading.value = false
+        console.log('🔍 MaystroIntegration.submitCredentials - loading finished')
       }
     }
 
@@ -430,9 +481,19 @@ export default {
           const result = await maystroClient.disconnect()
           
           if (result.success) {
+            // Show success message
+            successMessage.value = t('maystro.integration.success.disconnected')
+            
+            // Reload integration status
             await loadIntegrationStatus()
+            
+            // Clear success message after 5 seconds
+            setTimeout(() => {
+              successMessage.value = null
+            }, 5000)
           } else {
             error.value = result.message
+            successMessage.value = null
           }
         } catch (err) {
           error.value = err.message
@@ -458,15 +519,18 @@ export default {
     }, { immediate: false })
 
     // Lifecycle
-    onMounted(() => {
+    onMounted(async () => {
       console.log('🔍 MaystroIntegration - Component mounted')
-      // Don't load integration status on mount - let user initiate the connection
-      console.log('🔍 MaystroIntegration - Ready for user to connect')
+      // Load integration status on mount to show current state
+      if (currentStore.value?.id) {
+        await loadIntegrationStatus()
+      }
     })
 
     return {
       loading,
       error,
+      successMessage,
       integrationStatus,
       showConnectionModal,
       showCredentialsForm,

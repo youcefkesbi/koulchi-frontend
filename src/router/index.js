@@ -172,6 +172,13 @@ const baseRoutes = [
     beforeEnter: adminGuard
   },
   {
+    path: '/webhooks',
+    name: 'Webhooks',
+    component: () => import('../views/Webhooks.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
     path: '/stores/:id',
     name: 'StoreDetail',
     component: StoreDetail,

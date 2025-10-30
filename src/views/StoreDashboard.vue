@@ -97,6 +97,11 @@
       <MaystroIntegration />
     </div>
 
+    <!-- Notification Settings Section -->
+    <div class="px-4 mt-8 sm:px-6 lg:px-8">
+      <NotificationSettings ref="notificationSettings" />
+    </div>
+
     <!-- Orders tab + best selling products tab -->
     <div :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-2' : 'px-4 mt-2 sm:px-6 lg:px-8 pb-8'">
       <!-- Loading State -->
@@ -165,7 +170,9 @@
                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.price') }}</th>
                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">{{ t('dashboard.orders.table.qty') }}</th>
                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">{{ t('dashboard.orders.table.status') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">{{ t('maystro.orders.table.maystroStatus') }}</th>
                 <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.total') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">{{ t('maystro.orders.table.actions') }}</th>
               </tr>
             </thead>
             <tbody class=" bg-white divide-y divide-gray-200">
@@ -196,7 +203,86 @@
                     <option value="cancelled" class="bg-white text-gray-900">{{ t('dashboard.orders.filters.cancelled') }}</option>
                   </select>
                 </td>
+                <!-- Maystro Status Column -->
+                <td class="px-3 py-4">
+                  <div class="flex flex-col gap-1">
+                    <span
+                      v-if="isOrderInMaystro(order.order_id)"
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    >
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                      </svg>
+                      {{ t('maystro.orders.status.synced') }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                    >
+                      {{ t('maystro.orders.status.notInMaystro') }}
+                    </span>
+                    <span
+                      v-if="getMaystroDisplayId(order.order_id)"
+                      class="text-xs text-gray-500"
+                    >
+                      #{{ getMaystroDisplayId(order.order_id) }}
+                    </span>
+                  </div>
+                </td>
                 <td class="px-3 py-4 text-xs font-medium text-gray-900">{{ formatCurrency(order.item_total || 0) }}</td>
+                <!-- Actions Column -->
+                <td class="px-3 py-4">
+                  <div class="flex flex-col gap-1">
+                    <!-- View History Button -->
+                    <button
+                      @click="openStatusHistory(order.order_id)"
+                      class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      :title="t('maystro.orders.actions.viewHistory')"
+                    >
+                      <i class="fas fa-history mr-1"></i>
+                      {{ t('maystro.orders.actions.history') }}
+                    </button>
+                    <!-- Create in Maystro Button -->
+                    <button
+                      v-if="!isOrderInMaystro(order.order_id) && order.order_status !== 'cancelled'"
+                      @click="createOrderInMaystro(order.order_id)"
+                      :disabled="maystroActionsLoading[order.order_id]"
+                      class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      :title="t('maystro.orders.actions.createInMaystro')"
+                    >
+                      <i v-if="maystroActionsLoading[order.order_id]" class="fas fa-spinner fa-spin mr-1"></i>
+                      <i v-else class="fas fa-plus mr-1"></i>
+                      {{ t('maystro.orders.actions.createMaystro') }}
+                    </button>
+                    <!-- Cancel in Maystro Button -->
+                    <button
+                      v-if="isOrderInMaystro(order.order_id) && ['confirmed', 'shipped'].includes(order.order_status)"
+                      @click="cancelOrderInMaystro(order.order_id)"
+                      :disabled="maystroActionsLoading[order.order_id]"
+                      class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      :title="t('maystro.orders.actions.cancelInMaystro')"
+                    >
+                      <i v-if="maystroActionsLoading[order.order_id]" class="fas fa-spinner fa-spin mr-1"></i>
+                      <i v-else class="fas fa-times mr-1"></i>
+                      {{ t('maystro.orders.actions.cancelMaystro') }}
+                    </button>
+                    <!-- Notification Buttons -->
+                    <div v-if="getAvailableNotifications(order.order_status).length > 0" class="mt-1 pt-1 border-t border-gray-200">
+                      <button
+                        v-for="notifType in getAvailableNotifications(order.order_status)"
+                        :key="notifType"
+                        @click="sendNotification(order.order_id, notifType)"
+                        :disabled="sendingNotification[`${order.order_id}-${notifType}`]"
+                        class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed w-full mb-1"
+                        :title="t(`maystro.notifications.actions.${notifType}`)"
+                      >
+                        <i v-if="sendingNotification[`${order.order_id}-${notifType}`]" class="fas fa-spinner fa-spin mr-1"></i>
+                        <i v-else class="fas fa-paper-plane mr-1"></i>
+                        {{ t(`maystro.notifications.actions.send${notifType.charAt(0).toUpperCase() + notifType.slice(1)}`) }}
+                      </button>
+                    </div>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -209,6 +295,14 @@
           <p class="text-gray-600">{{ t('dashboard.orders.noOrdersMessage') }}</p>
         </div>
       </div>
+
+      <!-- Status History Modal -->
+      <OrderStatusHistoryModal
+        :show="showStatusHistoryModal"
+        :orderId="selectedOrderId"
+        @close="closeStatusHistoryModal"
+      />
+    </div>
       <!-- Best selling products - Only show for Pro pack users -->
       <div v-if="packInfo.is_pro" class="bg-white rounded-lg shadow-md px-3 pb-6">
         <h3 class="text-lg -mt-4 font-semibold text-gray-800 mb-4">{{ t('bestSelling.title') }}</h3>
@@ -279,11 +373,11 @@
     
     </div>
 
-  </div>
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -294,6 +388,8 @@ import SellingTab from '../components/dashboard/SellingTab.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import MaystroIntegration from '../components/MaystroIntegration.vue'
+import OrderStatusHistoryModal from '../components/OrderStatusHistoryModal.vue'
+import NotificationSettings from '../components/NotificationSettings.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 import { Line } from 'vue-chartjs'
 import {
@@ -352,6 +448,13 @@ const packLoading = ref(false)
 const sortFilter = ref('date')
 const sortOrder = ref('desc')
 const statusFilter = ref('')
+
+// Maystro and Status History state
+const showStatusHistoryModal = ref(false)
+const selectedOrderId = ref(null)
+const orderMaystroDetails = ref({}) // Cache for Maystro details by order_id
+const maystroActionsLoading = ref({}) // Loading state for each order
+const pollingInterval = ref(null)
 
 // Chart data
 const chartData = ref({
@@ -576,9 +679,248 @@ const fetchFilteredOrders = async () => {
     
     // Update orders store with filtered data
     ordersStore.orders = data || []
+    
+    // Load Maystro details for unique orders
+    await loadMaystroDetailsForOrders()
   } catch (error) {
     console.error('Error fetching filtered orders:', error)
   }
+}
+
+// Load Maystro details for orders
+const loadMaystroDetailsForOrders = async () => {
+  try {
+    // Get unique order IDs
+    const uniqueOrderIds = [...new Set(ordersStore.orders.map(order => order.order_id))]
+    
+    // Fetch Maystro details for each order (batch query would be better, but this works)
+    const ordersData = await Promise.all(
+      uniqueOrderIds.map(async (orderId) => {
+        try {
+          const { data, error } = await supabase
+            .from('orders')
+            .select('id, maystro_order_id, maystro_display_id, maystro_status_code, maystro_last_update')
+            .eq('id', orderId)
+            .single()
+          
+          if (error) throw error
+          return { orderId, data }
+        } catch (err) {
+          console.error(`Error loading Maystro details for order ${orderId}:`, err)
+          return { orderId, data: null }
+        }
+      })
+    )
+    
+    // Cache Maystro details
+    ordersData.forEach(({ orderId, data }) => {
+      if (data) {
+        orderMaystroDetails.value[orderId] = data
+      }
+    })
+  } catch (error) {
+    console.error('Error loading Maystro details:', error)
+  }
+}
+
+// Open status history modal
+const openStatusHistory = (orderId) => {
+  selectedOrderId.value = orderId
+  showStatusHistoryModal.value = true
+}
+
+// Close status history modal
+const closeStatusHistoryModal = () => {
+  showStatusHistoryModal.value = false
+  selectedOrderId.value = null
+}
+
+// Create order in Maystro
+const createOrderInMaystro = async (orderId) => {
+  try {
+    maystroActionsLoading.value[orderId] = true
+    
+    // Get full order details
+    const orderData = await ordersStore.getOrderWithMaystroDetails(orderId)
+    
+    // Call backend to create order in Maystro
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/maystro/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+      },
+      body: JSON.stringify({
+        orderId: orderData.id,
+        storeId: orderData.store_id
+      })
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to create order in Maystro')
+    }
+    
+    const result = await response.json()
+    
+    // Refresh orders to get updated Maystro data
+    await fetchFilteredOrders()
+    
+    alert(t('maystro.orders.success.created'))
+  } catch (error) {
+    console.error('Error creating order in Maystro:', error)
+    alert(t('maystro.orders.error.createFailed') + ': ' + error.message)
+  } finally {
+    maystroActionsLoading.value[orderId] = false
+  }
+}
+
+// Cancel order in Maystro
+const cancelOrderInMaystro = async (orderId) => {
+  try {
+    if (!confirm(t('maystro.orders.confirm.cancel'))) {
+      return
+    }
+    
+    maystroActionsLoading.value[orderId] = true
+    
+    // Get order data first
+    const orderData = await ordersStore.getOrderWithMaystroDetails(orderId)
+    
+    // Get Maystro order ID
+    const maystroDetails = orderMaystroDetails.value[orderId]
+    if (!maystroDetails?.maystro_order_id) {
+      throw new Error('Order not found in Maystro')
+    }
+    
+    // Call backend to cancel order in Maystro
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/maystro/orders/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+      },
+      body: JSON.stringify({
+        orderId: orderData.id,
+        maystroOrderId: maystroDetails.maystro_order_id
+      })
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to cancel order in Maystro')
+    }
+    
+    // Refresh orders
+    await fetchFilteredOrders()
+    
+    alert(t('maystro.orders.success.cancelled'))
+  } catch (error) {
+    console.error('Error canceling order in Maystro:', error)
+    alert(t('maystro.orders.error.cancelFailed') + ': ' + error.message)
+  } finally {
+    maystroActionsLoading.value[orderId] = false
+  }
+}
+
+// Start real-time polling for order status updates
+const startOrderPolling = () => {
+  // Poll every 30 seconds
+  pollingInterval.value = setInterval(async () => {
+    try {
+      await fetchFilteredOrders()
+    } catch (error) {
+      console.error('Error polling orders:', error)
+    }
+  }, 30000) // 30 seconds
+}
+
+// Stop real-time polling
+const stopOrderPolling = () => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+    pollingInterval.value = null
+  }
+}
+
+// Check if order is synced with Maystro
+const isOrderInMaystro = (orderId) => {
+  return orderMaystroDetails.value[orderId]?.maystro_order_id != null
+}
+
+// Get Maystro display ID for order
+const getMaystroDisplayId = (orderId) => {
+  return orderMaystroDetails.value[orderId]?.maystro_display_id || null
+}
+
+// Send notification manually
+const sendNotification = async (orderId, notificationType) => {
+  try {
+    sendingNotification.value[`${orderId}-${notificationType}`] = true
+    
+    const session = await supabase.auth.getSession()
+    if (!session.data.session) {
+      throw new Error('Not authenticated')
+    }
+
+    // Map notification types to endpoints
+    const endpointMap = {
+      confirmation: '/api/notifications/order-confirmation',
+      shipped: '/api/notifications/order-shipped',
+      delivered: '/api/notifications/order-delivered',
+      cancelled: '/api/notifications/order-cancelled',
+      urgent: '/api/notifications/urgent-delivery'
+    }
+
+    const endpoint = endpointMap[notificationType]
+    if (!endpoint) {
+      throw new Error(`Unknown notification type: ${notificationType}`)
+    }
+
+    // Check if notification is enabled (from NotificationSettings component)
+    const isEnabled = notificationSettings.value?.isNotificationEnabled?.(notificationType)
+    if (isEnabled === false) {
+      alert(t('maystro.notifications.disabled'))
+      return
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.data.session.access_token}`
+      },
+      body: JSON.stringify({
+        orderId: orderId
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || `Failed to send ${notificationType} notification`)
+    }
+
+    const result = await response.json()
+    
+    alert(t('maystro.notifications.success.sent'))
+  } catch (error) {
+    console.error(`Error sending ${notificationType} notification:`, error)
+    alert(t('maystro.notifications.error.sendFailed') + ': ' + error.message)
+  } finally {
+    sendingNotification.value[`${orderId}-${notificationType}`] = false
+  }
+}
+
+// Get available notification actions for an order based on its status
+const getAvailableNotifications = (orderStatus) => {
+  const statusMap = {
+    pending: ['confirmation'],
+    confirmed: ['shipped', 'cancelled'],
+    shipped: ['delivered', 'urgent'],
+    delivered: [],
+    cancelled: []
+  }
+  return statusMap[orderStatus] || []
 }
 
 // Fetch monthly sales data
@@ -672,6 +1014,9 @@ onMounted(async () => {
       await fetchPackInfo() // Fetch pack information
       await fetchMonthlySales()
       await fetchBestSellingProducts()
+      
+      // Start real-time polling for order status updates
+      startOrderPolling()
     } catch (error) {
       console.error('Error fetching store statistics:', error)
     } finally {
@@ -681,6 +1026,11 @@ onMounted(async () => {
 
   // Validate tab access on mount
   validateTabAccess()
+})
+
+// Cleanup polling on unmount
+onBeforeUnmount(() => {
+  stopOrderPolling()
 })
 </script>
 

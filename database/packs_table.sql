@@ -108,7 +108,7 @@ USING (is_active = true);
 REVOKE ALL ON public.packs FROM anon;
 REVOKE ALL ON public.packs FROM authenticated;
 GRANT SELECT ON public.packs TO anon;
-GRANT ALL ON public.packs TO authenticated;
+GRANT SELECT ON public.packs TO authenticated;
 
 -- ================================
 -- Triggers

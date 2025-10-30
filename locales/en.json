@@ -356,6 +356,7 @@
     "back": "Back",
     "retry": "Try Again",
     "next": "Next",
+    "connecting": "Connecting...",
     "loading": "Loading...",
     "price": "Price",
     "currency": "DZD",
@@ -403,6 +404,17 @@
   "profile": "Profile",
   "profile.title": "My Profile",
   "profile.subtitle": "Update your personal information and preferences",
+  "profile.email": "Email",
+  "profile.emailNote": "Email cannot be changed",
+  "profile.changePassword": "Change Password",
+  "profile.passwordInfo": "Please enter your current password to verify your identity",
+  "profile.currentPassword": "Current Password",
+  "profile.currentPasswordPlaceholder": "Enter your current password",
+  "profile.newPassword": "New Password",
+  "profile.newPasswordPlaceholder": "Enter your new password",
+  "profile.passwordHelp": "Password must be at least 6 characters long",
+  "profile.confirmNewPassword": "Confirm New Password",
+  "profile.confirmNewPasswordPlaceholder": "Confirm your new password",
   "newPassword": "New Password",
   "newPasswordPlaceholder": "Enter your new password",
   "enterNewPassword": "Enter your new password",
@@ -1195,7 +1207,10 @@
       "manage": "Manage Settings",
       "connectedSince": "Connected since",
       "expiresAt": "Expires at",
-      "confirmDisconnect": "Are you sure you want to disconnect from Maystro? This will remove all integration data."
+      "confirmDisconnect": "Are you sure you want to disconnect from Maystro? This will remove all integration data.",
+      "status": {
+        "disconnected": "Disconnected"
+      }
     }
     ,"modal": {
       "title": "Connect to Maystro Delivery",
@@ -1204,14 +1219,93 @@
       "loginAccount": "Login to Account"
     },
     "form": {
-      "accountId": "Account ID",
-      "accountIdPlaceholder": "Enter your Maystro account ID",
-      "accessToken": "Access Token",
-      "accessTokenPlaceholder": "Enter your Maystro access token",
-      "refreshToken": "Refresh Token",
-      "refreshTokenPlaceholder": "Enter your Maystro refresh token (optional)",
-      "expiresAt": "Token Expiry",
-      "connect": "Connect"
+      "apiToken": "API Token",
+      "apiTokenPlaceholder": "Enter your Maystro API token",
+      "apiTokenHelp": "You received this token from Maystro team",
+      "connect": "Connect",
+      "instructions": {
+        "title": "How to get your API token:",
+        "step1": "Create an account on Maystro if you haven't already",
+        "step2": "Contact the Maystro team to get your API token",
+        "step3": "Copy and paste the token below",
+        "step4": "Click Connect to complete the integration"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "Maystro",
+        "actions": "Actions"
+      },
+      "status": {
+        "synced": "Synced",
+        "notInMaystro": "Not in Maystro"
+      },
+      "actions": {
+        "history": "History",
+        "viewHistory": "View status history",
+        "createMaystro": "Create in Maystro",
+        "createInMaystro": "Create this order in Maystro",
+        "cancelMaystro": "Cancel in Maystro",
+        "cancelInMaystro": "Cancel this order in Maystro"
+      },
+      "success": {
+        "created": "Order created in Maystro successfully",
+        "cancelled": "Order cancelled in Maystro successfully"
+      },
+      "error": {
+        "createFailed": "Failed to create order in Maystro",
+        "cancelFailed": "Failed to cancel order in Maystro"
+      },
+      "confirm": {
+        "cancel": "Are you sure you want to cancel this order in Maystro?"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "Send confirmation notification",
+        "shipped": "Send shipped notification",
+        "delivered": "Send delivered notification",
+        "cancelled": "Send cancelled notification",
+        "urgent": "Send urgent delivery notification",
+        "sendConfirmation": "Send Confirmation",
+        "sendShipped": "Send Shipped",
+        "sendDelivered": "Send Delivered",
+        "sendCancelled": "Send Cancelled",
+        "sendUrgent": "Send Urgent"
+      },
+      "disabled": "This notification type is disabled in settings",
+      "success": { "sent": "Notification sent successfully" },
+      "error": { "sendFailed": "Failed to send notification" },
+      "settings": {
+        "title": "Notification Settings",
+        "description": "Choose which notifications to send to your customers."
+      },
+      "types": {
+        "confirmation": {
+          "title": "Order Confirmation",
+          "description": "Notify the customer when the order is confirmed."
+        },
+        "shipped": {
+          "title": "Order Shipped",
+          "description": "Notify when the order has been shipped."
+        },
+        "delivered": {
+          "title": "Order Delivered",
+          "description": "Notify when the order has been delivered."
+        },
+        "cancelled": {
+          "title": "Order Cancelled",
+          "description": "Notify when the order has been cancelled."
+        },
+        "urgent": {
+          "title": "Urgent Delivery",
+          "description": "Send an urgent delivery notice to the customer."
+        }
+      },
+      "test": {
+        "title": "Send Test Notification",
+        "description": "Send a test message to verify your notification settings."
+      }
     },
     "shipping": {
       "title": "Shipping Management",

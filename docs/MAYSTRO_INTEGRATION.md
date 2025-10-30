@@ -1,265 +1,204 @@
-# Maystro-Delivery Integration
+# Maystro Delivery Integration (Combined Frontend + Backend Flow)
 
-This document describes the complete implementation of the Maystro-Delivery integration flow for the Koulchi e-commerce platform.
+This document describes the implemented Maystro Delivery integration in Koulchi, combining both frontend and backend flows. Products remain managed in Supabase; Maystro is used only for delivery logistics (order creation/cancellation and status sync).
 
-## Overview
-
-The Maystro integration allows sellers to connect their stores to Maystro's delivery services, enabling automated delivery management. The integration includes:
-
-- **Frontend Component**: Vue.js component with toggle and modal interfaces
-- **Backend Functions**: Supabase Edge Functions for secure credential management
-- **Database Integration**: Encrypted storage of API tokens with Row Level Security
-- **Security**: End-to-end encryption of sensitive credentials
+Key decisions:
+- One token per store (no global token). Stored encrypted.
+- Products are not synced to Maystro. Orders are optionally created in Maystro when the store connects.
+- Phase 5 (analytics) removed. Phase 3 notification logs table removed to keep it minimal.
 
 ## Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Vue.js Frontend │    │  Supabase Client │    │ Supabase Edge   │
-│                 │    │                  │    │   Functions     │
-│ MaystroIntegration│◄──►│  MaystroClient  │◄──►│ connect-maystro │
-│   Component     │    │   Utility Class  │    │ disconnect-     │
-└─────────────────┘    └──────────────────┘    │   maystro       │
-                                               └─────────────────┘
-                                                        │
-                                                        ▼
-                                               ┌─────────────────┐
-                                               │   Supabase      │
-                                               │   Database      │
-                                               │                 │
-                                               │ seller_         │
-                                               │ integrations    │
-                                               │   table         │
-                                               └─────────────────┘
+Frontend (Vue + Pinia)
+  ├─ MaystroIntegration.vue (connect/disconnect + status)
+  ├─ StoreDashboard.vue (orders table + Maystro actions + polling)
+  ├─ OrderStatusHistoryModal.vue (status timeline)
+  └─ NotificationSettings.vue (preferences + test)
+
+Backend (Node.js + Express)
+  ├─ routes/maystro.js → controllers/maystroOrderController.js (create/cancel orders)
+  ├─ routes/webhooks.js → controllers/webhookController.js (receive/process Maystro webhooks)
+  ├─ routes/errorHandling.js → controllers/errorHandlingController.js (retry, DLQ, polling)
+  └─ routes/notifications.js → controllers/notificationController.js (send emails via Resend)
+
+Database (Postgres/Supabase)
+  ├─ orders (augmented: maystro_* columns)
+  ├─ order_status_logs (history)
+  ├─ webhook_errors (errors)
+  ├─ webhook_logs, dead_letter_queue (retry + DLQ)
+  └─ seller_shipping (encrypted Maystro token by store)
+
+Supabase Edge Functions
+  ├─ connect-maystro (store encrypted apiToken)
+  └─ disconnect-maystro (remove credentials)
 ```
 
-## Components
+## Phases (implemented)
 
-### 1. MaystroIntegration.vue
+### Phase 1: Webhook Infrastructure
+- Endpoint: `POST /webhooks/maystro` to receive Maystro events.
+- Base64 decode twice per docs; parse events: `orderCreated`, `OrderStatusChanged` (primary).
+- Webhook config endpoints (backend) exist but UI is not exposed; configuration is done in Maystro dashboard.
 
-**Location**: `src/components/MaystroIntegration.vue`
+### Phase 2: Status Synchronization
+- DB: `order_status_logs`, `webhook_errors`, and extra `orders` columns: `maystro_order_id`, `maystro_display_id`, `maystro_status_code`, `maystro_last_update`, plus related indexes.
+- Controller: maps Maystro numeric codes → internal statuses and validates transitions.
+- Retry logic with exponential backoff; failed events go to `dead_letter_queue`.
+- Monitoring endpoints provide status history, error summaries, and consistency checks.
 
-**Features**:
-- Toggle switch for enabling/disabling integration
-- Connection modal with options to create or login to Maystro account
-- Credentials input form for API tokens
-- Integration status display
-- Management options for connected accounts
+### Phase 3: Customer Notifications
+- Email via Resend on key status changes: confirmation, shipped, delivered, cancelled.
+- No `notification_logs` table (removed per optimization). History endpoint responds with 204.
+- Frontend allows manual sends (respecting settings).
 
-**Key Methods**:
-- `handleToggle()`: Manages the enable/disable toggle
-- `createAccount()`: Opens Maystro registration page
-- `loginAccount()`: Opens Maystro login page
-- `submitCredentials()`: Sends credentials to Edge Function
-- `disconnect()`: Removes the integration
+### Phase 4: Error Handling & Retry (Minimal)
+- Services: `retryService`, `pollingService` for fallback when webhooks fail.
+- Tables: `webhook_logs`, `dead_letter_queue`.
+- Admin page to monitor logs, retry DLQ items, and start/stop polling.
 
-### 2. MaystroClient.js
+### Phase 5: Delivery Analytics
+- Removed (Maystro provides dashboard). All related code and tables are deleted.
 
-**Location**: `src/lib/maystro.js`
+## Frontend Flow
 
-**Features**:
-- Utility class for all Maystro-related operations
-- Methods for CRUD operations on integrations
-- Token expiry validation
-- Error handling and logging
+### Components
 
-**Key Methods**:
-- `getIntegration()`: Fetch current integration status
-- `connect(credentials)`: Connect to Maystro
-- `disconnect()`: Remove integration
-- `updateStatus(enabled)`: Toggle integration on/off
-- `isEnabled()`: Check if integration is active and valid
+1) MaystroIntegration.vue (`src/components/MaystroIntegration.vue`)
+- Toggle enable/disable.
+- Connect with a single `apiToken` (instructions explain how to get it from Maystro team).
+- Uses Edge Functions: `connect-maystro` (encrypt + store), `disconnect-maystro`.
+- Shows connection status, badges, and warnings when disabled.
 
-## Database Schema
+2) StoreDashboard.vue (`src/views/StoreDashboard.vue`)
+- Orders table for the store with filters and status control.
+- Maystro columns and actions:
+  - Shows whether order exists in Maystro and the `display_id` if available.
+  - Action buttons:
+    - Create in Maystro (calls backend `POST /api/maystro/orders`).
+    - Cancel in Maystro (calls backend `POST /api/maystro/orders/cancel`).
+    - View Status History (opens modal).
+- Real-time polling every 30s to refresh.
+- Loads per-order Maystro details from the `orders` table cache.
 
-### seller_integrations Table
+3) OrderStatusHistoryModal.vue (`src/components/OrderStatusHistoryModal.vue`)
+- Timeline view of `order_status_logs` (source + old/new status + timestamp).
+- Uses RPC `get_order_status_history(order_uuid)`.
 
-```sql
-create table seller_integrations (
-  id uuid primary key default gen_random_uuid(),
-  seller_id uuid not null references profiles(id) on delete cascade,
-  provider text not null, -- e.g. 'maystro'
-  account_id text,        -- seller's Maystro account ID
-  access_token text,      -- encrypted, stored via Edge Function
-  refresh_token text,     -- encrypted, stored via Edge Function
-  expires_at timestamptz, -- Maystro token expiry
-  enabled boolean default false,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
+4) NotificationSettings.vue (`src/components/NotificationSettings.vue`)
+- Per-store preferences (localStorage for now): enable/disable notifications per type.
+- Test notification button calls `POST /api/notifications/test`.
+- Exposes `isNotificationEnabled(type)` for other components.
 
--- Ensure each seller has only one Maystro integration
-create unique index uniq_seller_provider
-on seller_integrations (seller_id, provider);
+5) Webhooks.vue (`src/views/Webhooks.vue`) — Admin only
+- Shows recent webhook logs (`GET /api/error-handling/webhook-logs`).
+- Shows `dead_letter_queue` with per-item Retry (`POST /api/error-handling/retry-webhook`).
+- Start/Stop polling (`POST /api/error-handling/start-polling|stop-polling`).
+- Summary cards with retry stats and polling state.
 
--- Row Level Security
-alter table seller_integrations enable row level security;
+### i18n
+- All messages added to `locales/en.json`, `locales/fr.json`, `locales/ar.json`.
+- Includes Maystro integration labels, orders actions, status history, and notifications.
 
-create policy "Sellers can manage their own integrations"
-on seller_integrations
-for all
-using (auth.uid() = seller_id);
-```
+## Backend Flow
 
-## Edge Functions
+### Controllers and Routes
 
-### 1. connect-maystro
+1) Webhooks
+- Route: `POST /webhooks/maystro` → `webhookController.processWebhook`.
+- Decodes payload, resolves event type, maps statuses, validates transitions.
+- Persists status updates to `orders` and inserts into `order_status_logs`.
+- On unknown/invalid transitions or failures, logs to `webhook_errors` and/or `webhook_logs` and uses retry.
 
-**Location**: `supabase/functions/connect-maystro/index.js`
+2) Orders → Maystro
+- Route: `POST /api/maystro/orders` → create order in Maystro using store token.
+- Route: `POST /api/maystro/orders/cancel` → cancel order in Maystro.
+- Uses per-store token from `seller_shipping` (encrypted apiToken) and maps platform order data to Maystro payload.
 
-**Purpose**: Securely stores encrypted Maystro credentials
+3) Error Handling
+- Routes under `/api/error-handling/*`:
+  - `process-webhook`, `retry-webhook`, `retry-stats`, `webhook-logs`, `dead-letter-queue`, `start-polling`, `stop-polling`, `polling-status`.
+- Implements exponential backoff and dead letter queue.
 
-**Input**:
-```json
-{
-  "accountId": "string",
-  "accessToken": "string",
-  "refreshToken": "string",
-  "expiresAt": "string (ISO date)"
-}
-```
+4) Notifications
+- Routes under `/api/notifications/*`:
+  - `order-confirmation`, `order-shipped`, `order-delivered`, `order-cancelled`, `urgent-delivery`, `test`.
+- Service integrates with Resend. No database logging by design.
 
-**Security Features**:
-- JWT token verification
-- AES-GCM encryption of sensitive tokens
-- Row Level Security enforcement
-- Input validation
+### Database
 
-### 2. disconnect-maystro
+Phase 2 (Status sync):
+- `order_status_logs(order_id, old_status, new_status, maystro_status_code, maystro_order_id, triggered_by, created_at)` + indexes.
+- `webhook_errors(order_id, error_type, error_data, created_at)` + indexes.
+- `orders` augmented columns: `maystro_order_id`, `maystro_display_id`, `maystro_status_code`, `maystro_last_update`, plus cancellation/alert fields.
 
-**Location**: `supabase/functions/disconnect-maystro/index.js`
+Phase 4 (Retry & DLQ):
+- `webhook_logs` (attempts, success/failure, metadata) and `dead_letter_queue`.
 
-**Purpose**: Removes the seller's Maystro integration
+Credentials:
+- `seller_shipping` holds encrypted Maystro token per store (`provider='maystro'`, `access_token` encrypted).
+- Stored by Supabase Edge Function `connect-maystro` using AES-GCM and validated JWT.
 
-**Security Features**:
-- JWT token verification
-- Secure deletion of integration data
-- Row Level Security enforcement
+RLS:
+- Policies allow buyers to view their own orders and store owners to view order logs for their stores; admins see errors.
 
-## Security Implementation
+## Security
 
-### Token Encryption
+Credentials
+- AES-GCM encryption in `connect-maystro` Edge Function (single field `apiToken`).
+- Only store owners can create/update their integration row.
 
-- **Algorithm**: AES-GCM (Galois/Counter Mode)
-- **Key**: 32-character secret stored in environment variables
-- **IV**: Random 12-byte initialization vector for each encryption
-- **Storage**: Encrypted tokens stored in base64 format
+Webhooks
+- Defensive parsing and validation of payloads.
+- Idempotency ensured via update checks and status transition validation.
 
-### Authentication
+API Access
+- All backend routes require Supabase JWT in `Authorization: Bearer <token>`.
+- CORS restricted to frontend origin.
 
-- **JWT Verification**: All Edge Function calls require valid JWT tokens
-- **User Isolation**: Sellers can only access their own integration data
-- **Service Role**: Edge Functions use service role key for database operations
+## Frontend ↔ Backend Data Flow (Core Paths)
 
-### Data Protection
+1) Connect Maystro
+- UI submits `apiToken` → Edge Function `connect-maystro` → encrypt + store in `seller_shipping` → UI reflects enabled state.
 
-- **Row Level Security**: Database-level access control
-- **Input Validation**: Comprehensive validation of all input parameters
-- **Error Handling**: Secure error messages without exposing sensitive information
+2) Create Order in Maystro (manual action)
+- UI calls `POST /api/maystro/orders` with `orderId, storeId` → backend reads store token → calls Maystro Orders API → stores `maystro_order_id` and `display_id` back in `orders` → UI refreshes.
 
-## Installation & Deployment
+3) Status Sync (webhook-first, polling fallback)
+- Maystro sends webhook → `/webhooks/maystro` updates `orders` and logs status → triggers notifications via controller → UI polling reflects latest.
+- If webhooks fail, polling service periodically syncs.
 
-### Prerequisites
+4) Notifications
+- On key transitions, `notificationController` sends emails via Resend.
+- UI can send manual notifications, respecting `NotificationSettings` preferences.
 
-1. **Supabase CLI**: `npm install -g supabase`
-2. **Project Link**: `supabase link --project-ref YOUR_PROJECT_REF`
-3. **Environment Variables**: Set encryption secret
+## What We Do NOT Build
 
-### Deployment Steps
+- Phase 5 analytics (removed; rely on Maystro dashboard).
+- Webhook configuration UI (configured in Maystro; we process incoming webhooks only).
+- Notification history database (removed to reduce complexity).
 
-1. **Deploy Functions**:
-   ```bash
-   ./deploy-maystro-functions.sh
-   ```
+## Setup Notes
 
-2. **Set Environment Variables**:
-   ```bash
-   supabase secrets set MAYSTRO_ENCRYPTION_SECRET=your-32-character-secret
-   ```
+Environment
+- Backend default port: 4000. Frontend uses `VITE_API_URL` to call backend.
+- Resend requires `RESEND_API_KEY` and a sender `FROM_EMAIL`.
 
-3. **Verify Deployment**:
-   - Check Supabase dashboard for deployed functions
-   - Test function endpoints
-   - Verify database table creation
+Deployment
+- Edge Functions deploy script: `./deploy-maystro-functions.sh` for connect/disconnect only.
+- Backend Node server exposes all Maystro integration endpoints.
 
-### Environment Variables
+## Troubleshooting
 
-```bash
-# Required
-MAYSTRO_ENCRYPTION_SECRET=your-32-character-secret-key
+- 401 from backend: ensure Supabase session exists and token is forwarded in `Authorization`.
+- Webhooks not updating: check `/api/error-handling/webhook-logs` and DLQ; enable polling if needed.
+- Maystro order create fails: verify store’s Maystro token exists (via `connect-maystro`) and payload matches Maystro docs (wilaya/commune, products, etc.).
 
-# Already set by Supabase
-SUPABASE_URL=your-project-url
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
+## References (Code)
 
-## Usage Flow
-
-### 1. Initial Connection
-
-1. Seller navigates to Selling Dashboard
-2. Clicks "Enable Maystro-Delivery" toggle
-3. Modal appears with connection options
-4. Seller chooses to create account or login
-5. Maystro website opens in new tab
-6. Seller obtains API credentials
-7. Seller returns to enter credentials
-8. Credentials are encrypted and stored
-9. Integration is enabled
-
-### 2. Daily Operations
-
-1. Toggle controls integration status
-2. Integration automatically checks token expiry
-3. Expired tokens disable integration
-4. Seller can manage account settings
-5. Disconnect option removes all data
-
-### 3. Disconnection
-
-1. Seller clicks "Disconnect" button
-2. Confirmation dialog appears
-3. Integration data is completely removed
-4. Toggle returns to disabled state
-
-## Internationalization
-
-The integration supports three languages:
-
-- **English**: Primary language with full translations
-- **French**: Complete French translations
-- **Arabic**: Complete Arabic translations with RTL support
-
-Translation keys are organized under the `maystro` namespace in each locale file.
-
-## Error Handling
-
-### Frontend Errors
-
-- **Network Errors**: Graceful fallback with user-friendly messages
-- **Validation Errors**: Form validation with clear error messages
-- **API Errors**: Error handling for all Edge Function calls
-
-### Backend Errors
-
-- **Authentication Errors**: Clear messages for invalid tokens
-- **Validation Errors**: Detailed validation failure messages
-- **Database Errors**: Logged errors with user-friendly responses
-
-## Testing
-
-### Manual Testing
-
-1. **Connection Flow**: Test complete connection process
-2. **Toggle Functionality**: Test enable/disable toggle
-3. **Error Scenarios**: Test with invalid credentials
-4. **Disconnection**: Test complete removal process
-
-### Automated Testing
-
-- Unit tests for utility functions
-- Integration tests for Edge Functions
-- E2E tests for complete user flows
+- Frontend: `src/components/MaystroIntegration.vue`, `src/views/StoreDashboard.vue`, `src/components/OrderStatusHistoryModal.vue`, `src/components/NotificationSettings.vue`, `src/views/Webhooks.vue`.
+- Backend: `controllers/{webhookController, maystroOrderController, notificationController, errorHandlingController}.js`, `routes/{webhooks, maystro, notifications, errorHandling}.js`, `server.js`.
+- Database SQL: `database/status_sync_tables.sql`, `database/webhook_logs_table.sql`.
 
 ## Monitoring & Logging
 
