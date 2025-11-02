@@ -84,9 +84,9 @@
       </div>
 
       <!-- Line chart - Only show for Pro pack users -->
-      <div v-if="packInfo.is_pro" class=" h-50 pt-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ t('dashboard.monthlySales') }}</h3>
-        <div class="h-55">
+      <div v-if="packInfo.is_pro" class="w-full overflow-hidden pt-2" style="height: 240px;">
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ t('dashboard.monthlySales') }}</h3>
+        <div class="w-full" style="height: 200px;">
           <Line :data="chartData" :options="chartOptions" />
         </div>
       </div>      
@@ -97,13 +97,8 @@
       <MaystroIntegration />
     </div>
 
-    <!-- Notification Settings Section -->
-    <div class="px-4 mt-8 sm:px-6 lg:px-8">
-      <NotificationSettings ref="notificationSettings" />
-    </div>
-
     <!-- Orders tab + best selling products tab -->
-    <div :class="packInfo.is_pro ? 'grid grid-cols-[1fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-2' : 'px-4 mt-2 sm:px-6 lg:px-8 pb-8'">
+    <div :class="packInfo.is_pro ? 'grid grid-cols-[3fr_1fr] px-4 mt-12 sm:px-6 lg:px-8 pb-8 gap-4' : 'px-4 mt-2 sm:px-6 lg:px-8 pb-8'">
       <!-- Loading State -->
       <div v-if="statsLoading" :class="packInfo.is_pro ? 'col-span-2 text-center py-12' : 'text-center py-12'">
         <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-4"></i>
@@ -111,7 +106,7 @@
         <p class="text-gray-600">{{ t('dashboard.loadingProfile') }}</p>
       </div>
       <!-- Manage orders -->
-      <div :class="packInfo.is_pro ? 'relative bg-white rounded-lg shadow-md px-3 pb-6' : 'relative bg-white rounded-lg shadow-md px-3 pb-6 w-full'">
+      <div :class="packInfo.is_pro ? 'relative bg-white rounded-lg shadow-md px-3 pb-6 overflow-hidden' : 'relative bg-white rounded-lg shadow-md px-3 pb-6 w-full overflow-hidden'">
         <div class="flex pb-2 items-center">
         <h3 
         class="ml-4 mt-3 text-lg font-semibold text-gray-800 mb-4">{{ t('dashboard.orders.title') }}</h3>
@@ -159,31 +154,31 @@
         </div>
         
         <!-- Orders Table -->
-        <div v-else-if="ordersStore.orders.length > 0" class="max-h-64 overflow-y-auto scrollbar-hide">
-          <table class="divide-y divide-gray-200 w-full table-fixed">
+        <div v-else-if="ordersStore.orders.length > 0" class="max-h-64 overflow-y-auto overflow-x-auto">
+          <table class="divide-y divide-gray-200 min-w-full table-auto">
 
             <thead class=" bg-gray-50">
               <tr>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.product') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">{{ t('dashboard.orders.table.customer') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">{{ t('dashboard.orders.table.date') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.price') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">{{ t('dashboard.orders.table.qty') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">{{ t('dashboard.orders.table.status') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">{{ t('maystro.orders.table.maystroStatus') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">{{ t('dashboard.orders.table.total') }}</th>
-                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">{{ t('maystro.orders.table.actions') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.product') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.customer') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.date') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.price') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.qty') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.status') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('maystro.orders.table.maystroStatus') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('dashboard.orders.table.total') }}</th>
+                <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ t('maystro.orders.table.actions') }}</th>
               </tr>
             </thead>
             <tbody class=" bg-white divide-y divide-gray-200">
               <tr v-for="order in ordersStore.orders" :key="`${order.order_id}-${order.product_id}`" class="hover:bg-gray-50">
-                <td class="px-3 py-4  text-xs font-medium text-gray-900 truncate" :title="order.product_name">
+                <td class="px-3 py-4 text-xs font-medium text-gray-900 truncate whitespace-nowrap" :title="order.product_name">
                   {{ order.product_name }}
                 </td>
-                <td class="px-3 py-4 text-xs text-gray-900 truncate" :title="order.customer_name">{{ order.customer_name }}</td>
-                <td class="px-3 py-4 text-xs text-gray-900">{{ formatDate(order.order_date) }}</td>
-                <td class="px-3 py-4 text-xs text-gray-900">{{ formatCurrency(order.product_price) }}</td>
-                <td class="px-3 py-4 text-xs text-gray-900 text-center">{{ order.quantity }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900 truncate whitespace-nowrap" :title="order.customer_name">{{ order.customer_name }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900 whitespace-nowrap">{{ formatDate(order.order_date) }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900 whitespace-nowrap">{{ formatCurrency(order.product_price) }}</td>
+                <td class="px-3 py-4 text-xs text-gray-900 text-center whitespace-nowrap">{{ order.quantity }}</td>
                 <td class="px-3 py-4">
                   <select 
                     :value="order.order_status"
@@ -229,7 +224,7 @@
                     </span>
                   </div>
                 </td>
-                <td class="px-3 py-4 text-xs font-medium text-gray-900">{{ formatCurrency(order.item_total || 0) }}</td>
+                <td class="px-3 py-4 text-xs font-medium text-gray-900 whitespace-nowrap">{{ formatCurrency(order.item_total || 0) }}</td>
                 <!-- Actions Column -->
                 <td class="px-3 py-4">
                   <div class="flex flex-col gap-1">
@@ -264,7 +259,7 @@
                     >
                       <i v-if="maystroActionsLoading[order.order_id]" class="fas fa-spinner fa-spin mr-1"></i>
                       <i v-else class="fas fa-times mr-1"></i>
-                      {{ t('maystro.orders.actions.cancelMaystro') }}
+                      Maystro
                     </button>
                     <!-- Notification Buttons -->
                     <div v-if="getAvailableNotifications(order.order_status).length > 0" class="mt-1 pt-1 border-t border-gray-200">
@@ -273,12 +268,17 @@
                         :key="notifType"
                         @click="sendNotification(order.order_id, notifType)"
                         :disabled="sendingNotification[`${order.order_id}-${notifType}`]"
-                        class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed w-full mb-1"
+                        :class="[
+                          'text-xs px-2 py-1 rounded focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed w-full mb-1',
+                          notifType === 'cancelled' ? 'bg-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500' :
+                          notifType === 'urgent' ? 'bg-orange-100 text-orange-700 hover:bg-orange-200 focus:ring-orange-500' :
+                          'bg-green-100 text-green-700 hover:bg-green-200 focus:ring-green-500'
+                        ]"
                         :title="t(`maystro.notifications.actions.${notifType}`)"
                       >
                         <i v-if="sendingNotification[`${order.order_id}-${notifType}`]" class="fas fa-spinner fa-spin mr-1"></i>
                         <i v-else class="fas fa-paper-plane mr-1"></i>
-                        {{ t(`maystro.notifications.actions.send${notifType.charAt(0).toUpperCase() + notifType.slice(1)}`) }}
+                        {{ getNotificationButtonLabel(notifType) }}
                       </button>
                     </div>
                   </div>
@@ -296,16 +296,9 @@
         </div>
       </div>
 
-      <!-- Status History Modal -->
-      <OrderStatusHistoryModal
-        :show="showStatusHistoryModal"
-        :orderId="selectedOrderId"
-        @close="closeStatusHistoryModal"
-      />
-    </div>
       <!-- Best selling products - Only show for Pro pack users -->
       <div v-if="packInfo.is_pro" class="bg-white rounded-lg shadow-md px-3 pb-6">
-        <h3 class="text-lg -mt-4 font-semibold text-gray-800 mb-4">{{ t('bestSelling.title') }}</h3>
+        <h3 class="text-lg mt-3 font-semibold text-gray-800 mb-4">{{ t('bestSelling.title') }}</h3>
         
         <!-- Loading State -->
         <div v-if="bestSellingLoading" class="text-center py-8">
@@ -369,6 +362,92 @@
           <p class="text-gray-600">{{ t('bestSelling.noSalesMessage') }}</p>
         </div>
       </div>
+
+      <!-- Status History Modal -->
+      <OrderStatusHistoryModal
+        :show="showStatusHistoryModal"
+        :orderId="selectedOrderId"
+        @close="closeStatusHistoryModal"
+      />
+
+      <!-- Urgent Notification Modal -->
+      <div
+        v-if="showUrgentModal"
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true"
+        @click.self="closeUrgentModal"
+      >
+        <div class="flex items-center justify-center min-h-screen p-4 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+          
+          <div class="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+              <!-- Header -->
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                  {{ t('maystro.notifications.urgentModal.title') }}
+                </h3>
+                <button
+                  @click="closeUrgentModal"
+                  :disabled="sendingUrgentNotification"
+                  class="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Form Content -->
+              <div>
+                <p class="text-sm text-gray-500 mb-4">
+                  {{ t('maystro.notifications.urgentModal.description') }}
+                </p>
+                <label for="urgent-reason" class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ t('maystro.notifications.urgentModal.reasonLabel') }}
+                </label>
+                <textarea
+                  id="urgent-reason"
+                  v-model="urgentReason"
+                  rows="4"
+                  class="block w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed resize-y"
+                  :placeholder="t('maystro.notifications.urgentModal.reasonPlaceholder')"
+                  :disabled="sendingUrgentNotification"
+                ></textarea>
+                <p v-if="urgentReasonError" class="mt-2 text-sm text-red-600">
+                  {{ urgentReasonError }}
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  @click="closeUrgentModal"
+                  :disabled="sendingUrgentNotification"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {{ t('maystro.notifications.urgentModal.cancelButton') }}
+                </button>
+                <button
+                  type="button"
+                  @click="sendUrgentNotification"
+                  :disabled="sendingUrgentNotification || !urgentReason.trim()"
+                  class="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <i v-if="sendingUrgentNotification" class="fas fa-spinner fa-spin mr-2"></i>
+                  <i v-else class="fas fa-paper-plane mr-2"></i>
+                  {{ t('maystro.notifications.urgentModal.sendButton') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
       
     
     </div>
@@ -389,7 +468,6 @@ import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import MaystroIntegration from '../components/MaystroIntegration.vue'
 import OrderStatusHistoryModal from '../components/OrderStatusHistoryModal.vue'
-import NotificationSettings from '../components/NotificationSettings.vue'
 import { getLocalizedPath } from '../lib/i18n-utils'
 import { Line } from 'vue-chartjs'
 import {
@@ -454,7 +532,15 @@ const showStatusHistoryModal = ref(false)
 const selectedOrderId = ref(null)
 const orderMaystroDetails = ref({}) // Cache for Maystro details by order_id
 const maystroActionsLoading = ref({}) // Loading state for each order
+const sendingNotification = ref({}) // Loading state for sending notifications by orderId-notificationType
 const pollingInterval = ref(null)
+
+// Urgent notification modal state
+const showUrgentModal = ref(false)
+const urgentOrderId = ref(null)
+const urgentReason = ref('')
+const urgentReasonError = ref('')
+const sendingUrgentNotification = ref(false)
 
 // Chart data
 const chartData = ref({
@@ -471,6 +557,14 @@ const chartData = ref({
 const chartOptions = ref({
   responsive: true,
   maintainAspectRatio: false,
+  layout: {
+    padding: {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0
+    }
+  },
   plugins: {
     legend: {
       display: false
@@ -480,6 +574,14 @@ const chartOptions = ref({
     x: {
       grid: {
         display: false
+      },
+      ticks: {
+        maxRotation: 45,
+        minRotation: 45,
+        autoSkip: false,
+        font: {
+          size: 10
+        }
       }
     },
     y: {
@@ -487,13 +589,18 @@ const chartOptions = ref({
       min: 0,
       max: 50000,
       ticks: {
-        stepSize: 10000,
+        stepSize: 20000,
+        maxTicksLimit: 6,
+        font: {
+          size: 10
+        },
         callback: function(value) {
           return value.toLocaleString();
         }
       },
       grid: {
-        display: true
+        display: true,
+        color: 'rgba(0, 0, 0, 0.05)'
       }
     }
   }
@@ -642,27 +749,52 @@ const setStatusFilter = async (status) => {
 // Update order status
 const updateOrderStatus = async (orderId, productId, newStatus) => {
   try {
-    // Update the order status in the orders table (not order_items)
-    const { error } = await supabase
+    // Get the current order to find old status
+    const currentOrder = ordersStore.orders.find(
+      order => order.order_id === orderId && order.product_id === productId
+    )
+    
+    if (!currentOrder) {
+      throw new Error('Order not found')
+    }
+    
+    const oldStatus = currentOrder.order_status
+    
+    // If status hasn't changed, do nothing
+    if (oldStatus === newStatus) {
+      return
+    }
+    
+    // Update the order status in the orders table
+    const { error: updateError } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId)
     
-    if (error) throw error
+    if (updateError) throw updateError
     
-    // Update the local orders array to reflect the change immediately
-    const orderIndex = ordersStore.orders.findIndex(
-      order => order.order_id === orderId && order.product_id === productId
-    )
+    // Log the status change in order_status_logs
+    const { error: logError } = await supabase
+      .from('order_status_logs')
+      .insert({
+        order_id: orderId,
+        old_status: oldStatus,
+        new_status: newStatus,
+        triggered_by: 'manual'
+      })
     
-    if (orderIndex !== -1) {
-      ordersStore.orders[orderIndex].order_status = newStatus
+    // Log error is non-critical, but log it for debugging
+    if (logError) {
+      console.warn('Failed to log status change:', logError)
     }
     
-    console.log(`Order status updated to ${newStatus}`)
+    // Refetch orders from database to ensure synchronization
+    await fetchFilteredOrders()
+    
+    console.log(`Order status updated from ${oldStatus} to ${newStatus}`)
   } catch (error) {
     console.error('Error updating order status:', error)
-    // You might want to show a user-friendly error message here
+    alert('Failed to update order status: ' + error.message)
   }
 }
 
@@ -855,6 +987,12 @@ const getMaystroDisplayId = (orderId) => {
 
 // Send notification manually
 const sendNotification = async (orderId, notificationType) => {
+  // If urgent notification, open modal first
+  if (notificationType === 'urgent') {
+    openUrgentModal(orderId)
+    return
+  }
+
   try {
     sendingNotification.value[`${orderId}-${notificationType}`] = true
     
@@ -875,13 +1013,6 @@ const sendNotification = async (orderId, notificationType) => {
     const endpoint = endpointMap[notificationType]
     if (!endpoint) {
       throw new Error(`Unknown notification type: ${notificationType}`)
-    }
-
-    // Check if notification is enabled (from NotificationSettings component)
-    const isEnabled = notificationSettings.value?.isNotificationEnabled?.(notificationType)
-    if (isEnabled === false) {
-      alert(t('maystro.notifications.disabled'))
-      return
     }
 
     const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${endpoint}`, {
@@ -911,16 +1042,96 @@ const sendNotification = async (orderId, notificationType) => {
   }
 }
 
+// Open urgent notification modal
+const openUrgentModal = (orderId) => {
+  urgentOrderId.value = orderId
+  urgentReason.value = ''
+  urgentReasonError.value = ''
+  showUrgentModal.value = true
+}
+
+// Close urgent notification modal
+const closeUrgentModal = () => {
+  if (sendingUrgentNotification.value) return // Prevent closing while sending
+  
+  showUrgentModal.value = false
+  urgentOrderId.value = null
+  urgentReason.value = ''
+  urgentReasonError.value = ''
+}
+
+// Send urgent notification with reason
+const sendUrgentNotification = async () => {
+  // Validate reason
+  if (!urgentReason.value || !urgentReason.value.trim()) {
+    urgentReasonError.value = t('maystro.notifications.urgentModal.reasonRequired')
+    return
+  }
+
+  urgentReasonError.value = ''
+  sendingUrgentNotification.value = true
+
+  try {
+    const session = await supabase.auth.getSession()
+    if (!session.data.session) {
+      throw new Error('Not authenticated')
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/notifications/urgent-delivery`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.data.session.access_token}`
+      },
+      body: JSON.stringify({
+        orderId: urgentOrderId.value,
+        reason: urgentReason.value.trim()
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to send urgent notification')
+    }
+
+    const result = await response.json()
+    
+    // Show success message and close modal
+    alert(t('maystro.notifications.success.sent'))
+    closeUrgentModal()
+    
+    // Update sending notification state
+    sendingNotification.value[`${urgentOrderId.value}-urgent`] = false
+  } catch (error) {
+    console.error('Error sending urgent notification:', error)
+    urgentReasonError.value = error.message || t('maystro.notifications.error.sendFailed')
+  } finally {
+    sendingUrgentNotification.value = false
+  }
+}
+
 // Get available notification actions for an order based on its status
 const getAvailableNotifications = (orderStatus) => {
   const statusMap = {
     pending: ['confirmation'],
     confirmed: ['shipped', 'cancelled'],
-    shipped: ['delivered', 'urgent'],
+    shipped: ['shipped', 'delivered', 'urgent'], // Show shipped button + delivered/urgent options
     delivered: [],
-    cancelled: []
+    cancelled: ['cancelled'] // IMPORTANT: Keep cancelled button visible so store owner can notify customer about cancellation
   }
   return statusMap[orderStatus] || []
+}
+
+// Get notification button label text
+const getNotificationButtonLabel = (notifType) => {
+  const labelMap = {
+    confirmation: t('maystro.notifications.actions.sendConfirmation'),
+    shipped: 'Shipped',
+    delivered: t('maystro.notifications.actions.sendDelivered'),
+    cancelled: 'Cancelled',
+    urgent: 'Urgent'
+  }
+  return labelMap[notifType] || notifType
 }
 
 // Fetch monthly sales data

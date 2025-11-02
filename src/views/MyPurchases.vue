@@ -7,21 +7,35 @@
     </div>
 
     <!-- Dashboard Grid -->
-    <div class="px-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="px-12">
       <!-- Active Orders -->
-      <div class="card relative">
-        <div class="flex items-center">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('dashboard.activeOrders') }}</h3>
-        <!-- Filter by category -->
-        <select 
-          @change="setCategoryFilter($event.target.value)"
-          :value="categoryFilter"
-          :class="getCategorySelectClasses()">
-          <option value="">{{ $t('dashboard.categories') }}</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ getCategoryDisplayName(category) }}
-          </option>
-        </select>
+      <div class="card relative w-full">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold text-gray-900">{{ $t('dashboard.activeOrders') }}</h3>
+          <div class="flex items-center gap-3">
+            <!-- Filter by status -->
+            <select 
+              @change="setStatusFilter($event.target.value)"
+              :value="statusFilter"
+              :class="getStatusSelectClasses()">
+              <option value="">{{ $t('dashboard.orders.filters.allStatus') }}</option>
+              <option value="pending">{{ $t('dashboard.orders.filters.pending') }}</option>
+              <option value="confirmed">{{ $t('dashboard.orders.filters.confirmed') }}</option>
+              <option value="shipped">{{ $t('dashboard.orders.filters.shipped') }}</option>
+              <option value="delivered">{{ $t('dashboard.orders.filters.delivered') }}</option>
+              <option value="cancelled">{{ $t('dashboard.orders.filters.cancelled') }}</option>
+            </select>
+            <!-- Filter by category -->
+            <select 
+              @change="setCategoryFilter($event.target.value)"
+              :value="categoryFilter"
+              :class="getCategorySelectClasses()">
+              <option value="">{{ $t('dashboard.categories') }}</option>
+              <option v-for="category in categories" :key="category.id" :value="category.id">
+                {{ getCategoryDisplayName(category) }}
+              </option>
+            </select>
+          </div>
         </div>
         <div v-if="ordersStore.loading" class="text-center py-8">
           <i class="fas fa-spinner fa-spin text-primary text-2xl"></i>
@@ -133,6 +147,7 @@ const wishlistStore = useWishlistStore()
 
 // Filtering state
 const categoryFilter = ref('')
+const statusFilter = ref('')
 const categories = ref([])
 const filteredOrders = ref([])
 const buyerOrders = ref([])
@@ -140,18 +155,22 @@ const buyerOrders = ref([])
 // Get localized route path
 const { getLocalizedPath } = useLocaleRouter()
 
+// Get localized route (wrapper for getLocalizedPath)
+const getLocalizedRoute = (path) => {
+  const currentLocale = route.meta.locale || 'en'
+  return getLocalizedPath(path, currentLocale)
+}
+
 // Get category select classes based on language direction
 const getCategorySelectClasses = () => {
-  const currentLocale = route.meta.locale || 'en'
-  const isArabic = currentLocale === 'ar'
-  
-  const baseClasses = 'absolute top-4 rounded-md pl-2 py-2 bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none'
-  
-  if (isArabic) {
-    return `${baseClasses} left-16`
-  } else {
-    return `${baseClasses} right-16`
-  }
+  const baseClasses = 'rounded-md px-3 py-2 bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm'
+  return baseClasses
+}
+
+// Get status select classes
+const getStatusSelectClasses = () => {
+  const baseClasses = 'rounded-md px-3 py-2 bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm'
+  return baseClasses
 }
 
 const formatDate = (dateString) => {
@@ -207,6 +226,10 @@ const getProductCategory = (order) => {
     if (firstItem.product && firstItem.product.category && firstItem.product.category.id) {
       return firstItem.product.category.id
     }
+    // Fallback to category_id if category object doesn't exist
+    if (firstItem.product && firstItem.product.category_id) {
+      return firstItem.product.category_id
+    }
   }
   return null
 }
@@ -224,7 +247,7 @@ const getCategoryName = (order) => {
       } else if (currentLocale === 'fr' && category.name_fr) {
         return category.name_fr
       } else {
-        return category.name_en
+        return category.name_en || 'Unknown Category'
       }
     }
   }
@@ -283,8 +306,8 @@ const fetchCategories = async () => {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name_en, name_ar, name_fr')
-      .eq('status', 'approved')
+      .select('id, name_en, name_ar, name_fr, description, icon_url, is_active, created_at, updated_at')
+      .eq('is_active', true)
       .order('name_en')
 
     if (error) throw error
@@ -297,24 +320,41 @@ const fetchCategories = async () => {
 // Filter orders by category
 const setCategoryFilter = (categoryId) => {
   categoryFilter.value = categoryId
+  applyFilters()
+}
+
+// Filter orders by status
+const setStatusFilter = (status) => {
+  statusFilter.value = status
+  applyFilters()
+}
+
+// Apply both category and status filters
+const applyFilters = () => {
+  let filtered = [...buyerOrders.value]
   
-  if (!categoryId) {
-    // Show all orders
-    filteredOrders.value = buyerOrders.value.slice(0, 3)
-  } else {
-    // Filter orders by category
-    filteredOrders.value = buyerOrders.value
-      .filter(order => {
-        const productCategory = getProductCategory(order)
-        return productCategory === categoryId
-      })
-      .slice(0, 3)
+  // Apply category filter
+  if (categoryFilter.value) {
+    filtered = filtered.filter(order => {
+      const productCategory = getProductCategory(order)
+      return productCategory === categoryFilter.value
+    })
   }
+  
+  // Apply status filter
+  if (statusFilter.value) {
+    filtered = filtered.filter(order => {
+      return order.order_status === statusFilter.value
+    })
+  }
+  
+  // Limit to 3 orders for display
+  filteredOrders.value = filtered.slice(0, 3)
 }
 
 // Initialize filtered orders
 const initializeFilteredOrders = () => {
-  filteredOrders.value = buyerOrders.value.slice(0, 3)
+  applyFilters()
 }
 
 const removeFromWishlist = async (itemId) => {

@@ -315,6 +315,25 @@
   },
   "profile.title": "Mon Profil",
   "profile.subtitle": "Mettez à jour vos informations personnelles et préférences",
+  "profile.storeOwnerTitle": "Profil du Propriétaire de Magasin",
+  "profile.storeOwnerSubtitle": "Consultez vos informations de profil et de magasin",
+  "profile.personalInformation": "Informations Personnelles",
+  "profile.storeInformation": "Informations du Magasin",
+  "profile.city": "Ville",
+  "profile.storeName": "Nom du Magasin",
+  "profile.storeStatus": "Statut du Magasin",
+  "profile.packPlan": "Plan d'Abonnement",
+  "profile.viewStore": "Voir le Magasin",
+  "profile.notProvided": "Non fourni",
+  "profile.notStoreOwner": "Accès Refusé",
+  "profile.notStoreOwnerMessage": "Cette page est uniquement accessible aux propriétaires de magasins (vendeurs ou clients avec magasins).",
+  "profile.notAuthenticated": "Vous devez être connecté pour voir cette page.",
+  "profile.loadError": "Échec du chargement des informations de profil.",
+  "profile.statusApproved": "Approuvé",
+  "profile.statusPending": "En Attente",
+  "profile.statusRejected": "Rejeté",
+  "profile.statusSuspended": "Suspendu",
+  "profile.noPack": "Aucun plan d'abonnement",
   "profile.email": "E-mail",
   "profile.emailNote": "L'e-mail ne peut pas être modifié",
   "profile.fullName": "Nom Complet",
@@ -374,6 +393,7 @@
   "sections": {
     "newProducts": "Nouveaux produits",
     "featuredProducts": "Produits en Vedette",
+    "products": "Produits",
     "featuredStores": "Magasins en Vedette",
     "saleProducts": "Produits en promotion",
     "viewAll": "Voir tout",
@@ -1083,6 +1103,13 @@
       "confirmDisconnect": "Êtes-vous sûr de vouloir vous déconnecter de Maystro ? Cela supprimera toutes les données d'intégration.",
       "status": {
         "disconnected": "Déconnecté"
+      },
+      "success": {
+        "connected": "Intégration Maystro connectée avec succès !",
+        "disconnected": "Intégration Maystro déconnectée avec succès !"
+      },
+      "warning": {
+        "disconnected": "L'intégration Maystro est déconnectée. Veuillez vous connecter pour utiliser les services de livraison."
       }
     },
     "modal": {
@@ -1131,6 +1158,16 @@
       },
       "confirm": {
         "cancel": "Êtes-vous sûr de vouloir annuler cette commande sur Maystro ?"
+      },
+      "statusHistory": {
+        "title": "Historique du Statut de la Commande",
+        "from": "De",
+        "triggeredBy": "Déclenché par",
+        "noHistory": "Aucun historique de statut disponible",
+        "webhook": "Webhook",
+        "manual": "Manuel",
+        "system": "Système",
+        "initialStatus": "Statut Initial"
       }
     },
     "notifications": {
@@ -1178,6 +1215,15 @@
       "test": {
         "title": "Envoyer une notification de test",
         "description": "Envoyez un message de test pour vérifier vos paramètres de notification."
+      },
+      "urgentModal": {
+        "title": "Envoyer une notification de livraison urgente",
+        "description": "Entrez la raison de la notification de livraison urgente. Cela sera envoyé au client.",
+        "reasonLabel": "Raison",
+        "reasonPlaceholder": "Entrez la raison de la livraison urgente (par exemple, retard de livraison, demande du client, etc.)",
+        "reasonRequired": "Veuillez entrer une raison pour la notification urgente.",
+        "sendButton": "Envoyer la notification",
+        "cancelButton": "Annuler"
       }
     },
     "shipping": {

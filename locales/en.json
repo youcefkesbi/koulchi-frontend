@@ -404,6 +404,25 @@
   "profile": "Profile",
   "profile.title": "My Profile",
   "profile.subtitle": "Update your personal information and preferences",
+  "profile.storeOwnerTitle": "Store Owner Profile",
+  "profile.storeOwnerSubtitle": "View your profile and store information",
+  "profile.personalInformation": "Personal Information",
+  "profile.storeInformation": "Store Information",
+  "profile.city": "City",
+  "profile.storeName": "Store Name",
+  "profile.storeStatus": "Store Status",
+  "profile.packPlan": "Subscription Plan",
+  "profile.viewStore": "View Store",
+  "profile.notProvided": "Not provided",
+  "profile.notStoreOwner": "Access Denied",
+  "profile.notStoreOwnerMessage": "This page is only accessible for store owners (vendors or customers with stores).",
+  "profile.notAuthenticated": "You must be logged in to view this page.",
+  "profile.loadError": "Failed to load profile information.",
+  "profile.statusApproved": "Approved",
+  "profile.statusPending": "Pending",
+  "profile.statusRejected": "Rejected",
+  "profile.statusSuspended": "Suspended",
+  "profile.noPack": "No subscription plan",
   "profile.email": "Email",
   "profile.emailNote": "Email cannot be changed",
   "profile.changePassword": "Change Password",
@@ -497,6 +516,7 @@
   "sections": {
     "newProducts": "New Products",
     "featuredProducts": "Featured Products",
+    "products": "Products",
     "featuredStores": "Featured Stores",
     "saleProducts": "Sale Products",
     "viewAll": "View All",
@@ -1210,6 +1230,13 @@
       "confirmDisconnect": "Are you sure you want to disconnect from Maystro? This will remove all integration data.",
       "status": {
         "disconnected": "Disconnected"
+      },
+      "success": {
+        "connected": "Maystro integration connected successfully!",
+        "disconnected": "Maystro integration disconnected successfully!"
+      },
+      "warning": {
+        "disconnected": "Maystro integration is disconnected. Please connect to use delivery services."
       }
     }
     ,"modal": {
@@ -1258,6 +1285,16 @@
       },
       "confirm": {
         "cancel": "Are you sure you want to cancel this order in Maystro?"
+      },
+      "statusHistory": {
+        "title": "Order Status History",
+        "from": "From",
+        "triggeredBy": "Triggered by",
+        "noHistory": "No status history available",
+        "webhook": "Webhook",
+        "manual": "Manual",
+        "system": "System",
+        "initialStatus": "Initial Status"
       }
     },
     "notifications": {
@@ -1305,6 +1342,15 @@
       "test": {
         "title": "Send Test Notification",
         "description": "Send a test message to verify your notification settings."
+      },
+      "urgentModal": {
+        "title": "Send Urgent Delivery Notification",
+        "description": "Enter the reason for the urgent delivery notification. This will be sent to the customer.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Enter the reason for urgent delivery (e.g., delivery delay, customer request, etc.)",
+        "reasonRequired": "Please enter a reason for the urgent notification.",
+        "sendButton": "Send Notification",
+        "cancelButton": "Cancel"
       }
     },
     "shipping": {

@@ -417,9 +417,19 @@ export const useOrdersStore = defineStore('orders', () => {
           *,
           profiles!orders_user_id_fkey (
             id,
-            name,
-            email,
-            phone
+            full_name,
+            city
+          ),
+          order_items (
+            *,
+            product:products (
+              *,
+              seller:profiles!products_seller_id_fkey (
+                id,
+                full_name,
+                city
+              )
+            )
           )
         `)
         .eq('id', orderId)

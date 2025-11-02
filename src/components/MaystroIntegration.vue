@@ -353,8 +353,9 @@ export default {
     })
 
     // Show connect button by default (no existing integration)
+    // hasIntegration is true if integration record exists in database (regardless of enabled state)
     const hasIntegration = computed(() => {
-      return integrationStatus.value !== null
+      return integrationStatus.value?.integration !== null && integrationStatus.value?.integration !== undefined
     })
 
 
@@ -374,10 +375,18 @@ export default {
         }
         
         console.log('🔍 MaystroIntegration - Loading integration for store:', currentStore.value.id)
-        integrationStatus.value = await maystroClient.getIntegration()
+        const status = await maystroClient.getIntegration()
+        integrationStatus.value = status
+        console.log('✅ MaystroIntegration - Integration status loaded:', {
+          connected: status.connected,
+          enabled: status.enabled,
+          hasIntegration: !!status.integration
+        })
       } catch (err) {
         error.value = err.message
-        console.error('Error loading integration status:', err)
+        console.error('❌ Error loading integration status:', err)
+        // Set to null on error so UI shows "not connected"
+        integrationStatus.value = null
       } finally {
         loading.value = false
       }
@@ -509,19 +518,23 @@ export default {
       return new Date(dateString).toLocaleDateString()
     }
 
-    // Watch for store changes but don't load integration status immediately
-    watch(currentStore, (newStore) => {
+    // Watch for store changes and load integration status when store becomes available
+    watch(currentStore, async (newStore) => {
       console.log('🔍 MaystroIntegration - Store changed:', newStore)
       if (newStore?.id) {
-        console.log('🔍 MaystroIntegration - Store available')
-        // Don't load integration status immediately - only when user actually connects
+        console.log('🔍 MaystroIntegration - Store available, loading integration status')
+        await loadIntegrationStatus()
+      } else {
+        // Store not available, clear integration status
+        integrationStatus.value = null
       }
-    }, { immediate: false })
+    }, { immediate: true })
 
     // Lifecycle
     onMounted(async () => {
       console.log('🔍 MaystroIntegration - Component mounted')
-      // Load integration status on mount to show current state
+      // Integration status will be loaded by the watch above when store becomes available
+      // But also try to load it if store is already available
       if (currentStore.value?.id) {
         await loadIntegrationStatus()
       }

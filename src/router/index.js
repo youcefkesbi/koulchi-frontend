@@ -10,7 +10,7 @@ import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
 import StoreDashboard from '../views/StoreDashboard.vue'
-import Profile from '../views/Profile.vue'
+import Account from '../views/Account.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
@@ -96,9 +96,9 @@ const baseRoutes = [
     beforeEnter: authGuard
   },
   {
-    path: '/profile',
-    name: 'Profile',
-    component: Profile,
+    path: '/myaccount',
+    name: 'Account',
+    component: Account,
     meta: { requiresAuth: true }
   },
   {

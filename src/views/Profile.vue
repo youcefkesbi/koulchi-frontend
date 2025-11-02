@@ -1,109 +1,148 @@
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto">
-      <!-- Page Header -->
-      <div class="mb-8 text-center">
-        <h1 class="text-4xl font-bold text-dark mb-4">{{ $t('profile.title') }}</h1>
-        <p class="text-gray-600 text-lg">{{ $t('profile.subtitle') }}</p>
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Page Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ $t('profile.storeOwnerTitle') }}</h1>
+      <p class="text-gray-600 text-lg">{{ $t('profile.storeOwnerSubtitle') }}</p>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="bg-white rounded-3xl shadow-soft p-8 text-center">
+      <i class="fas fa-spinner fa-spin text-primary text-3xl mb-4"></i>
+      <p class="text-gray-600">{{ $t('common.loading') }}</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="bg-white rounded-3xl shadow-soft p-8">
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+        <i class="fas fa-exclamation-circle text-red-500 text-2xl mb-2"></i>
+        <p class="text-red-700">{{ error }}</p>
+      </div>
+    </div>
+
+    <!-- Access Denied - Not a Store Owner -->
+    <div v-else-if="!isStoreOwner" class="bg-white rounded-3xl shadow-soft p-8">
+      <div class="text-center py-8">
+        <i class="fas fa-store-slash text-gray-400 text-6xl mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ $t('profile.notStoreOwner') }}</h3>
+        <p class="text-gray-600 mb-4">{{ $t('profile.notStoreOwnerMessage') }}</p>
+        <router-link
+          :to="getLocalizedRoute('/dashboard')"
+          class="btn-primary inline-block"
+        >
+          {{ $t('common.goBack') }}
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Profile Information -->
+    <div v-else class="bg-white rounded-3xl shadow-soft p-8">
+      <!-- Profile Card -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <i class="fas fa-user-circle text-primary mr-3"></i>
+          {{ $t('profile.personalInformation') }}
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Full Name -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.fullName') }}
+            </label>
+            <p class="text-lg font-semibold text-gray-900">
+              {{ profile.full_name || $t('profile.notProvided') }}
+            </p>
+          </div>
+
+          <!-- Email -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.email') }}
+            </label>
+            <p class="text-lg font-semibold text-gray-900">
+              {{ profile.email || $t('profile.notProvided') }}
+            </p>
+          </div>
+
+          <!-- City -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.city') }}
+            </label>
+            <p class="text-lg font-semibold text-gray-900">
+              {{ profile.city || $t('profile.notProvided') }}
+            </p>
+          </div>
+
+          <!-- Store Name -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.storeName') }}
+            </label>
+            <p class="text-lg font-semibold text-gray-900">
+              {{ storeInfo.name || $t('profile.notProvided') }}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <!-- Profile Form -->
-      <div class="bg-white rounded-3xl shadow-soft p-8">
-        <form @submit.prevent="updateProfile" class="space-y-6">
-          <!-- Email Field (Read-only) -->
-          <div>
-            <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.email') }}</label>
-            <input
-              v-model="email"
-              type="email"
-              disabled
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed"
-            />
-            <p class="text-xs text-gray-500 mt-1">{{ $t('profile.emailNote') }}</p>
-          </div>
+      <!-- Store Information -->
+      <div v-if="storeInfo.id" class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <i class="fas fa-store text-primary mr-3"></i>
+          {{ $t('profile.storeInformation') }}
+        </h2>
 
-          <!-- Full Name Field -->
-          <div>
-            <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.fullName') }}</label>
-            <input
-              v-model="fullName"
-              type="text"
-              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-              :placeholder="$t('profile.fullNamePlaceholder')"
-            />
-            <p class="text-xs text-gray-500 mt-1">{{ $t('profile.fullNameNote') }}</p>
-          </div>
-
-          <!-- Password Update Section -->
-          <div class="border-t-2 border-gray-200 pt-6 mt-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('profile.changePassword') }}</h3>
-            <p class="text-sm text-gray-600 mb-4">{{ $t('profile.passwordInfo') }}</p>
-            
-            <!-- Current Password -->
-            <div class="mb-4">
-              <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.currentPassword') }}</label>
-              <input
-                v-model="currentPassword"
-                type="password"
-                autocomplete="off"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                :placeholder="$t('profile.currentPasswordPlaceholder')"
-              />
-              <a href="/reset-password" class="text-xs text-primary hover:underline mt-1 inline-block">
-                {{ $t('errors.forgotPassword') }}
-              </a>
-            </div>
-
-            <!-- New Password -->
-            <div class="mb-4">
-              <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.newPassword') }}</label>
-              <input
-                v-model="newPassword"
-                type="password"
-                autocomplete="new-password"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                :placeholder="$t('profile.newPasswordPlaceholder')"
-              />
-              <p class="text-xs text-gray-500 mt-1">{{ $t('profile.passwordHelp') }}</p>
-            </div>
-
-            <!-- Confirm New Password -->
-            <div class="mb-4">
-              <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.confirmNewPassword') }}</label>
-              <input
-                v-model="confirmNewPassword"
-                type="password"
-                autocomplete="new-password"
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
-                :placeholder="$t('profile.confirmNewPasswordPlaceholder')"
-              />
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-200 mt-6">
-            <button
-              type="submit"
-              :disabled="loading"
-              class="flex-1 bg-primary text-white py-3 px-6 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Store Status -->
+          <div class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.storeStatus') }}
+            </label>
+            <span
+              :class="[
+                'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
+                storeInfo.status === 'approved' ? 'bg-green-100 text-green-800' :
+                storeInfo.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                storeInfo.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+              ]"
             >
-              <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
-              {{ loading ? $t('profile.updating') : $t('profile.updateProfile') }}
-            </button>
-            
-            <router-link
-              to="/dashboard"
-              class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-200 transition-all duration-300 font-semibold text-center"
-            >
-              {{ $t('common.cancel') }}
-            </router-link>
+              {{ getStoreStatusLabel(storeInfo.status) }}
+            </span>
           </div>
-        </form>
 
-        <!-- Message Display -->
-        <div v-if="message" class="mt-6 p-4 rounded-xl text-center" :class="messageClass">
-          {{ message }}
+          <!-- Pack Information -->
+          <div v-if="storeInfo.pack_name" class="bg-gray-50 rounded-xl p-4">
+            <label class="block text-sm font-medium text-gray-500 mb-2">
+              {{ $t('profile.packPlan') }}
+            </label>
+            <p class="text-lg font-semibold text-gray-900">
+              {{ getPackName(storeInfo) }}
+            </p>
+          </div>
         </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-200 mt-6">
+        <router-link
+          :to="getLocalizedRoute('/dashboard')"
+          class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-200 transition-all duration-300 font-semibold text-center"
+        >
+          <i class="fas fa-arrow-left mr-2"></i>
+          {{ $t('common.goBack') }}
+        </router-link>
+
+        <router-link
+          v-if="storeInfo.id"
+          :to="getLocalizedRoute(`/store/${storeInfo.id}`)"
+          class="flex-1 bg-primary text-white py-3 px-6 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 font-semibold text-center"
+        >
+          <i class="fas fa-eye mr-2"></i>
+          {{ $t('profile.viewStore') }}
+        </router-link>
       </div>
     </div>
   </div>
@@ -111,170 +150,167 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/useAuthStore'
+import { useStoresStore } from '../stores/useStoresStore'
 import { supabase } from '../lib/supabase'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
-const router = useRouter()
+const { t } = useI18n()
+const route = useRoute()
+const authStore = useAuthStore()
+const storesStore = useStoresStore()
+const { getLocalizedPath } = useLocaleRouter()
 
 // State
-const fullName = ref('')
-const email = ref('')
-const currentPassword = ref('')
-const newPassword = ref('')
-const confirmNewPassword = ref('')
-const message = ref('')
-const loading = ref(false)
-const isError = ref(false)
-
-// Computed properties
-const messageClass = computed(() => {
-  return isError.value 
-    ? 'bg-red-100 text-red-700' 
-    : 'bg-green-100 text-green-700'
+const loading = ref(true)
+const error = ref(null)
+const profile = ref({
+  full_name: '',
+  email: '',
+  city: ''
+})
+const storeInfo = ref({
+  id: null,
+  name: '',
+  status: '',
+  pack_name: null,
+  pack_name_en: null,
+  pack_name_ar: null,
+  pack_name_fr: null
 })
 
-// Fetch current profile on mount
-const fetchProfile = async () => {
-  try {
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
-      router.push('/')
-      return
-    }
+// Computed
+const isStoreOwner = computed(() => {
+  const roles = Array.isArray(authStore.userRole) ? authStore.userRole : [authStore.userRole]
+  return roles.includes('vendor') || roles.includes('customer')
+})
 
-    // Set email from auth user
-    email.value = user.email || ''
+// Get localized route
+const getLocalizedRoute = (path) => {
+  const currentLocale = route.meta?.locale || 'en'
+  return getLocalizedPath(path, { locale: currentLocale })
+}
 
-    // Fetch existing profile from database (should exist since auto-created on signup)
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single()
+// Get store status label
+const getStoreStatusLabel = (status) => {
+  const statusMap = {
+    approved: t('profile.statusApproved'),
+    pending: t('profile.statusPending'),
+    rejected: t('profile.statusRejected'),
+    suspended: t('profile.statusSuspended')
+  }
+  return statusMap[status] || status
+}
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError)
-      isError.value = true
-      message.value = 'Error loading profile'
-      return
-    }
-
-    // Prefill the full name input
-    fullName.value = profile.full_name || ''
-  } catch (error) {
-    console.error('Error in fetchProfile:', error)
-    isError.value = true
-    message.value = 'Error loading profile'
+// Get pack name based on current locale
+const getPackName = (store) => {
+  const currentLocale = route.meta?.locale || 'en'
+  
+  if (currentLocale === 'ar' && store.pack_name_ar) {
+    return store.pack_name_ar
+  } else if (currentLocale === 'fr' && store.pack_name_fr) {
+    return store.pack_name_fr
+  } else {
+    return store.pack_name_en || store.pack_name || t('profile.noPack')
   }
 }
 
-// Update profile function
-const updateProfile = async () => {
+// Fetch profile information
+const fetchProfile = async () => {
   try {
     loading.value = true
-    message.value = ''
-    isError.value = false
+    error.value = null
 
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user || !user.email) {
-      throw new Error('Not authenticated')
+    // Check authentication
+    if (!authStore.isAuthenticated || !authStore.user?.id) {
+      error.value = t('profile.notAuthenticated')
+      return
     }
 
-    // Check if user wants to update password
-    const updatingPassword = currentPassword.value || newPassword.value || confirmNewPassword.value
-    
-    if (updatingPassword) {
-      // Validate password fields
-      if (!currentPassword.value || !newPassword.value || !confirmNewPassword.value) {
-        isError.value = true
-        message.value = 'All password fields are required'
-        return
-      }
-
-      if (newPassword.value !== confirmNewPassword.value) {
-        isError.value = true
-        message.value = 'New passwords do not match'
-        return
-      }
-
-      if (newPassword.value.length < 6) {
-        isError.value = true
-        message.value = 'Password must be at least 6 characters'
-        return
-      }
-
-      if (currentPassword.value === newPassword.value) {
-        isError.value = true
-        message.value = 'New password must be different from current password'
-        return
-      }
-
-      // Verify current password by attempting to sign in with it
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword.value
-      })
-
-      if (signInError) {
-        isError.value = true
-        message.value = 'Current password is incorrect'
-        return
-      }
-
-      // Update password
-      const { error: updatePasswordError } = await supabase.auth.updateUser({
-        password: newPassword.value
-      })
-
-      if (updatePasswordError) {
-        throw updatePasswordError
-      }
-
-      // Clear password fields after successful update
-      currentPassword.value = ''
-      newPassword.value = ''
-      confirmNewPassword.value = ''
+    // Check if user is a store owner
+    const roles = Array.isArray(authStore.userRole) ? authStore.userRole : [authStore.userRole]
+    if (!roles.includes('vendor') && !roles.includes('customer')) {
+      return // Not a store owner, but don't show error yet
     }
 
-    // Update profile - full_name field
-    const { error: updateError } = await supabase
+    // Get current session for email
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      profile.value.email = session.user.email || ''
+    }
+
+    // Fetch profile from database
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .update({ 
-        full_name: fullName.value 
-      })
-      .eq('id', user.id)
+      .select('id, full_name, city')
+      .eq('id', authStore.user.id)
+      .single()
 
-    if (updateError) {
-      throw updateError
+    if (profileError) {
+      throw new Error(profileError.message || 'Failed to load profile')
     }
 
-    // Success message
-    const successMsg = updatingPassword 
-      ? 'Profile and password updated successfully!' 
-      : 'Profile updated successfully!'
-    message.value = successMsg
-    
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      message.value = ''
-    }, 3000)
+    if (profileData) {
+      profile.value.full_name = profileData.full_name || ''
+      profile.value.city = profileData.city || ''
+    }
 
-  } catch (error) {
-    console.error('Error updating profile:', error)
-    isError.value = true
-    message.value = error.message || 'Error updating profile'
+    // Fetch store information
+    const { data: storeData, error: storeError } = await supabase
+      .from('stores')
+      .select('id, name, status, pack_id, packs(name_en, name_ar, name_fr)')
+      .eq('owner_id', authStore.user.id)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (storeError && storeError.code !== 'PGRST116') {
+      console.warn('Error fetching store:', storeError)
+    }
+
+    if (storeData) {
+      storeInfo.value = {
+        id: storeData.id,
+        name: storeData.name || '',
+        status: storeData.status || '',
+        pack_name_en: storeData.packs?.name_en || null,
+        pack_name_ar: storeData.packs?.name_ar || null,
+        pack_name_fr: storeData.packs?.name_fr || null
+      }
+    }
+
+  } catch (err) {
+    console.error('Error fetching profile:', err)
+    error.value = err.message || t('profile.loadError')
   } finally {
     loading.value = false
   }
 }
 
-// Initialize on mount
 onMounted(() => {
   fetchProfile()
 })
 </script>
+
+<style scoped>
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+</style>
 

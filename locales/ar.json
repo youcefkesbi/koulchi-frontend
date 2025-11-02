@@ -245,6 +245,25 @@
   },
   "profile.title": "ملفي الشخصي",
   "profile.subtitle": "تحديث معلوماتك الشخصية وتفضيلاتك",
+  "profile.storeOwnerTitle": "ملف صاحب المتجر",
+  "profile.storeOwnerSubtitle": "عرض معلومات ملفك الشخصي والمتجر",
+  "profile.personalInformation": "المعلومات الشخصية",
+  "profile.storeInformation": "معلومات المتجر",
+  "profile.city": "المدينة",
+  "profile.storeName": "اسم المتجر",
+  "profile.storeStatus": "حالة المتجر",
+  "profile.packPlan": "خطة الاشتراك",
+  "profile.viewStore": "عرض المتجر",
+  "profile.notProvided": "غير مقدم",
+  "profile.notStoreOwner": "الوصول مرفوض",
+  "profile.notStoreOwnerMessage": "هذه الصفحة متاحة فقط لأصحاب المتاجر (البائعين أو العملاء الذين لديهم متاجر).",
+  "profile.notAuthenticated": "يجب تسجيل الدخول لعرض هذه الصفحة.",
+  "profile.loadError": "فشل تحميل معلومات الملف الشخصي.",
+  "profile.statusApproved": "موافق عليه",
+  "profile.statusPending": "قيد الانتظار",
+  "profile.statusRejected": "مرفوض",
+  "profile.statusSuspended": "معلق",
+  "profile.noPack": "لا توجد خطة اشتراك",
   "profile.email": "البريد الإلكتروني",
   "profile.emailNote": "لا يمكن تغيير البريد الإلكتروني",
   "profile.fullName": "الاسم الكامل",
@@ -309,6 +328,7 @@
   "sections": {
     "newProducts": "المنتجات الجديدة",
     "featuredProducts": "المنتجات المميزة",
+    "products": "المنتجات",
     "featuredStores": "المتاجر المميزة",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
@@ -1097,6 +1117,13 @@
       "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بمايسترو؟ سيتم حذف جميع بيانات التكامل.",
       "status": {
         "disconnected": "غير متصل"
+      },
+      "success": {
+        "connected": "تم ربط تكامل مايسترو بنجاح!",
+        "disconnected": "تم قطع اتصال تكامل مايسترو بنجاح!"
+      },
+      "warning": {
+        "disconnected": "تكامل مايسترو غير متصل. يرجى الاتصال لاستخدام خدمات التوصيل."
       }
     },
     "modal": {
@@ -1145,6 +1172,16 @@
       },
       "confirm": {
         "cancel": "هل أنت متأكد من إلغاء هذا الطلب في مايسترو؟"
+      },
+      "statusHistory": {
+        "title": "تاريخ حالة الطلب",
+        "from": "من",
+        "triggeredBy": "تم التفعيل بواسطة",
+        "noHistory": "لا يوجد تاريخ حالة متاح",
+        "webhook": "Webhook",
+        "manual": "يدوي",
+        "system": "النظام",
+        "initialStatus": "الحالة الأولية"
       }
     },
     "notifications": {
@@ -1192,6 +1229,15 @@
       "test": {
         "title": "إرسال إشعار تجريبي",
         "description": "أرسل رسالة تجريبية للتحقق من إعدادات الإشعار."
+      },
+      "urgentModal": {
+        "title": "إرسال إشعار تسليم عاجل",
+        "description": "أدخل سبب إشعار التسليم العاجل. سيتم إرسال هذا إلى العميل.",
+        "reasonLabel": "السبب",
+        "reasonPlaceholder": "أدخل سبب التسليم العاجل (مثل تأخير التسليم، طلب العميل، إلخ)",
+        "reasonRequired": "يرجى إدخال سبب للإشعار العاجل.",
+        "sendButton": "إرسال الإشعار",
+        "cancelButton": "إلغاء"
       }
     },
     "shipping": {

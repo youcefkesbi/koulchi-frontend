@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Match the simple CORS pattern used in other functions
-const corsHeaders = {
+// Base CORS values; dynamic parts will reflect request headers for preflight
+const baseCorsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
+  'Access-Control-Max-Age': '86400'
+}
+
+function getCorsHeaders(req) {
+  const requestedMethod = req.headers.get('Access-Control-Request-Method')
+  const requestedHeaders = req.headers.get('Access-Control-Request-Headers')
+
+  const headers = { ...baseCorsHeaders }
+  headers['Access-Control-Allow-Methods'] = requestedMethod || 'POST, OPTIONS'
+  headers['Access-Control-Allow-Headers'] = requestedHeaders || 'authorization, x-client-info, apikey, content-type'
+  return headers
 }
 
 // Encryption function using Web Crypto API
@@ -43,7 +53,7 @@ async function encryptToken(token, secretKey) {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { status: 204, headers: getCorsHeaders(req) })
   }
 
   try {
@@ -53,11 +63,12 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Create Supabase client (pattern: use ANON key and forward Authorization header)
+    // Create Supabase client using anon key with user JWT (RLS policies will enforce security)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')
+    const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY') 
+    
     if (!supabaseUrl || !supabaseAnon) {
-      throw new Error('Missing environment variables')
+      throw new Error('Missing environment variables: SUPABASE_URL and SUPABASE_ANON_KEY')
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnon, {
@@ -68,12 +79,14 @@ serve(async (req) => {
       }
     })
 
-    // Verify the JWT token via forwarded Authorization
+    // Verify the JWT token (RLS policies will also check this)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       throw new Error('Invalid token')
     }
+    
+    console.log('✅ User authenticated:', { userId: user.id, email: user.email })
 
     // Get the request body
     const body = await req.json()
@@ -120,25 +133,86 @@ serve(async (req) => {
     }
     console.log('✅ connect-maystro using storeId:', storeId)
 
-    // Insert or update the integration
-    const { data, error } = await supabase
+    // Check if integration already exists
+    const { data: existing, error: checkError } = await supabase
       .from('seller_shipping')
-      .upsert({
-        seller_id: user.id,
-        store_id: storeId,
-        provider: 'maystro',
-        access_token: encryptedAccessToken,
-        refresh_token: encryptedRefreshToken,
-        expires_at: expiresAt,
-        enabled: true,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'seller_id,provider'
-      })
+      .select('id')
+      .eq('seller_id', user.id)
+      .eq('provider', 'maystro')
+      .maybeSingle()
+
+    if (checkError) {
+      console.error('Error checking existing integration:', checkError)
+      throw new Error(`Failed to check integration: ${checkError.message}`)
+    }
+
+    const integrationData = {
+      seller_id: user.id,  // This MUST match auth.uid() in RLS policies
+      store_id: storeId,
+      provider: 'maystro',
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
+      expires_at: expiresAt,
+      enabled: true,
+      updated_at: new Date().toISOString()
+    }
+    
+    console.log('📝 Integration data - seller_id:', integrationData.seller_id, 'store_id:', integrationData.store_id)
+    console.log('🔐 RLS check: seller_id MUST equal auth.uid() =', user.id)
+
+    let data, error
+    
+    if (existing) {
+      // Update existing
+      console.log('🔄 Updating existing integration:', existing.id)
+      console.log('🔄 UPDATE operation - seller_id:', user.id, 'store_id:', storeId)
+      const result = await supabase
+        .from('seller_shipping')
+        .update(integrationData)
+        .eq('id', existing.id)
+        .select()
+      data = result.data
+      error = result.error
+      if (error) {
+        console.error('❌ UPDATE operation failed:', {
+          operation: 'UPDATE',
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
+      }
+    } else {
+      // Insert new
+      console.log('➕ Inserting new integration')
+      console.log('➕ INSERT operation - seller_id:', user.id, 'store_id:', storeId)
+      const result = await supabase
+        .from('seller_shipping')
+        .insert(integrationData)
+        .select()
+      data = result.data
+      error = result.error
+      if (error) {
+        console.error('❌ INSERT operation failed:', {
+          operation: 'INSERT',
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
+      }
+    }
 
     if (error) {
-      console.error('Database error:', error)
-      throw new Error('Failed to save integration')
+      console.error('Database error details:', {
+        operation: existing ? 'UPDATE' : 'INSERT',
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        fullError: JSON.stringify(error, null, 2)
+      })
+      throw new Error(`Failed to save integration: ${error.message || 'Database error'}`)
     }
 
     return new Response(
@@ -152,7 +226,7 @@ serve(async (req) => {
         }
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         status: 200 
       }
     )
@@ -166,7 +240,7 @@ serve(async (req) => {
         error: error.message || 'Internal server error' 
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         status: 400 
       }
     )

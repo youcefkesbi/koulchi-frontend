@@ -78,7 +78,7 @@ export const useStoreStore = defineStore('store', () => {
       } else {
         console.log('🔍 Debug - No approved stores found for user')
       }
-      
+
       userStores.value = data || []
     } catch (err) {
       error.value = err.message

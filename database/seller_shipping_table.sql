@@ -112,6 +112,12 @@ USING (
 );
 
 -- ================================
+-- Grants
+-- ================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seller_shipping TO authenticated;
+GRANT SELECT ON public.seller_shipping TO anon;
+
+-- ================================
 -- Triggers
 -- ================================
 CREATE TRIGGER update_seller_shipping_updated_at

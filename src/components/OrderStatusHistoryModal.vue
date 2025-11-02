@@ -87,16 +87,6 @@
             <p class="text-gray-600">{{ $t('maystro.orders.statusHistory.noHistory') }}</p>
           </div>
         </div>
-
-        <!-- Footer -->
-        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-          <button
-            @click="close"
-            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-          >
-            {{ $t('common.close') }}
-          </button>
-        </div>
       </div>
     </div>
   </div>
@@ -136,14 +126,60 @@ export default {
         loading.value = true
         error.value = null
 
+        // Fetch current order status first
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .select('status, created_at')
+          .eq('id', props.orderId)
+          .single()
+
+        if (orderError) throw orderError
+
         // Call RPC function to get status history
-        const { data, error: fetchError } = await supabase.rpc('get_order_status_history', {
+        const { data: historyData, error: fetchError } = await supabase.rpc('get_order_status_history', {
           order_uuid: props.orderId
         })
 
         if (fetchError) throw fetchError
 
-        statusHistory.value = data || []
+        // Build timeline: start with initial status, then add history
+        const timeline = []
+        
+        // Add initial status
+        if (!historyData || historyData.length === 0) {
+          // No history, show current status as initial
+          timeline.push({
+            id: 'initial',
+            old_status: null,
+            new_status: orderData.status,
+            triggered_by: 'system',
+            created_at: orderData.created_at || new Date().toISOString()
+          })
+        } else {
+          // Reverse to get oldest first (RPC returns DESC order)
+          const sortedHistory = [...historyData].reverse()
+          
+          // Get the initial status from the oldest entry's old_status
+          const oldestEntry = sortedHistory[0]
+          const initialStatus = oldestEntry.old_status || orderData.status
+          
+          // Add initial status entry
+          timeline.push({
+            id: 'initial',
+            old_status: null,
+            new_status: initialStatus,
+            triggered_by: 'system',
+            created_at: orderData.created_at || sortedHistory[0].created_at || new Date().toISOString()
+          })
+          
+          // Add all history entries (already in oldest-first order)
+          timeline.push(...sortedHistory)
+        }
+
+        // Ensure timeline is sorted by created_at ascending (oldest first)
+        timeline.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+
+        statusHistory.value = timeline
       } catch (err) {
         error.value = err.message
         console.error('Error loading status history:', err)

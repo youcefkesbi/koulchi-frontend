@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { supabase } from '../lib/supabase'
 
 export const useProductStore = defineStore('product', () => {
   // State
   const products = ref([])
+  const categories = ref([])
   const loading = ref(false)
   const error = ref(null)
   const currentProduct = ref(null)
@@ -135,9 +137,59 @@ export const useProductStore = defineStore('product', () => {
     currentProduct.value = null
   }
 
+  const fetchCategories = async () => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase
+        .from('categories')
+        .select('id, name_en, name_ar, name_fr')
+        .eq('is_active', true)
+        .order('name_en')
+
+      if (fetchError) throw fetchError
+      categories.value = Array.isArray(data) ? data : []
+      return categories.value
+    } catch (err) {
+      error.value = err?.message || 'Failed to load categories'
+      console.error('Error fetching categories:', err)
+      categories.value = []
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchApprovedProducts = async (limit = 8) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('id, name, description, price, thumbnail_url, image_urls, category_id, stock_quantity, sold_count, is_new, status, created_at')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (fetchError) throw fetchError
+      const fetchedProducts = Array.isArray(data) ? data : []
+      console.log('✅ Fetched approved products:', fetchedProducts.length)
+      return fetchedProducts
+    } catch (err) {
+      error.value = err?.message || 'Failed to load products'
+      console.error('Error fetching products:', err)
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     products,
+    categories,
     loading,
     error,
     currentProduct,
@@ -152,6 +204,8 @@ export const useProductStore = defineStore('product', () => {
     createProduct,
     updateProduct,
     deleteProduct,
+    fetchCategories,
+    fetchApprovedProducts,
     clearError,
     clearCurrentProduct
   }

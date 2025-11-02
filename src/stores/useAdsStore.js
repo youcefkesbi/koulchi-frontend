@@ -64,10 +64,15 @@ export const useAdsStore = defineStore('ads', () => {
           products:product_id(
             id,
             name,
+            description,
             price,
+            thumbnail_url,
             image_urls,
+            category_id,
             stock_quantity,
-            is_active,
+            sold_count,
+            is_new,
+            status,
             created_at
           ),
           stores:store_id(
@@ -140,8 +145,8 @@ export const useAdsStore = defineStore('ads', () => {
           categoryId: ad.category_id,
           data: {
             ...ad.products,
-            // Ensure we have the first image
-            image: ad.products.image_urls?.[0] || null
+            // Use thumbnail_url if available, otherwise first image from image_urls array
+            image: ad.products.thumbnail_url || (Array.isArray(ad.products.image_urls) && ad.products.image_urls.length > 0 ? ad.products.image_urls[0] : null)
           }
         }
       } else if (ad.item_type === 'store' && ad.stores) {

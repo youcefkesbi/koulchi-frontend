@@ -14,15 +14,10 @@ serve(async (req) => {
 
   try {
     // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    // Use secret (formerly service role) because we call admin API
+    const supabaseSecret = Deno.env.get('SUPABASE_SECRET_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    const supabaseClient = createClient(supabaseUrl, supabaseSecret)
 
     // Get the request body
     const { record, old_record } = await req.json()
