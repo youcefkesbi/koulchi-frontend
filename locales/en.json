@@ -356,6 +356,7 @@
     "back": "Back",
     "retry": "Try Again",
     "next": "Next",
+    "connecting": "Connecting...",
     "loading": "Loading...",
     "price": "Price",
     "currency": "DZD",
@@ -403,6 +404,36 @@
   "profile": "Profile",
   "profile.title": "My Profile",
   "profile.subtitle": "Update your personal information and preferences",
+  "profile.storeOwnerTitle": "Store Owner Profile",
+  "profile.storeOwnerSubtitle": "View your profile and store information",
+  "profile.personalInformation": "Personal Information",
+  "profile.storeInformation": "Store Information",
+  "profile.city": "City",
+  "profile.storeName": "Store Name",
+  "profile.storeStatus": "Store Status",
+  "profile.packPlan": "Subscription Plan",
+  "profile.viewStore": "View Store",
+  "profile.notProvided": "Not provided",
+  "profile.notStoreOwner": "Access Denied",
+  "profile.notStoreOwnerMessage": "This page is only accessible for store owners (vendors or customers with stores).",
+  "profile.notAuthenticated": "You must be logged in to view this page.",
+  "profile.loadError": "Failed to load profile information.",
+  "profile.statusApproved": "Approved",
+  "profile.statusPending": "Pending",
+  "profile.statusRejected": "Rejected",
+  "profile.statusSuspended": "Suspended",
+  "profile.noPack": "No subscription plan",
+  "profile.email": "Email",
+  "profile.emailNote": "Email cannot be changed",
+  "profile.changePassword": "Change Password",
+  "profile.passwordInfo": "Please enter your current password to verify your identity",
+  "profile.currentPassword": "Current Password",
+  "profile.currentPasswordPlaceholder": "Enter your current password",
+  "profile.newPassword": "New Password",
+  "profile.newPasswordPlaceholder": "Enter your new password",
+  "profile.passwordHelp": "Password must be at least 6 characters long",
+  "profile.confirmNewPassword": "Confirm New Password",
+  "profile.confirmNewPasswordPlaceholder": "Confirm your new password",
   "newPassword": "New Password",
   "newPasswordPlaceholder": "Enter your new password",
   "enterNewPassword": "Enter your new password",
@@ -485,6 +516,7 @@
   "sections": {
     "newProducts": "New Products",
     "featuredProducts": "Featured Products",
+    "products": "Products",
     "featuredStores": "Featured Stores",
     "saleProducts": "Sale Products",
     "viewAll": "View All",
@@ -1183,6 +1215,161 @@
     "endDate": "End Date",
     "submitting": "Submitting...",
     "submit": "Submit Ad Request"
+  },
+  "maystro": {
+    "integration": {
+      "title": "Maystro Delivery Integration",
+      "description": "Connect your store to Maystro for automated delivery management",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "connect": "Connect to Maystro",
+      "disconnect": "Disconnect",
+      "manage": "Manage Settings",
+      "connectedSince": "Connected since",
+      "expiresAt": "Expires at",
+      "confirmDisconnect": "Are you sure you want to disconnect from Maystro? This will remove all integration data.",
+      "status": {
+        "disconnected": "Disconnected"
+      },
+      "success": {
+        "connected": "Maystro integration connected successfully!",
+        "disconnected": "Maystro integration disconnected successfully!"
+      },
+      "warning": {
+        "disconnected": "Maystro integration is disconnected. Please connect to use delivery services."
+      }
+    }
+    ,"modal": {
+      "title": "Connect to Maystro Delivery",
+      "description": "Choose how you want to connect to Maystro delivery service",
+      "createAccount": "Create Account",
+      "loginAccount": "Login to Account"
+    },
+    "form": {
+      "apiToken": "API Token",
+      "apiTokenPlaceholder": "Enter your Maystro API token",
+      "apiTokenHelp": "You received this token from Maystro team",
+      "connect": "Connect",
+      "instructions": {
+        "title": "How to get your API token:",
+        "step1": "Create an account on Maystro if you haven't already",
+        "step2": "Contact the Maystro team to get your API token",
+        "step3": "Copy and paste the token below",
+        "step4": "Click Connect to complete the integration"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "Maystro",
+        "actions": "Actions"
+      },
+      "status": {
+        "synced": "Synced",
+        "notInMaystro": "Not in Maystro"
+      },
+      "actions": {
+        "history": "History",
+        "viewHistory": "View status history",
+        "createMaystro": "Create in Maystro",
+        "createInMaystro": "Create this order in Maystro",
+        "cancelMaystro": "Cancel in Maystro",
+        "cancelInMaystro": "Cancel this order in Maystro"
+      },
+      "success": {
+        "created": "Order created in Maystro successfully",
+        "cancelled": "Order cancelled in Maystro successfully"
+      },
+      "error": {
+        "createFailed": "Failed to create order in Maystro",
+        "cancelFailed": "Failed to cancel order in Maystro"
+      },
+      "confirm": {
+        "cancel": "Are you sure you want to cancel this order in Maystro?"
+      },
+      "statusHistory": {
+        "title": "Order Status History",
+        "from": "From",
+        "triggeredBy": "Triggered by",
+        "noHistory": "No status history available",
+        "webhook": "Webhook",
+        "manual": "Manual",
+        "system": "System",
+        "initialStatus": "Initial Status"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "Send confirmation notification",
+        "shipped": "Send shipped notification",
+        "delivered": "Send delivered notification",
+        "cancelled": "Send cancelled notification",
+        "urgent": "Send urgent delivery notification",
+        "sendConfirmation": "Send Confirmation",
+        "sendShipped": "Send Shipped",
+        "sendDelivered": "Send Delivered",
+        "sendCancelled": "Send Cancelled",
+        "sendUrgent": "Send Urgent"
+      },
+      "disabled": "This notification type is disabled in settings",
+      "success": { "sent": "Notification sent successfully" },
+      "error": { "sendFailed": "Failed to send notification" },
+      "settings": {
+        "title": "Notification Settings",
+        "description": "Choose which notifications to send to your customers."
+      },
+      "types": {
+        "confirmation": {
+          "title": "Order Confirmation",
+          "description": "Notify the customer when the order is confirmed."
+        },
+        "shipped": {
+          "title": "Order Shipped",
+          "description": "Notify when the order has been shipped."
+        },
+        "delivered": {
+          "title": "Order Delivered",
+          "description": "Notify when the order has been delivered."
+        },
+        "cancelled": {
+          "title": "Order Cancelled",
+          "description": "Notify when the order has been cancelled."
+        },
+        "urgent": {
+          "title": "Urgent Delivery",
+          "description": "Send an urgent delivery notice to the customer."
+        }
+      },
+      "test": {
+        "title": "Send Test Notification",
+        "description": "Send a test message to verify your notification settings."
+      },
+      "urgentModal": {
+        "title": "Send Urgent Delivery Notification",
+        "description": "Enter the reason for the urgent delivery notification. This will be sent to the customer.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Enter the reason for urgent delivery (e.g., delivery delay, customer request, etc.)",
+        "reasonRequired": "Please enter a reason for the urgent notification.",
+        "sendButton": "Send Notification",
+        "cancelButton": "Cancel"
+      }
+    },
+    "shipping": {
+      "title": "Shipping Management",
+      "description": "Manage your delivery service integrations",
+      "loadingIntegrations": "Loading shipping integrations...",
+      "noIntegrations": "No shipping integrations found",
+      "noIntegrationsDescription": "Connect a delivery service to start managing your shipments automatically.",
+      "addIntegration": "Add Integration",
+      "chooseProvider": "Choose a delivery service provider",
+      "connectedSince": "Connected since",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "disconnect": "Disconnect",
+      "confirmDisconnect": "Are you sure you want to disconnect this integration? This action cannot be undone."
+    }
   }
 }
+
 

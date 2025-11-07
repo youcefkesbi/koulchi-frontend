@@ -98,6 +98,11 @@ if (typeof window !== 'undefined') {
       console.warn('⚠️ Supabase client may not be properly configured')
     }
   })
+	// Expose for Console debugging
+	try {
+		window.supabase = supabase
+		window.environment = environment
+	} catch {}
 }
 
 export { supabase };

@@ -189,12 +189,12 @@
                   <span
                     :class="[
                       'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
-                      pack.status === 'approved'
+                      pack.is_active
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     ]"
                   >
-                    {{ pack.status === 'approved' ? ($t('admin.packs.active') || 'Active') : ($t('admin.packs.inactive') || 'Inactive') }}
+                    {{ pack.is_active ? ($t('admin.packs.active') || 'Active') : ($t('admin.packs.inactive') || 'Inactive') }}
                   </span>
                   <!-- Actions removed - click on row to open details -->
                 </div>
@@ -276,7 +276,7 @@
                 </div>
                 <div class="flex items-center space-x-3">
                   <label class="flex items-center">
-                    <input v-model="editingPack.status" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" />
+                    <input v-model="editingPack.is_active" type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary" />
                     <span class="ml-2 text-sm font-medium text-gray-700">Active</span>
                   </label>
                 </div>
@@ -301,6 +301,15 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">French Description</label>
                 <textarea v-model="editingPack.description_fr" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description..."></textarea>
               </div>
+            </div>
+            
+            <!-- Pack Info Save Button -->
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+              <button @click="savePackInfo" :disabled="savingPackInfo" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                <i v-if="savingPackInfo" class="fas fa-spinner fa-spin mr-2"></i>
+                <i v-else class="fas fa-save mr-2"></i>
+                {{ savingPackInfo ? 'Saving...' : 'Save Pack Information' }}
+              </button>
             </div>
           </div>
 
@@ -351,6 +360,7 @@
           </div>
         </div>
 
+
         <!-- Modal Footer -->
         <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div class="flex items-center space-x-4">
@@ -360,11 +370,7 @@
           </div>
           <div class="flex items-center space-x-3">
             <button @click="closePackDetails" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
-              Cancel
-            </button>
-            <button @click="savePackChanges" :disabled="saving" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
-              <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
-              {{ saving ? 'Saving...' : 'Save Changes' }}
+              Close
             </button>
           </div>
         </div>
@@ -594,6 +600,7 @@ const statusFilter = ref('')
 const selectedPack = ref(null)
 const editingPack = ref({})
 const saving = ref(false)
+const savingPackInfo = ref(false)
 
 // Feature editing state
 const editingFeature = ref(null)
@@ -637,7 +644,7 @@ const filteredPacks = computed(() => {
   // Filter by status
   if (statusFilter.value !== '') {
     const isActive = statusFilter.value === 'true'
-    filtered = filtered.filter(pack => pack.status === (isActive ? 'approved' : 'inactive'))
+    filtered = filtered.filter(pack => pack.is_active === isActive)
   }
 
   return filtered
@@ -717,7 +724,7 @@ const openPackDetails = async (pack) => {
     price: pack.price,
     max_announcements: pack.max_announcements,
     max_images: pack.max_images,
-    status: pack.status
+    is_active: pack.is_active
   }
 }
 
@@ -756,6 +763,30 @@ const packFeaturesDetails = computed(() => {
   }))
 })
 
+// Helper function to refresh selected pack after database operations
+const refreshSelectedPack = () => {
+  if (selectedPack.value) {
+    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
+    if (updatedPack) {
+      selectedPack.value = updatedPack
+      // Also update editingPack to keep them in sync
+      editingPack.value = {
+        id: updatedPack.pack_id,
+        name_en: updatedPack.name_en,
+        name_ar: updatedPack.name_ar,
+        name_fr: updatedPack.name_fr,
+        description_en: updatedPack.description_en,
+        description_ar: updatedPack.description_ar,
+        description_fr: updatedPack.description_fr,
+        price: updatedPack.price,
+        max_announcements: updatedPack.max_announcements,
+        max_images: updatedPack.max_images,
+        is_active: updatedPack.is_active
+      }
+    }
+  }
+}
+
 const removeFeatureFromPack = async (featureIndex) => {
   try {
     // Check admin role before proceeding
@@ -788,11 +819,8 @@ const removeFeatureFromPack = async (featureIndex) => {
     // Refresh the packs list to get updated data
     await fetchPacks()
     
-    // Update the selected pack with the new data
-    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
-    if (updatedPack) {
-      selectedPack.value = updatedPack
-    }
+    // Refresh the selected pack with the new data
+    refreshSelectedPack()
   } catch (err) {
     console.error('Error removing feature from pack:', err)
   }
@@ -869,11 +897,8 @@ const saveFeatureChanges = async () => {
     // Refresh the packs list to get updated data
     await fetchPacks()
     
-    // Update the selected pack with the new data
-    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
-    if (updatedPack) {
-      selectedPack.value = updatedPack
-    }
+    // Refresh the selected pack with the new data
+    refreshSelectedPack()
     
     // Close the edit modal
     closeFeatureEdit()
@@ -953,11 +978,8 @@ const saveNewFeature = async () => {
     // Refresh the packs list to get updated data
     await fetchPacks()
     
-    // Update the selected pack with the new data
-    const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
-    if (updatedPack) {
-      selectedPack.value = updatedPack
-    }
+    // Refresh the selected pack with the new data
+    refreshSelectedPack()
     
     // Close the add feature modal
     closeAddFeature()
@@ -967,6 +989,85 @@ const saveNewFeature = async () => {
     saving.value = false
   }
 }
+
+// Save only pack information (names, descriptions, price, limits, status)
+const savePackInfo = async () => {
+  try {
+    // Check admin role before proceeding
+    if (!isAdmin.value) {
+      alert('You do not have permission to perform this action.')
+      return
+    }
+    
+    savingPackInfo.value = true
+    error.value = null
+    
+    // Check if user has admin role before proceeding
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) {
+      throw new Error('You must be logged in to perform this action')
+    }
+    
+    // Verify admin role
+    const { data: userRoles, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+    
+    if (roleError) {
+      console.error('Error checking user roles:', roleError)
+      throw new Error('Unable to verify permissions')
+    }
+    
+    const hasAdminRole = userRoles?.some(ur => ur.role === 'admin')
+    if (!hasAdminRole) {
+      throw new Error('Admin access required to manage packs')
+    }
+    
+    // Update only pack information
+    const updateData = {
+      name_en: editingPack.value.name_en,
+      name_ar: editingPack.value.name_ar,
+      name_fr: editingPack.value.name_fr,
+      description_en: editingPack.value.description_en,
+      description_ar: editingPack.value.description_ar,
+      description_fr: editingPack.value.description_fr,
+      price: editingPack.value.price,
+      max_announcements: editingPack.value.max_announcements,
+      max_images: editingPack.value.max_images,
+      is_active: editingPack.value.is_active
+    }
+    
+    const { data, error: operationError } = await supabase
+      .from('packs')
+      .update(updateData)
+      .eq('id', editingPack.value.id)
+      .select()
+    
+    if (operationError) {
+      console.error('Database operation error:', operationError)
+      throw new Error(operationError.message || 'Failed to update pack information')
+    }
+    
+    // Update local state
+    const index = packs.value.findIndex(p => p.pack_id === selectedPack.value.pack_id)
+    if (index !== -1) {
+      packs.value[index] = { ...packs.value[index], ...updateData }
+    }
+    
+    // Refresh the selected pack to ensure data consistency
+    refreshSelectedPack()
+    
+    // Show success message
+    alert('Pack information updated successfully!')
+  } catch (err) {
+    console.error('Error saving pack info:', err)
+    alert(`Error: ${err.message}`)
+  } finally {
+    savingPackInfo.value = false
+  }
+}
+
 
 const savePackChanges = async (retryCount = 0) => {
   try {
@@ -1076,6 +1177,9 @@ const savePackChanges = async (retryCount = 0) => {
     if (index !== -1) {
       packs.value[index] = { ...packs.value[index], ...updateData }
     }
+    
+    // Refresh the selected pack to ensure data consistency
+    refreshSelectedPack()
     
     // Close the modal after successful save
     closePackDetails()

@@ -1,11 +1,14 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAdsStore } from '../stores/useAdsStore'
+import { supabase } from '../lib/supabase'
 
 export function useAds() {
   const adsStore = useAdsStore()
+  const loading = ref(false)
+  const error = ref(null)
 
   // Fetch ads with filters
-  const fetchAds = async (filters = {}) => {
+  const fetchAdsWithFilters = async (filters = {}) => {
     loading.value = true
     error.value = null
 
@@ -56,6 +59,28 @@ export function useAds() {
         .or(`end_date.is.null,end_date.gte.${now}`)
 
       const { data, error: supabaseError } = await query
+  // Computed properties for different ad types
+  const productAds = computed(() => {
+    return adsStore.ads.filter(ad => ad.item_type === 'product' && ad.products)
+  })
+
+  const storeAds = computed(() => {
+    return adsStore.ads.filter(ad => ad.item_type === 'store' && ad.stores)
+  })
+
+      if (supabaseError) {
+        throw supabaseError
+      }
+
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching ads:', err)
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
   // Computed properties for different ad types
   const productAds = computed(() => {
     return adsStore.ads.filter(ad => ad.item_type === 'product' && ad.products)
@@ -129,6 +154,7 @@ export function useAds() {
     
     // Methods
     fetchAds,
+    fetchAdsWithFilters,
     fetchHomepageBannerAds,
     fetchHomepageFeaturedProducts,
     fetchHomepageFeaturedStores,

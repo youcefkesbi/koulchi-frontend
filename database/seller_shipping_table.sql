@@ -5,8 +5,8 @@
 create table if not exists public.seller_shipping (
   id uuid primary key default gen_random_uuid(),
   seller_id uuid not null references public.profiles(id) on delete cascade on update cascade,
+  store_id uuid not null references public.stores(id) on delete cascade on update cascade,
   provider text not null,
-  account_id text,
   access_token text,
   refresh_token text,
   expires_at timestamptz,
@@ -19,9 +19,9 @@ create table if not exists public.seller_shipping (
 -- Indexes
 -- ================================
 CREATE INDEX IF NOT EXISTS seller_shipping_store_id_idx ON public.seller_shipping(store_id);
-CREATE INDEX IF NOT EXISTS seller_shipping_owner_id_idx ON public.seller_shipping(owner_id);
+CREATE INDEX IF NOT EXISTS seller_shipping_seller_id_idx ON public.seller_shipping(seller_id);
 CREATE INDEX IF NOT EXISTS seller_shipping_provider_idx ON public.seller_shipping(provider);
-CREATE INDEX IF NOT EXISTS seller_shipping_is_active_idx ON public.seller_shipping(is_active);
+CREATE INDEX IF NOT EXISTS seller_shipping_enabled_idx ON public.seller_shipping(enabled);
 
 -- ================================
 -- Policies
@@ -49,11 +49,7 @@ WITH CHECK (
 CREATE POLICY "Vendor and customer can insert shipping for their own stores"
 ON public.seller_shipping FOR INSERT TO authenticated
 WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM public.stores s
-        WHERE s.id = store_id AND s.owner_id = auth.uid()
-    )
+    seller_id = auth.uid()
     AND EXISTS (
         SELECT 1 FROM user_roles ur
         WHERE ur.user_id = auth.uid() AND ur.role IN ('vendor','customer')
@@ -65,11 +61,7 @@ WITH CHECK (
 CREATE POLICY "Vendor and customer can view their own store shippings"
 ON public.seller_shipping FOR SELECT TO authenticated
 USING (
-    EXISTS (
-        SELECT 1
-        FROM public.stores s
-        WHERE s.id = store_id AND s.owner_id = auth.uid()
-    )
+    seller_id = auth.uid()
     AND EXISTS (
         SELECT 1 FROM user_roles ur
         WHERE ur.user_id = auth.uid() AND ur.role IN ('vendor','customer')
@@ -92,22 +84,14 @@ USING (
 CREATE POLICY "Vendor and customer can update own store shippings"
 ON public.seller_shipping FOR UPDATE TO authenticated
 USING (
-    EXISTS (
-        SELECT 1
-        FROM public.stores s
-        WHERE s.id = store_id AND s.owner_id = auth.uid()
-    )
+    seller_id = auth.uid()
     AND EXISTS (
         SELECT 1 FROM user_roles ur
         WHERE ur.user_id = auth.uid() AND ur.role IN ('vendor','customer')
     )
 )
 WITH CHECK (
-    EXISTS (
-        SELECT 1
-        FROM public.stores s
-        WHERE s.id = store_id AND s.owner_id = auth.uid()
-    )
+    seller_id = auth.uid()
     AND EXISTS (
         SELECT 1 FROM user_roles ur
         WHERE ur.user_id = auth.uid() AND ur.role IN ('vendor','customer')
@@ -120,16 +104,18 @@ WITH CHECK (
 CREATE POLICY "Vendor and customer can delete own store shippings"
 ON public.seller_shipping FOR DELETE TO authenticated
 USING (
-    EXISTS (
-        SELECT 1
-        FROM public.stores s
-        WHERE s.id = store_id AND s.owner_id = auth.uid()
-    )
+    seller_id = auth.uid()
     AND EXISTS (
         SELECT 1 FROM user_roles ur
         WHERE ur.user_id = auth.uid() AND ur.role IN ('vendor','customer')
     )
 );
+
+-- ================================
+-- Grants
+-- ================================
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seller_shipping TO authenticated;
+GRANT SELECT ON public.seller_shipping TO anon;
 
 -- ================================
 -- Triggers

@@ -73,7 +73,7 @@
           :value="categoryFilter"
          class="h-fit rounded-md pl-2  py-2 transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none">
           <option value="">{{ $t('dashboard.categories') }}</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
+          <option v-for="category in (categories || [])" :key="category.id" :value="category.id">
             {{ getCategoryDisplayName(category) }}
           </option>
         </select>
@@ -124,7 +124,7 @@
         </div>
 
         <!-- Products Table -->
-        <div v-else-if="products.length > 0" class="overflow-x-auto">
+        <div v-else-if="products && products.length > 0" class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
@@ -136,7 +136,7 @@
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="product in products" :key="product.product_id" class="hover:bg-gray-50">
+              <tr v-for="product in (products || [])" :key="product.product_id" class="hover:bg-gray-50">
                 <!-- Product Info (Image + Name) -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
@@ -363,7 +363,7 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">{{ $t('storeProducts.selectCategory') }}</option>
-                  <option v-for="category in categories" :key="category.id" :value="category.id">
+                  <option v-for="category in (categories || [])" :key="category.id" :value="category.id">
                     {{ getCategoryDisplayName(category) }}
                   </option>
                 </select>
@@ -510,7 +510,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
-import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 const { t: $t } = useI18n()
 const route = useRoute()
@@ -559,7 +558,33 @@ const imagePreviews = ref([])
 // Vendor role flag
 const hasVendorRole = ref(false)
 
+// Store pack info
+const storePackInfo = ref(null)
+const isProPack = ref(false)
+
 // Category names are now fetched directly from the database via JOIN
+
+// Fetch store pack information
+const fetchStorePack = async () => {
+  try {
+    const { data, error } = await supabase.rpc('get_user_store_pack')
+    
+    if (error) {
+      console.error('Error fetching store pack:', error)
+      return
+    }
+    
+    if (data && data.length > 0) {
+      storePackInfo.value = data[0]
+      // Check if pack name is "Pro Plan" or is_pro is true
+      isProPack.value = storePackInfo.value.pack_name_en === 'Pro Plan' || storePackInfo.value.is_pro === true
+      console.log('Store pack info:', storePackInfo.value)
+      console.log('Is Pro Pack:', isProPack.value)
+    }
+  } catch (err) {
+    console.error('Error fetching store pack:', err)
+  }
+}
 
 // Methods
 const fetchProducts = async () => {
@@ -572,17 +597,28 @@ const fetchProducts = async () => {
       return
     }
 
-    const response = await maystroApi.getProducts(1)
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      error.value = 'User not authenticated'
+      return
+    }
+
+    // Fetch products using RPC function
+    const { data: productsData, error: productsError } = await supabase
+      .rpc('get_my_store_products')
+
+    if (productsError) throw productsError
+
+    // Ensure products is always an array, never null or undefined
+    products.value = Array.isArray(productsData) ? productsData : []
     
-    // Transform Maystro response to frontend format
-    const transformedProducts = response.list.results.map(product => 
-      transformFromMaystro(product)
-    )
-    
-    products.value = transformedProducts
+    console.log('✅ Products fetched via RPC:', products.value.length)
   } catch (err) {
-    error.value = err.message
-    console.error('Error fetching products:', err)
+    error.value = err?.message || 'Failed to fetch products'
+    console.error('❌ Error fetching products:', err)
+    // Ensure products is always an array even on error
+    products.value = []
   } finally {
     loading.value = false
   }
@@ -658,11 +694,11 @@ const fetchCategories = async () => {
     const { data, error: fetchError } = await supabase
       .from('categories')
       .select('id, name_en, name_ar, name_fr')
-      .eq('status', 'approved')
+      .eq('is_active', true)
       .order('name_en')
 
     if (fetchError) throw fetchError
-    categories.value = data || []
+    categories.value = Array.isArray(data) ? data : []
   } catch (err) {
     console.error('Error fetching categories:', err)
     error.value = 'Failed to load categories'
@@ -670,6 +706,9 @@ const fetchCategories = async () => {
 }
 
 const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return '0 DZD'
+  }
   return new Intl.NumberFormat('en-DZ', {
     style: 'currency',
     currency: 'DZD',
@@ -717,12 +756,14 @@ const openEditForm = (product) => {
     is_new: product.is_new
   }
   
-  // Set existing images as previews
-  if (product.product_image) {
+  // Set existing images as previews (use image_urls array if available, otherwise use product_image)
+  if (product.image_urls && Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+    imagePreviews.value = product.image_urls.filter(url => url && url.trim() !== '')
+  } else if (product.product_image) {
     imagePreviews.value = [product.product_image]
+  }
     // Note: We can't set imageFiles for existing images since they're URLs, not files
     // The user will need to re-upload if they want to change images
-  }
   
   // Set thumbnail preview if exists
   if (product.product_image) {
@@ -899,6 +940,16 @@ const createProduct = async () => {
       return
     }
 
+    // Fetch store pack info if not already loaded
+    if (!storePackInfo.value) {
+      await fetchStorePack()
+    }
+
+    // Determine product status based on pack type
+    // If pack_name_en is "Pro Plan" or is_pro is true, set status to "approved", otherwise "pending"
+    const productStatus = (isProPack.value || storePackInfo.value?.pack_name_en === 'Pro Plan') ? 'approved' : 'pending'
+    console.log('Product status will be:', productStatus, '(Pack:', storePackInfo.value?.pack_name_en, ')')
+
     let thumbnailUrl = null
     let imageUrls = []
 
@@ -963,8 +1014,7 @@ const createProduct = async () => {
         is_new: newProduct.value.is_new,
         thumbnail_url: thumbnailUrl,
         image_urls: imageUrls,
-        status: 'approved',
-        status: 'pending'
+        status: productStatus
       })
       
       const { data: productData, error: productError } = await supabase
@@ -980,8 +1030,7 @@ const createProduct = async () => {
           is_new: newProduct.value.is_new,
           thumbnail_url: thumbnailUrl,
           image_urls: imageUrls,
-          status: 'approved',
-          status: 'pending'
+          status: productStatus
         })
         .select()
 
@@ -1103,6 +1152,16 @@ const promoteProduct = (productId) => {
   })
 }
 
+const promoteProduct = (productId) => {
+  // Navigate to ad request form with product pre-filled
+  navigateTo('AdRequest', {
+    query: {
+      type: 'product',
+      id: productId
+    }
+  })
+}
+
 // Lifecycle
 onMounted(async () => {
   // Determine vendor role from user_roles
@@ -1120,6 +1179,9 @@ onMounted(async () => {
   } catch (e) {
     console.error('Role check failed:', e)
   }
+
+  // Fetch store pack information (RPC function handles vendor role check internally)
+  await fetchStorePack()
 
   await fetchCategories()
   await fetchProducts()

@@ -11,7 +11,7 @@
       />
     </section>
 
-    <!-- Featured Products Section -->
+    <!-- Featured Products Section (Ads) -->
     <section id="featured-products" class="my-slide-up">
       <HomepageFeaturedProducts
         :title="t('sections.featuredProducts')"
@@ -19,6 +19,20 @@
         view-all-link="/products"
         :max-products="8"
         @retry="loadAds"
+      />
+    </section>
+
+    <!-- Normal Products Section (with COD badges) -->
+    <section class="my-slide-up">
+      <FeaturedProducts
+        :products="normalProducts"
+        :loading="loadingProducts"
+        :error="productsError"
+        :title="t('sections.products')"
+        :show-view-all="true"
+        view-all-link="/products"
+        :max-products="12"
+        @refresh="loadProducts"
       />
     </section>
 
@@ -161,12 +175,51 @@ const adsStore = useAdsStore()
 const isProd = import.meta.env.PROD
 const isDev = import.meta.env.DEV
 
+// Normal products state
+const normalProducts = ref([])
+const loadingProducts = ref(false)
+const productsError = ref(null)
+
 // Load all ads data
 const loadAds = async () => {
   try {
     await adsStore.fetchAds()
   } catch (err) {
     console.error('Error loading ads:', err)
+  }
+}
+
+// Load normal products (for normal products section with COD badges)
+const loadProducts = async (maxProducts = 12) => {
+  try {
+    loadingProducts.value = true
+    productsError.value = null
+    
+    const products = await productStore.fetchApprovedProducts(maxProducts)
+    
+    // Transform products to match ProductCard format
+    normalProducts.value = products.map(product => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.thumbnail_url || (Array.isArray(product.image_urls) && product.image_urls.length > 0 ? product.image_urls[0] : null),
+      image_urls: product.image_urls || [],
+      thumbnail_url: product.thumbnail_url,
+      category_id: product.category_id,
+      stock_quantity: product.stock_quantity,
+      sold_count: product.sold_count || 0,
+      is_new: product.is_new,
+      status: product.status
+    }))
+    
+    console.log('✅ Normal products loaded:', normalProducts.value.length)
+  } catch (err) {
+    productsError.value = err?.message || 'Failed to load products'
+    console.error('❌ Error loading normal products:', err)
+    normalProducts.value = []
+  } finally {
+    loadingProducts.value = false
   }
 }
 
@@ -180,7 +233,7 @@ const scrollToFeaturedProducts = () => {
 onMounted(async () => {
   try {
     // Load categories if not already loaded
-    if (productStore.categories.length === 0) {
+    if (!productStore.categories || productStore.categories.length === 0) {
       try {
         await productStore.fetchCategories()
       } catch (categoryError) {
@@ -189,11 +242,11 @@ onMounted(async () => {
         // Use fallback categories in production
         if (import.meta.env.PROD) {
           productStore.categories = [
-            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', status: 'approved' },
-            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', status: 'approved' },
-            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', status: 'approved' },
-            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', status: 'approved' },
-            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', status: 'approved' }
+            { id: 'electronics', name_en: 'Electronics', name_ar: 'إلكترونيات', name_fr: 'Électronique', is_active: true },
+            { id: 'fashion', name_en: 'Fashion', name_ar: 'أزياء', name_fr: 'Mode', is_active: true },
+            { id: 'home', name_en: 'Home & Garden', name_ar: 'المنزل والحديقة', name_fr: 'Maison et Jardin', is_active: true },
+            { id: 'sports', name_en: 'Sports', name_ar: 'رياضة', name_fr: 'Sport', is_active: true },
+            { id: 'books', name_en: 'Books', name_ar: 'كتب', name_fr: 'Livres', is_active: true }
           ]
         }
       }
@@ -201,6 +254,9 @@ onMounted(async () => {
     
     // Load all ads data
     await loadAds()
+    
+    // Load normal products for the products section
+    await loadProducts(12)
   } catch (error) {
     console.error('Error loading homepage data:', error)
   }

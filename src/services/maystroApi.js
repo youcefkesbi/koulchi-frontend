@@ -1,184 +1,153 @@
+/**
+ * Maystro Delivery API Service
+ * 
+ * This service handles integration with Maystro Delivery API for product management.
+ * Each store owner will have their own Maystro account and API token.
+ */
+
 const MAYSTRO_BASE_URL = 'https://backend.maystro-delivery.com/api/stores'
 
-// Maystro API configuration
-const MAYSTRO_CONFIG = {
-  // You can set this directly or use environment variables
-  API_TOKEN: import.meta.env.VITE_MAYSTRO_API_TOKEN || 'YOUR_MAYSTRO_API_TOKEN_HERE',
-  // Fallback to a default token if needed
-  DEFAULT_TOKEN: 'YOUR_MAYSTRO_API_TOKEN_HERE',
-  // Direct configuration (uncomment and set your token here)
-  // DIRECT_TOKEN: 'your_actual_maystro_token_here'
-}
+/**
+ * Maystro API client class
+ * 
+ * Note: Store-specific token implementation pending
+ */
+class MaystroAPI {
+  constructor() {
+    this.baseUrl = MAYSTRO_BASE_URL
+  }
 
-// Get the API token with fallback
-const MAYSTRO_API_TOKEN = MAYSTRO_CONFIG.API_TOKEN || MAYSTRO_CONFIG.DEFAULT_TOKEN
+  /**
+   * Get store-specific API token
+   * 
+   * TODO: Implement to fetch from store's Maystro credentials
+   */
+  async getStoreToken(storeId) {
+    // TODO: Fetch from stores table: maystro_api_token
+    throw new Error('Store-specific Maystro integration not yet implemented. Each store needs their own Maystro account and API token.')
+  }
 
-// Validate API token
-if (MAYSTRO_API_TOKEN === 'YOUR_MAYSTRO_API_TOKEN_HERE') {
-  console.warn('⚠️ Maystro API token not configured. Please set VITE_MAYSTRO_API_TOKEN in your .env file or update the DEFAULT_TOKEN in maystroApi.js')
-}
-
-export const maystroApi = {
-  // Get all products with pagination
-  getProducts: async (page = 1, userToken = null) => {
+  /**
+   * Make authenticated request to Maystro API
+   */
+  async makeRequest(endpoint, options = {}) {
     try {
-      // Use Maystro API token instead of user token
-      const authToken = MAYSTRO_API_TOKEN
+      const storeId = options.storeId
+      if (!storeId) {
+        throw new Error('Store ID is required for Maystro API calls')
+      }
+
+      const token = await this.getStoreToken(storeId)
       
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product?page=${page}`, {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
         headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...options.headers
         }
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to fetch products')
+        throw new Error(errorData.detail || 'Maystro API request failed')
       }
       
       return await response.json()
     } catch (error) {
-      console.error('Error fetching products:', error)
-      throw error
-    }
-  },
-
-  // Get single product
-  getProduct: async (id, userToken = null) => {
-    try {
-      const authToken = MAYSTRO_API_TOKEN
-      
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product/${id}/`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to fetch product')
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('Error fetching product:', error)
-      throw error
-    }
-  },
-
-  // Create product
-  createProduct: async (data, userToken = null) => {
-    try {
-      const authToken = MAYSTRO_API_TOKEN
-      
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to create product')
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('Error creating product:', error)
-      throw error
-    }
-  },
-
-  // Update product (full update)
-  updateProduct: async (id, data, userToken = null) => {
-    try {
-      const authToken = MAYSTRO_API_TOKEN
-      
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product/${id}/`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to update product')
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('Error updating product:', error)
-      throw error
-    }
-  },
-
-  // Partial update product
-  patchProduct: async (id, data, userToken = null) => {
-    try {
-      const authToken = MAYSTRO_API_TOKEN
-      
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product/${id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to update product')
-      }
-      
-      return await response.json()
-    } catch (error) {
-      console.error('Error patching product:', error)
-      throw error
-    }
-  },
-
-  // Delete product
-  deleteProduct: async (id, userToken = null) => {
-    try {
-      const authToken = MAYSTRO_API_TOKEN
-      
-      const response = await fetch(`${MAYSTRO_BASE_URL}/product/${id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to delete product')
-      }
-      
-      return response
-    } catch (error) {
-      console.error('Error deleting product:', error)
+      console.error('Maystro API error:', error)
       throw error
     }
   }
+
+  /**
+   * Get all products for a store
+   */
+  async getProducts(storeId, page = 1) {
+    return await this.makeRequest(`/product?page=${page}`, {
+      method: 'GET',
+      storeId
+    })
+  }
+
+  /**
+   * Get single product
+   */
+  async getProduct(storeId, productId) {
+    return await this.makeRequest(`/product/${productId}/`, {
+      method: 'GET',
+      storeId
+    })
+  }
+
+  /**
+   * Create product
+   */
+  async createProduct(storeId, data) {
+    return await this.makeRequest('/product/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      storeId
+    })
+  }
+
+  /**
+   * Update product (full update)
+   */
+  async updateProduct(storeId, productId, data) {
+    return await this.makeRequest(`/product/${productId}/`, {
+        method: 'PUT',
+      body: JSON.stringify(data),
+      storeId
+    })
+  }
+
+  /**
+   * Partial update product
+   */
+  async patchProduct(storeId, productId, data) {
+    return await this.makeRequest(`/product/${productId}/`, {
+        method: 'PATCH',
+      body: JSON.stringify(data),
+      storeId
+    })
+  }
+
+  /**
+   * Delete product
+   */
+  async deleteProduct(storeId, productId) {
+    return await this.makeRequest(`/product/${productId}/`, {
+        method: 'DELETE',
+      storeId
+    })
+  }
 }
 
-// Data transformation utilities
+/**
+ * Data transformation utilities
+ */
+
+/**
+ * Transform product data to Maystro format
+ * 
+ * @param {Object} product - Product data from frontend
+ * @returns {Object} - Data formatted for Maystro API
+ */
 export const transformToMaystro = (product) => ({
   store_id: product.store_id,
-  logistical_description: product.description || product.name,
-  product_id: product.id || generateId()
+  logistical_description: product.description,
+  product_id: product.id, // Maystro uses product_id as an optional field
+  // Note: Maystro API has limited fields compared to our product schema
+  // Additional fields like price, category, stock will need to be managed separately
 })
 
+/**
+ * Transform Maystro product data to frontend format
+ * 
+ * @param {Object} maystroProduct - Product data from Maystro API
+ * @returns {Object} - Data formatted for frontend
+ */
 export const transformFromMaystro = (maystroProduct) => ({
   id: maystroProduct.id,
   name: maystroProduct.logistical_description,
@@ -186,20 +155,22 @@ export const transformFromMaystro = (maystroProduct) => ({
   store_id: maystroProduct.store,
   created_at: maystroProduct.created_at,
   updated_at: maystroProduct.updated_at,
-  // Add default values for missing fields
-  price: 0,
-  stock_quantity: 0,
-  status: maystroProduct.deleted ? 'inactive' : 'approved',
-  category_name: 'No Category',
-  seller_name: 'Unknown Seller',
-  // Map additional fields
-  product_id: maystroProduct.product_id,
-  delivery_rate: maystroProduct.delivery_rate,
-  cancelation_rate: maystroProduct.cancelation_rate,
-  low_stock_level: maystroProduct.low_stock_level
+  // Default values for fields not present in Maystro API
+  price: 0, // Maystro API does not provide price
+  stock_quantity: 0, // Maystro API does not provide stock_quantity
+  status: maystroProduct.deleted ? 'inactive' : 'approved', // Map Maystro's deleted to your status
+  category_id: null, // Maystro API does not provide category_id
+  category_name: 'No Category', // Default category name
+  seller_id: null, // Maystro API does not provide seller_id
+  seller_name: 'Unknown Seller', // Default seller name
+  sold_count: 0, // Maystro API does not provide sold_count
+  is_new: false, // Default value
+  product_image: maystroProduct.picture || '', // Use 'picture' if available
+  thumbnail_url: maystroProduct.picture || '',
 })
 
-// Generate simple ID if needed
-const generateId = () => {
-  return Math.random().toString(36).substr(2, 9)
-}
+// Export API instance
+export const maystroApi = new MaystroAPI()
+
+// Export the class for testing
+export { MaystroAPI }

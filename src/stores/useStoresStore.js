@@ -54,9 +54,30 @@ export const useStoreStore = defineStore('store', () => {
         .from('stores')
         .select('*')
         .eq('owner_id', user.id)
+        .eq('status', 'approved')  // Only fetch approved stores
         .order('created_at', { ascending: false })
 
-      if (fetchError) throw fetchError
+      if (fetchError) {
+        console.error('❌ Error fetching user stores:', fetchError)
+        throw fetchError
+      }
+
+      console.log('🔍 Debug - Raw approved store data:', data)
+      console.log('🔍 Debug - User ID:', user.id)
+      
+      // Log approved store details for debugging
+      if (data && data.length > 0) {
+        data.forEach((store, index) => {
+          console.log(`🔍 Debug - Approved Store ${index + 1}:`, {
+            id: store.id,
+            name: store.name,
+            status: store.status,
+            owner_id: store.owner_id
+          })
+        })
+      } else {
+        console.log('🔍 Debug - No approved stores found for user')
+      }
 
       userStores.value = data || []
     } catch (err) {
@@ -79,7 +100,12 @@ export const useStoreStore = defineStore('store', () => {
         .eq('id', storeId)
         .single()
 
-      if (fetchError) throw fetchError
+      if (fetchError) {
+        console.error('❌ Error fetching store details:', fetchError)
+        throw fetchError
+      }
+
+      console.log('🔍 Debug - Store details from view:', data)
 
       // Transform the data to include computed properties
       const storeData = {
@@ -95,6 +121,7 @@ export const useStoreStore = defineStore('store', () => {
         hasDescription: !!data.description
       }
 
+      console.log('🔍 Debug - Transformed store data:', storeData)
       currentStore.value = storeData
       return storeData
     } catch (err) {
@@ -771,3 +798,6 @@ export const useStoreStore = defineStore('store', () => {
     getStoreTotalVisitors
   }
 })
+
+// Export the store function for compatibility
+export const useStoresStore = useStoreStore

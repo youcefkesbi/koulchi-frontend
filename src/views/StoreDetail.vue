@@ -132,7 +132,7 @@ const fetchStoreProducts = async () => {
     productsLoading.value = true
             const { data, error } = await supabase
           .from('products')
-          .select('*, categories(id, name_en, name_ar, name_fr, description, icon_url, status)')
+          .select('*, categories(id, name_en, name_ar, name_fr, description, icon_url, is_active)')
           .eq('store_id', route.params.id)
           .eq('status', 'approved')
           .order('created_at', { ascending: false })

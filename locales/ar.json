@@ -243,7 +243,43 @@
     "noChangesToSave": "لا توجد تغييرات للحفظ",
     "socialLinkPlaceholder": "https://example.com/الملف-الشخصي"
   },
+  "profile.title": "ملفي الشخصي",
+  "profile.subtitle": "تحديث معلوماتك الشخصية وتفضيلاتك",
+  "profile.storeOwnerTitle": "ملف صاحب المتجر",
+  "profile.storeOwnerSubtitle": "عرض معلومات ملفك الشخصي والمتجر",
+  "profile.personalInformation": "المعلومات الشخصية",
+  "profile.storeInformation": "معلومات المتجر",
+  "profile.city": "المدينة",
+  "profile.storeName": "اسم المتجر",
+  "profile.storeStatus": "حالة المتجر",
+  "profile.packPlan": "خطة الاشتراك",
+  "profile.viewStore": "عرض المتجر",
+  "profile.notProvided": "غير مقدم",
+  "profile.notStoreOwner": "الوصول مرفوض",
+  "profile.notStoreOwnerMessage": "هذه الصفحة متاحة فقط لأصحاب المتاجر (البائعين أو العملاء الذين لديهم متاجر).",
+  "profile.notAuthenticated": "يجب تسجيل الدخول لعرض هذه الصفحة.",
+  "profile.loadError": "فشل تحميل معلومات الملف الشخصي.",
+  "profile.statusApproved": "موافق عليه",
+  "profile.statusPending": "قيد الانتظار",
+  "profile.statusRejected": "مرفوض",
+  "profile.statusSuspended": "معلق",
+  "profile.noPack": "لا توجد خطة اشتراك",
+  "profile.email": "البريد الإلكتروني",
+  "profile.emailNote": "لا يمكن تغيير البريد الإلكتروني",
+  "profile.fullName": "الاسم الكامل",
+  "profile.fullNamePlaceholder": "أدخل اسمك الكامل",
   "profile.fullNameNote": "الاسم الكامل اختياري",
+  "profile.changePassword": "تغيير كلمة المرور",
+  "profile.passwordInfo": "يرجى إدخال كلمة المرور الحالية للتحقق من هويتك",
+  "profile.currentPassword": "كلمة المرور الحالية",
+  "profile.currentPasswordPlaceholder": "أدخل كلمة المرور الحالية",
+  "profile.newPassword": "كلمة المرور الجديدة",
+  "profile.newPasswordPlaceholder": "أدخل كلمة المرور الجديدة",
+  "profile.passwordHelp": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+  "profile.confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+  "profile.confirmNewPasswordPlaceholder": "أكد كلمة المرور الجديدة",
+  "profile.updateProfile": "تحديث الملف الشخصي",
+  "profile.updating": "جاري التحديث...",
   "profile.phone": "الهاتف",
   "profile.phonePlaceholder": "أدخل رقم هاتفك",
   "profile.phoneNote": "رقم الهاتف يُدار من إعدادات حسابك",
@@ -292,6 +328,7 @@
   "sections": {
     "newProducts": "المنتجات الجديدة",
     "featuredProducts": "المنتجات المميزة",
+    "products": "المنتجات",
     "featuredStores": "المتاجر المميزة",
     "saleProducts": "المنتجات المخفضة",
     "viewAll": "عرض الكل",
@@ -539,6 +576,7 @@
     "save": "حفظ",
     "retry": "حاول مرة أخرى",
     "next": "التالي",
+    "connecting": "جارٍ الاتصال...",
     "loading": "جاري التحميل...",
     "price": "السعر",
     "currency": "دج",
@@ -1064,5 +1102,159 @@
   "ads": {
     "noAdsAvailable": "لا توجد إعلانات متاحة",
     "noAdsFound": "لم يتم العثور على إعلانات"
+  },
+  "maystro": {
+    "integration": {
+      "title": "تكامل مايسترو للشحن",
+      "description": "قم بتوصيل متجرك بمايسترو لإدارة الشحن التلقائية",
+      "enabled": "مفعل",
+      "disabled": "معطل",
+      "connect": "التوصيل بمايسترو",
+      "disconnect": "قطع الاتصال",
+      "manage": "إدارة الإعدادات",
+      "connectedSince": "متصل منذ",
+      "expiresAt": "ينتهي في",
+      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بمايسترو؟ سيتم حذف جميع بيانات التكامل.",
+      "status": {
+        "disconnected": "غير متصل"
+      },
+      "success": {
+        "connected": "تم ربط تكامل مايسترو بنجاح!",
+        "disconnected": "تم قطع اتصال تكامل مايسترو بنجاح!"
+      },
+      "warning": {
+        "disconnected": "تكامل مايسترو غير متصل. يرجى الاتصال لاستخدام خدمات التوصيل."
+      }
+    },
+    "modal": {
+      "title": "التوصيل بمايسترو للشحن",
+      "description": "اختر كيف تريد التوصيل بخدمة الشحن مايسترو",
+      "createAccount": "إنشاء حساب",
+      "loginAccount": "تسجيل الدخول للحساب"
+    },
+    "form": {
+      "apiToken": "رمز API",
+      "apiTokenPlaceholder": "أدخل رمز API لمايسترو",
+      "apiTokenHelp": "لقد تلقيت هذا الرمز من فريق مايسترو",
+      "connect": "توصيل",
+      "instructions": {
+        "title": "كيفية الحصول على رمز API الخاص بك:",
+        "step1": "أنشئ حساباً على مايسترو إذا لم يكن لديك واحد بالفعل",
+        "step2": "اتصل بفريق مايسترو للحصول على رمز API الخاص بك",
+        "step3": "انسخ والصق الرمز أدناه",
+        "step4": "انقر على توصيل لإكمال التكامل"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "مايسترو",
+        "actions": "الإجراءات"
+      },
+      "status": {
+        "synced": "متزامن",
+        "notInMaystro": "غير موجود في مايسترو"
+      },
+      "actions": {
+        "history": "السجل",
+        "viewHistory": "عرض سجل الحالة",
+        "createMaystro": "إنشاء في مايسترو",
+        "createInMaystro": "إنشاء هذا الطلب في مايسترو",
+        "cancelMaystro": "إلغاء في مايسترو",
+        "cancelInMaystro": "إلغاء هذا الطلب في مايسترو"
+      },
+      "success": {
+        "created": "تم إنشاء الطلب في مايسترو بنجاح",
+        "cancelled": "تم إلغاء الطلب في مايسترو بنجاح"
+      },
+      "error": {
+        "createFailed": "فشل إنشاء الطلب في مايسترو",
+        "cancelFailed": "فشل إلغاء الطلب في مايسترو"
+      },
+      "confirm": {
+        "cancel": "هل أنت متأكد من إلغاء هذا الطلب في مايسترو؟"
+      },
+      "statusHistory": {
+        "title": "تاريخ حالة الطلب",
+        "from": "من",
+        "triggeredBy": "تم التفعيل بواسطة",
+        "noHistory": "لا يوجد تاريخ حالة متاح",
+        "webhook": "Webhook",
+        "manual": "يدوي",
+        "system": "النظام",
+        "initialStatus": "الحالة الأولية"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "إرسال إشعار التأكيد",
+        "shipped": "إرسال إشعار الشحن",
+        "delivered": "إرسال إشعار التسليم",
+        "cancelled": "إرسال إشعار الإلغاء",
+        "urgent": "إرسال إشعار عاجل",
+        "sendConfirmation": "إرسال التأكيد",
+        "sendShipped": "إرسال تم الشحن",
+        "sendDelivered": "إرسال تم التسليم",
+        "sendCancelled": "إرسال تم الإلغاء",
+        "sendUrgent": "إرسال عاجل"
+      },
+      "disabled": "هذا النوع من الإشعارات معطل في الإعدادات",
+      "success": { "sent": "تم إرسال الإشعار بنجاح" },
+      "error": { "sendFailed": "فشل في إرسال الإشعار" },
+      "settings": {
+        "title": "إعدادات الإشعارات",
+        "description": "اختر الإشعارات التي تريد إرسالها لعملائك."
+      },
+      "types": {
+        "confirmation": {
+          "title": "تأكيد الطلب",
+          "description": "إشعار العميل عند تأكيد الطلب."
+        },
+        "shipped": {
+          "title": "تم شحن الطلب",
+          "description": "إشعار عند شحن الطلب."
+        },
+        "delivered": {
+          "title": "تم تسليم الطلب",
+          "description": "إشعار عند تسليم الطلب."
+        },
+        "cancelled": {
+          "title": "تم إلغاء الطلب",
+          "description": "إشعار عند إلغاء الطلب."
+        },
+        "urgent": {
+          "title": "تسليم عاجل",
+          "description": "إرسال إشعار تسليم عاجل للعميل."
+        }
+      },
+      "test": {
+        "title": "إرسال إشعار تجريبي",
+        "description": "أرسل رسالة تجريبية للتحقق من إعدادات الإشعار."
+      },
+      "urgentModal": {
+        "title": "إرسال إشعار تسليم عاجل",
+        "description": "أدخل سبب إشعار التسليم العاجل. سيتم إرسال هذا إلى العميل.",
+        "reasonLabel": "السبب",
+        "reasonPlaceholder": "أدخل سبب التسليم العاجل (مثل تأخير التسليم، طلب العميل، إلخ)",
+        "reasonRequired": "يرجى إدخال سبب للإشعار العاجل.",
+        "sendButton": "إرسال الإشعار",
+        "cancelButton": "إلغاء"
+      }
+    },
+    "shipping": {
+      "title": "إدارة الشحن",
+      "description": "إدارة تكاملات خدمات التوصيل الخاصة بك",
+      "loadingIntegrations": "جاري تحميل تكاملات الشحن...",
+      "noIntegrations": "لم يتم العثور على تكاملات شحن",
+      "noIntegrationsDescription": "قم بتوصيل خدمة توصيل لبدء إدارة شحناتك تلقائياً.",
+      "addIntegration": "إضافة تكامل",
+      "chooseProvider": "اختر مزود خدمة التوصيل",
+      "connectedSince": "متصل منذ",
+      "enabled": "مفعل",
+      "disabled": "معطل",
+      "enable": "تفعيل",
+      "disable": "إلغاء التفعيل",
+      "disconnect": "قطع الاتصال",
+      "confirmDisconnect": "هل أنت متأكد من قطع الاتصال بهذا التكامل؟ لا يمكن التراجع عن هذا الإجراء."
+    }
   }
 }

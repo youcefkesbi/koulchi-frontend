@@ -7,7 +7,10 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
-    plugins: [vue(), tailwindcss()],
+    plugins: [
+      vue(), 
+      tailwindcss()
+    ],
     server: {
       port: 3000,
       open: true,

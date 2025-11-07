@@ -10,7 +10,7 @@ import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import OrderConfirmation from '../views/OrderConfirmation.vue'
 import StoreDashboard from '../views/StoreDashboard.vue'
-import Profile from '../views/Profile.vue'
+import Account from '../views/Account.vue'
 import AuthCallback from '../views/AuthCallback.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
@@ -73,9 +73,9 @@ const baseRoutes = [
     beforeEnter: authGuard
   },
   {
-    path: 'profile',
-    name: 'Profile',
-    component: Profile,
+    path: '/myaccount',
+    name: 'Account',
+    component: Account,
     meta: { requiresAuth: true }
   },
   {
@@ -142,7 +142,21 @@ const baseRoutes = [
     beforeEnter: adminGuard
   },
   {
-    path: 'stores/:id',
+    path: '/shipping',
+    name: 'ShippingManagement',
+    component: () => import('../views/ShippingManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
+    path: '/webhooks',
+    name: 'Webhooks',
+    component: () => import('../views/Webhooks.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    beforeEnter: adminGuard
+  },
+  {
+    path: '/stores/:id',
     name: 'StoreDetail',
     component: StoreDetail,
     props: true

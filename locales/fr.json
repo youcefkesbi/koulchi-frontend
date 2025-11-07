@@ -313,7 +313,43 @@
     "noChangesToSave": "Aucune modification à enregistrer",
     "socialLinkPlaceholder": "https://exemple.com/votre-profil"
   },
+  "profile.title": "Mon Profil",
+  "profile.subtitle": "Mettez à jour vos informations personnelles et préférences",
+  "profile.storeOwnerTitle": "Profil du Propriétaire de Magasin",
+  "profile.storeOwnerSubtitle": "Consultez vos informations de profil et de magasin",
+  "profile.personalInformation": "Informations Personnelles",
+  "profile.storeInformation": "Informations du Magasin",
+  "profile.city": "Ville",
+  "profile.storeName": "Nom du Magasin",
+  "profile.storeStatus": "Statut du Magasin",
+  "profile.packPlan": "Plan d'Abonnement",
+  "profile.viewStore": "Voir le Magasin",
+  "profile.notProvided": "Non fourni",
+  "profile.notStoreOwner": "Accès Refusé",
+  "profile.notStoreOwnerMessage": "Cette page est uniquement accessible aux propriétaires de magasins (vendeurs ou clients avec magasins).",
+  "profile.notAuthenticated": "Vous devez être connecté pour voir cette page.",
+  "profile.loadError": "Échec du chargement des informations de profil.",
+  "profile.statusApproved": "Approuvé",
+  "profile.statusPending": "En Attente",
+  "profile.statusRejected": "Rejeté",
+  "profile.statusSuspended": "Suspendu",
+  "profile.noPack": "Aucun plan d'abonnement",
+  "profile.email": "E-mail",
+  "profile.emailNote": "L'e-mail ne peut pas être modifié",
+  "profile.fullName": "Nom Complet",
+  "profile.fullNamePlaceholder": "Entrez votre nom complet",
   "profile.fullNameNote": "Le nom complet est optionnel",
+  "profile.changePassword": "Changer le Mot de Passe",
+  "profile.passwordInfo": "Veuillez entrer votre mot de passe actuel pour vérifier votre identité",
+  "profile.currentPassword": "Mot de Passe Actuel",
+  "profile.currentPasswordPlaceholder": "Entrez votre mot de passe actuel",
+  "profile.newPassword": "Nouveau Mot de Passe",
+  "profile.newPasswordPlaceholder": "Entrez votre nouveau mot de passe",
+  "profile.passwordHelp": "Le mot de passe doit comporter au moins 6 caractères",
+  "profile.confirmNewPassword": "Confirmer le Nouveau Mot de Passe",
+  "profile.confirmNewPasswordPlaceholder": "Confirmez votre nouveau mot de passe",
+  "profile.updateProfile": "Mettre à Jour le Profil",
+  "profile.updating": "Mise à jour...",
   "profile.phone": "Téléphone",
   "profile.phonePlaceholder": "Entrez votre numéro de téléphone",
   "profile.phoneNote": "Le numéro de téléphone est géré par vos paramètres de compte",
@@ -357,6 +393,7 @@
   "sections": {
     "newProducts": "Nouveaux produits",
     "featuredProducts": "Produits en Vedette",
+    "products": "Produits",
     "featuredStores": "Magasins en Vedette",
     "saleProducts": "Produits en promotion",
     "viewAll": "Voir tout",
@@ -460,6 +497,7 @@
     "save": "Enregistrer",
     "retry": "Réessayer",
     "next": "Suivant",
+    "connecting": "Connexion en cours...",
     "loading": "Chargement...",
     "price": "Prix",
     "currency": "DZD",
@@ -1050,6 +1088,160 @@
     "outOfStockFilter": "Rupture de Stock",
     "success": "Succès",
     "error": "Erreur"
+  },
+  "maystro": {
+    "integration": {
+      "title": "Intégration Maystro Delivery",
+      "description": "Connectez votre magasin à Maystro pour la gestion automatisée des livraisons",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "connect": "Se connecter à Maystro",
+      "disconnect": "Se déconnecter",
+      "manage": "Gérer les paramètres",
+      "connectedSince": "Connecté depuis",
+      "expiresAt": "Expire le",
+      "confirmDisconnect": "Êtes-vous sûr de vouloir vous déconnecter de Maystro ? Cela supprimera toutes les données d'intégration.",
+      "status": {
+        "disconnected": "Déconnecté"
+      },
+      "success": {
+        "connected": "Intégration Maystro connectée avec succès !",
+        "disconnected": "Intégration Maystro déconnectée avec succès !"
+      },
+      "warning": {
+        "disconnected": "L'intégration Maystro est déconnectée. Veuillez vous connecter pour utiliser les services de livraison."
+      }
+    },
+    "modal": {
+      "title": "Se connecter à Maystro Delivery",
+      "description": "Choisissez comment vous voulez vous connecter au service de livraison Maystro",
+      "createAccount": "Créer un compte",
+      "loginAccount": "Se connecter au compte"
+    },
+    "form": {
+      "apiToken": "Token API",
+      "apiTokenPlaceholder": "Entrez votre token API Maystro",
+      "apiTokenHelp": "Vous avez reçu ce token de l'équipe Maystro",
+      "connect": "Se connecter",
+      "instructions": {
+        "title": "Comment obtenir votre token API :",
+        "step1": "Créez un compte sur Maystro si vous n'en avez pas déjà un",
+        "step2": "Contactez l'équipe Maystro pour obtenir votre token API",
+        "step3": "Copiez et collez le token ci-dessous",
+        "step4": "Cliquez sur Se connecter pour terminer l'intégration"
+      }
+    },
+    "orders": {
+      "table": {
+        "maystroStatus": "Maystro",
+        "actions": "Actions"
+      },
+      "status": {
+        "synced": "Synchronisé",
+        "notInMaystro": "Non présent sur Maystro"
+      },
+      "actions": {
+        "history": "Historique",
+        "viewHistory": "Voir l'historique des statuts",
+        "createMaystro": "Créer sur Maystro",
+        "createInMaystro": "Créer cette commande sur Maystro",
+        "cancelMaystro": "Annuler sur Maystro",
+        "cancelInMaystro": "Annuler cette commande sur Maystro"
+      },
+      "success": {
+        "created": "Commande créée sur Maystro avec succès",
+        "cancelled": "Commande annulée sur Maystro avec succès"
+      },
+      "error": {
+        "createFailed": "Échec de la création sur Maystro",
+        "cancelFailed": "Échec de l'annulation sur Maystro"
+      },
+      "confirm": {
+        "cancel": "Êtes-vous sûr de vouloir annuler cette commande sur Maystro ?"
+      },
+      "statusHistory": {
+        "title": "Historique du Statut de la Commande",
+        "from": "De",
+        "triggeredBy": "Déclenché par",
+        "noHistory": "Aucun historique de statut disponible",
+        "webhook": "Webhook",
+        "manual": "Manuel",
+        "system": "Système",
+        "initialStatus": "Statut Initial"
+      }
+    },
+    "notifications": {
+      "actions": {
+        "confirmation": "Envoyer une notification de confirmation",
+        "shipped": "Envoyer une notification d'expédition",
+        "delivered": "Envoyer une notification de livraison",
+        "cancelled": "Envoyer une notification d'annulation",
+        "urgent": "Envoyer une notification urgente",
+        "sendConfirmation": "Envoyer Confirmation",
+        "sendShipped": "Envoyer Expédiée",
+        "sendDelivered": "Envoyer Livrée",
+        "sendCancelled": "Envoyer Annulée",
+        "sendUrgent": "Envoyer Urgente"
+      },
+      "disabled": "Ce type de notification est désactivé dans les paramètres",
+      "success": { "sent": "Notification envoyée avec succès" },
+      "error": { "sendFailed": "Échec de l'envoi de la notification" },
+      "settings": {
+        "title": "Paramètres de notification",
+        "description": "Choisissez quelles notifications envoyer à vos clients."
+      },
+      "types": {
+        "confirmation": {
+          "title": "Confirmation de commande",
+          "description": "Notifier le client lorsque la commande est confirmée."
+        },
+        "shipped": {
+          "title": "Commande expédiée",
+          "description": "Notifier lorsque la commande a été expédiée."
+        },
+        "delivered": {
+          "title": "Commande livrée",
+          "description": "Notifier lorsque la commande a été livrée."
+        },
+        "cancelled": {
+          "title": "Commande annulée",
+          "description": "Notifier lorsque la commande a été annulée."
+        },
+        "urgent": {
+          "title": "Livraison urgente",
+          "description": "Envoyer un avis de livraison urgente au client."
+        }
+      },
+      "test": {
+        "title": "Envoyer une notification de test",
+        "description": "Envoyez un message de test pour vérifier vos paramètres de notification."
+      },
+      "urgentModal": {
+        "title": "Envoyer une notification de livraison urgente",
+        "description": "Entrez la raison de la notification de livraison urgente. Cela sera envoyé au client.",
+        "reasonLabel": "Raison",
+        "reasonPlaceholder": "Entrez la raison de la livraison urgente (par exemple, retard de livraison, demande du client, etc.)",
+        "reasonRequired": "Veuillez entrer une raison pour la notification urgente.",
+        "sendButton": "Envoyer la notification",
+        "cancelButton": "Annuler"
+      }
+    },
+    "shipping": {
+      "title": "Gestion des Expéditions",
+      "description": "Gérez vos intégrations de services de livraison",
+      "loadingIntegrations": "Chargement des intégrations d'expédition...",
+      "noIntegrations": "Aucune intégration d'expédition trouvée",
+      "noIntegrationsDescription": "Connectez un service de livraison pour commencer à gérer vos expéditions automatiquement.",
+      "addIntegration": "Ajouter une Intégration",
+      "chooseProvider": "Choisissez un fournisseur de service de livraison",
+      "connectedSince": "Connecté depuis",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "enable": "Activer",
+      "disable": "Désactiver",
+      "disconnect": "Déconnecter",
+      "confirmDisconnect": "Êtes-vous sûr de vouloir déconnecter cette intégration ? Cette action ne peut pas être annulée."
+    }
   }
 }
 

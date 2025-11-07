@@ -27,7 +27,7 @@
       <div class="error-message">
         <i class="fas fa-exclamation-triangle"></i>
         <p>{{ error }}</p>
-        <button @click="$emit('retry')" class="retry-btn">
+        <button @click="handleRetry" class="retry-btn">
           <i class="fas fa-redo"></i>
           {{ $t('common.retry') }}
         </button>
@@ -103,7 +103,7 @@ const emit = defineEmits(['retry'])
 const { t } = useI18n()
 const adsStore = useAdsStore()
 
-// Computed properties
+// Computed properties - only show ads, no fallback products
 const featuredProducts = computed(() => {
   const rawAds = adsStore.homepageFeaturedProducts
   return adsStore.transformAdsForDisplay(rawAds)
@@ -111,6 +111,11 @@ const featuredProducts = computed(() => {
 
 const loading = computed(() => adsStore.loading)
 const error = computed(() => adsStore.error)
+
+// Handle retry
+const handleRetry = async () => {
+  await adsStore.fetchAds()
+}
 </script>
 
 <style scoped>

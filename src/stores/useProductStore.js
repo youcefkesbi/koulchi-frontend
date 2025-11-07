@@ -1,405 +1,213 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { supabase } from '../lib/supabase';
-import { maystroApi, transformFromMaystro } from '../services/maystroApi';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { supabase } from '../lib/supabase'
 
 export const useProductStore = defineStore('product', () => {
   // State
-  const products = ref([]);
-  const categories = ref([]);
-  const currentProduct = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
-  const selectedCategory = ref('all');
-  const searchQuery = ref('');
+  const products = ref([])
+  const categories = ref([])
+  const loading = ref(false)
+  const error = ref(null)
+  const currentProduct = ref(null)
+
+  // Getters
+  const getProductById = computed(() => {
+    return (id) => products.value.find(product => product.id === id)
+  })
+
+  const getProductsByCategory = computed(() => {
+    return (categoryId) => products.value.filter(product => product.category_id === categoryId)
+  })
 
   // Actions
-  const fetchProducts = async (params = {}) => {
-    loading.value = true;
-    error.value = null;
-    
+  const fetchProducts = async (filters = {}) => {
     try {
-      const response = await maystroApi.getProducts(1)
+      loading.value = true
+      error.value = null
       
-      // Transform Maystro response to frontend format
-      const transformedProducts = response.list.results.map(product => 
-        transformFromMaystro(product)
-      )
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/products', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(filters)
+      // })
+      // const data = await response.json()
+      // products.value = data
       
-      // Apply client-side filtering if needed
-      let filteredProducts = transformedProducts
-      if (params.category_id && params.category_id !== 'all') {
-        filteredProducts = transformedProducts.filter(p => p.category_id === params.category_id)
-      }
-      
-      products.value = filteredProducts
-      return filteredProducts
+      console.log('Fetching products with filters:', filters)
     } catch (err) {
-      error.value = err.message || 'Failed to fetch products';
-      throw err;
+      error.value = err.message
+      console.error('Error fetching products:', err)
     } finally {
-      loading.value = false;
-    }
-  };
-
-  const fetchMostSoldProducts = async (limit = 10) => {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const response = await maystroApi.getProducts(1)
-      
-      // Transform and sort by sold_count (if available) or use default sorting
-      const transformedProducts = response.list.results
-        .map(product => transformFromMaystro(product))
-        .filter(product => product.status === 'approved')
-        .sort((a, b) => (b.sold_count || 0) - (a.sold_count || 0))
-        .slice(0, limit)
-      
-      return transformedProducts
-    } catch (err) {
-      console.error('Error in fetchMostSoldProducts:', err);
-      error.value = err.message || 'Failed to fetch most sold products';
-      // Return empty array instead of throwing to prevent app crashes
-      return [];
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const fetchBestSellingProductsByCategory = async (categoryId, limit = 10) => {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const response = await maystroApi.getProducts(1)
-      
-      // Transform and filter by category, then sort by sold_count
-      const transformedProducts = response.list.results
-        .map(product => transformFromMaystro(product))
-        .filter(product => product.category_id === categoryId && product.status === 'approved')
-        .sort((a, b) => (b.sold_count || 0) - (a.sold_count || 0))
-        .slice(0, limit)
-      
-      return transformedProducts
-    } catch (err) {
-      console.error('Error in fetchBestSellingProductsByCategory:', err);
-      error.value = err.message || 'Failed to fetch best-selling products by category';
-      // Return empty array instead of throwing to prevent app crashes
-      return [];
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const fetchProduct = async (id) => {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (supabaseError) throw supabaseError;
-      
-      currentProduct.value = data;
-      return data;
-    } catch (err) {
-      error.value = err.message || 'Failed to fetch product';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const fetchProductById = async (id) => {
-    try {
-      if (!id) {
-        throw new Error('Product ID is required')
-      }
-      
-      // Validate that the ID is a valid UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      if (!uuidRegex.test(id)) {
-        throw new Error(`Invalid product ID format: ${id}. Expected UUID format.`)
-      }
-      
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single()
-      
-      if (supabaseError) {
-        if (supabaseError.code === 'PGRST116') {
-          throw new Error('Product not found')
-        }
-        throw supabaseError
-      }
-      
-      return data
-    } catch (err) {
-      error.value = err.message || 'Failed to fetch product'
-      throw err
+      loading.value = false
     }
   }
 
-  const createProduct = async (productData, images = []) => {
-    loading.value = true;
-    error.value = null;
-    
+  const fetchProduct = async (id) => {
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Upload images to Supabase storage
-      const imageUrls = [];
-      if (images && images.length > 0) {
-        for (let i = 0; i < images.length; i++) {
-          const image = images[i];
-          const fileExt = image.name.split('.').pop();
-          const fileName = `${user.id}/${Date.now()}_${i}.${fileExt}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('product-images')
-            .upload(fileName, image);
-          
-          if (uploadError) throw uploadError;
-          
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(fileName);
-          
-          imageUrls.push(publicUrl);
-        }
-      }
-
-      // Create product with image URLs
-      const productWithImages = {
-        ...productData,
-        seller_id: user.id,
-        image_urls: imageUrls
-      };
-
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .insert(productWithImages)
-        .select()
-        .single();
+      loading.value = true
+      error.value = null
       
-      if (supabaseError) throw supabaseError;
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/products/${id}`)
+      // const data = await response.json()
+      // currentProduct.value = data
       
-      products.value.unshift(data);
-      return data;
+      console.log('Fetching product:', id)
     } catch (err) {
-      error.value = err.message || 'Failed to create product';
-      throw err;
+      error.value = err.message
+      console.error('Error fetching product:', err)
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
+
+  const createProduct = async (productData) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/products', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(productData)
+      // })
+      // const data = await response.json()
+      // products.value.push(data)
+      
+      console.log('Creating product:', productData)
+    } catch (err) {
+      error.value = err.message
+      console.error('Error creating product:', err)
+    } finally {
+      loading.value = false
+    }
+  }
 
   const updateProduct = async (id, productData) => {
-    loading.value = true;
-    error.value = null;
-    
     try {
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .update(productData)
-        .eq('id', id)
-        .select()
-        .single();
+      loading.value = true
+      error.value = null
       
-      if (supabaseError) throw supabaseError;
+      // TODO: Replace with actual API call
+      // const response = await fetch(`/api/products/${id}`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(productData)
+      // })
+      // const data = await response.json()
+      // const index = products.value.findIndex(p => p.id === id)
+      // if (index !== -1) {
+      //   products.value[index] = data
+      // }
       
-      const updatedProduct = data;
-      
-      const index = products.value.findIndex(p => p.id === id);
-      if (index !== -1) {
-        products.value[index] = updatedProduct;
-      }
-      
-      if (currentProduct.value?.id === id) {
-        currentProduct.value = updatedProduct;
-      }
-      
-      return updatedProduct;
+      console.log('Updating product:', id, productData)
     } catch (err) {
-      error.value = err.message || 'Failed to update product';
-      throw err;
+      error.value = err.message
+      console.error('Error updating product:', err)
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
 
   const deleteProduct = async (id) => {
-    loading.value = true;
-    error.value = null;
-    
     try {
-      const { error: supabaseError } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+      loading.value = true
+      error.value = null
       
-      if (supabaseError) throw supabaseError;
+      // TODO: Replace with actual API call
+      // await fetch(`/api/products/${id}`, { method: 'DELETE' })
+      // products.value = products.value.filter(p => p.id !== id)
       
-      products.value = products.value.filter(p => p.id !== id);
-      
-      if (currentProduct.value?.id === id) {
-        currentProduct.value = null;
-      }
+      console.log('Deleting product:', id)
     } catch (err) {
-      error.value = err.message || 'Failed to delete product';
-      throw err;
+      error.value = err.message
+      console.error('Error deleting product:', err)
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
+
+  const clearError = () => {
+    error.value = null
+  }
+
+  const clearCurrentProduct = () => {
+    currentProduct.value = null
+  }
 
   const fetchCategories = async () => {
     try {
-      // Fetch categories with multilingual names - use public access
-      const { data, error: supabaseError } = await supabase
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase
         .from('categories')
-        .select('id, name_en, name_ar, name_fr, description, icon_url, status, created_at, updated_at')
-        .eq('status', 'approved')
-        .order('name_en');
-      
-      if (supabaseError) {
-        console.error('Supabase error in fetchCategories:', supabaseError);
-        throw supabaseError;
-      }
-      
-      categories.value = data || [];
-      return data;
-    } catch (err) {
-      console.error('Error in fetchCategories:', err);
-      error.value = err.message || 'Failed to fetch categories';
-      // Return empty array instead of throwing to prevent app crashes
-      categories.value = [];
-      return [];
-    }
-  };
+        .select('id, name_en, name_ar, name_fr')
+        .eq('is_active', true)
+        .order('name_en')
 
-  const getUserProducts = async () => {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-      
-      const { data, error: supabaseError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('seller_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (supabaseError) throw supabaseError;
-      
-      return data || [];
+      if (fetchError) throw fetchError
+      categories.value = Array.isArray(data) ? data : []
+      return categories.value
     } catch (err) {
-      error.value = err.message || 'Failed to fetch user products';
-      throw err;
+      error.value = err?.message || 'Failed to load categories'
+      console.error('Error fetching categories:', err)
+      categories.value = []
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
 
-  // Filter methods
-  const setCategory = (categoryId) => {
-    selectedCategory.value = categoryId;
-  };
-
-  const setSearchQuery = (query) => {
-    searchQuery.value = query;
-  };
-
-  const clearFilters = () => {
-    selectedCategory.value = 'all';
-    searchQuery.value = '';
-  };
-
-  // Computed filtered products
-  const filteredProducts = computed(() => {
-    let filtered = products.value;
-    
-    // Filter by category
-    if (selectedCategory.value !== 'all') {
-      filtered = filtered.filter(product => product.category_id === selectedCategory.value);
-    }
-    
-    // Filter by search query
-    if (searchQuery.value.trim()) {
-      const query = searchQuery.value.toLowerCase();
-      filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  });
-
-  // Computed new products (latest 8 products)
-  const newProducts = computed(() => {
-    return products.value.slice(0, 8);
-  });
-
-  // Computed sale products (products with discount)
-  const saleProducts = computed(() => {
-    // Since we removed original_price, we'll show new products instead
-    return products.value.filter(product => 
-      product.is_new
-    ).slice(0, 8);
-  });
-
-  // Initialize store
-  const initializeStore = async () => {
+  const fetchApprovedProducts = async (limit = 8) => {
     try {
-      await Promise.all([
-        fetchProducts(),
-        fetchCategories()
-      ]);
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('id, name, description, price, thumbnail_url, image_urls, category_id, stock_quantity, sold_count, is_new, status, created_at')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (fetchError) throw fetchError
+      const fetchedProducts = Array.isArray(data) ? data : []
+      console.log('✅ Fetched approved products:', fetchedProducts.length)
+      return fetchedProducts
     } catch (err) {
-      console.error('Failed to initialize store:', err);
+      error.value = err?.message || 'Failed to load products'
+      console.error('Error fetching products:', err)
+      return []
+    } finally {
+      loading.value = false
     }
-  };
+  }
 
   return {
     // State
     products,
     categories,
-    currentProduct,
     loading,
     error,
-    selectedCategory,
-    searchQuery,
-    filteredProducts,
-    newProducts,
-    saleProducts,
+    currentProduct,
+    
+    // Getters
+    getProductById,
+    getProductsByCategory,
     
     // Actions
     fetchProducts,
-    fetchMostSoldProducts,
-    fetchBestSellingProductsByCategory,
     fetchProduct,
-    fetchProductById,
     createProduct,
     updateProduct,
     deleteProduct,
     fetchCategories,
-    getUserProducts,
-    setCategory,
-    setSearchQuery,
-    clearFilters,
-    initializeStore,
-  };
-});
+    fetchApprovedProducts,
+    clearError,
+    clearCurrentProduct
+  }
+})
+

@@ -315,7 +315,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '../lib/supabase'
-import { maystroApi, transformFromMaystro } from '../services/maystroApi'
 
 // Reactive data
 const products = ref([])
@@ -358,14 +357,23 @@ const fetchProducts = async () => {
     loading.value = true
     error.value = null
 
-    const response = await maystroApi.getProducts(1)
-    
-    // Transform Maystro response to frontend format
-    const transformedProducts = response.list.results.map(product => 
-      transformFromMaystro(product)
-    )
-    
-    products.value = transformedProducts
+    // Fetch products from Supabase
+    const { data: productsData, error: productsError } = await supabase
+      .from('products')
+      .select(`
+        *,
+        categories (
+          id,
+          name_en,
+          name_ar,
+          name_fr
+        )
+      `)
+      .order('created_at', { ascending: false })
+
+    if (productsError) throw productsError
+
+    products.value = productsData || []
   } catch (err) {
     console.error('Error fetching products:', err)
     error.value = err.message || 'Failed to fetch products'

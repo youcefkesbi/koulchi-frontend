@@ -383,6 +383,70 @@ export const useOrdersStore = defineStore('orders', () => {
     error.value = null
   }
 
+  // Get order status history
+  const getOrderStatusHistory = async (orderId) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase.rpc('get_order_status_history', {
+        order_uuid: orderId
+      })
+      
+      if (fetchError) throw fetchError
+      
+      return data || []
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching order status history:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Get order with Maystro details
+  const getOrderWithMaystroDetails = async (orderId) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const { data, error: fetchError } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          profiles!orders_user_id_fkey (
+            id,
+            full_name,
+            city
+          ),
+          order_items (
+            *,
+            product:products (
+              *,
+              seller:profiles!products_seller_id_fkey (
+                id,
+                full_name,
+                city
+              )
+            )
+          )
+        `)
+        .eq('id', orderId)
+        .single()
+      
+      if (fetchError) throw fetchError
+      
+      return data
+    } catch (err) {
+      error.value = err.message
+      console.error('Error fetching order with Maystro details:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Fetch orders using the get_my_orders function
   const fetchMyOrders = async () => {
     try {
@@ -456,6 +520,8 @@ export const useOrdersStore = defineStore('orders', () => {
     cancelOrder,
     getOrderById,
     clearOrders,
+    getOrderStatusHistory,
+    getOrderWithMaystroDetails,
     initUser
   }
 })
