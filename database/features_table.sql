@@ -52,6 +52,7 @@ REVOKE ALL ON public.features FROM anon;
 REVOKE ALL ON public.features FROM authenticated;
 GRANT SELECT ON public.features TO anon;
 GRANT SELECT ON public.features TO authenticated;
+GRANT ALL ON public.features TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Triggers

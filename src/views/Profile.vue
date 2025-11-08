@@ -65,13 +65,13 @@
             </p>
           </div>
 
-          <!-- City -->
+          <!-- Shipping Address -->
           <div class="bg-gray-50 rounded-xl p-4">
             <label class="block text-sm font-medium text-gray-500 mb-2">
-              {{ $t('profile.city') }}
+              {{ $t('profile.shippingAddress') }}
             </label>
             <p class="text-lg font-semibold text-gray-900">
-              {{ profile.city || $t('profile.notProvided') }}
+              {{ profile.shipping_address || $t('profile.notProvided') }}
             </p>
           </div>
 
@@ -169,7 +169,7 @@ const error = ref(null)
 const profile = ref({
   full_name: '',
   email: '',
-  city: ''
+  shipping_address: ''
 })
 const storeInfo = ref({
   id: null,
@@ -244,7 +244,7 @@ const fetchProfile = async () => {
     // Fetch profile from database
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('id, full_name, city')
+      .select('id, full_name, shipping_address')
       .eq('id', authStore.user.id)
       .single()
 
@@ -254,7 +254,7 @@ const fetchProfile = async () => {
 
     if (profileData) {
       profile.value.full_name = profileData.full_name || ''
-      profile.value.city = profileData.city || ''
+      profile.value.shipping_address = profileData.shipping_address || ''
     }
 
     // Fetch store information

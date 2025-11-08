@@ -129,7 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
         .select(`
           id,
           full_name,
-          city,
+          shipping_address,
           user_roles(role)
         `)
         .eq('id', session.user.id)
@@ -148,7 +148,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = {
           ...user.value,
           full_name: profile.full_name || user.value?.full_name,
-          city: profile.city,
+          shipping_address: profile.shipping_address,
           role: userRoles
         }
         return true
@@ -537,7 +537,7 @@ const loadUserWithProfile = async (authUser) => {
       .select(`
         id,
         full_name,
-        city,
+        shipping_address,
         user_roles(role)
       `)
       .eq('id', authUser.id)
@@ -567,7 +567,7 @@ const loadUserWithProfile = async (authUser) => {
           profile.full_name ||
           authUser.user_metadata?.full_name ||
           authUser.raw_user_meta_data?.full_name,
-        city: profile.city,
+        shipping_address: profile.shipping_address,
         role: userRoles
       }
     } else {

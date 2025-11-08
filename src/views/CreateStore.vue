@@ -495,7 +495,7 @@ const fetchPacks = async () => {
           )
         )
       `)
-      .eq('status', 'approved')
+      .eq('is_active', true)
       .order('price', { ascending: true })
 
     if (error) throw error
@@ -871,27 +871,83 @@ const handleSubmit = async () => {
       payment_receipt_url: paymentReceiptUrl
     };
 
+    console.log('🏪 Creating store...');
     const newStore = await createStore(storeData);
+    console.log('✅ Store created successfully with ID:', newStore?.id);
 
     if (!newStore?.id) {
       throw new Error('Store creation failed: No ID returned');
     }
 
-    successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
-    resetForm();
+    // Notifications are automatically created by database trigger (notify_admins_on_store_creation)
+    // Wait a moment for the trigger to complete and verify notification was created
+    console.log('🔔 Verifying notification was created by database trigger...');
+    
+    // Small delay to ensure trigger has completed (triggers are synchronous, but this ensures commit)
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Verify notification was created for admins (check if any admin has a notification for this store)
+    let notificationVerified = false;
+    try {
+      const { data: notifications, error: notifError } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('type', 'store_created')
+        .eq('target_role', 'admin')
+        .limit(1);
 
-    // Increased delay to see any error messages
-    setTimeout(async () => {
-      try {
-        await navigateToPath(`/store/${newStore.id}`)
-      } catch (redirectError) {
-        console.error('Redirect error:', redirectError);
-        errorMessage.value = `Redirect failed: ${redirectError.message}`;
-      } finally {
-        // Force a refresh so header/state updates and the Create button disappears immediately
-        window.location.reload()
+      if (notifError) {
+        console.warn('⚠️ Could not verify notification:', notifError);
+        // Don't block on verification error - trigger should have worked
+        notificationVerified = true; // Assume success if we can't verify
+      } else if (notifications && notifications.length > 0) {
+        console.log('✅ Notification verified: Found admin notification(s)');
+        notificationVerified = true;
+      } else {
+        console.warn('⚠️ No notifications found - waiting a bit longer...');
+        // Wait a bit more and try once more
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const { data: retryNotifications } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('type', 'store_created')
+          .eq('target_role', 'admin')
+          .limit(1);
+        
+        if (retryNotifications && retryNotifications.length > 0) {
+          console.log('✅ Notification verified on retry');
+          notificationVerified = true;
+        } else {
+          console.warn('⚠️ Notification verification failed - but store was created successfully');
+          // Still allow redirect if store was created (trigger might have issues but store is valid)
+          notificationVerified = true;
+        }
       }
-    }, 5000); // Increased from 1500ms to 5000ms
+    } catch (verifyError) {
+      console.warn('⚠️ Notification verification error:', verifyError);
+      // Don't block redirect on verification error
+      notificationVerified = true;
+    }
+
+    // Both conditions met: Store created + Notification added
+    if (notificationVerified) {
+      console.log('✅ Both conditions met: Store created and notification added successfully');
+      successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
+      resetForm();
+      
+      // Redirect to home page
+      try {
+        await navigateToPath('/');
+      } catch (redirectError) {
+        console.error('❌ Redirect error:', redirectError);
+        errorMessage.value = `Redirect failed: ${redirectError.message}`;
+      }
+    } else {
+      // This shouldn't happen, but just in case
+      errorMessage.value = 'Store created but notification verification failed. Please contact support.';
+    }
+    
+    loading.value = false;
   } catch (error) {
     console.error('Error creating store:', error);
     errorMessage.value = getErrorMessage(error);

@@ -113,11 +113,11 @@
         </div>
 
         <!-- Store Info Section -->
-        <div class="pb-20 bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
+        <div class="px-4 pb-20 bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
           <div class="container mx-auto py-6">
             <!-- Logo Section  -->
             <div class="relative flex -mt-20 mb-6">
-              <div class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+              <div class=" relative w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
                   <img 
                     v-if="storeStore.currentStore?.hasLogo || editForm.logo" 
                     :src="editForm.logo ? getFilePreview(editForm.logo) : storeStore.currentStore?.logo_url" 
@@ -125,6 +125,16 @@
                     class="w-full h-full object-cover rounded-full"
                   />
                 <i v-else class="fas fa-store text-gray-400 text-4xl"></i>
+                
+                <!-- Update Logo Button (Inside Circle) -->
+                <button 
+                  @click="updateLogo"
+                  :disabled="logoUploading"
+                  class="absolute bottom-2 right-0 cursor-pointer bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
+                >
+                  <i v-if="logoUploading" class="fas fa-spinner fa-spin text-xs"></i>
+                  <i v-else class="fas fa-camera text-xs"></i>
+                </button>
               </div>
               <!-- Store Stats -->
                 <div class="mt-8 ml-8 flex items-center space-x-6 text-sm text-gray-500">
@@ -137,27 +147,14 @@
                 {{ storeProducts.length }} {{ $t('stores.products') }}
               </span>
                 </div>
-              <!-- Update Logo Button -->
-              <button 
-                @click="updateLogo"
-                :disabled="logoUploading"
-                class="absolute -bottom-2 -right-2 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i v-if="logoUploading" class="fas fa-spinner fa-spin text-xs"></i>
-                <i v-else class="fas fa-camera text-sm"></i>
-              </button>
               <!-- Logo validation error -->
               <div v-if="validationErrors.logo" class="absolute -bottom-8 left-0 right-0 text-center">
                 <p class="text-red-600 text-xs bg-white px-2 py-1 rounded shadow-lg">{{ validationErrors.logo }}</p>
               </div>
             </div>
-             <!-- Store details grid -->
-             <div class="grid grid-cols-[0.5fr_1fr] gap-16 items-center text-center relative">
-               <!-- Vertical divider line -->
-               <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-gray-200 via-gray-300 to-gray-200 transform -translate-x-1/2"></div>
-             <div>
-              <!-- Store Details -->
-              <div class="w-full text-left">
+            
+            <!-- Store Name and Pack Type (Above Grid) -->
+            <div class="mb-6">
                 <!-- Store Name/ID Display -->
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">
                   <!-- Show Store ID for Basic Pack, Store Name for Pro Pack -->
@@ -166,11 +163,18 @@
                 </h1>
                 
                 <!-- Pack Type Badge -->
-                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-4"
+              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                      :class="isProPack ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'">
                   <i :class="isProPack ? 'fas fa-crown mr-1' : 'fas fa-star mr-1'"></i>
-                  {{ storeStore.currentStore?.packType || (isProPack ? $t('stores.proPlan') : $t('stores.basicPlan')) }}
+                {{ packName }}
                 </div>
+            </div>
+            
+             <!-- Store details grid -->
+             <div class="grid grid-cols-[0.5fr_1fr] gap-16 items-start text-center relative">
+             <div>
+              <!-- Store Details -->
+              <div class="w-full text-left">
                 <!-- Location Section -->
                 <div class="w-full max-w-md text-left">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.location') }}</label>
@@ -196,41 +200,74 @@
                   </div>
                   <p v-if="validationErrors.location" class="mt-1 text-sm text-red-600">{{ validationErrors.location }}</p>
 
-                <!-- Contact Section (Pro Pack only) -->
+                <!-- Social Media Links Section (Pro Pack only) -->
                  <div v-if="isProPack" class="w-full mt-6 max-w-md text-left">
-                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.contact') }}</label>
-                   <div class="space-y-3">
-                     <div v-for="(link, idx) in editForm.socialLinks" :key="idx" class="relative flex items-center space-x-2">
+                   <label class="block text-sm font-medium text-gray-700 mb-3">{{ $t('stores.contact') }}</label>
+                   <div class="space-y-3 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                     <!-- Social Media Platform Rows -->
+                     <div v-for="platform in socialMediaPlatforms" :key="platform.key" class="flex items-center space-x-3">
+                       <!-- Platform Icon/Name -->
+                       <div class="flex items-center space-x-2 min-w-[100px]">
+                         <i :class="platform.icon" class="text-lg" :style="{ color: platform.color }"></i>
+                         <span class="text-sm font-medium text-gray-700">{{ platform.name }}:</span>
+                       </div>
+                       
+                       <!-- URL Input -->
                        <input
-                         v-model="editForm.socialLinks[idx]"
+                         v-model="editForm.socialLinks[platform.key]"
                          type="url"
-                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
-                         :placeholder="$t('stores.socialLinkPlaceholder')"
+                         :data-platform="platform.key"
+                         class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors text-sm"
+                         :placeholder="platform.placeholder"
+                         @input="validationErrors.socialLinks = ''"
                        />
-                       <button @click="removeSocialLink(idx)" class="px-2 py-2 text-red-600 hover:text-red-700" type="button">
-                         <i class="fas fa-times"></i>
+                       
+                       <!-- Status & Actions -->
+                       <div class="flex items-center space-x-2 min-w-[80px] justify-end">
+                         <!-- Connected Status Icon Only -->
+                         <i 
+                           v-if="editForm.socialLinks[platform.key] && editForm.socialLinks[platform.key].trim()" 
+                           class="fas fa-check-circle text-green-600 text-lg"
+                           :title="$t('stores.connected') || 'Connected'"
+                         ></i>
+                         
+                         <!-- Add Link Button -->
+                         <button 
+                           v-else
+                           @click="focusSocialInput(platform.key)"
+                           type="button" 
+                           class="flex items-center text-primary hover:text-primary-dark text-xs"
+                         >
+                           <i class="fas fa-plus mr-1"></i>
+                           <span class="hidden sm:inline">{{ $t('stores.addLink') || 'Add Link' }}</span>
+                       </button>
+                         
+                         <!-- Delete Button -->
+                         <button 
+                           v-if="editForm.socialLinks[platform.key] && editForm.socialLinks[platform.key].trim()"
+                           @click="removeSocialLink(platform.key)" 
+                           class="px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors ml-2" 
+                           type="button"
+                           :title="$t('common.delete') || 'Delete'"
+                         >
+                           <i class="fas fa-trash text-sm"></i>
                        </button>
                      </div>
-                     <div class="flex items-center space-x-2">
-                       <button @click="addSocialLink" type="button" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">
-                         <i class="fas fa-plus mr-1"></i>{{ $t('stores.addLink') }}
-                       </button>
-                       <button @click="updateSocialLinks" :disabled="updateLoading" type="button" class="px-3 py-2 text-white bg-primary hover:bg-primary-dark rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                         <i v-if="updateLoading" class="fas fa-spinner fa-spin mr-1"></i>{{ $t('common.save') || 'Save' }}
-                       </button>
                      </div>
-                     <p v-if="validationErrors.socialLinks" class="mt-1 text-sm text-red-600">{{ validationErrors.socialLinks }}</p>
+                     
+                     <!-- Validation Error -->
+                     <p v-if="validationErrors.socialLinks" class="mt-2 text-sm text-red-600">{{ validationErrors.socialLinks }}</p>
                    </div>
                  </div>
               
               </div>
               </div>
               </div>
-              <div>
+              <div class="">
               
-               <div class="w-1 h-40 bg-green-600 rounded-md absolute left-[34%]"></div>
+               <div class="w-1 top-0 h-120 bg-green-600 rounded-md absolute left-[51%]"></div>
                 <!-- Description Section -->
-                <div class="w-full mt-4 max-w-md text-left">
+                <div class="w-full max-w-md text-left">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.storeDescription') }}</label>
                   <div class="relative">
                     <textarea
@@ -393,15 +430,48 @@ const statusLoading = ref(false)
 const logoUploading = ref(false)
 const bannerUploading = ref(false)
 const hasVendorRole = ref(false)
+const storePackInfo = ref(null)
 
 const editForm = reactive({
   name: '',
   description: '',
   location: '',
-  socialLinks: [],
+  socialLinks: {
+    instagram: '',
+    facebook: '',
+    twitter: '',
+    tiktok: '',
+    youtube: '',
+    linkedin: '',
+    pinterest: ''
+  },
   themeColor: '#0099ff',
   logo: null,
   banner: null
+})
+
+// Social Media Platforms Configuration (All platforms)
+const allSocialMediaPlatforms = [
+  { key: 'instagram', name: 'Instagram', icon: 'fab fa-instagram', color: '#E4405F', placeholder: 'https://instagram.com/yourpage' },
+  { key: 'facebook', name: 'Facebook', icon: 'fab fa-facebook', color: '#1877F2', placeholder: 'https://facebook.com/yourpage' },
+  { key: 'twitter', name: 'Twitter', icon: 'fab fa-twitter', color: '#1DA1F2', placeholder: 'https://twitter.com/yourhandle' },
+  { key: 'tiktok', name: 'TikTok', icon: 'fab fa-tiktok', color: '#000000', placeholder: 'https://tiktok.com/@yourhandle' },
+  { key: 'youtube', name: 'YouTube', icon: 'fab fa-youtube', color: '#FF0000', placeholder: 'https://youtube.com/yourchannel' },
+  { key: 'linkedin', name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0077B5', placeholder: 'https://linkedin.com/company/yourpage' },
+  { key: 'pinterest', name: 'Pinterest', icon: 'fab fa-pinterest', color: '#BD081C', placeholder: 'https://pinterest.com/yourpage' }
+]
+
+// Computed: Available social media platforms based on pack type
+const socialMediaPlatforms = computed(() => {
+  if (isProPack.value) {
+    // Pro Pack: Show all 7 platforms
+    return allSocialMediaPlatforms
+  } else {
+    // Basic Pack: Show only Facebook and Instagram
+    return allSocialMediaPlatforms.filter(platform => 
+      platform.key === 'facebook' || platform.key === 'instagram'
+    )
+  }
 })
 
 // Validation errors
@@ -462,8 +532,8 @@ const validateForm = async () => {
   }
 
   // Validate social links (optional but if provided, check URLs)
-  if (editForm.socialLinks && editForm.socialLinks.length > 0) {
-    const invalidLinks = editForm.socialLinks.filter(link => {
+  if (editForm.socialLinks && typeof editForm.socialLinks === 'object') {
+    const invalidLinks = Object.values(editForm.socialLinks).filter(link => {
       if (!link || !link.trim()) return false
       try {
         new URL(link.trim())
@@ -542,8 +612,19 @@ const saveAllChanges = async () => {
     // Always include location (even if empty to clear it)
     updateData.location = editForm.location?.trim() || null
     
-    // Always include social links (even if empty to clear it)
-    updateData.external_buttons = editForm.socialLinks && editForm.socialLinks.length > 0 ? editForm.socialLinks : null
+    // Convert social links object to array of objects (filter out empty values and only include allowed platforms)
+    const allowedPlatforms = isProPack.value 
+      ? ['instagram', 'facebook', 'twitter', 'tiktok', 'youtube', 'linkedin', 'pinterest']
+      : ['instagram', 'facebook']
+    
+    const socialLinksArray = Object.entries(editForm.socialLinks)
+      .filter(([key, value]) => value && value.trim() && allowedPlatforms.includes(key))
+      .map(([key, value]) => ({
+        platform: key,
+        url: value.trim()
+      }))
+    
+    updateData.external_buttons = socialLinksArray.length > 0 ? socialLinksArray : null
     
     // Add customization settings (color picker)
     if (editForm.themeColor) {
@@ -556,10 +637,31 @@ const saveAllChanges = async () => {
     if (logoUrl) updateData.logo_url = logoUrl
     if (bannerUrl) updateData.banner_url = bannerUrl
     
+    // Convert current store social links to object format for comparison
+    const currentSocialLinksObj = {}
+    if (storeStore.currentStore?.external_buttons && Array.isArray(storeStore.currentStore.external_buttons)) {
+      // Handle both old format (array of URLs) and new format (array of objects)
+      storeStore.currentStore.external_buttons.forEach(item => {
+        if (typeof item === 'string') {
+          // Old format: array of URLs - try to match URLs to platforms
+          if (item.includes('instagram.com')) currentSocialLinksObj.instagram = item
+          else if (item.includes('facebook.com')) currentSocialLinksObj.facebook = item
+          else if (item.includes('twitter.com') || item.includes('x.com')) currentSocialLinksObj.twitter = item
+          else if (item.includes('tiktok.com')) currentSocialLinksObj.tiktok = item
+          else if (item.includes('youtube.com')) currentSocialLinksObj.youtube = item
+          else if (item.includes('linkedin.com')) currentSocialLinksObj.linkedin = item
+          else if (item.includes('pinterest.com')) currentSocialLinksObj.pinterest = item
+        } else if (typeof item === 'object' && item.platform && item.url) {
+          // New format: array of objects with platform and url
+          currentSocialLinksObj[item.platform] = item.url
+        }
+      })
+    }
+    
     // Check if there are any actual changes (excluding file uploads)
     const hasTextChanges = editForm.description !== (storeStore.currentStore?.description || '') ||
                           editForm.location !== (storeStore.currentStore?.location || '') ||
-                          JSON.stringify(editForm.socialLinks || []) !== JSON.stringify(storeStore.currentStore?.external_buttons || []) ||
+                          JSON.stringify(editForm.socialLinks) !== JSON.stringify(currentSocialLinksObj) ||
                           editForm.themeColor !== (storeStore.currentStore?.customization_settings?.color || '#0099ff')
     
     const hasFileChanges = editForm.logo instanceof File || editForm.banner instanceof File
@@ -605,9 +707,46 @@ const saveAllChanges = async () => {
   }
 }
 
+// Fetch store pack information using RPC function
+const fetchStorePack = async () => {
+  try {
+    const { data, error } = await supabase.rpc('get_user_store_pack')
+    
+    if (error) {
+      console.error('Error fetching store pack:', error)
+      return
+    }
+    
+    if (data && data.length > 0) {
+      storePackInfo.value = data[0]
+    }
+  } catch (err) {
+    console.error('Error fetching store pack:', err)
+  }
+}
+
 // Computed properties
 const isProPack = computed(() => {
+  // Use RPC function result if available, otherwise fallback to store data
+  if (storePackInfo.value) {
+    return storePackInfo.value.is_pro === true || storePackInfo.value.pack_name_en?.toLowerCase().includes('pro')
+  }
   return storeStore.currentStore?.isProPack || false
+})
+
+// Get pack name based on current locale
+const packName = computed(() => {
+  if (storePackInfo.value) {
+    const currentLocale = route.meta?.locale || 'en'
+    if (currentLocale === 'ar' && storePackInfo.value.pack_name_ar) {
+      return storePackInfo.value.pack_name_ar
+    }
+    if (currentLocale === 'fr' && storePackInfo.value.pack_name_fr) {
+      return storePackInfo.value.pack_name_fr
+    }
+    return storePackInfo.value.pack_name_en || $t('stores.basicPlan')
+  }
+  return storeStore.currentStore?.packType || (isProPack.value ? $t('stores.proPlan') : $t('stores.basicPlan'))
 })
 
 const fetchStoreProducts = async () => {
@@ -644,7 +783,8 @@ const retryFetch = async () => {
   await Promise.all([
     storeStore.fetchStoreById(route.params.id),
     fetchStoreProducts(),
-    checkStoreStatus()
+    checkStoreStatus(),
+    fetchStorePack()
   ])
 }
 
@@ -663,9 +803,40 @@ const closeEditModal = () => {
     editForm.name = storeStore.currentStore.name || ''
     editForm.description = storeStore.currentStore.description || ''
     editForm.location = storeStore.currentStore.location || ''
-    const existing = storeStore.currentStore.external_buttons
-    editForm.socialLinks = Array.isArray(existing) ? [...existing] : []
-    editForm.themeColor = storeStore.currentStore.themeColor || '#0099ff'
+    
+    // Convert external_buttons array to object format
+    const socialLinksObj = {
+      instagram: '',
+      facebook: '',
+      twitter: '',
+      tiktok: '',
+      youtube: '',
+      linkedin: '',
+      pinterest: ''
+    }
+    
+    if (storeStore.currentStore.external_buttons && Array.isArray(storeStore.currentStore.external_buttons)) {
+      storeStore.currentStore.external_buttons.forEach(item => {
+        if (typeof item === 'string') {
+          // Old format: array of URLs
+          if (item.includes('instagram.com')) socialLinksObj.instagram = item
+          else if (item.includes('facebook.com')) socialLinksObj.facebook = item
+          else if (item.includes('twitter.com') || item.includes('x.com')) socialLinksObj.twitter = item
+          else if (item.includes('tiktok.com')) socialLinksObj.tiktok = item
+          else if (item.includes('youtube.com')) socialLinksObj.youtube = item
+          else if (item.includes('linkedin.com')) socialLinksObj.linkedin = item
+          else if (item.includes('pinterest.com')) socialLinksObj.pinterest = item
+        } else if (typeof item === 'object' && item.platform && item.url) {
+          // New format: array of objects with platform and url
+          if (socialLinksObj.hasOwnProperty(item.platform)) {
+            socialLinksObj[item.platform] = item.url
+          }
+        }
+      })
+    }
+    
+    editForm.socialLinks = socialLinksObj
+    editForm.themeColor = storeStore.currentStore.customization_settings?.color || '#0099ff'
   }
 }
 
@@ -677,7 +848,15 @@ const handleUpdateStore = async () => {
       name: editForm.name.trim(),
       description: editForm.description?.trim() || null,
       location: editForm.location?.trim() || null,
-      external_buttons: editForm.socialLinks && editForm.socialLinks.length > 0 ? editForm.socialLinks : null,
+      external_buttons: (() => {
+        const socialLinksArray = Object.entries(editForm.socialLinks)
+          .filter(([key, value]) => value && value.trim())
+          .map(([key, value]) => ({
+            platform: key,
+            url: value.trim()
+          }))
+        return socialLinksArray.length > 0 ? socialLinksArray : null
+      })(),
       themeColor: editForm.themeColor || null
     }
 
@@ -766,20 +945,20 @@ const onColorChange = async (e) => {
 }
 
 // Social links controls (Pro Pack only)
-const addSocialLink = () => {
-  editForm.socialLinks.push('')
-}
-
-const removeSocialLink = (idx) => {
-  if (idx >= 0 && idx < editForm.socialLinks.length) {
-    editForm.socialLinks.splice(idx, 1)
+const removeSocialLink = (platformKey) => {
+  if (editForm.socialLinks[platformKey]) {
+    editForm.socialLinks[platformKey] = ''
+    validationErrors.socialLinks = ''
   }
 }
 
-const updateSocialLinks = () => {
-  // Just update the form, don't save yet
-  // Clear any previous validation errors
-  validationErrors.socialLinks = ''
+const focusSocialInput = (platformKey) => {
+  // Focus will be handled by the input field itself when clicked
+  // This is just for the button click handler
+  const input = document.querySelector(`input[data-platform="${platformKey}"]`)
+  if (input) {
+    input.focus()
+  }
 }
 
 onMounted(async () => {
@@ -802,7 +981,8 @@ onMounted(async () => {
   await Promise.all([
     storeStore.fetchStoreById(route.params.id),
     fetchStoreProducts(),
-    checkStoreStatus()
+    checkStoreStatus(),
+    fetchStorePack()
   ])
   
   // Initialize edit form with current store data
@@ -810,7 +990,39 @@ onMounted(async () => {
     editForm.name = storeStore.currentStore.name
     editForm.description = storeStore.currentStore.description || ''
     editForm.location = storeStore.currentStore.location || ''
-    editForm.socialLinks = storeStore.currentStore.external_buttons || []
+    
+    // Convert external_buttons array to object format
+    const socialLinksObj = {
+      instagram: '',
+      facebook: '',
+      twitter: '',
+      tiktok: '',
+      youtube: '',
+      linkedin: '',
+      pinterest: ''
+    }
+    
+    if (storeStore.currentStore.external_buttons && Array.isArray(storeStore.currentStore.external_buttons)) {
+      storeStore.currentStore.external_buttons.forEach(item => {
+        if (typeof item === 'string') {
+          // Old format: array of URLs - try to match URLs to platforms
+          if (item.includes('instagram.com')) socialLinksObj.instagram = item
+          else if (item.includes('facebook.com')) socialLinksObj.facebook = item
+          else if (item.includes('twitter.com') || item.includes('x.com')) socialLinksObj.twitter = item
+          else if (item.includes('tiktok.com')) socialLinksObj.tiktok = item
+          else if (item.includes('youtube.com')) socialLinksObj.youtube = item
+          else if (item.includes('linkedin.com')) socialLinksObj.linkedin = item
+          else if (item.includes('pinterest.com')) socialLinksObj.pinterest = item
+        } else if (typeof item === 'object' && item.platform && item.url) {
+          // New format: array of objects with platform and url
+          if (socialLinksObj.hasOwnProperty(item.platform)) {
+            socialLinksObj[item.platform] = item.url
+          }
+        }
+      })
+    }
+    
+    editForm.socialLinks = socialLinksObj
     editForm.themeColor = storeStore.currentStore.customization_settings?.color || '#0099ff'
   }
 })

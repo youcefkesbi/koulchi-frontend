@@ -9,8 +9,13 @@ CREATE TABLE IF NOT EXISTS public.orders (
   updated_at timestamptz DEFAULT now()
 );
 
+-- Add store_id column
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS store_id UUID REFERENCES stores(id);
 
- ALTER TABLE orders ADD COLUMN store_id UUID REFERENCES stores(id);
+-- Add Maystro delivery columns (required for Maystro integration)
+-- Note: customer phone is now stored in profiles.phone_num instead
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_wilaya_id integer;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_commune_id integer;
 -- ================================
 -- Indexes
 -- ================================
@@ -121,6 +126,14 @@ WITH CHECK (
     WHERE ur.user_id = auth.uid() AND ur.role = 'employee'
   )
 );
+
+-- ================================
+-- Permissions (GRANT statements)
+-- ================================
+-- Grant permissions to service_role for backend operations
+-- This allows backend to access orders while RLS policies still apply
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.orders TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Triggers
@@ -462,12 +475,12 @@ BEGIN
         o.created_at,
         o.updated_at,
         COALESCE(
-            jsonb_agg(
-                jsonb_build_object(
+            json_agg(
+                json_build_object(
                     'id', oi.id,
                     'quantity', oi.quantity,
                     'price', oi.price,
-                    'product', jsonb_build_object(
+                    'product', json_build_object(
                         'id', p.id,
                         'name', p.name,
                         'description', p.description,
@@ -475,32 +488,22 @@ BEGIN
                         'image_urls', p.image_urls,
                         'thumbnail_url', p.thumbnail_url,
                         'category_id', p.category_id,
-                        'category', CASE 
-                            WHEN c.id IS NOT NULL THEN jsonb_build_object(
-                                'id', c.id,
-                                'name_en', c.name_en,
-                                'name_ar', c.name_ar,
-                                'name_fr', c.name_fr
-                            )
-                            ELSE NULL
-                        END,
-                        'store', CASE 
-                            WHEN s.id IS NOT NULL THEN jsonb_build_object(
-                                'id', s.id,
-                                'name', s.name
-                            )
-                            ELSE NULL
-                        END
+                        'category_name', c.name_en,
+                        'seller', json_build_object(
+                            'id', prof.id,
+                            'full_name', prof.full_name,
+                            'shipping_address', prof.shipping_address
+                        )
                     )
                 )
             ) FILTER (WHERE oi.id IS NOT NULL),
-            '[]'::jsonb
+            '[]'::json
         ) as order_items
     FROM public.orders o
     LEFT JOIN public.order_items oi ON o.id = oi.order_id
     LEFT JOIN public.products p ON oi.product_id = p.id
-    LEFT JOIN public.categories c ON p.category_id = c.id AND c.is_active = true
-    LEFT JOIN public.stores s ON p.store_id = s.id
+    LEFT JOIN public.categories c ON p.category_id = c.id
+    LEFT JOIN public.profiles prof ON p.seller_id = prof.id
     WHERE o.user_id = current_user_id
     GROUP BY o.id, o.status, o.total_amount, o.shipping_address, o.notes, o.created_at, o.updated_at
     ORDER BY o.created_at DESC;

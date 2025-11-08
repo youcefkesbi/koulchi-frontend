@@ -109,6 +109,7 @@ REVOKE ALL ON public.packs FROM anon;
 REVOKE ALL ON public.packs FROM authenticated;
 GRANT SELECT ON public.packs TO anon;
 GRANT SELECT ON public.packs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.packs TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Triggers

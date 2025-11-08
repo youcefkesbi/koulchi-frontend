@@ -418,7 +418,7 @@ export const useOrdersStore = defineStore('orders', () => {
           profiles!orders_user_id_fkey (
             id,
             full_name,
-            city
+            shipping_address
           ),
           order_items (
             *,
@@ -427,7 +427,7 @@ export const useOrdersStore = defineStore('orders', () => {
               seller:profiles!products_seller_id_fkey (
                 id,
                 full_name,
-                city
+                shipping_address
               )
             )
           )

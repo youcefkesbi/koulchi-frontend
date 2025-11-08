@@ -26,6 +26,8 @@ import ManageStores from '../views/ManageStores.vue'
 import ManagePacks from '../views/ManagePacks.vue'
 import ManageOrders from '../views/ManageOrders.vue'
 import ManageProducts from '../views/ManageProducts.vue'
+import Notifications from '../views/Notifications.vue'
+import Subscription from '../views/Subscription.vue'
 
 // Supported locales configuration
 
@@ -34,6 +36,18 @@ const defaultLocale = 'en'
 
 // Base routes without locale prefix
 const baseRoutes = [
+  {
+    path: '/subscription',
+    name: 'subscription',
+    component: Subscription,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'notifications',
+    component: Notifications,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/users',
     name: 'users',

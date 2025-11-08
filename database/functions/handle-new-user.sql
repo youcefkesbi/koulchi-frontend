@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Insert into profiles
-    INSERT INTO public.profiles (id, full_name, city)
+    INSERT INTO public.profiles (id, full_name, shipping_address)
     VALUES (
         NEW.id,
         COALESCE(
@@ -10,7 +10,7 @@ BEGIN
             NEW.raw_user_meta_data->>'name',
             ''
         ),
-        NULL  -- city defaults to null
+        NULL  -- shipping_address defaults to null
     );
 
     -- Insert default role

@@ -498,20 +498,20 @@
 
             <!-- Feature Descriptions -->
             <div class="space-y-4">
-              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Descriptions</h3>
+              <h3 class="text-md font-semibold text-gray-800 border-b border-gray-200 pb-2">Feature Descriptions <span class="text-sm font-normal text-gray-500">(Optional)</span></h3>
               
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">English Description</label>
-                  <textarea v-model="featureAddForm.description_en" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter English description"></textarea>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">English Description <span class="text-gray-500 font-normal">(Optional)</span></label>
+                  <textarea v-model="featureAddForm.description_en" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter English description (optional)"></textarea>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Description</label>
-                  <textarea v-model="featureAddForm.description_ar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter Arabic description"></textarea>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Arabic Description <span class="text-gray-500 font-normal">(Optional)</span></label>
+                  <textarea v-model="featureAddForm.description_ar" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter Arabic description (optional)"></textarea>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">French Description</label>
-                  <textarea v-model="featureAddForm.description_fr" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description"></textarea>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">French Description <span class="text-gray-500 font-normal">(Optional)</span></label>
+                  <textarea v-model="featureAddForm.description_fr" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none" placeholder="Enter French description (optional)"></textarea>
                 </div>
               </div>
             </div>
@@ -523,7 +523,7 @@
           <button @click="closeAddFeature" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
             Cancel
           </button>
-          <button @click="saveNewFeature" :disabled="saving" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
+          <button type="button" @click="saveNewFeature" :disabled="saving" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
             <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
             {{ saving ? 'Creating...' : 'Create Feature' }}
           </button>
@@ -764,11 +764,20 @@ const packFeaturesDetails = computed(() => {
 })
 
 // Helper function to refresh selected pack after database operations
-const refreshSelectedPack = () => {
-  if (selectedPack.value) {
+const refreshSelectedPack = async () => {
+  if (!selectedPack.value?.pack_id) return
+  
+  try {
+    console.log('🔍 refreshSelectedPack - Looking for pack:', selectedPack.value.pack_id)
+    
+    // Find the updated pack from the refreshed packs list
     const updatedPack = packs.value.find(p => p.pack_id === selectedPack.value.pack_id)
+    
     if (updatedPack) {
-      selectedPack.value = updatedPack
+      console.log('✅ refreshSelectedPack - Found updated pack, updating selectedPack')
+      // Create a new object to trigger reactivity
+      selectedPack.value = { ...updatedPack }
+      
       // Also update editingPack to keep them in sync
       editingPack.value = {
         id: updatedPack.pack_id,
@@ -783,7 +792,35 @@ const refreshSelectedPack = () => {
         max_images: updatedPack.max_images,
         is_active: updatedPack.is_active
       }
+      
+      console.log('✅ refreshSelectedPack - Selected pack updated with features:', updatedPack.features)
+    } else {
+      console.warn('⚠️ refreshSelectedPack - Pack not found in packs list, fetching directly...')
+      // If pack not found, fetch it directly using RPC
+      const { data: packsData, error } = await supabase.rpc('get_all_packs_with_features')
+      if (!error && packsData) {
+        const foundPack = packsData.find(p => p.pack_id === selectedPack.value.pack_id)
+        if (foundPack) {
+          selectedPack.value = { ...foundPack }
+          editingPack.value = {
+            id: foundPack.pack_id,
+            name_en: foundPack.name_en,
+            name_ar: foundPack.name_ar,
+            name_fr: foundPack.name_fr,
+            description_en: foundPack.description_en,
+            description_ar: foundPack.description_ar,
+            description_fr: foundPack.description_fr,
+            price: foundPack.price,
+            max_announcements: foundPack.max_announcements,
+            max_images: foundPack.max_images,
+            is_active: foundPack.is_active
+          }
+          console.log('✅ refreshSelectedPack - Pack fetched directly and updated')
+        }
+      }
     }
+  } catch (err) {
+    console.error('❌ refreshSelectedPack - Error refreshing pack:', err)
   }
 }
 
@@ -795,8 +832,19 @@ const removeFeatureFromPack = async (featureIndex) => {
       return
     }
     
+    if (!selectedPack.value?.pack_id) {
+      alert('No pack selected.')
+      return
+    }
+    
     // Get the feature name to find the actual feature ID
-    const featureName = selectedPack.value.features.en[featureIndex]
+    const featureName = selectedPack.value.features?.en?.[featureIndex]
+    if (!featureName) {
+      alert('Feature not found.')
+      return
+    }
+    
+    console.log('🔍 removeFeatureFromPack - Removing feature:', featureName, 'from pack:', selectedPack.value.pack_id)
     
     // First get the feature ID from the features table
     const { data: featureData, error: featureError } = await supabase
@@ -805,7 +853,12 @@ const removeFeatureFromPack = async (featureIndex) => {
       .eq('name_en', featureName)
       .single()
     
-    if (featureError) throw featureError
+    if (featureError) {
+      console.error('❌ removeFeatureFromPack - Error finding feature:', featureError)
+      throw featureError
+    }
+    
+    console.log('🔍 removeFeatureFromPack - Feature ID found:', featureData.id)
     
     // Remove the feature from pack_features
     const { error } = await supabase
@@ -814,15 +867,26 @@ const removeFeatureFromPack = async (featureIndex) => {
       .eq('pack_id', selectedPack.value.pack_id)
       .eq('feature_id', featureData.id)
     
-    if (error) throw error
+    if (error) {
+      console.error('❌ removeFeatureFromPack - Error deleting pack_feature:', error)
+      throw error
+    }
     
-    // Refresh the packs list to get updated data
+    console.log('✅ removeFeatureFromPack - Feature removed from pack_features')
+    
+    // Refresh the packs list to get updated data from database
+    console.log('🔍 removeFeatureFromPack - Refreshing packs list...')
     await fetchPacks()
     
-    // Refresh the selected pack with the new data
-    refreshSelectedPack()
+    // Refresh the selected pack with the new data (await to ensure it completes)
+    console.log('🔍 removeFeatureFromPack - Refreshing selected pack...')
+    await refreshSelectedPack()
+    
+    // Show success message
+    alert('Feature removed from pack successfully!')
   } catch (err) {
-    console.error('Error removing feature from pack:', err)
+    console.error('❌ removeFeatureFromPack - Error removing feature from pack:', err)
+    alert(`Error: ${err.message || 'Failed to remove feature from pack'}`)
   }
 }
 
@@ -894,11 +958,11 @@ const saveFeatureChanges = async () => {
     
     if (error) throw error
     
-    // Refresh the packs list to get updated data
+    // Refresh the packs list to get updated data from database
     await fetchPacks()
     
-    // Refresh the selected pack with the new data
-    refreshSelectedPack()
+    // Refresh the selected pack with the new data (await to ensure it completes)
+    await refreshSelectedPack()
     
     // Close the edit modal
     closeFeatureEdit()
@@ -946,47 +1010,174 @@ const saveNewFeature = async () => {
       return
     }
     
-    saving.value = true
+    // Validate required fields
+    if (!featureAddForm.value.name_en || !featureAddForm.value.name_ar || !featureAddForm.value.name_fr) {
+      alert('Please fill in all feature names (English, Arabic, and French)')
+      return
+    }
     
-    // Create the new feature in the database
-    const { data: newFeature, error: featureError } = await supabase
+    // Check if pack is selected
+    if (!selectedPack.value?.pack_id) {
+      alert('No pack selected. Please select a pack first.')
+      return
+    }
+    
+    saving.value = true
+    console.log('🔍 saveNewFeature - Starting feature creation...')
+    console.log('🔍 saveNewFeature - Form data:', featureAddForm.value)
+    console.log('🔍 saveNewFeature - Selected pack ID:', selectedPack.value.pack_id)
+    
+    // Create timeout promise (15 seconds) - applies to entire operation
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout after 15 seconds. The database operation is taking too long.')), 15000)
+    })
+    
+    // Verify session before proceeding (with timeout)
+    console.log('🔍 saveNewFeature - Checking session...')
+    const sessionPromise = supabase.auth.getSession()
+    const { data: { session }, error: sessionError } = await Promise.race([
+      sessionPromise,
+      timeoutPromise
+    ])
+    
+    if (sessionError) {
+      console.error('❌ saveNewFeature - Session error:', sessionError)
+      throw new Error(`Authentication error: ${sessionError.message}`)
+    }
+    
+    if (!session?.user) {
+      console.error('❌ saveNewFeature - No active session')
+      throw new Error('You must be logged in to perform this action')
+    }
+    
+    console.log('✅ saveNewFeature - Session valid, user ID:', session.user.id)
+    console.log('🔍 saveNewFeature - Session details:', { 
+      user_id: session.user.id, 
+      email: session.user.email,
+      expires_at: session.expires_at 
+    })
+    
+    // Prepare feature data
+    const featureData = {
+      name_en: featureAddForm.value.name_en.trim(),
+      name_ar: featureAddForm.value.name_ar.trim(),
+      name_fr: featureAddForm.value.name_fr.trim(),
+      description_en: featureAddForm.value.description_en?.trim() || null,
+      description_ar: featureAddForm.value.description_ar?.trim() || null,
+      description_fr: featureAddForm.value.description_fr?.trim() || null
+    }
+    
+    console.log('🔍 saveNewFeature - Prepared feature data:', featureData)
+    console.log('🔍 saveNewFeature - About to insert into features table...')
+    
+    // Create the new feature in the database with timeout
+    const insertPromise = supabase
       .from('features')
-      .insert({
-        name_en: featureAddForm.value.name_en,
-        name_ar: featureAddForm.value.name_ar,
-        name_fr: featureAddForm.value.name_fr,
-        description_en: featureAddForm.value.description_en,
-        description_ar: featureAddForm.value.description_ar,
-        description_fr: featureAddForm.value.description_fr
-      })
+      .insert(featureData)
       .select()
       .single()
     
-    if (featureError) throw featureError
+    console.log('🔍 saveNewFeature - Insert promise created, awaiting response...')
+    
+    const { data: newFeature, error: featureError } = await Promise.race([
+      insertPromise,
+      timeoutPromise
+    ])
+    
+    if (featureError) {
+      console.error('❌ saveNewFeature - Feature insert error:', featureError)
+      console.error('❌ saveNewFeature - Error details:', {
+        message: featureError.message,
+        code: featureError.code,
+        details: featureError.details,
+        hint: featureError.hint
+      })
+      throw featureError
+    }
+    
+    if (!newFeature) {
+      throw new Error('Feature was created but no data was returned')
+    }
+    
+    console.log('✅ saveNewFeature - Feature created:', newFeature)
+    console.log('🔍 saveNewFeature - New feature ID:', newFeature.id)
     
     // Add the feature to the current pack
-    const { error: packFeatureError } = await supabase
+    console.log('🔍 saveNewFeature - About to insert into pack_features table...')
+    const packFeatureData = {
+      pack_id: selectedPack.value.pack_id,
+      feature_id: newFeature.id,
+      is_enabled: true
+    }
+    
+    console.log('🔍 saveNewFeature - Pack feature data:', packFeatureData)
+    
+    const packFeaturePromise = supabase
       .from('pack_features')
-      .insert({
-        pack_id: selectedPack.value.pack_id,
-        feature_id: newFeature.id,
-        is_enabled: true
+      .insert(packFeatureData)
+    
+    const { error: packFeatureError } = await Promise.race([
+      packFeaturePromise,
+      timeoutPromise
+    ])
+    
+    if (packFeatureError) {
+      console.error('❌ saveNewFeature - Pack feature insert error:', packFeatureError)
+      console.error('❌ saveNewFeature - Error details:', {
+        message: packFeatureError.message,
+        code: packFeatureError.code,
+        details: packFeatureError.details,
+        hint: packFeatureError.hint
       })
+      throw packFeatureError
+    }
     
-    if (packFeatureError) throw packFeatureError
+    console.log('✅ saveNewFeature - Feature added to pack successfully')
     
-    // Refresh the packs list to get updated data
+    // Refresh the packs list to get updated data from database
+    console.log('🔍 saveNewFeature - Refreshing packs list...')
     await fetchPacks()
     
-    // Refresh the selected pack with the new data
-    refreshSelectedPack()
+    // Refresh the selected pack with the new data (await to ensure it completes)
+    console.log('🔍 saveNewFeature - Refreshing selected pack...')
+    await refreshSelectedPack()
     
     // Close the add feature modal
     closeAddFeature()
+    
+    // Show success message
+    alert('Feature created and added to pack successfully!')
   } catch (err) {
-    console.error('Error creating new feature:', err)
+    console.error('❌ saveNewFeature - Error creating new feature:', err)
+    console.error('❌ saveNewFeature - Full error object:', JSON.stringify(err, null, 2))
+    
+    let errorMessage = 'Failed to create feature.'
+    
+    if (err.message) {
+      errorMessage = err.message
+    } else if (err.error?.message) {
+      errorMessage = err.error.message
+    } else if (typeof err === 'string') {
+      errorMessage = err
+    }
+    
+    // Check for specific error types
+    if (err.code === 'PGRST301' || err.code === '42501') {
+      errorMessage = 'Permission denied. You may not have admin access or the necessary database permissions.'
+    } else if (err.code === '23505') {
+      errorMessage = 'A feature with this name already exists.'
+    } else if (err.code === '23503') {
+      errorMessage = 'Invalid pack ID. The selected pack may not exist.'
+    } else if (err.message?.includes('timeout')) {
+      errorMessage = 'Request timed out. Please check your network connection and try again.'
+    } else if (err.message?.includes('revoked') || err.message?.includes('session')) {
+      errorMessage = 'Your session has expired. Please refresh the page and try again.'
+    }
+    
+    alert(`Error: ${errorMessage}`)
   } finally {
     saving.value = false
+    console.log('🔍 saveNewFeature - Function completed, saving state reset')
   }
 }
 
