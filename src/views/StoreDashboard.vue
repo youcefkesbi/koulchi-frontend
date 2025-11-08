@@ -701,10 +701,7 @@ const handleEmployeeNavigation = (section) => {
 }
 
 // Get localized route path
-const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
-  return getLocalizedPath(path, currentLocale)
-}
+const { getLocalizedPath } = useLocaleRouter()
 
 // Check if user has access to a specific tab
 const hasAccessToTab = (tabId) => {

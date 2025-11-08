@@ -146,6 +146,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const props = defineProps({
   stores: {
@@ -182,6 +183,7 @@ const emit = defineEmits(['refresh'])
 
 const { t } = useI18n()
 const router = useRouter()
+const { navigateToPath } = useLocaleRouter()
 
 // Computed properties
 const skeletonCount = computed(() => {
@@ -194,7 +196,7 @@ const refreshStores = () => {
 }
 
 const navigateToStore = (storeId) => {
-  router.push(`/store/${storeId}`)
+  navigateToPath(`/store/${storeId}`)
 }
 
 const handleImageError = (event) => {

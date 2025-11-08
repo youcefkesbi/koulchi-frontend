@@ -3,16 +3,14 @@ CREATE TABLE ads (
     item_type VARCHAR(10) NOT NULL,        -- 'product' or 'store'
     product_id uuid REFERENCES products(id) ON DELETE CASCADE,
     store_id uuid REFERENCES stores(id) ON DELETE CASCADE,
-    slot_type VARCHAR(50) NOT NULL,        -- e.g., 'homepage_banner', 'homepage_featured_products', 'category_banner'
-    category_id UUID NULL,                  -- only for category-specific slots
+    slot_type VARCHAR(50) NOT NULL,        -- 'homepage_banner', 'homepage_featured_products', 'homepage_featured_stores', 'homepage_browse_by_category_products', 'category_banner'
+    category_id UUID NULL,
     priority INT DEFAULT 0,                 -- ordering inside slot
     start_date TIMESTAMP DEFAULT now(),
     end_date TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
-
-
 
 -- ================================
 -- Triggers

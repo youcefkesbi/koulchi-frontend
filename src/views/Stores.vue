@@ -114,12 +114,14 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStoreStore } from '../stores/useStoresStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const router = useRouter()
 const storeStore = useStoreStore()
+const { navigateToPath } = useLocaleRouter()
 
 const navigateToStore = (storeId) => {
-  router.push(`/stores/${storeId}`)
+  navigateToPath(`/stores/${storeId}`)
 }
 
 const retryFetch = async () => {
