@@ -23,6 +23,20 @@
 
       <!-- Content -->
       <div v-else class="space-y-6">
+        <!-- Pending Approval Message -->
+        <div v-if="currentSubscription && currentSubscription.store_status === 'pending'" class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i class="fas fa-clock text-yellow-600 text-2xl mr-4"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-yellow-800 mb-2">{{ $t('subscription.pendingApproval') || 'Store Pending Approval' }}</h3>
+              <p class="text-sm text-yellow-700 mb-3">{{ $t('subscription.subscriptionWillBeCreated') || 'Your subscription will be created once your store is approved by an employee.' }}</p>
+              <p class="text-sm text-yellow-700">{{ $t('subscription.productsWillBeMigrated') || 'Products will be migrated after approval.' }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Current Subscription Card -->
         <div v-if="currentSubscription" class="bg-white rounded-2xl shadow-soft p-6">
           <div class="flex items-center justify-between mb-6">
@@ -56,14 +70,18 @@
                 </p>
               </div>
 
-              <div>
+              <div v-if="currentSubscription.store_status === 'approved'">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('subscription.subscriptionDate') || 'Subscription Date' }}</h3>
                 <p class="text-gray-700">{{ formatDate(currentSubscription.subscription_start) }}</p>
+              </div>
+              <div v-else>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('subscription.subscriptionDate') || 'Subscription Date' }}</h3>
+                <p class="text-gray-700 text-yellow-600">{{ $t('subscription.pending') || 'Pending' }}</p>
               </div>
             </div>
 
             <!-- Usage Stats -->
-            <div class="space-y-4">
+            <div class="space-y-4" v-if="currentSubscription.store_status === 'approved'">
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <h3 class="text-lg font-semibold text-gray-800">{{ $t('subscription.announcements') || 'Announcements' }}</h3>
@@ -92,6 +110,11 @@
                     :style="{ width: `${(currentSubscription.current_images / currentSubscription.max_images) * 100}%` }"
                   ></div>
                 </div>
+              </div>
+            </div>
+            <div v-else class="space-y-4">
+              <div class="text-sm text-gray-500 italic">
+                {{ $t('subscription.statsWillBeAvailable') || 'Usage statistics will be available after approval.' }}
               </div>
             </div>
           </div>
@@ -396,12 +419,9 @@ const calculateUpgradeHistory = () => {
     const curr = history[i]
     
     // Determine if it's an upgrade or downgrade based on plan_type
-    // Basic Plan -> Pro Plan = upgrade
-    // Pro Plan -> Basic Plan = downgrade
-    const prevIsPro = prev.plan_type?.toLowerCase().includes('pro') || 
-                      prev.plan_type?.toLowerCase().includes('premium')
-    const currIsPro = curr.plan_type?.toLowerCase().includes('pro') || 
-                      curr.plan_type?.toLowerCase().includes('premium')
+    // plan_type is 'basic' or 'pro' (from vendor_subscriptions table)
+    const prevIsPro = prev.plan_type === 'pro'
+    const currIsPro = curr.plan_type === 'pro'
     
     if (prevIsPro !== currIsPro) {
       upgrades.push({

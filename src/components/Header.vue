@@ -164,8 +164,9 @@
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/mystoreproducts')" class="dropdown-item">
                   <i class="fas fa-clipboard-list mr-3"></i>{{ t('header.myStoreProducts') }}
                 </router-link>
-                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/subscription')" class="dropdown-item">
+                <router-link v-if="hasApprovedStore || hasPendingStore" :to="getLocalizedRoute('/subscription')" class="dropdown-item">
                   <i class="fas fa-crown mr-3"></i>{{ t('header.subscription') || 'Subscription' }}
+                  <span v-if="hasPendingStore" class="ml-2 text-xs text-yellow-600">({{ $t('subscription.pending') || 'Pending' }})</span>
                 </router-link>
                 <button
   v-if="userStoreStatus.store_id"
@@ -363,7 +364,17 @@ const fetchEmployeeRoleForModeration = async () => {
 
 // Show vendor-only buttons when user has vendor role
 const hasApprovedStore = computed(() => {
-  return authStore.isAuthenticated && hasVendorRole.value
+  // Check if user has vendor role AND store is approved (not just pending)
+  return authStore.isAuthenticated && 
+         hasVendorRole.value && 
+         userStoreStatus.value.status === 'approved'
+})
+
+// Check if user has pending store
+const hasPendingStore = computed(() => {
+  return authStore.isAuthenticated && 
+         userStoreStatus.value.store_id && 
+         userStoreStatus.value.status === 'pending'
 })
 
 // Check if user should see the "Create Store" button

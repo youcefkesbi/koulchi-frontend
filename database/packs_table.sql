@@ -17,7 +17,12 @@ CREATE TABLE IF NOT EXISTS public.packs (
 ALTER TABLE public.packs
 ADD CONSTRAINT packs_name_en_unique UNIQUE (name_en);
 
+ALTER TABLE public.packs
+ADD COLUMN type TEXT NOT NULL DEFAULT 'basic'
+CHECK (type IN ('basic', 'pro'));
 
+-- Create index for performance
+CREATE INDEX IF NOT EXISTS packs_type_idx ON public.packs(type);
 ALTER TABLE public.packs
 ADD COLUMN name_en TEXT NOT NULL DEFAULT '',  
 ADD COLUMN name_ar TEXT DEFAULT NULL,        

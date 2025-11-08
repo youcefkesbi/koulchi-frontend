@@ -1612,10 +1612,10 @@ const approveStore = async (storeId) => {
   try {
     processing.value = true
     
-    // First, get the store owner ID
+    // First, get the store data including pack_id and name
     const { data: storeData, error: storeError } = await supabase
       .from('stores')
-      .select('owner_id')
+      .select('owner_id, pack_id, name, packs(name_en, type)')
       .eq('id', storeId)
       .single()
 
@@ -1633,6 +1633,64 @@ const approveStore = async (storeId) => {
 
     if (error) throw error
 
+    // Phase 3: Product Migration
+    // Count products to migrate (products without store)
+    const { count: productsToMigrateCount } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('seller_id', storeData.owner_id)
+      .is('store_id', null)
+      .eq('status', 'approved')
+
+    let migratedProductsCount = 0
+    let totalImagesCount = 0
+
+    // Migrate products to store (if any exist)
+    if (productsToMigrateCount > 0) {
+      // Update products to link to store
+      const { data: updatedProducts, error: migrateError } = await supabase
+        .from('products')
+        .update({
+          store_id: storeId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('seller_id', storeData.owner_id)
+        .is('store_id', null)
+        .select('id, image_urls')
+
+      if (migrateError) {
+        console.error('Error migrating products:', migrateError)
+        // Don't throw - continue with approval even if migration fails
+      } else {
+        migratedProductsCount = updatedProducts?.length || 0
+
+        // Calculate total images from migrated products
+        if (updatedProducts && updatedProducts.length > 0) {
+          totalImagesCount = updatedProducts.reduce((total, product) => {
+            const imageCount = product.image_urls ? product.image_urls.length : 0
+            return total + imageCount
+          }, 0)
+        }
+      }
+    }
+
+    // Phase 4: Store Statistics Update
+    // Update store with migrated product counts and images
+    const { error: statsError } = await supabase
+      .from('stores')
+      .update({
+        current_announcements: migratedProductsCount,
+        current_images: totalImagesCount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', storeId)
+
+    if (statsError) {
+      console.error('Error updating store statistics:', statsError)
+      // Don't throw - continue with approval
+    }
+
+    // Phase 5: Role Update
     // Add vendor role to the store owner
     const { error: roleError } = await supabase
       .from('user_roles')
@@ -1644,6 +1702,54 @@ const approveStore = async (storeId) => {
       })
 
     if (roleError) throw roleError
+
+    // Phase 6: Create subscription record when store is approved
+    // Determine plan type from pack type (packs.type column)
+    const packType = storeData.packs?.type || 'basic'
+    const planType = packType === 'pro' ? 'pro' : 'basic'
+
+    // Insert vendor subscription record
+    const { error: subscriptionError } = await supabase
+      .from('vendor_subscriptions')
+      .insert({
+        vendor_id: storeData.owner_id,
+        plan_type: planType,
+        start_date: new Date().toISOString(),
+        end_date: null, // NULL for lifetime subscriptions
+        status: 'active'
+      })
+
+    if (subscriptionError) {
+      console.error('Error creating subscription:', subscriptionError)
+      // Don't throw - subscription creation failure shouldn't block approval
+      // But log it for investigation
+    }
+
+    // Phase 9: Store Approval Notification
+    // Create user notification when store is approved
+    const { error: notificationError } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: storeData.owner_id,
+        type: 'store_approved',
+        template_key: 'notifications.storeApproved',
+        metadata: {
+          message: `Your store "${storeData.name || 'New Store'}" has been approved!`,
+          store_id: storeId,
+          store_name: storeData.name || 'New Store',
+          plan_type: planType,
+          migrated_products_count: migratedProductsCount,
+          subscription_start: new Date().toISOString()
+        },
+        link: '/subscription',
+        target_role: 'vendor',
+        is_read: false
+      })
+
+    if (notificationError) {
+      console.error('Error creating approval notification:', notificationError)
+      // Don't throw - notification failure shouldn't block approval
+    }
 
     // CASE 2: Approve all documents when store is approved
     await approveAllDocuments(storeData.owner_id)
@@ -1724,6 +1830,17 @@ const rejectStoreFromDetails = async (storeId) => {
         ? allRejectionReasons.join(' | ')
         : 'Documents rejected'
 
+      // Get store data for notification
+      const { data: storeDataForNotif, error: storeDataError } = await supabase
+        .from('stores')
+        .select('name, owner_id')
+        .eq('id', storeId)
+        .single()
+
+      if (storeDataError) {
+        console.error('Error fetching store data for notification:', storeDataError)
+      }
+
       // Update store status with all rejection reasons
       const { error } = await supabase
         .from('stores')
@@ -1736,6 +1853,30 @@ const rejectStoreFromDetails = async (storeId) => {
         .eq('id', storeId)
 
       if (error) throw error
+
+      // Store Rejection Notification
+      // Create user notification when store is rejected
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: ownerId,
+          type: 'store_rejected',
+          template_key: 'notifications.storeRejected',
+          metadata: {
+            message: `Your store "${storeDataForNotif?.name || 'New Store'}" has been rejected.`,
+            store_id: storeId,
+            store_name: storeDataForNotif?.name || 'New Store',
+            rejection_reason: finalRejectionReason
+          },
+          link: '/dashboard',
+          target_role: 'vendor',
+          is_read: false
+        })
+
+      if (notificationError) {
+        console.error('Error creating rejection notification:', notificationError)
+        // Don't throw - notification failure shouldn't block rejection
+      }
 
       // CASE 1: Approve all non-rejected documents when store is rejected
       await approveNonRejectedDocuments(ownerId)
@@ -2116,6 +2257,21 @@ const confirmRejection = async () => {
         alert(`${elementType} rejected successfully`)
       }
     } else if (type === 'store') {
+      // Get store data for notification
+      const { data: storeDataForNotif, error: storeDataError } = await supabase
+        .from('stores')
+        .select('name, owner_id')
+        .eq('id', id)
+        .single()
+
+      if (storeDataError) {
+        console.error('Error fetching store data for notification:', storeDataError)
+      }
+
+      const finalRejectionReason = customRejectionReason.value.trim()
+        ? `${rejectionReason.value.trim()} - ${customRejectionReason.value.trim()}`
+        : rejectionReason.value.trim()
+
       // Update store status to rejected
       const { error } = await supabase
         .from('stores')
@@ -2123,11 +2279,35 @@ const confirmRejection = async () => {
           status: 'rejected',
           reviewed_by: (await supabase.auth.getUser()).data.user.id,
           reviewed_at: new Date().toISOString(),
-          rejection_reason: rejectionReason.value.trim()
+          rejection_reason: finalRejectionReason
         })
         .eq('id', id)
 
       if (error) throw error
+
+      // Store Rejection Notification
+      // Create user notification when store is rejected
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: storeDataForNotif?.owner_id,
+          type: 'store_rejected',
+          template_key: 'notifications.storeRejected',
+          metadata: {
+            message: `Your store "${storeDataForNotif?.name || 'New Store'}" has been rejected.`,
+            store_id: id,
+            store_name: storeDataForNotif?.name || 'New Store',
+            rejection_reason: finalRejectionReason
+          },
+          link: '/dashboard',
+          target_role: 'vendor',
+          is_read: false
+        })
+
+      if (notificationError) {
+        console.error('Error creating rejection notification:', notificationError)
+        // Don't throw - notification failure shouldn't block rejection
+      }
 
       // Log the action
       await logEmployeeAction('reject_store', 'store', id, { 

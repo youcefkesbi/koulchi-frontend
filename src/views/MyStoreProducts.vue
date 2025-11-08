@@ -576,8 +576,8 @@ const fetchStorePack = async () => {
     
     if (data && data.length > 0) {
       storePackInfo.value = data[0]
-      // Check if pack name is "Pro Plan" or is_pro is true
-      isProPack.value = storePackInfo.value.pack_name_en === 'Pro Plan' || storePackInfo.value.is_pro === true
+      // is_pro is now reliable (uses packs.type from RPC function)
+      isProPack.value = storePackInfo.value.is_pro === true
       console.log('Store pack info:', storePackInfo.value)
       console.log('Is Pro Pack:', isProPack.value)
     }
@@ -946,8 +946,8 @@ const createProduct = async () => {
     }
 
     // Determine product status based on pack type
-    // If pack_name_en is "Pro Plan" or is_pro is true, set status to "approved", otherwise "pending"
-    const productStatus = (isProPack.value || storePackInfo.value?.pack_name_en === 'Pro Plan') ? 'approved' : 'pending'
+    // If is_pro is true, set status to "approved", otherwise "pending"
+    const productStatus = isProPack.value ? 'approved' : 'pending'
     console.log('Product status will be:', productStatus, '(Pack:', storePackInfo.value?.pack_name_en, ')')
 
     let thumbnailUrl = null

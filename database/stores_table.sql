@@ -191,10 +191,12 @@ create or replace function create_store(
 language plpgsql security definer as $$
 declare
   new_id uuid;
-  pack_name_val text;
+  pack_type_val text;
   is_pro_pack boolean := false;
   current_user_id uuid;
   user_roles text[];
+  pack_max_announcements integer;
+  pack_max_images integer;
 begin
   -- Debug: Check current user and roles
   current_user_id := auth.uid();
@@ -216,26 +218,38 @@ begin
     raise exception 'User already has a store';
   end if;
 
-  -- Get pack name to determine if it's pro pack
-  SELECT p.name_en INTO pack_name_val
+  -- Get pack type and details (Phase 1: Pre-Upgrade Validation)
+  SELECT p.type, p.max_announcements, p.max_images INTO pack_type_val, pack_max_announcements, pack_max_images
   FROM public.packs p
-  WHERE p.id = p_pack_id;
+  WHERE p.id = p_pack_id AND p.is_active = true;
 
-  -- Determine if it's a pro pack
-  IF pack_name_val IS NOT NULL THEN
-    SELECT 
-      CASE 
-        WHEN LOWER(pack_name_val) LIKE '%pro%' 
-          OR LOWER(pack_name_val) LIKE '%premium%'
-        THEN TRUE
-        ELSE FALSE
-      END INTO is_pro_pack;
+  -- Validate pack exists and is active
+  IF pack_type_val IS NULL THEN
+    RAISE EXCEPTION 'Invalid or inactive pack selected';
   END IF;
+
+  -- Determine if it's a pro pack (convert type to boolean)
+  IF pack_type_val = 'pro' THEN
+    is_pro_pack := TRUE;
+  ELSE
+    is_pro_pack := FALSE;
+  END IF;
+
+  -- Phase 1: Check for products without store (optional validation - products can exist without store)
+  -- This is informational, not blocking
 
   -- Insert store
   insert into public.stores (owner_id, name, description, logo_url, banner_url, pack_id, status)
   values (p_owner_id, p_name, p_description, p_logo_url, p_banner_url, p_pack_id, 'pending')
   returning id into new_id;
+
+  -- Note: Phases 3-6 (Product Migration, Store Statistics, Role Update, Subscription)
+  -- are now handled during store approval, not creation.
+  -- This ensures:
+  -- 1. No redundancy if store is rejected
+  -- 2. Better data integrity
+  -- 3. All activation happens atomically on approval
+  -- 4. Vendor role only granted after approval (security)
 
   -- Clear old verification records for this user to prevent mixing rejection reasons
   -- This ensures only the current store's verification data is used
@@ -277,6 +291,33 @@ begin
       VALUES (p_owner_id, 'payment_receipt', p_payment_receipt_url, 'pending');
     END IF;
   END IF;
+
+  -- Phase 7: User Notification
+  -- Create user notification for store creation
+  INSERT INTO public.notifications (
+    user_id,
+    type,
+    template_key,
+    metadata,
+    link,
+    target_role,
+    is_read,
+    created_at
+  ) VALUES (
+    p_owner_id,
+    'store_created',
+    'notifications.storeCreated',
+    jsonb_build_object(
+      'message', format('Your store "%s" has been created successfully', COALESCE(p_name, 'New Store')),
+      'store_id', new_id,
+      'store_name', COALESCE(p_name, 'New Store'),
+      'store_status', 'pending'
+    ),
+    '/subscription',
+    'vendor',
+    FALSE,
+    NOW()
+  );
 
   return new_id;
 end;
@@ -865,6 +906,7 @@ DECLARE
     pack_name_en_val TEXT;
     pack_name_ar_val TEXT;
     pack_name_fr_val TEXT;
+    pack_type_val TEXT;
     is_vendor BOOLEAN := FALSE;
     is_pro_pack BOOLEAN := FALSE;
 BEGIN
@@ -913,29 +955,23 @@ BEGIN
         s.pack_id,
         p.name_en,
         p.name_ar,
-        p.name_fr
+        p.name_fr,
+        p.type
     INTO 
         user_pack_id,
         pack_name_en_val,
         pack_name_ar_val,
-        pack_name_fr_val
+        pack_name_fr_val,
+        pack_type_val
     FROM public.stores s
     LEFT JOIN public.packs p ON s.pack_id = p.id
     WHERE s.id = user_store_id;
     
-    -- Determine if it's a pro pack (check if pack name contains "pro" or "premium")
-    IF user_pack_id IS NOT NULL THEN
-        SELECT 
-            CASE 
-                WHEN LOWER(pack_name_en_val) LIKE '%pro%' 
-                  OR LOWER(pack_name_en_val) LIKE '%premium%'
-                  OR LOWER(pack_name_ar_val) LIKE '%برو%'
-                  OR LOWER(pack_name_ar_val) LIKE '%بريميوم%'
-                  OR LOWER(pack_name_fr_val) LIKE '%pro%'
-                  OR LOWER(pack_name_fr_val) LIKE '%premium%'
-                THEN TRUE
-                ELSE FALSE
-            END INTO is_pro_pack;
+    -- Determine if it's a pro pack using type column
+    IF pack_type_val = 'pro' THEN
+        is_pro_pack := TRUE;
+    ELSE
+        is_pro_pack := FALSE;
     END IF;
     
     -- Return the result
@@ -1006,23 +1042,213 @@ BEGIN
     WHERE (
         CASE 
             WHEN pack_type = 'basic' THEN 
-                LOWER(COALESCE(p.name_en, '')) LIKE '%basic%' 
-                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%أساسي%'
-                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%basique%'
-                OR p.name_en = 'Basic Plan'
+                p.type = 'basic'
             WHEN pack_type = 'pro' THEN 
-                LOWER(COALESCE(p.name_en, '')) LIKE '%pro%' 
-                OR LOWER(COALESCE(p.name_en, '')) LIKE '%premium%'
-                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%برو%'
-                OR LOWER(COALESCE(p.name_ar, '')) LIKE '%بريميوم%'
-                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%pro%'
-                OR LOWER(COALESCE(p.name_fr, '')) LIKE '%premium%'
-                OR p.name_en = 'Pro Plan'
+                p.type = 'pro'
+            ELSE
+                TRUE
         END
     )
     ORDER BY s.created_at DESC;
 END;
 $function$;
+
+-- ================================
+-- UPGRADE STORE TO PRO PACK
+-- ================================
+-- RPC function to upgrade a Basic Pack store to Pro Pack
+-- Follows the same pattern as create_store but for upgrades
+create or replace function upgrade_store_to_pro(
+  p_store_id uuid,
+  p_banner_url text,
+  p_commerce_register_url text,
+  p_description text,
+  p_logo_url text,
+  p_name text,
+  p_owner_id uuid,
+  p_pack_id uuid,
+  p_payment_receipt_url text
+) returns uuid
+language plpgsql security definer as $$
+declare
+  current_user_id uuid;
+  user_roles text[];
+  store_record record;
+  pack_type_val text;
+  is_pro_pack boolean := false;
+  old_subscription_id uuid;
+  plan_type_val text;
+begin
+  -- Debug: Check current user and roles
+  current_user_id := auth.uid();
+  RAISE NOTICE 'upgrade_store_to_pro called with p_owner_id: %, current_user_id: %, p_store_id: %', p_owner_id, current_user_id, p_store_id;
+  
+  -- Check if p_owner_id matches current user
+  IF p_owner_id != current_user_id THEN
+    RAISE EXCEPTION 'Owner ID does not match authenticated user';
+  END IF;
+  
+  -- Get user roles for debugging
+  SELECT ARRAY_AGG(role) INTO user_roles
+  FROM public.user_roles 
+  WHERE user_id = current_user_id;
+  
+  RAISE NOTICE 'User roles: %', user_roles;
+  
+  -- Check if user has vendor role
+  IF NOT public.has_role(current_user_id, 'vendor') THEN
+    RAISE EXCEPTION 'User does not have permission to upgrade stores. Required role: vendor';
+  END IF;
+
+  -- Phase 1: Pre-Upgrade Validation
+  -- Verify store exists, belongs to user, is approved, and is Basic pack
+  SELECT s.id, s.pack_id, s.status, s.owner_id, p.type as pack_type
+  INTO store_record
+  FROM public.stores s
+  LEFT JOIN public.packs p ON p.id = s.pack_id
+  WHERE s.id = p_store_id AND s.owner_id = p_owner_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Store not found or does not belong to user';
+  END IF;
+
+  IF store_record.status != 'approved' THEN
+    RAISE EXCEPTION 'Store must be approved before upgrading';
+  END IF;
+
+  -- Verify current pack is Basic (not Pro)
+  IF store_record.pack_type = 'pro' THEN
+    RAISE EXCEPTION 'Store is already on Pro pack';
+  END IF;
+
+  -- Get Pro Pack details
+  SELECT p.type INTO pack_type_val
+  FROM public.packs p
+  WHERE p.id = p_pack_id AND p.is_active = true;
+
+  IF pack_type_val IS NULL THEN
+    RAISE EXCEPTION 'Invalid or inactive Pro pack selected';
+  END IF;
+
+  -- Verify it's actually a Pro pack
+  IF pack_type_val = 'pro' THEN
+    is_pro_pack := true;
+  ELSE
+    RAISE EXCEPTION 'Selected pack is not a Pro pack';
+  END IF;
+
+  -- Phase 2: Document and Information Collection
+  -- (Documents are uploaded client-side, URLs are passed here)
+  -- Validation: All required documents must be provided
+  IF p_commerce_register_url IS NULL THEN
+    RAISE EXCEPTION 'Commercial register document is required for Pro pack';
+  END IF;
+
+  IF p_payment_receipt_url IS NULL THEN
+    RAISE EXCEPTION 'Payment receipt is required for Pro pack';
+  END IF;
+
+  IF p_name IS NULL OR TRIM(p_name) = '' THEN
+    RAISE EXCEPTION 'Store name is required for Pro pack';
+  END IF;
+
+  IF p_logo_url IS NULL THEN
+    RAISE EXCEPTION 'Store logo is required for Pro pack';
+  END IF;
+
+  IF p_banner_url IS NULL THEN
+    RAISE EXCEPTION 'Store banner is required for Pro pack';
+  END IF;
+
+  -- Phase 3: Store Pack and Information Update
+  UPDATE public.stores 
+  SET pack_id = p_pack_id,
+      name = p_name,
+      description = p_description,
+      logo_url = p_logo_url,
+      banner_url = p_banner_url,
+      updated_at = NOW()
+  WHERE id = p_store_id;
+
+  -- Insert new verification documents (NOT id_card - already exists)
+  -- Insert commerce register
+  IF p_commerce_register_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'commerce_register', p_commerce_register_url, 'pending')
+    ON CONFLICT (user_id, verification_type) 
+    DO UPDATE SET document_url = p_commerce_register_url, status = 'pending', updated_at = NOW();
+  END IF;
+
+  -- Insert payment receipt
+  IF p_payment_receipt_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'payment_receipt', p_payment_receipt_url, 'pending')
+    ON CONFLICT (user_id, verification_type) 
+    DO UPDATE SET document_url = p_payment_receipt_url, status = 'pending', updated_at = NOW();
+  END IF;
+
+  -- Insert logo (if not already exists)
+  IF p_logo_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'logo', p_logo_url, 'pending')
+    ON CONFLICT (user_id, verification_type) 
+    DO UPDATE SET document_url = p_logo_url, status = 'pending', updated_at = NOW();
+  END IF;
+
+  -- Insert banner (if not already exists)
+  IF p_banner_url IS NOT NULL THEN
+    INSERT INTO public.verifications (user_id, verification_type, document_url, status)
+    VALUES (p_owner_id, 'banner', p_banner_url, 'pending')
+    ON CONFLICT (user_id, verification_type) 
+    DO UPDATE SET document_url = p_banner_url, status = 'pending', updated_at = NOW();
+  END IF;
+
+  -- Phase 4: Subscription History Update
+  -- Mark old Basic subscription as ended
+  UPDATE public.vendor_subscriptions 
+  SET end_date = NOW(), 
+      status = 'expired',
+      updated_at = NOW()
+  WHERE vendor_id = p_owner_id 
+    AND status = 'active'
+    AND plan_type = 'basic';
+
+  -- Create new Pro subscription
+  INSERT INTO public.vendor_subscriptions (vendor_id, plan_type, start_date, end_date, status)
+  VALUES (p_owner_id, 'pro', NOW(), NULL, 'active');
+
+  -- Phase 6: Notifications
+  -- Create user notification for upgrade
+  INSERT INTO public.notifications (
+    user_id,
+    type,
+    template_key,
+    metadata,
+    link,
+    target_role,
+    is_read,
+    created_at
+  ) VALUES (
+    p_owner_id,
+    'pack_upgraded',
+    'notifications.packUpgraded',
+    jsonb_build_object(
+      'message', format('Your store "%s" has been upgraded to Pro pack', COALESCE(p_name, 'Store')),
+      'store_id', p_store_id,
+      'store_name', COALESCE(p_name, 'Store'),
+      'from_pack', 'basic',
+      'to_pack', 'pro',
+      'upgrade_date', NOW()
+    ),
+    '/subscription',
+    'vendor',
+    FALSE,
+    NOW()
+  );
+
+  return p_store_id;
+end;
+$$;
 
 
 
