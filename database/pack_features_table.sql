@@ -40,8 +40,7 @@ FOR SELECT
 USING (true);
 
 -- Grant necessary permissions
-GRANT SELECT ON public.pack_features TO authenticated;
-GRANT SELECT ON public.pack_features TO anon;
+GRANT ALL ON public.pack_features TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Seed data

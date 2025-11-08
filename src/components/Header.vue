@@ -62,7 +62,24 @@
           <div class="flex items-center space-x-4 sm:space-x-6 space-x-reverse order-1 sm:order-4">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-4 sm:space-x-6 space-x-reverse">
-              <router-link :to="getLocalizedRoutePath('/cart')" class="relative text-neutral-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
+              <!-- Notifications Bell -->
+              <router-link 
+                v-if="authStore.isAuthenticated"
+                :to="getLocalizedRoute('/notifications')" 
+                class="relative text-neutral-700 hover:text-primary transition-all duration-300 hover:scale-110" 
+                title="Notifications"
+              >
+                <i class="fas fa-bell text-xl"></i>
+                <span 
+                  v-if="notificationStore.unreadCount > 0" 
+                  class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-soft px-1"
+                >
+                  {{ notificationStore.unreadCount > 99 ? '99+' : notificationStore.unreadCount }}
+                </span>
+              </router-link>
+              
+              <!-- Cart -->
+              <router-link :to="getLocalizedRoute('/cart')" class="relative text-neutral-700 hover:text-primary transition-all duration-300 hover:scale-110" title="Cart">
                 <i class="fas fa-shopping-cart text-xl"></i>
                 <span v-if="cartStore.totalItems > 0" class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-soft">
                   {{ cartStore.totalItems }}
@@ -129,7 +146,7 @@
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                 </router-link>
-                <router-link :to="getLocalizedRoutePath('/profile')" class="dropdown-item">
+                <router-link :to="getLocalizedRoute('/myaccount')" class="dropdown-item">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                 </router-link>
                 <router-link :to="getLocalizedRoutePath('/wishlist')" class="dropdown-item flex items-center justify-between">
@@ -146,6 +163,9 @@
                 </router-link>
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/mystoreproducts')" class="dropdown-item">
                   <i class="fas fa-clipboard-list mr-3"></i>{{ t('header.myStoreProducts') }}
+                </router-link>
+                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/subscription')" class="dropdown-item">
+                  <i class="fas fa-crown mr-3"></i>{{ t('header.subscription') || 'Subscription' }}
                 </router-link>
                 <button
   v-if="userStoreStatus.store_id"
@@ -200,6 +220,7 @@ import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
 import { useProductStore } from '../stores/useProductStore'
 import { useStoreStore } from '../stores/useStoresStore'
+import { useNotificationStore } from '../stores/useNotificationStore'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 import LoginModal from './LoginModal.vue'
 import Logo from './Logo.vue'
@@ -212,7 +233,7 @@ const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 const productStore = useProductStore()
 const storeStore = useStoreStore()
-const { navigateTo, navigateToPath, getLocalizedRoute, getLocalizedPath } = useLocaleRouter()
+const notificationStore = useNotificationStore()
 
 // Define emits
 const emit = defineEmits(['toggle-admin-sidebar'])
@@ -484,9 +505,15 @@ watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
   if (isAuthenticated) {
     await loadUserStoreStatus()
     await loadVendorRole()
+    // Load notifications when user logs in
+    await notificationStore.fetchNotifications({ limit: 50 })
+    notificationStore.subscribeToNotifications()
   } else {
     userStoreStatus.value = { store_id: null, status: null, can_create: true }
     hasVendorRole.value = false
+    // Clear notifications and unsubscribe when user logs out
+    notificationStore.clearNotifications()
+    notificationStore.unsubscribeFromNotifications()
   }
 }, { immediate: true })
 
@@ -496,9 +523,17 @@ onMounted(async () => {
   await loadVendorRole()
   await fetchAdminRoleForToggle()
   await fetchEmployeeRoleForModeration()
+  
+  // Load notifications if user is authenticated
+  if (authStore.isAuthenticated) {
+    await notificationStore.fetchNotifications({ limit: 50 })
+    notificationStore.subscribeToNotifications()
+  }
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  // Unsubscribe from notifications
+  notificationStore.unsubscribeFromNotifications()
 })
 </script> 

@@ -108,6 +108,14 @@ USING (
 )
 
 -- ================================
+-- Permissions (GRANT statements)
+-- ================================
+-- Grant permissions to service_role for backend operations
+-- This allows backend to access products while RLS policies still apply
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.products TO postgres, anon, authenticated, service_role;
+
+-- ================================
 -- Triggers
 -- ================================
 CREATE TRIGGER set_products_updated_at

@@ -112,10 +112,12 @@ USING (
 );
 
 -- ================================
--- Grants
+-- Permissions (GRANT statements)
 -- ================================
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.seller_shipping TO authenticated;
-GRANT SELECT ON public.seller_shipping TO anon;
+-- Grant permissions to service_role for backend operations
+-- This allows backend to access seller_shipping while RLS policies still apply
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seller_shipping TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Triggers

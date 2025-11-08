@@ -34,6 +34,18 @@
             <p class="text-xs text-gray-500 mt-1">{{ $t('profile.fullNameNote') }}</p>
           </div>
 
+          <!-- Phone Number Field -->
+          <div>
+            <label class="block mb-2 text-sm font-medium text-gray-700">{{ $t('profile.phone') }}</label>
+            <input
+              v-model="phoneNumber"
+              type="tel"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
+              :placeholder="$t('profile.phonePlaceholder')"
+            />
+            <p class="text-xs text-gray-500 mt-1">{{ $t('profile.phoneNote') }}</p>
+          </div>
+
           <!-- Password Update Section -->
           <div class="border-t-2 border-gray-200 pt-6 mt-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('profile.changePassword') }}</h3>
@@ -119,6 +131,7 @@ const router = useRouter()
 // State
 const fullName = ref('')
 const email = ref('')
+const phoneNumber = ref('')
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmNewPassword = ref('')
@@ -150,7 +163,7 @@ const fetchProfile = async () => {
     // Fetch existing profile from database (should exist since auto-created on signup)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('full_name')
+      .select('full_name, phone_num')
       .eq('id', user.id)
       .single()
 
@@ -161,8 +174,13 @@ const fetchProfile = async () => {
       return
     }
 
-    // Prefill the full name input
+    // Prefill the full name and phone number inputs
     fullName.value = profile.full_name || ''
+    phoneNumber.value = profile.phone_num || ''
+    
+    // Clear any previous error messages
+    isError.value = false
+    message.value = ''
   } catch (error) {
     console.error('Error in fetchProfile:', error)
     isError.value = true
@@ -240,28 +258,40 @@ const updateProfile = async () => {
       confirmNewPassword.value = ''
     }
 
-    // Update profile - full_name field
+    // Update profile - full_name and phone_num fields
+    // Prepare update object with only non-empty values
+    const updateData = {}
+    
+    // Always update full_name (can be empty string)
+    updateData.full_name = fullName.value || null
+    
+    // Update phone_num if provided
+    if (phoneNumber.value && phoneNumber.value.trim() !== '') {
+      updateData.phone_num = phoneNumber.value.trim()
+    } else {
+      updateData.phone_num = null
+    }
+
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ 
-        full_name: fullName.value 
-      })
+      .update(updateData)
       .eq('id', user.id)
 
     if (updateError) {
       throw updateError
     }
 
-    // Success message
+    // Success message - ensure it's green
+    isError.value = false
     const successMsg = updatingPassword 
       ? 'Profile and password updated successfully!' 
       : 'Profile updated successfully!'
     message.value = successMsg
     
-    // Clear message after 3 seconds
+    // Clear message after 5 seconds
     setTimeout(() => {
       message.value = ''
-    }, 3000)
+    }, 5000)
 
   } catch (error) {
     console.error('Error updating profile:', error)

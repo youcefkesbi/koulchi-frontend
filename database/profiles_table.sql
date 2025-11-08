@@ -4,7 +4,8 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
-    city TEXT,
+    shipping_address TEXT,
+    phone_num TEXT,
     status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -188,4 +189,3 @@ GRANT EXECUTE ON FUNCTION public.get_all_users_for_admin() TO authenticated;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active';
 
 -- Update existing profiles to have active status if they don't have one
-UPDATE public.profiles SET status = 'active' WHERE status IS NULL;

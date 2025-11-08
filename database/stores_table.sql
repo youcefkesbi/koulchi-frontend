@@ -155,8 +155,13 @@ USING (
 );
 
 
-GRANT SELECT ON public.stores TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.stores TO authenticated;
+-- ================================
+-- Permissions (GRANT statements)
+-- ================================
+-- Grant permissions to service_role for backend operations
+-- This allows backend to access stores while RLS policies still apply
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.stores TO postgres, anon, authenticated, service_role;
 
 -- ================================
 -- Triggers
@@ -793,7 +798,7 @@ BEGIN
         s.updated_at,
         s.owner_id,
         COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
-        COALESCE(p.city, 'Unknown City')::TEXT as owner_city,
+        COALESCE(p.shipping_address, 'Unknown Address')::TEXT as owner_city,
         s.pack_id,
         COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name_en,
         COALESCE(pack.name_ar, 'لا توجد باقة')::TEXT as pack_name_ar,
@@ -991,7 +996,7 @@ BEGIN
         s.pack_id,
         s.external_buttons,
         COALESCE(prof.full_name, 'N/A')::TEXT as owner_name,
-        COALESCE(prof.city, 'N/A')::TEXT as owner_city,
+        COALESCE(prof.shipping_address, 'N/A')::TEXT as owner_city,
         COALESCE(p.name_en, 'N/A')::TEXT as pack_name_en,
         COALESCE(p.name_ar, 'N/A')::TEXT as pack_name_ar,
         COALESCE(p.name_fr, 'N/A')::TEXT as pack_name_fr

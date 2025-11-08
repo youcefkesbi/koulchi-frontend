@@ -26,6 +26,8 @@ import ManageStores from '../views/ManageStores.vue'
 import ManagePacks from '../views/ManagePacks.vue'
 import ManageOrders from '../views/ManageOrders.vue'
 import ManageProducts from '../views/ManageProducts.vue'
+import Notifications from '../views/Notifications.vue'
+import Subscription from '../views/Subscription.vue'
 
 // Supported locales configuration
 const supportedLocales = ['en', 'fr', 'ar']
@@ -35,7 +37,37 @@ const defaultLocale = 'en'
 // Note: Using relative paths (no leading slash) so they inherit the locale param from parent
 const baseRoutes = [
   {
-    path: '',
+    path: '/subscription',
+    name: 'subscription',
+    component: Subscription,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'notifications',
+    component: Notifications,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/users',
+    name: 'users',
+    component: ManageUsers,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admintab',
+    name: 'AdminTab',
+    component: AdminTab,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/productCard',
+    name: 'productCard',
+    component: () => import('../components/ProductCard.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/',
     name: 'Home',
     component: Home
   },
