@@ -727,9 +727,9 @@ const fetchStorePack = async () => {
 
 // Computed properties
 const isProPack = computed(() => {
-  // Use RPC function result if available, otherwise fallback to store data
+  // Use RPC function result - is_pro is now reliable (uses packs.type)
   if (storePackInfo.value) {
-    return storePackInfo.value.is_pro === true || storePackInfo.value.pack_name_en?.toLowerCase().includes('pro')
+    return storePackInfo.value.is_pro === true
   }
   return storeStore.currentStore?.isProPack || false
 })

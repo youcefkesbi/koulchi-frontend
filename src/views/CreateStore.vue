@@ -520,7 +520,8 @@ const fetchPacks = async () => {
 
       return {
         ...pack,
-        features: features
+        features: features,
+        type: pack.type // Include type for Pro/Basic check
       }
     })
 
@@ -572,7 +573,9 @@ const selectedPackData = computed(() => {
 
 const isProPack = computed(() => {
   if (!selectedPackData.value) return false
-  return selectedPackData.value.rawPrice > 0
+  // Check pack type from raw pack data (packs.type column)
+  const rawPack = rawPacks.value.find(p => p.id === selectedPackData.value.id)
+  return rawPack?.type === 'pro'
 })
 
 

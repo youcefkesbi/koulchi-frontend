@@ -17,6 +17,7 @@ import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
+import StoreProfile from '../views/StoreProfile.vue'
 import MyStoreInfos from '../views/MyStoreInfos.vue'
 import NotFound from '../views/NotFound.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
@@ -194,7 +195,13 @@ const baseRoutes = [
     props: true
   },
   {
-    path: 'dashboard/store/create',
+    path: '/store-profile/:id',
+    name: 'StoreProfile',
+    component: StoreProfile,
+    props: true
+  },
+  {
+    path: '/dashboard/store/create',
     name: 'CreateStore',
     component: () => import('../views/CreateStore.vue'),
     meta: { requiresAuth: true }
