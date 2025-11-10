@@ -5,7 +5,7 @@
       <div class="py-4 sm:py-6  h-20">
         <div class="h-10 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
           <!-- Logo -->
-          <router-link :to="getLocalizedRoute('/')" class="group">
+          <router-link :to="getLocalizedRoutePath('/')" class="group">
             <Logo size="large" />
           </router-link>
 
@@ -43,7 +43,7 @@
                 <router-link
                   v-for="category in categories"
                   :key="category.id"
-                  :to="getLocalizedRoute(`/category/${category.id}`)"
+                  :to="getLocalizedRoutePath(`/category/${category.id}`)"
                   @click="categoriesMenuOpen = false"
                   class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-neutral-50 transition-all duration-300 group"
                 >
@@ -143,13 +143,13 @@
                 v-if="userMenuOpen"
                 class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
-                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/dashboard')" class="dropdown-item">
+                <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                 </router-link>
                 <router-link :to="getLocalizedRoute('/myaccount')" class="dropdown-item">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
                 </router-link>
-                <router-link :to="getLocalizedRoute('/wishlist')" class="dropdown-item flex items-center justify-between">
+                <router-link :to="getLocalizedRoutePath('/wishlist')" class="dropdown-item flex items-center justify-between">
                   <div class="flex items-center">
                     <i class="fas fa-heart mr-3"></i>{{ t('wishlist.title') }}
                   </div>
@@ -158,10 +158,10 @@
                     {{ wishlistStore.totalItems }}
                   </span>
                 </router-link>
-                <router-link :to="getLocalizedRoute('/mypurchases')" class="dropdown-item">
+                <router-link :to="getLocalizedRoutePath('/mypurchases')" class="dropdown-item">
                   <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myPurchases') }}
                 </router-link>
-                <router-link v-if="hasApprovedStore" :to="getLocalizedRoute('/mystoreproducts')" class="dropdown-item">
+                <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/mystoreproducts')" class="dropdown-item">
                   <i class="fas fa-clipboard-list mr-3"></i>{{ t('header.myStoreProducts') }}
                 </router-link>
                 <router-link v-if="hasApprovedStore || hasPendingStore" :to="getLocalizedRoute('/subscription')" class="dropdown-item">
@@ -175,7 +175,7 @@
 >
   <i class="fas fa-store mr-3"></i>{{ $t('stores.myStore') }}
 </button>
-                <router-link v-if="isEmployee" :to="getLocalizedRoute('/employee')" class="dropdown-item">
+                <router-link v-if="isEmployee" :to="getLocalizedRoutePath('/employee')" class="dropdown-item">
                   <i class="fas fa-gavel mr-3"></i>{{ t('header.moderation') }}
                 </router-link>
 
@@ -212,7 +212,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 
 import { supabase } from '../lib/supabase'
@@ -249,10 +249,9 @@ const hasVendorRole = ref(false)
 // Admin sidebar state - starts closed by default
 const adminSidebarOpen = ref(false)
 
-// Get localized route path
-const getLocalizedRoute = (path) => {
-  const currentLocale = route.meta.locale || 'en'
-  return getLocalizedPath(path, currentLocale)
+// Get localized route path (using the composable method)
+const getLocalizedRoutePath = (path) => {
+  return getLocalizedPath(path)
 }
 
 // Close dropdown when clicking outside
@@ -425,16 +424,13 @@ const getCategoryName = (categoryId) => {
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
-    router.push({
-      path: getLocalizedRoute('/products'),
-      query: { search: searchQuery.value.trim() }
-    })
+    navigateToPath('/products', { query: { search: searchQuery.value.trim() } })
   }
 }
 
 const handlePostAnnouncement = () => {
   if (authStore.isAuthenticated) {
-    router.push(getLocalizedRoute('/myannouncements/new'))
+    navigateToPath('/myannouncements/new')
   } else {
     showLoginModal.value = true
   }
@@ -447,7 +443,7 @@ const handleLoginClick = () => {
 const handleLogout = async () => {
   try {
     await authStore.logout()
-    router.push(getLocalizedRoute('/'))
+    navigateToPath('/')
   } catch (error) {
     console.error('Logout error:', error)
   }
@@ -495,26 +491,23 @@ const loadUserStoreStatus = async () => {
 
 //Navigate to the store creation page
 const handleSwitchToVendor = () => {
-  router.push(getLocalizedRoute('/dashboard/store/create'))
+  navigateToPath('/dashboard/store/create')
 }
 
 //Navigate to store dashboard (if user has a store)
 const handleGoToStoreDashboard = async () => {
   try {
-    const currentLocale = route.meta?.locale || 'en'
-    
     // Check if user has a store using the optimized status
     if (userStoreStatus.value.store_id) {
-      router.push(`/${currentLocale}/store/${userStoreStatus.value.store_id}`)
+      navigateToPath(`/store/${userStoreStatus.value.store_id}`)
     } else {
       // If no store exists, redirect to create store page
-      router.push(`/${currentLocale}/dashboard/store/create`)
+      navigateToPath('/dashboard/store/create')
     }
   } catch (error) {
     console.error('Error navigating to store dashboard:', error)
     // Fallback to create store page
-    const currentLocale = route.meta?.locale || 'en'
-    router.push(`/${currentLocale}/dashboard/store/create`)
+    navigateToPath('/dashboard/store/create')
   }
 }
 
