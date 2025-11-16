@@ -46,6 +46,131 @@
             <p class="text-xs text-gray-500 mt-1">{{ $t('profile.phoneNote') }}</p>
           </div>
 
+          <!-- Shipping Address -->
+          <div class="md:col-span-2 bg-gray-50 rounded-xl p-4">
+            <div class="flex justify-between items-center mb-4">
+              <label class="block text-sm font-medium text-gray-500">
+                {{ $t('profile.shippingAddress') }}
+              </label>
+              <button
+                v-if="!isEditingAddress"
+                @click="isEditingAddress = true"
+                class="text-primary hover:text-primary-dark text-sm font-medium"
+              >
+                <i class="fas fa-edit mr-1"></i>
+                {{ addressData ? $t('profile.editAddress') : $t('profile.addAddress') }}
+              </button>
+            </div>
+
+            <!-- Display Address -->
+            <div v-if="!isEditingAddress && addressData" class="space-y-2">
+              <p class="text-lg font-semibold text-gray-900">
+                {{ formatAddress(addressData) }}
+              </p>
+            </div>
+            <p v-else-if="!isEditingAddress" class="text-gray-500 italic">
+              {{ $t('profile.notProvided') }}
+            </p>
+
+            <!-- Address Form -->
+            <div v-if="isEditingAddress" class="space-y-4 mt-4">
+              <!-- Wilaya -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ $t('profile.wilaya') }} *
+                </label>
+                <select
+                  v-model="addressForm.wilaya_id"
+                  @change="onWilayaChange"
+                  :disabled="loadingWilayas"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                >
+                  <option value="">{{ $t('profile.selectWilaya') }}</option>
+                  <option
+                    v-for="wilaya in wilayas"
+                    :key="wilaya.id || wilaya.display_id"
+                    :value="wilaya.id || wilaya.display_id"
+                  >
+                    {{ getLocalizedName(wilaya) }}
+                  </option>
+                </select>
+                <p v-if="loadingWilayas" class="text-sm text-gray-500 mt-1">
+                  {{ $t('common.loading') }}...
+                </p>
+              </div>
+
+              <!-- Commune -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ $t('profile.commune') }} *
+                </label>
+                <select
+                  v-model="addressForm.commune_id"
+                  :disabled="!addressForm.wilaya_id || loadingCommunes"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                >
+                  <option value="">{{ $t('profile.selectCommune') }}</option>
+                  <option
+                    v-for="commune in communes"
+                    :key="commune.id || commune.display_id"
+                    :value="commune.id || commune.display_id"
+                  >
+                    {{ getLocalizedName(commune) }}
+                  </option>
+                </select>
+                <p v-if="loadingCommunes" class="text-sm text-gray-500 mt-1">
+                  {{ $t('common.loading') }}...
+                </p>
+                <p v-else-if="!addressForm.wilaya_id" class="text-sm text-gray-500 mt-1">
+                  {{ $t('profile.selectWilayaFirst') }}
+                </p>
+              </div>
+
+              <!-- Street -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ $t('profile.street') }} *
+                </label>
+                <input
+                  v-model="addressForm.street"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  :placeholder="$t('profile.streetPlaceholder')"
+                  required
+                />
+              </div>
+
+              <!-- Postal Code -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ $t('profile.postalCode') }}
+                </label>
+                <input
+                  v-model="addressForm.postal_code"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  :placeholder="$t('profile.postalCodePlaceholder')"
+                />
+              </div>
+
+              <!-- Floor (Optional) -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  {{ $t('profile.floor') }}
+                </label>
+                <input
+                  v-model="addressForm.floor"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  :placeholder="$t('profile.floorPlaceholder')"
+                />
+              </div>
+
+            </div>
+          </div>
+
           <!-- Password Update Section -->
           <div class="border-t-2 border-gray-200 pt-6 mt-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ $t('profile.changePassword') }}</h3>
@@ -122,11 +247,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
 
 const router = useRouter()
+const route = useRoute()
+const { t } = useI18n()
 
 // State
 const fullName = ref('')
@@ -138,6 +266,43 @@ const confirmNewPassword = ref('')
 const message = ref('')
 const loading = ref(false)
 const isError = ref(false)
+
+// Address form state
+const isEditingAddress = ref(false)
+const addressData = ref(null)
+const addressForm = ref({
+  wilaya_id: '',
+  wilaya_name: '',
+  commune_id: '',
+  commune_name: '',
+  street: '',
+  postal_code: '',
+  floor: ''
+})
+
+// Maystro data
+const wilayas = ref([])
+const communes = ref([])
+const loadingWilayas = ref(false)
+const loadingCommunes = ref(false)
+const storeInfo = ref({
+  id: null
+})
+
+// Get current locale
+const currentLocale = computed(() => route.meta?.locale || 'en')
+
+// Helper function to get localized name for wilaya/commune
+const getLocalizedName = (item) => {
+  if (!item) return ''
+  const locale = currentLocale.value
+  if (locale === 'ar') {
+    return item.name_ar || item.name_lt || item.name || ''
+  } else {
+    // For English or French, use name_lt
+    return item.name_lt || item.name || ''
+  }
+}
 
 // Computed properties
 const messageClass = computed(() => {
@@ -163,7 +328,7 @@ const fetchProfile = async () => {
     // Fetch existing profile from database (should exist since auto-created on signup)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('full_name, phone_num')
+      .select('full_name, phone_num, shipping_address')
       .eq('id', user.id)
       .single()
 
@@ -178,6 +343,47 @@ const fetchProfile = async () => {
     fullName.value = profile.full_name || ''
     phoneNumber.value = profile.phone_num || ''
     
+    // Parse shipping address if it exists
+    if (profile.shipping_address) {
+      try {
+        addressData.value = typeof profile.shipping_address === 'string' 
+          ? JSON.parse(profile.shipping_address)
+          : profile.shipping_address
+        
+        // Pre-fill form with existing address
+        addressForm.value = {
+          wilaya_id: addressData.value.wilaya_id || '',
+          wilaya_name: addressData.value.wilaya_name || '',
+          commune_id: addressData.value.commune_id || '',
+          commune_name: addressData.value.commune_name || '',
+          street: addressData.value.street || '',
+          postal_code: addressData.value.postal_code || '',
+          floor: addressData.value.floor || ''
+        }
+      } catch (e) {
+        console.error('Error parsing shipping address:', e)
+        addressData.value = null
+      }
+    } else {
+      addressData.value = null
+    }
+
+    // Fetch store information for wilayas/communes
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('owner_id', user.id)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (storeData) {
+      storeInfo.value = {
+        id: storeData.id
+      }
+    }
+    
     // Clear any previous error messages
     isError.value = false
     message.value = ''
@@ -187,6 +393,168 @@ const fetchProfile = async () => {
     message.value = 'Error loading profile'
   }
 }
+
+// Fetch wilayas from Maystro via backend
+const fetchWilayas = async () => {
+  try {
+    loadingWilayas.value = true
+    
+    // Get current locale for language parameter
+    const locale = route.meta?.locale || 'en'
+    // Map locale to Maystro language codes: 'ar', 'en', 'fr'
+    const language = locale === 'ar' ? 'ar' : locale === 'fr' ? 'fr' : 'en'
+    
+    // Get store ID from storeInfo
+    const storeId = storeInfo.value?.id
+    
+    // Call backend endpoint
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const session = await supabase.auth.getSession()
+    const token = session.data.session?.access_token
+    
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+    
+    const url = new URL(`${apiUrl}/api/maystro/wilayas`)
+    url.searchParams.append('language', language)
+    if (storeId) {
+      url.searchParams.append('storeId', storeId)
+    }
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to fetch wilayas')
+    }
+    
+    const result = await response.json()
+    console.log('=== WILAYAS REQUEST RESPONSE ===')
+    console.log('Response status:', response.status)
+    console.log('Response OK:', response.ok)
+    console.log('Full response:', result)
+    console.log('Wilayas data:', result.data)
+    console.log('Wilayas array length:', result.data?.length || 0)
+    console.log('================================')
+    wilayas.value = result.data || []
+  } catch (err) {
+    console.error('Error fetching wilayas:', err)
+    wilayas.value = []
+  } finally {
+    loadingWilayas.value = false
+  }
+}
+
+// Fetch communes when wilaya is selected via backend
+const onWilayaChange = async () => {
+  if (!addressForm.value.wilaya_id) {
+    communes.value = []
+    addressForm.value.commune_id = ''
+    return
+  }
+
+  try {
+    loadingCommunes.value = true
+    
+    const selectedWilaya = wilayas.value.find(w => (w.id || w.display_id) === parseInt(addressForm.value.wilaya_id))
+    if (selectedWilaya) {
+      addressForm.value.wilaya_name = getLocalizedName(selectedWilaya)
+    }
+
+    // Get current locale for language parameter
+    const locale = route.meta?.locale || 'en'
+    // Map locale to Maystro language codes: 'ar', 'en', 'fr'
+    const language = locale === 'ar' ? 'ar' : locale === 'fr' ? 'fr' : 'en'
+    
+    // Get store ID from storeInfo
+    const storeId = storeInfo.value?.id
+    
+    // Call backend endpoint
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const session = await supabase.auth.getSession()
+    const token = session.data.session?.access_token
+    
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+    
+    const url = new URL(`${apiUrl}/api/maystro/communes`)
+    url.searchParams.append('wilayaId', addressForm.value.wilaya_id.toString())
+    url.searchParams.append('language', language)
+    if (storeId) {
+      url.searchParams.append('storeId', storeId)
+    }
+    
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to fetch communes')
+    }
+    
+    const result = await response.json()
+    console.log('=== COMMUNES REQUEST RESPONSE ===')
+    console.log('Response status:', response.status)
+    console.log('Response OK:', response.ok)
+    console.log('Full response:', result)
+    console.log('Communes data:', result.data)
+    console.log('Communes array length:', result.data?.length || 0)
+    console.log('=================================')
+    communes.value = result.data || []
+    console.log('Fetched communes:', communes.value)
+    addressForm.value.commune_id = '' // Reset commune selection
+  } catch (err) {
+    console.error('Error fetching communes:', err)
+    communes.value = []
+  } finally {
+    loadingCommunes.value = false
+  }
+}
+
+// Watch commune selection to update commune name
+watch(() => addressForm.value.commune_id, (newCommuneId) => {
+  if (newCommuneId) {
+    const selectedCommune = communes.value.find(c => (c.id || c.display_id) === parseInt(newCommuneId))
+    if (selectedCommune) {
+      addressForm.value.commune_name = getLocalizedName(selectedCommune)
+    }
+  }
+})
+
+// Validate address form
+const isAddressFormValid = computed(() => {
+  return !!(
+    addressForm.value.wilaya_id &&
+    addressForm.value.commune_id &&
+    addressForm.value.street?.trim()
+  )
+})
+
+// Format address for display
+const formatAddress = (address) => {
+  if (!address) return ''
+  const parts = []
+  if (address.street) parts.push(address.street)
+  if (address.commune_name) parts.push(address.commune_name)
+  if (address.wilaya_name) parts.push(address.wilaya_name)
+  if (address.postal_code) parts.push(address.postal_code)
+  if (address.floor) parts.push(`(${address.floor})`)
+  return parts.join(', ') || t('profile.notProvided')
+}
+
 
 // Update profile function
 const updateProfile = async () => {
@@ -258,7 +626,7 @@ const updateProfile = async () => {
       confirmNewPassword.value = ''
     }
 
-    // Update profile - full_name and phone_num fields
+    // Update profile - full_name, phone_num, and shipping_address fields
     // Prepare update object with only non-empty values
     const updateData = {}
     
@@ -270,6 +638,30 @@ const updateProfile = async () => {
       updateData.phone_num = phoneNumber.value.trim()
     } else {
       updateData.phone_num = null
+    }
+
+    // Update shipping_address if address form is valid and user is editing address
+    if (isEditingAddress.value && isAddressFormValid.value) {
+      updateData.shipping_address = {
+        wilaya_id: parseInt(addressForm.value.wilaya_id),
+        wilaya_name: addressForm.value.wilaya_name,
+        commune_id: parseInt(addressForm.value.commune_id),
+        commune_name: addressForm.value.commune_name,
+        street: addressForm.value.street.trim(),
+        postal_code: addressForm.value.postal_code?.trim() || null,
+        floor: addressForm.value.floor?.trim() || null
+      }
+      // Update local state and exit edit mode
+      addressData.value = updateData.shipping_address
+      isEditingAddress.value = false
+    } else if (isEditingAddress.value && !isAddressFormValid.value) {
+      // If editing address but form is invalid, show error
+      isError.value = true
+      message.value = 'Please fill in all required address fields (wilaya, commune, street)'
+      return
+    } else if (!isEditingAddress.value && addressData.value) {
+      // If not editing but address exists, keep existing address
+      updateData.shipping_address = addressData.value
     }
 
     const { error: updateError } = await supabase
@@ -303,8 +695,10 @@ const updateProfile = async () => {
 }
 
 // Initialize on mount
-onMounted(() => {
-  fetchProfile()
+onMounted(async () => {
+  await fetchProfile()
+  // Fetch wilayas after profile is loaded so we have storeInfo
+  await fetchWilayas()
 })
 </script>
 

@@ -182,17 +182,29 @@ export const useOrdersStore = defineStore('orders', () => {
       loading.value = true
       error.value = null
       
+      console.log('📦 [OrdersStore] Starting order creation...')
+      console.log('📦 [OrdersStore] Order data received:', orderData)
+      
       await initUser()
-      if (!currentUser.value) throw new Error('User not authenticated')
+      if (!currentUser.value) {
+        console.error('❌ [OrdersStore] User not authenticated')
+        throw new Error('User not authenticated')
+      }
+
+      console.log('✅ [OrdersStore] User authenticated:', currentUser.value.id)
 
       // Create the order first
-      // RLS automatically sets user_id to auth.uid()
+      // Explicitly set user_id to follow database structure (NOT NULL constraint)
       const orderPayload = sanitizeOrderData({
+        user_id: currentUser.value.id,
         total_amount: orderData.total_amount,
         status: ORDER_STATUSES.PENDING,
         shipping_address: orderData.shipping_address,
         notes: orderData.notes
       })
+
+      console.log('📦 [OrdersStore] Order payload prepared:', orderPayload)
+      console.log('📦 [OrdersStore] Inserting order into database...')
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -200,7 +212,27 @@ export const useOrdersStore = defineStore('orders', () => {
         .select()
         .single()
       
-      if (orderError) throw orderError
+      if (orderError) {
+        console.error('❌ [OrdersStore] Error inserting order:', orderError)
+        throw orderError
+      }
+
+      console.log('✅ [OrdersStore] Order inserted into database successfully!', {
+        order_id: order.id,
+        user_id: order.user_id,
+        status: order.status,
+        total_amount: order.total_amount,
+        store_id: order.store_id || 'NULL ⚠️',
+        created_at: order.created_at
+      })
+      
+      // DEBUG: Check if order has store_id
+      if (!order.store_id) {
+        console.warn('⚠️ [OrdersStore] WARNING: Order was created WITHOUT store_id!')
+        console.warn('⚠️ [OrdersStore] This is expected for multi-vendor orders, but may cause issues if filtering by order.store_id')
+      } else {
+        console.log(`✅ [OrdersStore] Order has store_id: ${order.store_id}`)
+      }
 
       // Create order items for each product
       const orderItems = orderData.items.map(item => ({
@@ -211,13 +243,49 @@ export const useOrdersStore = defineStore('orders', () => {
         variant: item.variant || null
       }))
 
+      console.log('📦 [OrdersStore] Order items prepared:', {
+        items_count: orderItems.length,
+        items: orderItems
+      })
+      
+      // DEBUG: Fetch product details to verify store_id
+      console.log('🔍 [OrdersStore] DEBUG: Fetching product details to verify store_id...')
+      const productIds = orderItems.map(item => item.product_id)
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, store_id, seller_id')
+        .in('id', productIds)
+      
+      if (productsError) {
+        console.warn('⚠️ [OrdersStore] Could not fetch product details:', productsError)
+      } else {
+        console.log('🔍 [OrdersStore] DEBUG: Product details:', productsData)
+        productsData.forEach(product => {
+          if (!product.store_id) {
+            console.warn(`⚠️ [OrdersStore] WARNING: Product ${product.name} (${product.id}) has NULL store_id!`)
+          } else {
+            console.log(`✅ [OrdersStore] Product ${product.name} has store_id: ${product.store_id}`)
+          }
+        })
+      }
+      
+      console.log('📦 [OrdersStore] Inserting order items into database...')
+
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems)
       
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        console.error('❌ [OrdersStore] Error inserting order items:', itemsError)
+        throw itemsError
+      }
+
+      console.log('✅ [OrdersStore] Order items inserted into database successfully!', {
+        items_count: orderItems.length
+      })
 
       // Fetch the complete order with items
+      console.log('📦 [OrdersStore] Fetching complete order with items...')
       const { data: completeOrder, error: fetchError } = await supabase
         .from('orders')
         .select(`
@@ -234,18 +302,64 @@ export const useOrdersStore = defineStore('orders', () => {
         .eq('id', order.id)
         .single()
       
-      if (fetchError) throw fetchError
+      if (fetchError) {
+        console.error('❌ [OrdersStore] Error fetching complete order:', fetchError)
+        throw fetchError
+      }
+
+      console.log('✅ [OrdersStore] Complete order fetched successfully!', {
+        order_id: completeOrder.id,
+        order_items_count: completeOrder.order_items?.length || 0,
+        total_amount: completeOrder.total_amount,
+        status: completeOrder.status,
+        store_id: completeOrder.store_id || 'NULL ⚠️'
+      })
+      
+      // DEBUG: Log order store_id
+      console.log('🔍 [OrdersStore] DEBUG: Order store_id analysis:')
+      console.log(`  - Order ID: ${completeOrder.id}`)
+      console.log(`  - Order store_id: ${completeOrder.store_id || 'NULL ⚠️ (Order has no store_id - this is OK for multi-vendor orders)'}`)
+      console.log(`  - Order will be visible in StoreDashboard if ANY product has matching store_id`)
+      
+      // DEBUG: Log product store_ids from the fetched order
+      if (completeOrder.order_items) {
+        console.log('🔍 [OrdersStore] DEBUG: Order items with product store_ids:')
+        completeOrder.order_items.forEach((item, index) => {
+          const product = item.product
+          if (product) {
+            console.log(`  [Item ${index + 1}] Product: ${product.name} (${product.id})`)
+            console.log(`    - store_id: ${product.store_id || 'NULL ⚠️ (Product has no store_id - will NOT appear in StoreDashboard!)'}`)
+            console.log(`    - seller_id: ${product.seller_id || 'NULL'}`)
+            if (!product.store_id) {
+              console.warn(`    ⚠️ WARNING: This product will NOT appear in StoreDashboard because it has NULL store_id!`)
+            }
+          } else {
+            console.warn(`  [Item ${index + 1}] Product data is missing!`)
+          }
+        })
+      }
       
       // Add the new order to the local state
       orders.value.unshift(completeOrder)
       
+      console.log('✅ [OrdersStore] Order added to local state')
+      console.log('✅ [OrdersStore] Order creation completed successfully!')
+      
       return completeOrder
     } catch (err) {
       error.value = err.message
-      console.error('Error creating order:', err)
+      console.error('❌ [OrdersStore] Error creating order:', err)
+      console.error('❌ [OrdersStore] Error details:', {
+        message: err.message,
+        code: err.code,
+        details: err.details,
+        hint: err.hint,
+        stack: err.stack
+      })
       throw err
     } finally {
       loading.value = false
+      console.log('📦 [OrdersStore] Order creation process finished')
     }
   }
 

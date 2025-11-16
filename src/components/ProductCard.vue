@@ -119,6 +119,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
 
@@ -129,6 +130,7 @@ const props = defineProps({
   }
 })
 
+const { t } = useI18n()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
@@ -155,9 +157,9 @@ const isInWishlist = computed(() => {
 })
 
 const getCartButtonText = () => {
-  if (cartLoading.value) return 'جاري الإضافة...'
-  if ((props.product.stock_quantity || 0) <= 0) return 'غير متوفر'
-  return 'أضف للسلة'
+  if (cartLoading.value) return t('product.addingToCart')
+  if ((props.product.stock_quantity || 0) <= 0) return t('product.outOfStock')
+  return t('product.addToCart')
 }
 
 const handleAddToCart = async () => {

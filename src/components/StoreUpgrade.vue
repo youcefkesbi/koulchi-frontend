@@ -336,7 +336,7 @@ const { navigateToPath, getLocalizedPath } = useLocaleRouter()
 
 // Props
 const props = defineProps({
-  storeId: {
+  id: {
     type: String,
     required: true
   }
@@ -436,7 +436,7 @@ const fetchStoreAndPack = async () => {
     const { data: storeData, error: storeError } = await supabase
       .from('stores')
       .select('*, packs(*)')
-      .eq('id', props.storeId)
+      .eq('id', props.id)
       .single()
 
     if (storeError) throw storeError
@@ -525,7 +525,7 @@ const handleSubmit = async () => {
     // Call RPC function
     const { data, error: rpcError } = await supabase
       .rpc('upgrade_store_to_pro', {
-        p_store_id: props.storeId,
+        p_store_id: props.id,
         p_banner_url: upgradeData.banner,
         p_commerce_register_url: upgradeData.commerce_register_url,
         p_description: upgradeData.description,

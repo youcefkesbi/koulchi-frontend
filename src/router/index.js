@@ -29,7 +29,6 @@ import ManageOrders from '../views/ManageOrders.vue'
 import ManageProducts from '../views/ManageProducts.vue'
 import Notifications from '../views/Notifications.vue'
 import Subscription from '../views/Subscription.vue'
-
 // Supported locales configuration
 
 const supportedLocales = ['en', 'fr', 'ar']
@@ -217,6 +216,20 @@ const baseRoutes = [
     component: MyStoreInfos,
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
+  },
+  {
+    path: '/store/:id/upgrade',
+    name: 'StoreUpgrade',
+    component: () => import('../components/StoreUpgrade.vue'),
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/store/:id/downgrade',
+    name: 'StoreDowngrade',
+    component: () => import('../components/StoreDowngrade.vue'),
+    meta: { requiresAuth: true },
+    props: true
   },
   {
     path: '/mypurchases',

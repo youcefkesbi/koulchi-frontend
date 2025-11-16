@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name TEXT,
-    shipping_address TEXT,
+    shipping_address JSONB, -- Changed from TEXT to JSONB to store structured address data
     phone_num TEXT,
     status TEXT CHECK (status IN ('active', 'suspended', 'deleted')) DEFAULT 'active',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

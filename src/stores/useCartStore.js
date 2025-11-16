@@ -18,13 +18,14 @@ export const useCartStore = defineStore('cart', () => {
     items.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   )
   
-  const deliveryFee = computed(() => {
-    // Algerian delivery fees based on wilaya (province)
-    const baseFee = 500 // 500 DZD base delivery fee
-    return baseFee
-  })
+  const deliveryFee = ref(0) // Delivery fee from Maystro API
   
   const total = computed(() => subtotal.value + deliveryFee.value)
+  
+  // Method to set delivery fee
+  const setDeliveryFee = (fee) => {
+    deliveryFee.value = fee || 0
+  }
   
   const hasItems = computed(() => items.value.length > 0)
   
@@ -159,6 +160,7 @@ export const useCartStore = defineStore('cart', () => {
 
       // Fetch cart items with product details using a join
       // RLS policy ensures user can only see items from their own cart
+      // Using explicit foreign key relationship to avoid ambiguity
       console.log('🔍 Fetching cart items for cart:', cartData.id)
       const { data, error: fetchError } = await supabase
         .from('cart_items')
@@ -167,7 +169,7 @@ export const useCartStore = defineStore('cart', () => {
           quantity,
           product_id,
           updated_at,
-          products (
+          products!fk_product_cascade (
             id,
             name,
             price,
@@ -425,34 +427,88 @@ export const useCartStore = defineStore('cart', () => {
     try {
       loading.value = true
       error.value = null
-      console.log('🗑️ Clearing cart...')
+      console.log('🗑️ [CartStore] Clearing cart...')
       
       // Validate active session - required by RLS policies
+      console.log('🔐 [CartStore] Validating session before clearing cart...')
       const user = await validateActiveSession()
+      console.log('✅ [CartStore] Session validated, user ID:', user.id)
+
+      // Double-check session is still valid and refresh if needed
+      let { data: { session }, error: sessionCheckError } = await supabase.auth.getSession()
+      
+      // If session is expired or missing, try to refresh it
+      if (!session || !session.user) {
+        console.warn('⚠️ [CartStore] No session found, attempting to refresh...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError || !refreshData.session) {
+          console.error('❌ [CartStore] Session refresh failed:', refreshError)
+          throw new Error('Session validation failed. Please log in again.')
+        }
+        session = refreshData.session
+        console.log('✅ [CartStore] Session refreshed successfully')
+      } else if (session.expires_at && session.expires_at * 1000 < Date.now() + 60000) {
+        // Session expires in less than 1 minute, refresh it
+        console.warn('⚠️ [CartStore] Session expiring soon, refreshing...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        if (!refreshError && refreshData.session) {
+          session = refreshData.session
+          console.log('✅ [CartStore] Session refreshed proactively')
+        }
+      }
+      
+      if (!session || !session.user) {
+        console.error('❌ [CartStore] Session check failed after refresh:', {
+          sessionCheckError,
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userId: session?.user?.id
+        })
+        throw new Error('Session validation failed. Please log in again.')
+      }
+      
+      console.log('✅ [CartStore] Session confirmed valid:', {
+        userId: session.user.id,
+        expiresAt: new Date(session.expires_at * 1000).toISOString(),
+        accessToken: session.access_token ? 'present' : 'missing'
+      })
 
       // Use the clear_user_cart RPC function - uses auth.uid() automatically
       // RLS policies ensure user can only clear their own cart
-      console.log('🔄 Calling clear_user_cart RPC function...')
+      console.log('🔄 [CartStore] Calling clear_user_cart RPC function...')
       const { data, error: rpcError } = await supabase.rpc('clear_user_cart')
 
       // Log RPC response for debugging
-      console.log('📊 RPC Response - data:', data)
-      console.log('📊 RPC Response - error:', rpcError)
+      console.log('📊 [CartStore] RPC Response - data:', data)
+      console.log('📊 [CartStore] RPC Response - error:', rpcError)
 
       if (rpcError) {
-        console.error('❌ RPC Error:', rpcError)
+        console.error('❌ [CartStore] RPC Error:', rpcError)
+        console.error('❌ [CartStore] RPC Error details:', {
+          code: rpcError.code,
+          message: rpcError.message,
+          details: rpcError.details,
+          hint: rpcError.hint
+        })
         
         // Handle specific RLS and permission errors
-        if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+        if (rpcError.code === '42501' || rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
+          // Try to get current user again to verify session
+          const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser()
+          console.error('🔍 [CartStore] Current user check after RPC error:', {
+            userError,
+            hasUser: !!currentUser,
+            userId: currentUser?.id
+          })
           throw new Error('You do not have permission to modify this cart. Please log in again.')
         }
         if (rpcError.message?.includes('not authenticated')) {
           throw new Error('Please log in to manage cart')
         }
-        throw new Error(rpcError.message)
+        throw new Error(rpcError.message || 'Failed to clear cart')
       }
 
-      console.log('✅ Cart cleared successfully')
+      console.log('✅ [CartStore] Cart cleared successfully')
 
       // Clear local state immediately for UI responsiveness
       items.value = []
@@ -460,7 +516,7 @@ export const useCartStore = defineStore('cart', () => {
 
     } catch (err) {
       error.value = err.message
-      console.error('❌ Error clearing cart:', err)
+      console.error('❌ [CartStore] Error clearing cart:', err)
       throw err
     } finally {
       loading.value = false
@@ -556,6 +612,7 @@ export const useCartStore = defineStore('cart', () => {
     clearCart,
     clearError,
     getCartStats,
-    subscribeToCartChanges
+    subscribeToCartChanges,
+    setDeliveryFee
   }
 })
