@@ -87,26 +87,122 @@
 
       <!-- Actions -->
       <div class="flex space-x-3 space-x-reverse">
-        <button
-          @click="handleAddToCart"
-          :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-          class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
-          :class="(product.stock_quantity || 0) <= 0 
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-            : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
-        >
-          <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
-          <i v-else class="fas fa-spinner fa-spin"></i>
-          <span>{{ getCartButtonText() }}</span>
-        </button>
+        <!-- Owner View: Edit and Delete buttons -->
+        <template v-if="viewState === 'owner'">
+          <button
+            @click="handleEditProduct"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105"
+          >
+            <i class="fas fa-edit"></i>
+            <span>Edit</span>
+          </button>
+          
+          <button
+            @click="handleDeleteProduct"
+            :disabled="productLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i v-if="!productLoading" class="fas fa-trash"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>Delete</span>
+          </button>
+        </template>
         
-        <router-link
-          :to="`/${$i18n.locale.value}/product/${product.id}`"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
-          :title="$t('product.viewProduct')"
-        >
-          <i class="fas fa-eye"></i>
-        </router-link>
+        <!-- Buyer View: Add to Cart, Add to Wishlist, and View buttons -->
+        <template v-else-if="viewState === 'buyer'">
+          <button
+            @click="handleAddToCart"
+            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            :class="(product.stock_quantity || 0) <= 0 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
+          >
+            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>{{ getCartButtonText() }}</span>
+          </button>
+          
+          <button
+            @click="handleToggleWishlist"
+            :disabled="wishlistLoading"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
+          >
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+          </button>
+          
+          <button
+            @click="handleViewProduct"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+        </template>
+        
+        <!-- Guest View: Add to Cart, Add to Wishlist, and View buttons -->
+        <template v-else-if="viewState === 'guest'">
+          <button
+            @click="handleAddToCart"
+            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
+            class="flex-1 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            :class="(product.stock_quantity || 0) <= 0 
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
+          >
+            <i v-if="!cartLoading" class="fas fa-shopping-cart"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+            <span>{{ getCartButtonText() }}</span>
+          </button>
+          
+          <button
+            @click="handleToggleWishlist"
+            :disabled="wishlistLoading"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
+          >
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+          </button>
+          
+          <button
+            @click="handleViewProduct"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            :title="$t('product.viewProduct')"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+        </template>
+      </div>
+
+      <!-- Feedback Messages -->
+      <div v-if="cartFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': cartFeedback.type === 'success',
+             'bg-red-100 text-red-800': cartFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': cartFeedback.type === 'info'
+           }">
+        {{ cartFeedback.message }}
+      </div>
+      
+      <div v-if="wishlistFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': wishlistFeedback.type === 'success',
+             'bg-red-100 text-red-800': wishlistFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': wishlistFeedback.type === 'info'
+           }">
+        {{ wishlistFeedback.message }}
+      </div>
+      
+      <div v-if="productFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+           :class="{
+             'bg-green-100 text-green-800': productFeedback.type === 'success',
+             'bg-red-100 text-red-800': productFeedback.type === 'error',
+             'bg-blue-100 text-blue-800': productFeedback.type === 'info'
+           }">
+        {{ productFeedback.message }}
       </div>
 
       <!-- Error Message -->
@@ -127,6 +223,10 @@ const props = defineProps({
   product: {
     type: Object,
     required: true
+  },
+  showOwnerControls: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -134,9 +234,22 @@ const { t } = useI18n()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 
-// Local state for better UX
-const cartLoading = ref(false)
-const wishlistLoading = ref(false)
+const { 
+  toggleWishlist, 
+  isInWishlist, 
+  loading: wishlistLoading, 
+  feedback: wishlistFeedback 
+} = useWishlist()
+
+const { 
+  deleteProduct, 
+  editProduct, 
+  viewProduct, 
+  loading: productLoading, 
+  feedback: productFeedback 
+} = useProduct()
+
+// Local state
 const error = ref('')
 
 const productImage = computed(() => {
@@ -152,8 +265,26 @@ const formatPrice = (price) => {
   return price.toLocaleString('ar-DZ')
 }
 
-const isInWishlist = computed(() => {
-  return wishlistStore.isInWishlist(props.product.id)
+// isInWishlist is now provided by useWishlist composable
+
+// Authentication and ownership computed properties
+const isAuthenticated = computed(() => !!authStore.user)
+const currentUser = computed(() => authStore.user)
+const isProductOwner = computed(() => {
+  return isAuthenticated.value && 
+         currentUser.value && 
+         props.product.seller_id === currentUser.value.id
+})
+
+// View state logic - determines which buttons to show
+const viewState = computed(() => {
+  if (!isAuthenticated.value) {
+    return 'guest' // Not logged in
+  } else if (isProductOwner.value) {
+    return 'owner' // Logged in and owns the product
+  } else {
+    return 'buyer' // Logged in but doesn't own the product
+  }
 })
 
 const getCartButtonText = () => {
@@ -162,40 +293,31 @@ const getCartButtonText = () => {
   return t('product.addToCart')
 }
 
+// Handler functions using new composables
 const handleAddToCart = async () => {
-  if ((props.product.stock_quantity || 0) <= 0) return
-  
-  try {
-    cartLoading.value = true
-    error.value = ''
-    
-    // Use the cart store method which handles both RPC call and state update
-    await cartStore.addToCart(props.product.id, 1)
-    
-  } catch (err) {
-    console.error('Failed to add to cart:', err)
-    error.value = err.message || 'فشل في إضافة المنتج للسلة'
-  } finally {
-    cartLoading.value = false
+  await addToCart(props.product)
+}
+
+const handleToggleWishlist = async () => {
+  await toggleWishlist(props.product)
+}
+
+const handleEditProduct = () => {
+  editProduct(props.product.id)
+}
+
+const handleDeleteProduct = async () => {
+  const confirmed = confirm('Are you sure you want to delete this product? This action cannot be undone.')
+  if (confirmed) {
+    const success = await deleteProduct(props.product.id)
+    if (success) {
+      emit('product-deleted', props.product.id)
+    }
   }
 }
 
-const toggleWishlist = async () => {
-  try {
-    wishlistLoading.value = true
-    error.value = ''
-    
-    if (isInWishlist.value) {
-      await wishlistStore.removeProductFromWishlist(props.product.id)
-    } else {
-      await wishlistStore.addToWishlist(props.product.id)
-    }
-  } catch (err) {
-    console.error('Failed to toggle wishlist:', err)
-    error.value = err.message || 'فشل في تحديث قائمة الأمنيات'
-  } finally {
-    wishlistLoading.value = false
-  }
+const handleViewProduct = () => {
+  viewProduct(props.product.id)
 }
 
 const handleImageError = (event) => {
@@ -203,15 +325,33 @@ const handleImageError = (event) => {
   event.target.style.display = 'none'
 }
 
-onMounted(async () => {
-  // Fetch wishlist if user is authenticated
-  if (wishlistStore.wishlistItems.length === 0) {
-    try {
-      await wishlistStore.fetchWishlist()
-    } catch (error) {
-      // User might not be authenticated, which is fine
-    }
+// Watch for auth state changes to trigger re-renders
+watch(() => authStore.user, (newUser, oldUser) => {
+  // Force reactivity update when auth state changes
+  nextTick()
+}, { deep: true })
+
+// Watch for viewState changes
+watch(viewState, (newState, oldState) => {
+  // Force reactivity update when view state changes
+  nextTick()
+})
+
+// Listen for global auth state changes
+onMounted(() => {
+  const handleAuthStateChange = (event) => {
+    // Force reactivity update
+    nextTick()
   }
+  
+  window.addEventListener('auth-state-changed', handleAuthStateChange)
+  
+  // Cleanup listener on unmount
+  onUnmounted(() => {
+    window.removeEventListener('auth-state-changed', handleAuthStateChange)
+  })
+  
+  // Wishlist is now handled by the useWishlist composable
 })
 </script>
 

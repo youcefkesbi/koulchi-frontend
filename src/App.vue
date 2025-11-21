@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/useAuthStore'
@@ -35,6 +35,16 @@ const authStore = useAuthStore()
 const { locale } = useI18n()
 const route = useRoute()
 
+// Watch for auth state changes to trigger component re-renders
+watch(() => authStore.user, async (newUser, oldUser) => {
+  // Force re-render of components that depend on auth state
+  await nextTick()
+  
+  // Emit a custom event that components can listen to
+  window.dispatchEvent(new CustomEvent('auth-state-changed', {
+    detail: { user: newUser, isAuthenticated: !!newUser }
+  }))
+}, { deep: true })
 // Admin sidebar state - starts closed by default
 const adminSidebarOpen = ref(false)
 const adminSidebar = ref(null)
@@ -90,11 +100,16 @@ watch(() => route.meta.locale, (newLocale) => {
   }
 }, { immediate: true })
 
-// Initialize auth on mount
-onMounted(() => {
-  authStore.initAuth()
+// Initialize auth on mount with enhanced error handling
+onMounted(async () => {
+  try {
+    await authStore.initAuth()
+  } catch (error) {
+    console.error('Failed to initialize authentication:', error)
+  }
 })
 
+// Cleanup on unmount
 onUnmounted(() => {
   authStore.cleanup()
 })

@@ -1,13 +1,19 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { supabase } from '../lib/supabase.js'
+import { useAuthStore } from './useAuthStore.js'
 
 export const useCartStore = defineStore('cart', () => {
   // State
   const items = ref([])
+  const cartId = ref(null)
+  const isGuest = ref(true)
   const loading = ref(false)
   const error = ref(null)
   const lastUpdated = ref(null)
+
+  // Constants
+  const LOCAL_CART_KEY = 'koulchi_guest_cart'
 
   // Getters
   const totalItems = computed(() => 
@@ -33,16 +39,17 @@ export const useCartStore = defineStore('cart', () => {
     return (productId) => items.value.some(item => item.product_id === productId)
   })
 
+  // Get auth store
+  const authStore = useAuthStore()
+
   /**
    * Validates active Supabase session and ensures user is authenticated
-   * This is required for all cart operations due to RLS policies
    * @returns {Promise<Object>} Authenticated user object
    * @throws {Error} If session is invalid, expired, or user not authenticated
    */
   const validateActiveSession = async () => {
     console.log('🔐 Validating active session for cart operation...')
     
-    // Check for active session first - required by RLS policies
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     
     if (sessionError) {
@@ -55,12 +62,11 @@ export const useCartStore = defineStore('cart', () => {
       throw new Error('Please log in to manage cart')
     }
 
-    // Verify session is not expired - prevents RLS permission denied errors
+    // Verify session is not expired
     const now = Math.floor(Date.now() / 1000)
     if (session.expires_at && session.expires_at < now) {
       console.warn('⏰ Session expired, attempting to refresh...')
       
-      // Try to refresh the session to maintain authentication
       const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
       
       if (refreshError || !refreshData.session) {
@@ -71,7 +77,6 @@ export const useCartStore = defineStore('cart', () => {
       console.log('✅ Session refreshed successfully')
     }
 
-    // Get current user - required for auth.uid() in RLS policies
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError) {
@@ -88,56 +93,60 @@ export const useCartStore = defineStore('cart', () => {
     return user
   }
 
-  // Actions
   /**
-   * Fetches cart items for the authenticated user
-   * Respects RLS policies: only shows items from user's own cart
+   * Loads cart from localStorage for guest users
+   * @returns {Array} Array of cart items
+   */
+  const loadLocalCart = () => {
+    try {
+      const stored = localStorage.getItem(LOCAL_CART_KEY)
+      if (stored) {
+        const localCart = JSON.parse(stored)
+        console.log('📦 Loaded local cart:', localCart.length, 'items')
+        return localCart
+      }
+    } catch (err) {
+      console.error('❌ Error loading local cart:', err)
+    }
+    return []
+  }
+
+  /**
+   * Saves cart to localStorage for guest users
+   * @param {Array} cartItems - Array of cart items to save
+   */
+  const saveLocalCart = (cartItems) => {
+    try {
+      localStorage.setItem(LOCAL_CART_KEY, JSON.stringify(cartItems))
+      console.log('💾 Saved local cart:', cartItems.length, 'items')
+    } catch (err) {
+      console.error('❌ Error saving local cart:', err)
+    }
+  }
+
+  /**
+   * Clears localStorage cart
+   */
+  const clearLocalCart = () => {
+    try {
+      localStorage.removeItem(LOCAL_CART_KEY)
+      console.log('🗑️ Cleared local cart')
+    } catch (err) {
+      console.error('❌ Error clearing local cart:', err)
+    }
+  }
+
+  /**
+   * Fetches cart items from Supabase for authenticated users
    * @returns {Promise<void>}
    */
-  const fetchCartItems = async () => {
+  const fetchSupabaseCart = async () => {
     try {
-      loading.value = true
-      error.value = null
-      console.log('🛒 Fetching cart items...')
+      console.log('🛒 Fetching cart from Supabase...')
       
-      // Check for active session (graceful for loading)
-      // RLS policies require authentication to access cart_items
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError || !session || !session.user) {
-        console.log('ℹ️ No active session, clearing cart items')
-        items.value = []
-        return
-      }
+      const user = await validateActiveSession()
 
-      // Verify session is not expired to prevent RLS permission denied
-      const now = Math.floor(Date.now() / 1000)
-      if (session.expires_at && session.expires_at < now) {
-        console.warn('⏰ Session expired, attempting to refresh...')
-        
-        // Try to refresh the session
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-        
-        if (refreshError || !refreshData.session) {
-          console.warn('❌ Session refresh failed, clearing cart')
-          items.value = []
-          return
-        }
-        
-        console.log('✅ Session refreshed successfully')
-      }
-
-      // Get current user - required for RLS policy evaluation
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      if (userError || !user) {
-        console.log('ℹ️ No user found, clearing cart items')
-        items.value = []
-        return
-      }
-
-      // First, get the user's cart ID - RLS policy ensures user can only access their own cart
-      console.log('🔍 Looking up cart for user:', user.id)
+      // Get the user's cart ID
       const { data: cartData, error: cartError } = await supabase
         .from('cart')
         .select('id, created_at, updated_at')
@@ -150,13 +159,14 @@ export const useCartStore = defineStore('cart', () => {
       }
 
       if (!cartData) {
-        // User has no cart yet, return empty items
         console.log('ℹ️ No cart found for user, returning empty items')
         items.value = []
+        cartId.value = null
         return
       }
 
       console.log('✅ Found cart:', cartData.id)
+      cartId.value = cartData.id
 
       // Fetch cart items with product details using a join
       // RLS policy ensures user can only see items from their own cart
@@ -188,7 +198,6 @@ export const useCartStore = defineStore('cart', () => {
       console.log('✅ Fetched cart items:', data?.length || 0)
 
       // Map the data to match the expected format
-      // Includes all fields from database schema: id, product_id, quantity, updated_at
       items.value = (data || []).map(item => ({
         id: item.id,
         product_id: item.product_id,
@@ -200,36 +209,106 @@ export const useCartStore = defineStore('cart', () => {
         updated_at: item.updated_at
       }))
 
-      // Update last updated timestamp
       lastUpdated.value = new Date().toISOString()
       console.log('✅ Cart items loaded successfully')
 
     } catch (err) {
       error.value = err.message
-      console.error('Error fetching cart items:', err)
+      console.error('❌ Error fetching Supabase cart:', err)
       items.value = []
+      cartId.value = null
+    }
+  }
+
+  /**
+   * Fetches cart items from localStorage for guest users
+   * @returns {Promise<void>}
+   */
+  const fetchLocalCart = async () => {
+    try {
+      console.log('🛒 Fetching local cart...')
+      
+      const localCart = loadLocalCart()
+      
+      if (localCart.length === 0) {
+        items.value = []
+        return
+      }
+
+      // Fetch product details for local cart items
+      const productIds = localCart.map(item => item.product_id)
+      const { data: products, error: productError } = await supabase
+        .from('products')
+        .select('id, name, price, image_urls, seller_id')
+        .in('id', productIds)
+
+      if (productError) {
+        console.error('❌ Error fetching products for local cart:', productError)
+        items.value = []
+        return
+      }
+
+      // Map local cart items with product details
+      items.value = localCart.map(item => {
+        const product = products.find(p => p.id === item.product_id)
+        return {
+          id: item.id || `local_${item.product_id}`,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          name: product?.name || 'Unknown Product',
+          price: product?.price || 0,
+          image: product?.image_urls?.[0] || '',
+          seller_id: product?.seller_id,
+          updated_at: item.updated_at || new Date().toISOString()
+        }
+      })
+
+      lastUpdated.value = new Date().toISOString()
+      console.log('✅ Local cart loaded successfully')
+
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error fetching local cart:', err)
+      items.value = []
+    }
+  }
+
+  /**
+   * Main fetch cart method - determines whether to use Supabase or localStorage
+   * @returns {Promise<void>}
+   */
+  const fetchCart = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (authStore.isAuthenticated) {
+        isGuest.value = false
+        await fetchSupabaseCart()
+      } else {
+        isGuest.value = true
+        await fetchLocalCart()
+      }
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error fetching cart:', err)
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * Adds a product to the user's cart using the add_to_cart RPC function
-   * Respects RLS policies: only allows adding to user's own cart
+   * Adds a product to the cart using Supabase RPC function
    * @param {string} productId - UUID of the product to add
    * @param {number} quantity - Quantity to add (default: 1)
    * @returns {Promise<void>}
    */
-  const addToCart = async (productId, quantity = 1) => {
+  const addToSupabaseCart = async (productId, quantity = 1) => {
     try {
-      loading.value = true
-      error.value = null
-      console.log('➕ Adding to cart:', { productId, quantity })
+      console.log('➕ Adding to Supabase cart:', { productId, quantity })
       
-      // Validate active session - required by RLS policies
       const user = await validateActiveSession()
 
-      // Validate inputs
       if (!productId) {
         throw new Error('Product ID is required')
       }
@@ -238,22 +317,15 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error('Quantity must be at least 1')
       }
 
-      // Call the Supabase RPC function - uses auth.uid() automatically
-      // RLS policies ensure user can only modify their own cart
-      console.log('🔄 Calling add_to_cart RPC function...')
+      // Call the Supabase RPC function
       const { data, error: rpcError } = await supabase.rpc('add_to_cart', {
         p_product_id: productId,
         p_quantity: quantity
       })
 
-      // Log RPC response for debugging
-      console.log('📊 RPC Response - data:', data)
-      console.log('📊 RPC Response - error:', rpcError)
-
       if (rpcError) {
         console.error('❌ RPC Error:', rpcError)
         
-        // Handle specific RLS and permission errors
         if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
           throw new Error('You do not have permission to modify this cart. Please log in again.')
         }
@@ -266,11 +338,68 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error(rpcError.message)
       }
 
-      console.log('✅ Item added to cart successfully')
+      console.log('✅ Item added to Supabase cart successfully')
+      await fetchCart() // Refresh cart after successful addition
 
-      // Refresh cart items after successful addition to update UI
-      await fetchCartItems()
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error adding to Supabase cart:', err)
+      throw err
+    }
+  }
 
+  /**
+   * Adds a product to the local cart
+   * @param {string} productId - UUID of the product to add
+   * @param {number} quantity - Quantity to add (default: 1)
+   * @returns {Promise<void>}
+   */
+  const addToLocalCart = async (productId, quantity = 1) => {
+    try {
+      console.log('➕ Adding to local cart:', { productId, quantity })
+      
+      const localCart = loadLocalCart()
+      const existingItem = localCart.find(item => item.product_id === productId)
+      
+      if (existingItem) {
+        existingItem.quantity += quantity
+        console.log('📈 Updated existing item quantity:', existingItem.quantity)
+      } else {
+        localCart.push({
+          id: `local_${productId}_${Date.now()}`,
+          product_id: productId,
+          quantity,
+          updated_at: new Date().toISOString()
+        })
+        console.log('➕ Added new item to local cart')
+      }
+      
+      saveLocalCart(localCart)
+      await fetchCart() // Refresh cart to get product details
+
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error adding to local cart:', err)
+      throw err
+    }
+  }
+
+  /**
+   * Main add to cart method - determines whether to use Supabase or localStorage
+   * @param {string} productId - UUID of the product to add
+   * @param {number} quantity - Quantity to add (default: 1)
+   * @returns {Promise<void>}
+   */
+  const addToCart = async (productId, quantity = 1) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (authStore.isAuthenticated) {
+        await addToSupabaseCart(productId, quantity)
+      } else {
+        await addToLocalCart(productId, quantity)
+      }
     } catch (err) {
       error.value = err.message
       console.error('❌ Error adding to cart:', err)
@@ -281,40 +410,29 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   /**
-   * Removes a product from the user's cart using the decrease_or_remove_row RPC function
-   * Respects RLS policies: only allows removing from user's own cart
+   * Removes a product from Supabase cart using RPC function
    * @param {string} productId - UUID of the product to remove
    * @returns {Promise<void>}
    */
-  const removeFromCart = async (productId) => {
+  const removeFromSupabaseCart = async (productId) => {
     try {
-      loading.value = true
-      error.value = null
-      console.log('➖ Removing from cart:', { productId })
+      console.log('➖ Removing from Supabase cart:', { productId })
       
-      // Validate active session - required by RLS policies
       const user = await validateActiveSession()
 
       if (!productId) {
         throw new Error('Product ID is required')
       }
 
-      // Call the Supabase RPC function - uses auth.uid() automatically
-      // RLS policies ensure user can only modify their own cart
-      console.log('🔄 Calling decrease_or_remove_row RPC function...')
+      // Call the Supabase RPC function
       const { data, error: rpcError } = await supabase.rpc('decrease_or_remove_row', {
         p_product_id: productId,
         p_quantity: 1
       })
 
-      // Log RPC response for debugging
-      console.log('📊 RPC Response - data:', data)
-      console.log('📊 RPC Response - error:', rpcError)
-
       if (rpcError) {
         console.error('❌ RPC Error:', rpcError)
         
-        // Handle specific RLS and permission errors
         if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
           throw new Error('You do not have permission to modify this cart. Please log in again.')
         }
@@ -324,11 +442,52 @@ export const useCartStore = defineStore('cart', () => {
         throw new Error(rpcError.message)
       }
 
-      console.log('✅ Item removed from cart successfully')
+      console.log('✅ Item removed from Supabase cart successfully')
+      await fetchCart() // Refresh cart after successful removal
 
-      // Refresh cart items after successful removal to update UI
-      await fetchCartItems()
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error removing from Supabase cart:', err)
+      throw err
+    }
+  }
 
+  /**
+   * Removes a product from local cart
+   * @param {string} productId - UUID of the product to remove
+   * @returns {Promise<void>}
+   */
+  const removeFromLocalCart = async (productId) => {
+    try {
+      console.log('➖ Removing from local cart:', { productId })
+      
+      const localCart = loadLocalCart()
+      const filteredCart = localCart.filter(item => item.product_id !== productId)
+      saveLocalCart(filteredCart)
+      await fetchCart() // Refresh cart
+
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error removing from local cart:', err)
+      throw err
+    }
+  }
+
+  /**
+   * Main remove from cart method - determines whether to use Supabase or localStorage
+   * @param {string} productId - UUID of the product to remove
+   * @returns {Promise<void>}
+   */
+  const removeFromCart = async (productId) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (authStore.isAuthenticated) {
+        await removeFromSupabaseCart(productId)
+      } else {
+        await removeFromLocalCart(productId)
+      }
     } catch (err) {
       error.value = err.message
       console.error('❌ Error removing from cart:', err)
@@ -339,26 +498,20 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   /**
-   * Updates the quantity of a product in the user's cart
-   * Uses RPC functions to ensure RLS policy compliance
+   * Updates quantity in Supabase cart
    * @param {string} productId - UUID of the product to update
    * @param {number} quantity - New quantity (0 removes the item)
    * @returns {Promise<void>}
    */
-  const updateQuantity = async (productId, quantity) => {
+  const updateSupabaseQuantity = async (productId, quantity) => {
     try {
-      console.log('🔄 Updating quantity:', { productId, quantity })
+      console.log('🔄 Updating Supabase cart quantity:', { productId, quantity })
       
       if (quantity <= 0) {
-        // Remove item if quantity is 0 or negative
-        await removeFromCart(productId)
+        await removeFromSupabaseCart(productId)
         return
       }
 
-      loading.value = true
-      error.value = null
-      
-      // Validate active session - required by RLS policies
       const user = await validateActiveSession()
 
       if (!productId) {
@@ -372,28 +525,20 @@ export const useCartStore = defineStore('cart', () => {
       }
 
       const quantityDifference = quantity - currentItem.quantity
-      console.log('📊 Quantity difference:', quantityDifference)
 
       if (quantityDifference > 0) {
-        // Add the difference using addToCart (which handles RLS)
-        console.log('➕ Adding quantity difference:', quantityDifference)
-        await addToCart(productId, quantityDifference)
+        // Add the difference
+        await addToSupabaseCart(productId, quantityDifference)
       } else if (quantityDifference < 0) {
-        // Remove the difference using RPC function (respects RLS)
-        console.log('➖ Removing quantity difference:', Math.abs(quantityDifference))
+        // Remove the difference
         const { data, error: rpcError } = await supabase.rpc('decrease_or_remove_row', {
           p_product_id: productId,
           p_quantity: Math.abs(quantityDifference)
         })
 
-        // Log RPC response for debugging
-        console.log('📊 RPC Response - data:', data)
-        console.log('📊 RPC Response - error:', rpcError)
-
         if (rpcError) {
           console.error('❌ RPC Error:', rpcError)
           
-          // Handle specific RLS and permission errors
           if (rpcError.message?.includes('permission denied') || rpcError.message?.includes('RLS')) {
             throw new Error('You do not have permission to modify this cart. Please log in again.')
           }
@@ -403,12 +548,64 @@ export const useCartStore = defineStore('cart', () => {
           throw new Error(rpcError.message)
         }
 
-        console.log('✅ Quantity updated successfully')
-
-        // Refresh cart items to update UI
-        await fetchCartItems()
+        await fetchCart() // Refresh cart
       }
 
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error updating Supabase cart quantity:', err)
+      throw err
+    }
+  }
+
+  /**
+   * Updates quantity in local cart
+   * @param {string} productId - UUID of the product to update
+   * @param {number} quantity - New quantity (0 removes the item)
+   * @returns {Promise<void>}
+   */
+  const updateLocalQuantity = async (productId, quantity) => {
+    try {
+      console.log('🔄 Updating local cart quantity:', { productId, quantity })
+      
+      if (quantity <= 0) {
+        await removeFromLocalCart(productId)
+        return
+      }
+
+      const localCart = loadLocalCart()
+      const item = localCart.find(item => item.product_id === productId)
+      
+      if (item) {
+        item.quantity = quantity
+        item.updated_at = new Date().toISOString()
+        saveLocalCart(localCart)
+        await fetchCart() // Refresh cart
+      }
+
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error updating local cart quantity:', err)
+      throw err
+    }
+  }
+
+  /**
+   * Main update quantity method - determines whether to use Supabase or localStorage
+   * @param {string} productId - UUID of the product to update
+   * @param {number} quantity - New quantity (0 removes the item)
+   * @returns {Promise<void>}
+   */
+  const updateQuantity = async (productId, quantity) => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (authStore.isAuthenticated) {
+        await updateSupabaseQuantity(productId, quantity)
+      } else {
+        await updateLocalQuantity(productId, quantity)
+      }
     } catch (err) {
       error.value = err.message
       console.error('❌ Error updating quantity:', err)
@@ -419,11 +616,10 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   /**
-   * Clears all items from the user's cart using the clear_user_cart RPC function
-   * Respects RLS policies: only allows clearing user's own cart
+   * Clears Supabase cart using RPC function
    * @returns {Promise<void>}
    */
-  const clearCart = async () => {
+  const clearSupabaseCart = async () => {
     try {
       loading.value = true
       error.value = null
@@ -510,7 +706,22 @@ export const useCartStore = defineStore('cart', () => {
 
       console.log('✅ [CartStore] Cart cleared successfully')
 
-      // Clear local state immediately for UI responsiveness
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error clearing Supabase cart:', err)
+      throw err
+    }
+  }
+
+  /**
+   * Clears local cart
+   * @returns {Promise<void>}
+   */
+  const clearLocalCartData = async () => {
+    try {
+      console.log('🗑️ Clearing local cart...')
+      
+      clearLocalCart()
       items.value = []
       lastUpdated.value = new Date().toISOString()
 
@@ -523,11 +734,58 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  /**
+   * Syncs local cart to Supabase when user logs in
+   * @returns {Promise<void>}
+   */
+  const syncLocalCart = async () => {
+    try {
+      console.log('🔄 Syncing local cart to Supabase...')
+      
+      const localCart = loadLocalCart()
+      
+      if (localCart.length === 0) {
+        console.log('ℹ️ No local cart items to sync')
+        return
+      }
+
+      loading.value = true
+      error.value = null
+
+      // Add each local cart item to Supabase using the RPC function
+      for (const item of localCart) {
+        try {
+          await addToSupabaseCart(item.product_id, item.quantity)
+          console.log(`✅ Synced item: ${item.product_id} (qty: ${item.quantity})`)
+        } catch (itemError) {
+          console.error(`❌ Failed to sync item ${item.product_id}:`, itemError)
+          // Continue with other items even if one fails
+        }
+      }
+
+      // Clear local cart after successful sync
+      clearLocalCart()
+      console.log('✅ Local cart synced successfully')
+
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error syncing local cart:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Clears error state
+   */
   const clearError = () => {
     error.value = null
   }
 
-  // Get cart statistics
+  /**
+   * Get cart statistics
+   */
   const getCartStats = () => {
     return {
       totalItems: totalItems.value,
@@ -535,63 +793,44 @@ export const useCartStore = defineStore('cart', () => {
       deliveryFee: deliveryFee.value,
       total: total.value,
       itemCount: items.value.length,
-      lastUpdated: lastUpdated.value
+      lastUpdated: lastUpdated.value,
+      isGuest: isGuest.value,
+      cartId: cartId.value
     }
   }
 
-  /**
-   * Subscribes to real-time cart changes for the authenticated user
-   * Respects RLS policies: only receives changes for user's own cart
-   * @returns {Object|null} Subscription object or null if failed
-   */
-  const subscribeToCartChanges = () => {
-    try {
-      console.log('🔔 Setting up real-time cart subscription...')
-      
-      // Subscribe to cart_items changes for the current user
-      // RLS policies ensure user only receives changes for their own cart
-      const subscription = supabase
-        .channel('cart_changes')
-        .on('postgres_changes', 
-          { 
-            event: '*', 
-            schema: 'public', 
-            table: 'cart_items' 
-          }, 
-          (payload) => {
-            console.log('🔄 Cart change detected:', payload)
-            console.log('📊 Change details:', {
-              eventType: payload.eventType,
-              table: payload.table,
-              schema: payload.schema,
-              new: payload.new,
-              old: payload.old
-            })
-            
-            // Refresh cart items when changes are detected
-            // This ensures UI stays in sync with database changes
-            fetchCartItems()
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 Subscription status:', status)
-          if (status === 'SUBSCRIBED') {
-            console.log('✅ Real-time cart subscription active')
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('❌ Real-time subscription error')
-          }
-        })
-
-      return subscription
-    } catch (error) {
-      console.error('❌ Error subscribing to cart changes:', error)
-      return null
+  // Watch for authentication state changes
+  watch(() => authStore.isAuthenticated, async (isAuthenticated, wasAuthenticated) => {
+    console.log('🔄 Auth state changed:', { isAuthenticated, wasAuthenticated })
+    
+    if (isAuthenticated && !wasAuthenticated) {
+      // User just logged in - sync local cart and fetch Supabase cart
+      console.log('👤 User logged in, syncing local cart...')
+      try {
+        await syncLocalCart()
+        await fetchCart()
+      } catch (err) {
+        console.error('❌ Error during login sync:', err)
+      }
+    } else if (!isAuthenticated && wasAuthenticated) {
+      // User just logged out - clear cart and fetch local cart
+      console.log('👤 User logged out, switching to local cart...')
+      try {
+        items.value = []
+        cartId.value = null
+        isGuest.value = true
+        await fetchCart()
+      } catch (err) {
+        console.error('❌ Error during logout:', err)
+      }
     }
-  }
+  })
 
   return {
     // State
     items,
+    cartId,
+    isGuest,
     loading,
     error,
     lastUpdated,
@@ -605,11 +844,12 @@ export const useCartStore = defineStore('cart', () => {
     isProductInCart,
     
     // Actions
-    fetchCartItems,
+    fetchCart,
     addToCart,
     removeFromCart,
     updateQuantity,
     clearCart,
+    syncLocalCart,
     clearError,
     getCartStats,
     subscribeToCartChanges,

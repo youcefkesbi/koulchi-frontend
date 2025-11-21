@@ -12,9 +12,11 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const { t: $t } = useI18n()
 const router = useRouter()
+const { navigateToPath } = useLocaleRouter()
 
 // Redirect to /admintab on component mount
 onMounted(() => {
@@ -22,7 +24,7 @@ onMounted(() => {
   const currentLocale = router.currentRoute.value.meta.locale || 'en'
   
   // Redirect to the admintab route with the current locale
-  router.push(`/${currentLocale}/admintab`)
+  navigateToPath('/admintab')
 })
 </script>
 

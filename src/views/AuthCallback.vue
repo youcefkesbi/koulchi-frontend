@@ -52,12 +52,14 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import { oauthProviderNames, oauthErrorMessages } from '../config/oauth'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const { navigateToPath } = useLocaleRouter()
 const loading = ref(true)
 const error = ref(null)
 const oauthProvider = ref('your account')
@@ -86,7 +88,7 @@ onMounted(async () => {
       
       // Redirect to home page after successful authentication
       setTimeout(() => {
-        router.push('/')
+        navigateToPath('/')
       }, 1500)
     } else {
       throw new Error('No session found after OAuth callback')
