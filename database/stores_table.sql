@@ -197,6 +197,9 @@ declare
   user_roles text[];
   pack_max_announcements integer;
   pack_max_images integer;
+  pack_name_en_val text;
+  pack_name_ar_val text;
+  pack_name_fr_val text;
 begin
   -- Debug: Check current user and roles
   current_user_id := auth.uid();
@@ -219,7 +222,8 @@ begin
   end if;
 
   -- Get pack type and details (Phase 1: Pre-Upgrade Validation)
-  SELECT p.type, p.max_announcements, p.max_images INTO pack_type_val, pack_max_announcements, pack_max_images
+  SELECT p.type, p.max_announcements, p.max_images, p.name_en, p.name_ar, p.name_fr 
+  INTO pack_type_val, pack_max_announcements, pack_max_images, pack_name_en_val, pack_name_ar_val, pack_name_fr_val
   FROM public.packs p
   WHERE p.id = p_pack_id AND p.is_active = true;
 
@@ -308,10 +312,13 @@ begin
     'store_created',
     'notifications.storeCreated',
     jsonb_build_object(
-      'message', format('Your store "%s" has been created successfully', COALESCE(p_name, 'New Store')),
+      'message', format('Your store "%s" has been created successfully. Status: pending.', COALESCE(p_name, 'New Store')),
       'store_id', new_id,
       'store_name', COALESCE(p_name, 'New Store'),
-      'store_status', 'pending'
+      'store_status', 'pending',
+      'pack_name_en', COALESCE(pack_name_en_val, 'Basic Plan'),
+      'pack_name_ar', COALESCE(pack_name_ar_val, pack_name_en_val, 'Basic Plan'),
+      'pack_name_fr', COALESCE(pack_name_fr_val, pack_name_en_val, 'Basic Plan')
     ),
     '/subscription',
     'vendor',
@@ -839,7 +846,11 @@ BEGIN
         s.updated_at,
         s.owner_id,
         COALESCE(p.full_name, 'Unknown Owner')::TEXT as owner_name,
-        COALESCE(p.shipping_address, 'Unknown Address')::TEXT as owner_city,
+        COALESCE(
+            p.shipping_address->>'commune_name',
+            p.shipping_address->>'wilaya_name',
+            'Unknown Address'
+        )::TEXT as owner_city,
         s.pack_id,
         COALESCE(pack.name_en, 'No Pack')::TEXT as pack_name_en,
         COALESCE(pack.name_ar, 'لا توجد باقة')::TEXT as pack_name_ar,
@@ -1005,7 +1016,13 @@ RETURNS TABLE (
     owner_city text, 
     pack_name_en text, 
     pack_name_ar text, 
-    pack_name_fr text
+    pack_name_fr text,
+    id_document_url text,
+    id_document_id uuid,
+    commerce_register_url text,
+    commerce_register_id uuid,
+    payment_receipt_url text,
+    payment_receipt_id uuid
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -1032,13 +1049,26 @@ BEGIN
         s.pack_id,
         s.external_buttons,
         COALESCE(prof.full_name, 'N/A')::TEXT as owner_name,
-        COALESCE(prof.shipping_address, 'N/A')::TEXT as owner_city,
+        COALESCE(
+            prof.shipping_address->>'commune_name',
+            prof.shipping_address->>'wilaya_name',
+            'N/A'
+        )::TEXT as owner_city,
         COALESCE(p.name_en, 'N/A')::TEXT as pack_name_en,
         COALESCE(p.name_ar, 'N/A')::TEXT as pack_name_ar,
-        COALESCE(p.name_fr, 'N/A')::TEXT as pack_name_fr
+        COALESCE(p.name_fr, 'N/A')::TEXT as pack_name_fr,
+        id_card_ver.document_url::TEXT as id_document_url,
+        id_card_ver.id as id_document_id,
+        commerce_ver.document_url::TEXT as commerce_register_url,
+        commerce_ver.id as commerce_register_id,
+        payment_ver.document_url::TEXT as payment_receipt_url,
+        payment_ver.id as payment_receipt_id
     FROM public.stores s
     LEFT JOIN public.profiles prof ON s.owner_id = prof.id
     LEFT JOIN public.packs p ON s.pack_id = p.id
+    LEFT JOIN public.verifications id_card_ver ON s.owner_id = id_card_ver.user_id AND id_card_ver.verification_type = 'id_card'
+    LEFT JOIN public.verifications commerce_ver ON s.owner_id = commerce_ver.user_id AND commerce_ver.verification_type = 'commerce_register'
+    LEFT JOIN public.verifications payment_ver ON s.owner_id = payment_ver.user_id AND payment_ver.verification_type = 'payment_receipt'
     WHERE (
         CASE 
             WHEN pack_type = 'basic' THEN 
@@ -1239,6 +1269,152 @@ begin
       'from_pack', 'basic',
       'to_pack', 'pro',
       'upgrade_date', NOW()
+    ),
+    '/subscription',
+    'vendor',
+    FALSE,
+    NOW()
+  );
+
+  return p_store_id;
+end;
+$$;
+
+-- DOWNGRADE STORE TO BASIC PACK
+-- ================================
+-- RPC function to downgrade a Pro Pack store to Basic Pack
+-- Follows the same pattern as upgrade_store_to_pro but for downgrades
+create or replace function downgrade_store_to_basic(
+  p_store_id uuid,
+  p_owner_id uuid,
+  p_pack_id uuid
+) returns uuid
+language plpgsql security definer as $$
+declare
+  current_user_id uuid;
+  user_roles text[];
+  store_record record;
+  pack_type_val text;
+  is_basic_pack boolean := false;
+  old_subscription_id uuid;
+  plan_type_val text;
+  basic_max_announcements integer;
+  basic_max_images integer;
+  grandfathered_products_count integer;
+begin
+  -- Debug: Check current user and roles
+  current_user_id := auth.uid();
+  RAISE NOTICE 'downgrade_store_to_basic called with p_owner_id: %, current_user_id: %, p_store_id: %', p_owner_id, current_user_id, p_store_id;
+  
+  -- Check if p_owner_id matches current user
+  IF p_owner_id != current_user_id THEN
+    RAISE EXCEPTION 'Owner ID does not match authenticated user';
+  END IF;
+  
+  -- Get user roles for debugging
+  SELECT ARRAY_AGG(role) INTO user_roles
+  FROM public.user_roles 
+  WHERE user_id = current_user_id;
+  
+  RAISE NOTICE 'User roles: %', user_roles;
+  
+  -- Check if user has vendor role
+  IF NOT public.has_role(current_user_id, 'vendor') THEN
+    RAISE EXCEPTION 'User does not have permission to downgrade stores. Required role: vendor';
+  END IF;
+
+  -- Phase 1: Pre-Downgrade Validation
+  -- Verify store exists, belongs to user, is approved, and is Pro pack
+  SELECT s.id, s.pack_id, s.status, s.owner_id, s.current_announcements, s.current_images, p.type as pack_type
+  INTO store_record
+  FROM public.stores s
+  LEFT JOIN public.packs p ON p.id = s.pack_id
+  WHERE s.id = p_store_id AND s.owner_id = p_owner_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Store not found or does not belong to user';
+  END IF;
+
+  IF store_record.status != 'approved' THEN
+    RAISE EXCEPTION 'Store must be approved before downgrading';
+  END IF;
+
+  -- Verify current pack is Pro (not Basic)
+  IF store_record.pack_type != 'pro' THEN
+    RAISE EXCEPTION 'Store is not on Pro pack. Cannot downgrade.';
+  END IF;
+
+  -- Get Basic Pack details
+  SELECT p.type, p.max_announcements, p.max_images INTO pack_type_val, basic_max_announcements, basic_max_images
+  FROM public.packs p
+  WHERE p.id = p_pack_id AND p.is_active = true;
+
+  IF pack_type_val IS NULL THEN
+    RAISE EXCEPTION 'Invalid or inactive Basic pack selected';
+  END IF;
+
+  -- Verify it's actually a Basic pack
+  IF pack_type_val = 'basic' THEN
+    is_basic_pack := true;
+  ELSE
+    RAISE EXCEPTION 'Selected pack is not a Basic pack';
+  END IF;
+
+  -- Phase 3: Limit Validation (Warning - logged but not blocking)
+  -- Count products that will be grandfathered
+  SELECT COUNT(*) INTO grandfathered_products_count
+  FROM public.products
+  WHERE store_id = p_store_id AND seller_id = p_owner_id AND status = 'approved';
+
+  -- Log warning if exceeds limits (but allow downgrade - grandfathered)
+  IF store_record.current_announcements > basic_max_announcements THEN
+    RAISE NOTICE 'Warning: Store has % products, Basic plan allows %. Products will remain active (grandfathered).', 
+      store_record.current_announcements, basic_max_announcements;
+  END IF;
+
+  -- Phase 5: Immediate Downgrade Execution
+  -- Update store pack to Basic
+  UPDATE public.stores 
+  SET pack_id = p_pack_id,
+      updated_at = NOW()
+  WHERE id = p_store_id;
+
+  -- Phase 7: Subscription History Update
+  -- Mark old Pro subscription as ended
+  UPDATE public.vendor_subscriptions 
+  SET end_date = NOW(), 
+      status = 'expired',
+      updated_at = NOW()
+  WHERE vendor_id = p_owner_id 
+    AND status = 'active'
+    AND plan_type = 'pro';
+
+  -- Create new Basic subscription
+  INSERT INTO public.vendor_subscriptions (vendor_id, plan_type, start_date, end_date, status)
+  VALUES (p_owner_id, 'basic', NOW(), NULL, 'active');
+
+  -- Phase 8: Notifications
+  -- Create user notification for downgrade
+  INSERT INTO public.notifications (
+    user_id,
+    type,
+    template_key,
+    metadata,
+    link,
+    target_role,
+    is_read,
+    created_at
+  ) VALUES (
+    p_owner_id,
+    'pack_downgraded',
+    'notifications.packDowngraded',
+    jsonb_build_object(
+      'message', format('Your store has been downgraded to Basic pack. %s products remain active (grandfathered).', grandfathered_products_count),
+      'store_id', p_store_id,
+      'from_pack', 'pro',
+      'to_pack', 'basic',
+      'downgrade_date', NOW(),
+      'grandfathered_products_count', grandfathered_products_count
     ),
     '/subscription',
     'vendor',

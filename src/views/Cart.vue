@@ -46,15 +46,17 @@
           <!-- Quantity Controls -->
           <div class="flex items-center space-x-2 space-x-reverse">
             <button
-              @click="updateQuantity(item.id, item.quantity - 1)"
-              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors"
+              @click="updateQuantity(item.product_id, item.quantity - 1)"
+              :disabled="cartStore.loading"
+              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-minus text-sm"></i>
             </button>
             <span class="w-12 text-center font-semibold">{{ item.quantity }}</span>
             <button
-              @click="updateQuantity(item.id, item.quantity + 1)"
-              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors"
+              @click="updateQuantity(item.product_id, item.quantity + 1)"
+              :disabled="cartStore.loading"
+              class="w-8 h-8 bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-plus text-sm"></i>
             </button>
@@ -69,8 +71,9 @@
           
           <!-- Remove Button -->
           <button
-            @click="removeItem(item.id)"
-            class="text-red-500 hover:text-red-700 transition-colors"
+            @click="removeItem(item.product_id)"
+            :disabled="cartStore.loading"
+            class="text-red-500 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i class="fas fa-trash"></i>
           </button>
@@ -92,11 +95,6 @@
             <div class="flex justify-between">
               <span class="text-neutral-600">{{ $t('cartPage.subtotal') }}:</span>
               <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} {{ $t('product.currency') }}</span>
-            </div>
-            
-            <div class="flex justify-between">
-              <span class="text-neutral-600">{{ $t('cartPage.deliveryFee') }}:</span>
-              <span class="font-semibold">{{ formatPrice(cartStore.deliveryFee) }} {{ $t('product.currency') }}</span>
             </div>
             
             <div class="border-t pt-4">
@@ -174,21 +172,31 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { getLocalizedPath } from '../lib/i18n-utils'
 import { useCartStore } from '../stores/useCartStore'
 import { useProductStore } from '../stores/useProductStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import ProductCard from '../components/ProductCard.vue'
 import LoginModal from '../components/LoginModal.vue'
 
+const router = useRouter()
+const route = useRoute()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const authStore = useAuthStore()
 
 const showLoginModal = ref(false)
 
+// Get localized route path
+const getLocalizedRoute = (path) => {
+  const currentLocale = route.meta.locale || 'en'
+  return getLocalizedPath(path, currentLocale)
+}
+
 const recommendedProducts = computed(() => {
   // Get products that are not in cart
-  const cartProductIds = cartStore.items.map(item => item.id)
+  const cartProductIds = cartStore.items.map(item => item.product_id)
   return productStore.products
     .filter(product => !cartProductIds.includes(product.id))
     .slice(0, 4)
@@ -199,19 +207,29 @@ const formatPrice = (price) => {
 }
 
 const updateQuantity = async (productId, quantity) => {
-  await cartStore.updateQuantity(productId, quantity)
+  try {
+    await cartStore.updateQuantity(productId, quantity)
+  } catch (err) {
+    console.error('Error updating quantity:', err)
+    // Error is already handled in the store, but we can add user feedback here if needed
+  }
 }
 
 const removeItem = async (productId) => {
-  await cartStore.removeFromCart(productId)
+  try {
+    await cartStore.removeFromCart(productId)
+  } catch (err) {
+    console.error('Error removing item:', err)
+    // Error is already handled in the store, but we can add user feedback here if needed
+  }
 }
 
 const handleCheckout = () => {
   if (!authStore.isAuthenticated) {
     showLoginModal.value = true
   } else {
-    // User is authenticated, proceed to checkout
-    window.location.href = '/checkout'
+    // User is authenticated, proceed to checkout using router
+    router.push(getLocalizedRoute('/checkout'))
   }
 }
 

@@ -798,13 +798,97 @@ const updateOrderStatus = async (orderId, productId, newStatus) => {
 // Fetch filtered orders using the new RPC function
 const fetchFilteredOrders = async () => {
   try {
+    console.log('🔍 [StoreDashboard] Fetching filtered orders...')
+    console.log('🔍 [StoreDashboard] Filter params:', {
+      sort_by: sortFilter.value,
+      sort_order: sortOrder.value,
+      status_filter: statusFilter.value || null
+    })
+    
+    // DEBUG: First, check if user has a store
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: userStore, error: storeError } = await supabase
+        .from('stores')
+        .select('id, name, status, owner_id')
+        .eq('owner_id', user.id)
+        .eq('status', 'approved')
+        .limit(1)
+      
+      if (storeError) {
+        console.error('❌ [StoreDashboard] Error fetching user store:', storeError)
+      } else if (!userStore || userStore.length === 0) {
+        console.warn('⚠️ [StoreDashboard] User has no approved store!')
+      } else {
+        console.log('✅ [StoreDashboard] User store found:', userStore[0])
+      }
+    }
+    
     const { data, error } = await supabase.rpc('get_vendor_orders_filtered', {
       p_sort_by: sortFilter.value,
       p_sort_order: sortOrder.value,
       p_status_filter: statusFilter.value || null
     })
     
-    if (error) throw error
+    if (error) {
+      console.error('❌ [StoreDashboard] Error fetching filtered orders:', error)
+      throw error
+    }
+    
+    console.log('🔍 [StoreDashboard] Orders fetched from RPC:', {
+      count: data?.length || 0,
+      orders: data?.map(order => ({
+        order_id: order.order_id,
+        product_id: order.product_id,
+        product_name: order.product_name,
+        order_status: order.order_status,
+        quantity: order.quantity,
+        item_total: order.item_total
+      })) || []
+    })
+    
+    // DEBUG: If no orders returned, check why
+    if (!data || data.length === 0) {
+      console.warn('⚠️ [StoreDashboard] No orders returned from RPC function!')
+      console.warn('⚠️ [StoreDashboard] Possible reasons:')
+      console.warn('  1. Products in orders have NULL store_id')
+      console.warn('  2. Products in orders belong to a different store')
+      console.warn('  3. User has no approved store')
+      console.warn('  4. No orders exist with products matching this store')
+      
+      // Check if there are any orders at all with products from this store
+      if (user) {
+        const { data: userStore } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('owner_id', user.id)
+          .eq('status', 'approved')
+          .limit(1)
+          .single()
+        
+        if (userStore) {
+          console.log('🔍 [StoreDashboard] DEBUG: Checking if any products have this store_id...')
+          const { data: productsWithStore, error: productsError } = await supabase
+            .from('products')
+            .select('id, name, store_id')
+            .eq('store_id', userStore.id)
+            .limit(5)
+          
+          if (productsError) {
+            console.error('❌ [StoreDashboard] Error checking products:', productsError)
+          } else {
+            console.log(`🔍 [StoreDashboard] Found ${productsWithStore?.length || 0} products with store_id ${userStore.id}`)
+            if (productsWithStore && productsWithStore.length > 0) {
+              console.log('🔍 [StoreDashboard] Sample products:', productsWithStore.map(p => ({
+                id: p.id,
+                name: p.name,
+                store_id: p.store_id
+              })))
+            }
+          }
+        }
+      }
+    }
     
     // Update orders store with filtered data
     ordersStore.orders = data || []
@@ -812,7 +896,7 @@ const fetchFilteredOrders = async () => {
     // Load Maystro details for unique orders
     await loadMaystroDetailsForOrders()
   } catch (error) {
-    console.error('Error fetching filtered orders:', error)
+    console.error('❌ [StoreDashboard] Error fetching filtered orders:', error)
   }
 }
 

@@ -133,6 +133,31 @@
               </li>
             </ul>
           </div>
+
+          <!-- Upgrade/Downgrade Actions -->
+          <div v-if="currentSubscription.store_status === 'approved'" class="mt-6 pt-6 border-t border-gray-200">
+            <div class="flex items-center justify-center space-x-4">
+              <!-- Upgrade Button (if Basic pack) -->
+              <router-link
+                v-if="isBasicPack"
+                :to="getLocalizedPath(`/store/${currentSubscription.store_id}/upgrade`)"
+                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <i class="fas fa-arrow-up mr-2"></i>
+                {{ $t('stores.upgradeToPro') || 'Upgrade to Pro Pack' }}
+              </router-link>
+              
+              <!-- Downgrade Button (if Pro pack) -->
+              <router-link
+                v-if="isProPack"
+                :to="getLocalizedPath(`/store/${currentSubscription.store_id}/downgrade`)"
+                class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <i class="fas fa-arrow-down mr-2"></i>
+                {{ $t('stores.downgradeToBasic') || 'Downgrade to Basic Pack' }}
+              </router-link>
+            </div>
+          </div>
         </div>
 
         <!-- No Current Subscription -->
@@ -203,7 +228,7 @@
                     {{ calculateDuration(subscription.start_date, subscription.end_date) }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {{ subscription.end_date ? formatDate(subscription.end_date) : ($t('subscription.lifetime') || 'Lifetime') }}
+                    {{ getEndDateDisplay(subscription) }}
                   </td>
                 </tr>
               </tbody>
@@ -287,6 +312,18 @@ const currentPackFeatures = computed(() => {
                    currentSubscription.value.pack_features['en'] || 
                    []
   return Array.isArray(features) ? features : []
+})
+
+const isBasicPack = computed(() => {
+  if (!currentSubscription.value) return false
+  const packName = currentPackName.value.toLowerCase()
+  return packName.includes('basic') || currentSubscription.value.pack_price === 0
+})
+
+const isProPack = computed(() => {
+  if (!currentSubscription.value) return false
+  const packName = currentPackName.value.toLowerCase()
+  return packName.includes('pro') || currentSubscription.value.pack_price > 0
 })
 
 // Methods
@@ -444,6 +481,23 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric'
   })
+}
+
+const getEndDateDisplay = (subscription) => {
+  if (subscription.end_date) {
+    return formatDate(subscription.end_date)
+  }
+  
+  // For Pro packs, show one year from start date if end_date is null
+  if (subscription.plan_type === 'pro' && subscription.start_date) {
+    const startDate = new Date(subscription.start_date)
+    const endDate = new Date(startDate)
+    endDate.setFullYear(endDate.getFullYear() + 1)
+    return formatDate(endDate.toISOString())
+  }
+  
+  // For Basic packs or other cases, show Lifetime
+  return t('subscription.lifetime') || 'Lifetime'
 }
 
 const calculateDuration = (startDate, endDate) => {

@@ -42,7 +42,7 @@ BEGIN
         FROM public.user_roles ur
         WHERE ur.role = 'admin'
     LOOP
-        -- 1. Store creation notification
+        -- 1. Store creation notification for admin
         INSERT INTO public.notifications (
             user_id,
             type,
@@ -55,13 +55,17 @@ BEGIN
         ) VALUES (
             admin_user_id,
             'store_created',
-            'notifications.storeCreated',
+            'notifications.adminStoreCreated',
             jsonb_build_object(
-                'message', format('User %s has created a new store: %s', NEW.owner_id, NEW.name),
+                'message', format('User %s has created a %s store successfully', NEW.owner_id, COALESCE(pack_name_en_val, 'Basic Pack')),
                 'store_id', NEW.id,
                 'store_name', NEW.name,
                 'owner_id', NEW.owner_id,
-                'store_status', NEW.status
+                'store_status', NEW.status,
+                'pack_id', NEW.pack_id,
+                'pack_name_en', COALESCE(pack_name_en_val, 'Basic Pack'),
+                'pack_name_ar', COALESCE(pack_name_ar_val, pack_name_en_val, 'Basic Pack'),
+                'pack_name_fr', COALESCE(pack_name_fr_val, pack_name_en_val, 'Basic Pack')
             ),
             format('/admin/stores/%s', NEW.id),
             'admin',

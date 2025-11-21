@@ -214,14 +214,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/useAuthStore'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleRouter } from '../composables/useLocaleRouter'
-import { useCart } from '../composables/useCart'
-import { useWishlist } from '../composables/useWishlist'
-import { useProduct } from '../composables/useProduct'
+import { useCartStore } from '../stores/useCartStore'
+import { useWishlistStore } from '../stores/useWishlistStore'
 
 const props = defineProps({
   product: {
@@ -234,17 +230,9 @@ const props = defineProps({
   }
 })
 
-const router = useRouter()
-const authStore = useAuthStore()
-const { locale } = useI18n()
-const { navigateTo, navigateToPath, getLocalizedRoute } = useLocaleRouter()
-
-// New composables
-const { 
-  addToCart, 
-  loading: cartLoading, 
-  feedback: cartFeedback 
-} = useCart()
+const { t } = useI18n()
+const cartStore = useCartStore()
+const wishlistStore = useWishlistStore()
 
 const { 
   toggleWishlist, 
@@ -300,9 +288,9 @@ const viewState = computed(() => {
 })
 
 const getCartButtonText = () => {
-  if (cartLoading.value) return 'جاري الإضافة...'
-  if ((props.product.stock_quantity || 0) <= 0) return 'غير متوفر'
-  return 'أضف للسلة'
+  if (cartLoading.value) return t('product.addingToCart')
+  if ((props.product.stock_quantity || 0) <= 0) return t('product.outOfStock')
+  return t('product.addToCart')
 }
 
 // Handler functions using new composables

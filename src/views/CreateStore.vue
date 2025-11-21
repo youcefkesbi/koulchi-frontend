@@ -925,7 +925,7 @@ const handleSubmit = async () => {
           // Still allow redirect if store was created (trigger might have issues but store is valid)
           notificationVerified = true;
         }
-      }
+        }
     } catch (verifyError) {
       console.warn('⚠️ Notification verification error:', verifyError);
       // Don't block redirect on verification error
@@ -935,9 +935,9 @@ const handleSubmit = async () => {
     // Both conditions met: Store created + Notification added
     if (notificationVerified) {
       console.log('✅ Both conditions met: Store created and notification added successfully');
-      successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
-      resetForm();
-      
+    successMessage.value = t('stores.storeCreatedSuccessfully') || 'Your store has been created successfully!';
+    resetForm();
+
       // Redirect to home page
       try {
         await navigateToPath('/');

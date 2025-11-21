@@ -239,6 +239,10 @@ DECLARE
     current_user_id UUID;
     user_store_id UUID;
 BEGIN
+    -- Disable RLS for this function to prevent infinite recursion
+    -- The function already performs its own security checks
+    SET LOCAL row_security = off;
+    
     -- Get the current user ID
     current_user_id := auth.uid();
     
@@ -276,7 +280,7 @@ BEGIN
     JOIN public.order_items oi ON o.id = oi.order_id
     JOIN public.products p ON oi.product_id = p.id
     JOIN public.profiles prof ON o.user_id = prof.id
-    WHERE o.store_id = user_store_id
+    WHERE p.store_id = user_store_id
     ORDER BY o.created_at DESC, p.name ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -307,6 +311,10 @@ DECLARE
     user_store_id UUID;
     sort_clause TEXT;
 BEGIN
+    -- Disable RLS for this function to prevent infinite recursion
+    -- The function already performs its own security checks
+    SET LOCAL row_security = off;
+    
     -- Get the current user ID
     current_user_id := auth.uid();
     
@@ -346,7 +354,7 @@ BEGIN
         JOIN public.order_items oi ON o.id = oi.order_id
         JOIN public.products p ON oi.product_id = p.id
         JOIN public.profiles prof ON o.user_id = prof.id
-        WHERE o.store_id = user_store_id
+        WHERE p.store_id = user_store_id
         ORDER BY o.created_at DESC, p.name ASC;
         RETURN;
     END IF;
@@ -384,7 +392,7 @@ BEGIN
         JOIN public.order_items oi ON o.id = oi.order_id
         JOIN public.products p ON oi.product_id = p.id
         JOIN public.profiles prof ON o.user_id = prof.id
-        WHERE o.store_id = %L
+        WHERE p.store_id = %L
         %s
         ORDER BY %s, p.name ASC',
         user_store_id,
@@ -457,6 +465,10 @@ RETURNS TABLE(
 DECLARE
     current_user_id UUID;
 BEGIN
+    -- Disable RLS for this function to prevent infinite recursion
+    -- The function already performs its own security checks
+    SET LOCAL row_security = off;
+    
     -- Get the current user ID
     current_user_id := auth.uid();
     
@@ -475,12 +487,12 @@ BEGIN
         o.created_at,
         o.updated_at,
         COALESCE(
-            json_agg(
-                json_build_object(
+            jsonb_agg(
+                jsonb_build_object(
                     'id', oi.id,
                     'quantity', oi.quantity,
                     'price', oi.price,
-                    'product', json_build_object(
+                    'product', jsonb_build_object(
                         'id', p.id,
                         'name', p.name,
                         'description', p.description,
@@ -489,7 +501,7 @@ BEGIN
                         'thumbnail_url', p.thumbnail_url,
                         'category_id', p.category_id,
                         'category_name', c.name_en,
-                        'seller', json_build_object(
+                        'seller', jsonb_build_object(
                             'id', prof.id,
                             'full_name', prof.full_name,
                             'shipping_address', prof.shipping_address
@@ -497,7 +509,7 @@ BEGIN
                     )
                 )
             ) FILTER (WHERE oi.id IS NOT NULL),
-            '[]'::json
+            '[]'::jsonb
         ) as order_items
     FROM public.orders o
     LEFT JOIN public.order_items oi ON o.id = oi.order_id
@@ -510,8 +522,133 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ================================
+-- TRIGGER FOR ORDER CONFIRMATION NOTIFICATIONS
+-- ================================
+
+-- Trigger function to notify buyer and seller when an order is confirmed
+CREATE OR REPLACE FUNCTION public.notify_on_order_confirmed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    buyer_user_id UUID;
+    seller_user_id UUID;
+    store_id_val UUID;
+    order_total NUMERIC(10,2);
+    product_names TEXT[];
+    buyer_name TEXT;
+    seller_name TEXT;
+BEGIN
+    -- Only trigger when status changes to 'confirmed'
+    IF NEW.status = 'confirmed' AND (OLD.status IS NULL OR OLD.status != 'confirmed') THEN
+        -- Get order details
+        buyer_user_id := NEW.user_id;
+        store_id_val := NEW.store_id;
+        order_total := NEW.total_amount;
+        
+        -- Get buyer name
+        SELECT full_name INTO buyer_name
+        FROM public.profiles
+        WHERE id = buyer_user_id;
+        
+        -- Get product names from order_items
+        SELECT ARRAY_AGG(p.name)
+        INTO product_names
+        FROM public.order_items oi
+        JOIN public.products p ON oi.product_id = p.id
+        WHERE oi.order_id = NEW.id;
+        
+        -- 1. Notification for Buyer (Customer)
+        INSERT INTO public.notifications (
+            user_id,
+            type,
+            template_key,
+            metadata,
+            link,
+            target_role,
+            is_read,
+            created_at
+        ) VALUES (
+            buyer_user_id,
+            'order_confirmed',
+            'notifications.orderConfirmed',
+            jsonb_build_object(
+                'message', format('Your order #%s has been confirmed', substring(NEW.id::text, 1, 8)),
+                'order_id', NEW.id,
+                'order_total', order_total,
+                'product_names', product_names,
+                'order_status', NEW.status,
+                'shipping_address', NEW.shipping_address
+            ),
+            format('/mypurchases'),
+            'customer',
+            FALSE,
+            NOW()
+        );
+        
+        -- 2. Notification for Seller(s) - Get unique sellers from order items
+        FOR seller_user_id IN 
+            SELECT DISTINCT p.seller_id
+            FROM public.order_items oi
+            JOIN public.products p ON oi.product_id = p.id
+            WHERE oi.order_id = NEW.id
+              AND p.seller_id IS NOT NULL
+        LOOP
+            -- Get seller name
+            SELECT full_name INTO seller_name
+            FROM public.profiles
+            WHERE id = seller_user_id;
+            
+            -- Create notification for each seller
+            INSERT INTO public.notifications (
+                user_id,
+                type,
+                template_key,
+                metadata,
+                link,
+                target_role,
+                is_read,
+                created_at
+            ) VALUES (
+                seller_user_id,
+                'order_confirmed',
+                'notifications.orderConfirmedForSeller',
+                jsonb_build_object(
+                    'message', format('New confirmed order #%s from %s', substring(NEW.id::text, 1, 8), COALESCE(buyer_name, 'Customer')),
+                    'order_id', NEW.id,
+                    'buyer_id', buyer_user_id,
+                    'buyer_name', COALESCE(buyer_name, 'Customer'),
+                    'order_total', order_total,
+                    'product_names', product_names,
+                    'order_status', NEW.status,
+                    'shipping_address', NEW.shipping_address
+                ),
+                format('/dashboard'),
+                'vendor',
+                FALSE,
+                NOW()
+            );
+        END LOOP;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+-- Create trigger on orders table
+DROP TRIGGER IF EXISTS trigger_notify_on_order_confirmed ON public.orders;
+CREATE TRIGGER trigger_notify_on_order_confirmed
+    AFTER UPDATE ON public.orders
+    FOR EACH ROW
+    WHEN (NEW.status = 'confirmed' AND (OLD.status IS NULL OR OLD.status != 'confirmed'))
+    EXECUTE FUNCTION public.notify_on_order_confirmed();
+
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION public.get_my_orders TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_vendor_orders TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_buyer_orders_with_details TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_vendor_orders_filtered TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_best_selling_products TO authenticated;
+GRANT EXECUTE ON FUNCTION public.notify_on_order_confirmed TO authenticated;

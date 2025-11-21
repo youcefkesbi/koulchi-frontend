@@ -181,13 +181,26 @@ const formatDate = (dateString) => {
   })
 }
 
+// Helper function to get order items as array (handles both array and object formats)
+const getOrderItemsArray = (order) => {
+  if (!order.order_items) return []
+  if (Array.isArray(order.order_items)) return order.order_items
+  if (typeof order.order_items === 'object') return [order.order_items]
+  return []
+}
+
 // Helper function to get product image from order
 const getProductImage = (order) => {
-  // Try to get image from order_items -> product
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    if (firstItem.product && firstItem.product.image_urls && firstItem.product.image_urls.length > 0) {
-      return firstItem.product.image_urls[0]
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    const firstItem = items[0]
+    if (firstItem && firstItem.product) {
+      if (firstItem.product.image_urls && Array.isArray(firstItem.product.image_urls) && firstItem.product.image_urls.length > 0) {
+        return firstItem.product.image_urls[0]
+      }
+      if (firstItem.product.thumbnail_url) {
+        return firstItem.product.thumbnail_url
+      }
     }
   }
   return null
@@ -195,10 +208,10 @@ const getProductImage = (order) => {
 
 // Helper function to get store name from order
 const getStoreName = (order) => {
-  // Try to get store name from order_items -> product -> store
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    if (firstItem.product && firstItem.product.store) {
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    const firstItem = items[0]
+    if (firstItem && firstItem.product && firstItem.product.store) {
       return firstItem.product.store.name || 'Unknown Store'
     }
   }
@@ -211,9 +224,10 @@ const getOrderTotalPrice = (order) => {
     return order.total_amount
   }
   // Calculate from order_items if total_amount is not available
-  if (order.order_items && order.order_items.length > 0) {
-    return order.order_items.reduce((total, item) => {
-      return total + (parseFloat(item.price) * item.quantity)
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    return items.reduce((total, item) => {
+      return total + (parseFloat(item.price || 0) * (item.quantity || 0))
     }, 0)
   }
   return 0
@@ -221,14 +235,17 @@ const getOrderTotalPrice = (order) => {
 
 // Helper function to get product category from order
 const getProductCategory = (order) => {
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    if (firstItem.product && firstItem.product.category && firstItem.product.category.id) {
-      return firstItem.product.category.id
-    }
-    // Fallback to category_id if category object doesn't exist
-    if (firstItem.product && firstItem.product.category_id) {
-      return firstItem.product.category_id
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    const firstItem = items[0]
+    if (firstItem && firstItem.product) {
+      if (firstItem.product.category && firstItem.product.category.id) {
+        return firstItem.product.category.id
+      }
+      // Fallback to category_id if category object doesn't exist
+      if (firstItem.product.category_id) {
+        return firstItem.product.category_id
+      }
     }
   }
   return null
@@ -236,9 +253,10 @@ const getProductCategory = (order) => {
 
 // Helper function to get category name in current language
 const getCategoryName = (order) => {
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    if (firstItem.product && firstItem.product.category) {
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    const firstItem = items[0]
+    if (firstItem && firstItem.product && firstItem.product.category) {
       const currentLocale = route.meta.locale || 'en'
       const category = firstItem.product.category
       
@@ -269,10 +287,15 @@ const getCategoryDisplayName = (category) => {
 
 // Helper function to get product name from order
 const getProductName = (order) => {
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    if (firstItem.product) {
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    const firstItem = items[0]
+    if (firstItem && firstItem.product && firstItem.product.name) {
       return firstItem.product.name
+    }
+    // Fallback if product data is missing
+    if (firstItem && firstItem.product_id) {
+      return `Product ${firstItem.product_id.slice(0, 8)}`
     }
   }
   return 'Unknown Product'
@@ -280,9 +303,10 @@ const getProductName = (order) => {
 
 // Helper function to get quantity from order
 const getOrderQuantity = (order) => {
-  if (order.order_items && order.order_items.length > 0) {
-    const firstItem = order.order_items[0]
-    return firstItem.quantity
+  const items = getOrderItemsArray(order)
+  if (items.length > 0) {
+    // Sum all quantities if multiple items
+    return items.reduce((total, item) => total + (item.quantity || 0), 0)
   }
   return 0
 }
@@ -290,13 +314,28 @@ const getOrderQuantity = (order) => {
 // Fetch buyer orders using RPC function
 const fetchBuyerOrders = async () => {
   try {
+    console.log('🛒 [MyPurchases] Fetching buyer orders...')
     const { data, error } = await supabase.rpc('get_buyer_orders_with_details')
     
-    if (error) throw error
+    if (error) {
+      console.error('❌ [MyPurchases] Error fetching buyer orders:', error)
+      throw error
+    }
+    
+    console.log('✅ [MyPurchases] Buyer orders fetched:', {
+      count: data?.length || 0,
+      orders: data?.map(o => ({
+        order_id: o.order_id,
+        status: o.order_status,
+        items_count: Array.isArray(o.order_items) ? o.order_items.length : (o.order_items ? 1 : 0),
+        total_amount: o.total_amount,
+        shipping_address: o.shipping_address?.substring(0, 50) || 'N/A'
+      }))
+    })
     
     buyerOrders.value = data || []
   } catch (err) {
-    console.error('Error fetching buyer orders:', err)
+    console.error('❌ [MyPurchases] Error fetching buyer orders:', err)
     buyerOrders.value = []
   }
 }
@@ -348,8 +387,8 @@ const applyFilters = () => {
     })
   }
   
-  // Limit to 3 orders for display
-  filteredOrders.value = filtered.slice(0, 3)
+  // Show all filtered orders (no limit)
+  filteredOrders.value = filtered
 }
 
 // Initialize filtered orders

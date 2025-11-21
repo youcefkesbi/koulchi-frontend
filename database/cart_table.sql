@@ -158,3 +158,11 @@ CREATE TRIGGER update_cart_updated_at
 BEFORE UPDATE ON cart
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+-- ================================
+-- Permissions (GRANT statements)
+-- ================================
+-- Grant permissions to service_role for backend operations
+-- This allows backend to access cart while RLS policies still apply
+GRANT USAGE ON SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.cart TO postgres, anon, authenticated, service_role;
