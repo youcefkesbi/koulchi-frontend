@@ -100,6 +100,7 @@
                   <input 
                     v-model="signupForm.fullName" 
                     type="text" 
+                    name="signup-fullname"
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('fullNamePlaceholder')"
@@ -110,6 +111,7 @@
                   <input 
                     v-model="signupForm.email" 
                     type="email" 
+                    name="signup-email"
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('emailPlaceholder')"
@@ -121,6 +123,7 @@
                     <input 
                       v-model="signupForm.password" 
                       :type="showSignupPassword ? 'text' : 'password'" 
+                      name="signup-password"
                       required 
                       class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
                       :placeholder="t('passwordPlaceholder')"
@@ -140,6 +143,7 @@
                     <input 
                       v-model="signupForm.confirmPassword" 
                       :type="showSignupConfirmPassword ? 'text' : 'password'" 
+                      name="signup-confirm-password"
                       required 
                       class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
                       :placeholder="t('confirmPasswordPlaceholder')"
@@ -170,6 +174,7 @@
                   <input 
                     v-model="loginForm.email" 
                     type="email" 
+                    name="login-email"
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('emailPlaceholder')"
@@ -206,7 +211,7 @@
                 <!-- Forgot Password Link -->
                 <div class="text-center">
                   <button
-                    @click="showForgotPassword = true"
+                    @click="openForgotPassword"
                     class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
                   >
                     {{ t('errors.forgotPassword') }}
@@ -241,6 +246,7 @@
                   <input 
                     v-model="forgotPasswordForm.email" 
                     type="email" 
+                    name="forgot-password-email"
                     required 
                     class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('emailPlaceholder')"
@@ -405,10 +411,38 @@ const closeModal = () => {
 
 const toggleMode = () => {
   isSignup.value = !isSignup.value
+
+  if (!isSignup.value) {
+    setTimeout(() => {
+      const emailField = document.querySelector('input[name="login-email"]')
+      if (emailField) emailField.focus()
+    }, 50)
+  }
+
+  if (isSignup.value) {
+    setTimeout(() => {
+      const fullNameField = document.querySelector('input[name="signup-fullname"]')
+      if (fullNameField) fullNameField.focus()
+    }, 50)
+  }
+  
   showForgotPassword.value = false
   authStore.clearError()
   successMessage.value = ''
   emailConfirmationRequired.value = false
+}
+
+const openForgotPassword = () => {
+  isSignup.value = false
+  showForgotPassword.value = true
+  authStore.clearError()
+  successMessage.value = ''
+  emailConfirmationRequired.value = false
+
+  setTimeout(() => {
+    const forgotEmailField = document.querySelector('input[name="forgot-password-email"]')
+    if (forgotEmailField) forgotEmailField.focus()
+  }, 50)
 }
 
 const handleSignup = async () => {

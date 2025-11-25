@@ -91,7 +91,8 @@
     "myPurchases": "Mes achats",
     "orders": "Commandes",
     "myStoreProducts": "Produits",
-    "moderation": "Modération"
+    "moderation": "Modération",
+    "subscription": "Abonnement"
   },
   "checkout": {
     "title": "Finaliser Votre Commande",

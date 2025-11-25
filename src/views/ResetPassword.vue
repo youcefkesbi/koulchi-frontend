@@ -96,12 +96,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
@@ -110,25 +111,59 @@ const error = ref('')
 const successMessage = ref('')
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+const resetToken = ref('')
+const resetEmail = ref('')
 
 const form = reactive({
   newPassword: '',
   confirmPassword: ''
 })
 
+const invalidLinkMessage = () => {
+  const translated = t('resetLinkInvalid')
+  return translated === 'resetLinkInvalid'
+    ? 'Reset link is invalid or expired.'
+    : translated
+}
+
 // Form validation
 const isFormValid = computed(() => {
   return form.newPassword && 
          form.confirmPassword && 
          form.newPassword === form.confirmPassword &&
-         form.newPassword.length >= 6
+         form.newPassword.length >= 6 &&
+         !!resetToken.value &&
+         !!resetEmail.value
 })
+
+const syncResetParams = () => {
+  resetToken.value = route.query.token || ''
+  resetEmail.value = route.query.email || ''
+}
+
+watch(
+  () => route.query,
+  () => {
+    syncResetParams()
+    if (!resetToken.value || !resetEmail.value) {
+      error.value = invalidLinkMessage()
+    } else {
+      error.value = ''
+    }
+  },
+  { immediate: true }
+)
 
 const handleResetPassword = async () => {
   try {
     loading.value = true
     error.value = ''
     successMessage.value = ''
+
+    if (!resetToken.value || !resetEmail.value) {
+      error.value = invalidLinkMessage()
+      return
+    }
 
     // Validate passwords match
     if (form.newPassword !== form.confirmPassword) {
@@ -142,16 +177,20 @@ const handleResetPassword = async () => {
       return
     }
 
-    // Update password
-    const result = await authStore.updatePassword(form.newPassword)
+    const result = await authStore.completePasswordReset({
+      email: resetEmail.value,
+      token: resetToken.value,
+      newPassword: form.newPassword
+    })
     
     if (result?.success) {
       successMessage.value = t('passwordUpdatedSuccessfully')
       
-      // Redirect to login after a delay
       setTimeout(() => {
         router.push('/')
       }, 2000)
+    } else if (result?.message) {
+      error.value = result.message
     }
   } catch (err) {
     error.value = err.message || t('passwordUpdateFailed')

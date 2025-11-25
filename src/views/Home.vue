@@ -210,7 +210,10 @@ const loadProducts = async (maxProducts = 12) => {
       stock_quantity: product.stock_quantity,
       sold_count: product.sold_count || 0,
       is_new: product.is_new,
-      status: product.status
+      status: product.status,
+      store_id: product.store_id,
+      seller_id: product.seller_id,
+      stores: product.stores
     }))
     
     console.log('✅ Normal products loaded:', normalProducts.value.length)

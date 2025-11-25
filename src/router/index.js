@@ -19,6 +19,7 @@ import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 import StoreProfile from '../views/StoreProfile.vue'
 import MyStoreInfos from '../views/MyStoreInfos.vue'
+import Profile from '../views/Profile.vue'
 import NotFound from '../views/NotFound.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
 import ManageUsers from '../views/ManageUsers.vue'
@@ -114,6 +115,12 @@ const baseRoutes = [
     name: 'Account',
     component: Account,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile/:ownerId?',
+    name: 'Profile',
+    component: Profile,
+    props: true
   },
   {
     path: '/wishlist',

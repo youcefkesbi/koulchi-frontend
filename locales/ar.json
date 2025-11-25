@@ -94,7 +94,8 @@
     "brandName": "كولشي",
     "userDashboard": "لوحة تحكم المستخدم",
     "myStoreProducts": "منتجات ",
-    "moderation": "الإشراف"
+    "moderation": "الإشراف",
+    "subscription": "الاشتراك"
   },
   "categoryPage": {
     "resultsCount": "عرض {count} من {total} منتج",
