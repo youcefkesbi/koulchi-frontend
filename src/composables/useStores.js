@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useRouter } from 'vue-router'
+import { useLocaleRouter } from './useLocaleRouter'
 
 /**
  * Centralized store operations composable following Supabase best practices
@@ -13,6 +14,7 @@ import { useRouter } from 'vue-router'
 export function useStores() {
   const authStore = useAuthStore()
   const router = useRouter()
+  const { navigateToPath } = useLocaleRouter()
   
   // State
   const stores = ref([])
@@ -75,8 +77,7 @@ export function useStores() {
     authStore.user = null
     
     // Redirect to login
-    const currentLocale = router.currentRoute.value.meta?.locale || 'en'
-    router.push(`/${currentLocale}/login`)
+    navigateToPath('/login')
     
     throw new Error('Please log in to continue')
   }

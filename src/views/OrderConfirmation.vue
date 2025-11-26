@@ -141,7 +141,7 @@
       </div>
       <h3 class="text-xl font-semibold text-red-700 mb-2">{{ t('orderConfirmation.errorTitle') }}</h3>
       <p class="text-red-600 mb-6">{{ error }}</p>
-      <router-link :to="getLocalizedRoute('/cart')" class="btn-primary">
+      <router-link :to="getLocalizedPath('/cart')" class="btn-primary">
         <i class="fas fa-arrow-left ml-2"></i>
         {{ t('orderConfirmation.backToCart') }}
       </router-link>
@@ -149,7 +149,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-      <router-link :to="getLocalizedRoute('/products')" class="btn-outline">
+      <router-link :to="getLocalizedPath('/products')" class="btn-outline">
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ t('orderConfirmation.continueShopping') }}
       </router-link>
@@ -165,7 +165,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { useOrdersStore } from '../stores/useOrdersStore'
 import { useCartStore } from '../stores/useCartStore'
 
@@ -173,6 +173,7 @@ const { t } = useI18n()
 const route = useRoute()
 const ordersStore = useOrdersStore()
 const cartStore = useCartStore()
+const { getLocalizedPath } = useLocaleRouter()
 
 // Loading and error states
 const loading = computed(() => ordersStore.loading)

@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex justify-between items-center">
               <h1 class="text-3xl font-bold text-dark">{{ t('checkout.title') }}</h1>
-        <router-link :to="getLocalizedRoute('/cart')" class="btn-outline">
+        <router-link :to="getLocalizedPath('/cart')" class="btn-outline">
           <i class="fas fa-arrow-left ml-2"></i>
           {{ t('checkout.backToCart') }}
         </router-link>
@@ -293,7 +293,7 @@
       <p class="text-gray-500 mb-6">
         {{ t('checkout.cannotCheckout') }}
       </p>
-      <router-link :to="getLocalizedRoute('/products')" class="btn-primary">
+      <router-link :to="getLocalizedPath('/products')" class="btn-primary">
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ t('checkout.startShopping') }}
       </router-link>
@@ -308,7 +308,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { useCartStore } from '../stores/useCartStore'
 import { useOrdersStore } from '../stores/useOrdersStore'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -321,6 +321,7 @@ const route = useRoute()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 const authStore = useAuthStore()
+const { navigateToPath, getLocalizedPath } = useLocaleRouter()
 
 const showLoginModal = ref(false)
 

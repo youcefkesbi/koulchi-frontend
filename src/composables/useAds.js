@@ -59,6 +59,14 @@ export function useAds() {
         .or(`end_date.is.null,end_date.gte.${now}`)
 
       const { data, error: supabaseError } = await query
+  // Computed properties for different ad types
+  const productAds = computed(() => {
+    return adsStore.ads.filter(ad => ad.item_type === 'product' && ad.products)
+  })
+
+  const storeAds = computed(() => {
+    return adsStore.ads.filter(ad => ad.item_type === 'store' && ad.stores)
+  })
 
       if (supabaseError) {
         throw supabaseError

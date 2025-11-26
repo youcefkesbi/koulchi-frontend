@@ -26,25 +26,25 @@
           <h4 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">{{ $t('footer.quickLinks') }}</h4>
           <ul class="space-y-3">
             <li>
-              <router-link to="/products" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/products')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-accent transition-colors"></i>
                 {{ t('footer.products') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/about" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/about')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-accent transition-colors"></i>
                 {{ t('footer.aboutUs') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/contact" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/contact')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-accent transition-colors"></i>
                 {{ t('footer.contactUs') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/help" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/help')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-primary group-hover:text-accent transition-colors"></i>
                 {{ t('footer.help') }}
               </router-link>
@@ -57,25 +57,25 @@
           <h4 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">{{ t('footer.customerService') }}</h4>
           <ul class="space-y-3">
             <li>
-              <router-link to="/return-policy" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/return-policy')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.returnPolicy') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/terms" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/terms')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.termsOfUse') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/privacy" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/privacy')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.privacyPolicy') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/faq" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
+              <router-link :to="getLocalizedPath('/faq')" class="text-primary-100 hover:text-white transition-colors duration-300 flex items-center group">
                 <i class="fas fa-chevron-left ml-2 text-secondary group-hover:text-primary transition-colors"></i>
                 {{ t('footer.faq') }}
               </router-link>
@@ -123,7 +123,9 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import Logo from './Logo.vue'
 
 const { t } = useI18n()
+const { getLocalizedPath } = useLocaleRouter()
 </script> 

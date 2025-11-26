@@ -100,11 +100,13 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const { t } = useI18n()
+const { navigateToPath } = useLocaleRouter()
 
 const loading = ref(false)
 const error = ref('')
@@ -187,7 +189,7 @@ const handleResetPassword = async () => {
       successMessage.value = t('passwordUpdatedSuccessfully')
       
       setTimeout(() => {
-        router.push('/')
+        navigateToPath('/')
       }, 2000)
     } else if (result?.message) {
       error.value = result.message

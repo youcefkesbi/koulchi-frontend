@@ -11,9 +11,16 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
   const authSubscription = ref(null)
 
-  // Persistence configuration
+  // Persistence configuration - enhanced for better session management
   const persist = {
-    paths: ['user'] // Only persist the user object
+    paths: ['user'], // Only persist the user object
+    storage: localStorage, // Use localStorage for persistence
+    beforeRestore: (context) => {
+      // Restoring auth state from localStorage
+    },
+    afterRestore: (context) => {
+      // Auth state restored from localStorage
+    }
   }
 
   // Getters
@@ -62,14 +69,32 @@ export const useAuthStore = defineStore('auth', () => {
   const hasVendorAccess = computed(() => isVendor.value || isAdmin.value)
 
   // Check if user is actually authenticated with Supabase
+  // Enhanced for new Supabase publishable key system
   const checkAuthStatus = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Get current session with automatic refresh handling
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
+      if (error) {
+        console.error('Session error:', error)
+        user.value = null
+        return false
+      }
+      
       if (!session?.user) {
         // No valid session, clear local user state
         user.value = null
         return false
       }
+      
+      // Verify session is still valid (not expired)
+      const now = Math.floor(Date.now() / 1000)
+      if (session.expires_at && session.expires_at < now) {
+        // Session expired, attempting refresh
+        const refreshed = await refreshAuth()
+        return refreshed
+      }
+      
       return true
     } catch (err) {
       console.error('Error checking auth status:', err)
@@ -647,70 +672,93 @@ const loadUserWithProfile = async (authUser) => {
   }
 }
 
-  // Initialize auth state
-// Initialize auth state
-const initAuth = async () => {
-  try {
-    // Verify Supabase client is properly initialized with auth
-    const isAuthReady = await verifySupabaseAuth()
-    if (!isAuthReady) {
-      console.warn('Supabase auth not ready, some features may not work')
-    }
-
-    // Get initial session
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (session?.user) {
-      await loadUserWithProfile(session.user)
-
-      // Double-check role after a short delay
-      setTimeout(async () => {
-        if (user.value && (!user.value.role || user.value.role === 'customer')) {
-          await loadUserWithProfile(session.user)
-        }
-      }, 1000)
-    } else {
-      user.value = null
-    }
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          await loadUserWithProfile(session.user)
-
-          if (event === 'SIGNED_IN') {
-            try {
-              // Initialize cart and wishlist stores after login
-              const { useCartStore } = await import('./useCartStore.js')
-              const { useWishlistStore } = await import('./useWishlistStore.js')
-              
-              const cartStore = useCartStore()
-              const wishlistStore = useWishlistStore()
-              
-              // Fetch user's cart and wishlist data
-              await Promise.all([
-                cartStore.fetchCartItems(),
-                wishlistStore.fetchWishlist()
-              ])
-            } catch (err) {
-              console.error('Error initializing stores after login:', err)
-            }
-          }
-        } else {
-          user.value = null
-        }
+  // Initialize auth state with enhanced session persistence
+  // Compatible with new Supabase publishable key system
+  const initAuth = async () => {
+    try {
+      // Initializing authentication system
+      
+      // Verify Supabase client is properly initialized with auth
+      const isAuthReady = await verifySupabaseAuth()
+      if (!isAuthReady) {
+        console.warn('⚠️ Supabase auth not ready, some features may not work')
       }
-    )
 
-    // Save subscription for cleanup
-    authSubscription.value = subscription
-    return subscription
-  } catch (err) {
-    console.error('Auth initialization failed:', err)
-    user.value = null
+      // Get initial session with enhanced error handling
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('❌ Session error during initialization:', sessionError)
+        user.value = null
+        return null
+      }
+      
+      if (session?.user) {
+        // Found existing session, loading user profile
+        await loadUserWithProfile(session.user)
+
+        // Double-check role after a short delay for reliability
+        setTimeout(async () => {
+          if (user.value && (!user.value.role || user.value.role === 'customer')) {
+            // Re-validating user role
+            await loadUserWithProfile(session.user)
+          }
+        }, 1000)
+      } else {
+        // No existing session found
+        user.value = null
+      }
+
+      // Set up auth state change listener with enhanced handling
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, newSession) => {
+          // Auth state change: ${event}
+          
+          if (newSession?.user) {
+            await loadUserWithProfile(newSession.user)
+
+            if (event === 'SIGNED_IN') {
+              // User signed in, initializing user data
+              try {
+                // Initialize cart and wishlist stores after login
+                const { useCartStore } = await import('./useCartStore.js')
+                const { useWishlistStore } = await import('./useWishlistStore.js')
+                
+                const cartStore = useCartStore()
+                const wishlistStore = useWishlistStore()
+                
+                // Fetch user's cart and wishlist data
+                // After login
+                await cartStore.fetchCart() // ensures the cart exists
+
+                await Promise.all([
+                  cartStore.fetchCartItems(), // fetch items for that cart
+                  wishlistStore.fetchWishlist() // independent call
+                ])
+                // User data initialized successfully
+              } catch (err) {
+                console.error('❌ Error initializing stores after login:', err)
+              }
+            } else if (event === 'TOKEN_REFRESHED') {
+              // Token refreshed successfully
+            }
+          } else {
+            // User signed out or session expired
+            user.value = null
+          }
+        }
+      )
+
+      // Save subscription for cleanup
+      authSubscription.value = subscription
+      // Authentication system initialized successfully
+      return subscription
+    } catch (err) {
+      console.error('❌ Auth initialization failed:', err)
+      user.value = null
+      return null
+    }
   }
-}
 
 
   return {

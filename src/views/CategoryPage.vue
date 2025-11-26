@@ -2,14 +2,13 @@
   <div class="my-fade-in">
     <!-- Category Banner Carousel -->
     <section class="mx-4 sm:mx-6 mb-8 sm:mb-12">
-      <AdCarousel
-        :ads="bannerAds"
-        :loading="bannerLoading"
-        :error="bannerError"
+      <CategoryBanner
+        v-if="categoryId !== 'all'"
+        :category-id="categoryId"
         :show-main-banner="true"
         :main-banner-title="getCategoryName(categoryId)"
         :main-banner-subtitle="getCategoryDescription(categoryId)"
-        @retry="loadBannerAds"
+        @retry="loadAds"
         @scroll-to-content="scrollToProducts"
       />
     </section>
@@ -18,14 +17,11 @@
 
     <!-- Featured Products Section (2 rows of ads products) -->
     <div v-if="categoryId !== 'all'" class="mb-12">
-      <FeaturedProducts
-        :products="featuredProducts"
-        :loading="featuredLoading"
-        :error="featuredError"
+      <CategoryFeaturedProducts
+        :category-id="categoryId"
         :title="$t('categoryPage.featuredProducts')"
-        :show-view-all="false"
         :max-products="8"
-        @refresh="refreshFeaturedProducts"
+        @retry="loadAds"
       />
     </div>
 
@@ -171,8 +167,10 @@ import i18n from '../i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '../stores/useProductStore'
 import { useProducts } from '../composables/useProducts'
-import { useAds } from '../composables/useAds'
-import AdCarousel from '../components/AdCarousel.vue'
+import { useAdsStore } from '../stores/useAdsStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
+import CategoryBanner from '../components/ads/CategoryBanner.vue'
+import CategoryFeaturedProducts from '../components/ads/CategoryFeaturedProducts.vue'
 import FeaturedProducts from '../components/FeaturedProducts.vue'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -180,6 +178,8 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const adsStore = useAdsStore()
+const { navigateToPath } = useLocaleRouter()
 const { 
   bestSellingProducts, 
   loading: bestSellingLoading, 
@@ -187,29 +187,23 @@ const {
   fetchBestSellingProductsByCategory,
   refreshBestSellingProducts 
 } = useProducts()
-const { 
-  fetchCategoryBannerAds,
-  fetchCategoryFeaturedProducts,
-  transformAdsForDisplay
-} = useAds()
 
 const sortBy = ref('newest')
 const loading = ref(false)
-const featuredLoading = ref(false)
-const featuredError = ref(null)
-
-// State for banner ads
-const bannerAds = ref([])
-const bannerLoading = ref(false)
-const bannerError = ref(null)
 
 // Pagination variables
 const currentPage = ref(1)
 const itemsPerPage = 20
 const categoryId = computed(() => route.params.categoryId)
 
-// Featured products from ads
-const featuredProducts = ref([])
+// Load all ads data
+const loadAds = async () => {
+  try {
+    await adsStore.fetchAds()
+  } catch (err) {
+    console.error('Error loading ads:', err)
+  }
+}
 
 // Get products for this category
 const products = computed(() => {
@@ -341,56 +335,13 @@ const scrollToProducts = () => {
   }
 }
 
-// Load banner ads for category
-const loadBannerAds = async () => {
-  if (categoryId.value === 'all') return
-  
-  bannerLoading.value = true
-  bannerError.value = null
-  
-  try {
-    const ads = await fetchCategoryBannerAds(categoryId.value)
-    bannerAds.value = transformAdsForDisplay(ads)
-  } catch (err) {
-    console.error('Error loading banner ads:', err)
-    bannerError.value = err.message || 'Failed to load banner ads'
-    bannerAds.value = []
-  } finally {
-    bannerLoading.value = false
-  }
-}
-
-// Load featured products from ads
-const loadFeaturedProducts = async () => {
-  if (categoryId.value === 'all') return
-  
-  featuredLoading.value = true
-  featuredError.value = null
-  
-  try {
-    const ads = await fetchCategoryFeaturedProducts(categoryId.value)
-    const transformedAds = transformAdsForDisplay(ads)
-    featuredProducts.value = transformedAds.map(ad => ad.data)
-  } catch (err) {
-    console.error('Error loading featured products:', err)
-    featuredError.value = err.message || 'Failed to load featured products'
-    featuredProducts.value = []
-  } finally {
-    featuredLoading.value = false
-  }
-}
-
-// Refresh featured products
-const refreshFeaturedProducts = async () => {
-  await loadFeaturedProducts()
-}
 
 // Validate category ID
 const validateCategory = () => {
   const validCategories = productStore.categories.map(cat => cat.id)
   if (!validCategories.includes(categoryId.value)) {
     // Use router to go back to home instead of hardcoded 404
-    router.push('/')
+    navigateToPath('/')
   }
 }
 
@@ -403,11 +354,6 @@ watch(() => route.params.categoryId, async (newCategoryId) => {
     // Refetch products for the new category
     if (newCategoryId && newCategoryId !== 'all') {
       await productStore.fetchProducts({ category_id: newCategoryId })
-      // Load ads for the new category
-      await Promise.allSettled([
-        loadBannerAds(),
-        loadFeaturedProducts()
-      ])
     }
   } catch (error) {
     console.error('Error loading new category:', error)
@@ -432,13 +378,8 @@ onMounted(async () => {
     // Fetch products for this specific category
     await productStore.fetchProducts({ category_id: categoryId.value })
     
-    // Load ads for this category
-    if (categoryId.value !== 'all') {
-      await Promise.allSettled([
-        loadBannerAds(),
-        loadFeaturedProducts()
-      ])
-    }
+    // Load ads data
+    await loadAds()
     
     validateCategory()
   } catch (error) {
