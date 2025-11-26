@@ -168,7 +168,7 @@ export const useProductStore = defineStore('product', () => {
       
       const { data, error: fetchError } = await supabase
         .from('products')
-        .select('id, name, description, price, thumbnail_url, image_urls, category_id, stock_quantity, sold_count, is_new, status, created_at')
+        .select('id, name, description, price, thumbnail_url, image_urls, category_id, stock_quantity, sold_count, is_new, status, created_at, store_id, seller_id, stores(owner_id)')
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .limit(limit)

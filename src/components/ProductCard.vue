@@ -205,6 +205,17 @@
         {{ productFeedback.message }}
       </div>
 
+      <!-- Store Owner Info Link -->
+      <div v-if="storeOwnerId" class="mt-4 pt-4 border-t border-gray-200">
+        <router-link
+          :to="`/${$i18n.locale.value}/profile/${storeOwnerId}`"
+          class="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600 hover:text-primary transition-colors duration-300 group"
+        >
+          <i class="fas fa-store text-xs group-hover:scale-110 transition-transform"></i>
+          <span class="font-medium">{{ $t('product.viewStoreOwner') }}</span>
+        </router-link>
+      </div>
+
       <!-- Error Message -->
       <div v-if="error" class="text-red-600 text-sm text-center bg-red-50 p-4 rounded-2xl border-2 border-red-200 font-medium">
         {{ error }}
@@ -258,6 +269,18 @@ const productImage = computed(() => {
     return props.product.image_urls[0] // Use first image as main image
   }
   return props.product.image || null // Fallback to old image field
+})
+
+const storeOwnerId = computed(() => {
+  // Case 1: Product has a store - get owner_id from store
+  if (props.product.store_id && props.product.stores && props.product.stores.owner_id) {
+    return props.product.stores.owner_id
+  }
+  // Case 2: Product doesn't have a store - use seller_id (customer product)
+  if (props.product.seller_id) {
+    return props.product.seller_id
+  }
+  return null
 })
 
 const formatPrice = (price) => {
