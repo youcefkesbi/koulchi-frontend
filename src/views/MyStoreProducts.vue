@@ -1142,14 +1142,6 @@ const getErrorMessage = (error) => {
   } else {
     return message || 'An error occurred while saving the product. Please try again.'
   }
-const promoteProduct = (productId) => {
-  // Navigate to ad request form with product pre-filled
-  navigateTo('AdRequest', {
-    query: {
-      type: 'product',
-      id: productId
-    }
-  })
 }
 
 const promoteProduct = (productId) => {
