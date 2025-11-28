@@ -468,7 +468,6 @@ import AdminTab from '../components/dashboard/AdminTab.vue'
 import EmployeeTab from '../components/dashboard/EmployeeTab.vue'
 import MaystroIntegration from '../components/MaystroIntegration.vue'
 import OrderStatusHistoryModal from '../components/OrderStatusHistoryModal.vue'
-import { getLocalizedPath } from '../lib/i18n-utils'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -699,9 +698,6 @@ const handleEmployeeNavigation = (section) => {
   // This could open a modal or navigate to a different route
   // For now, we'll just log it
 }
-
-// Get localized route path
-const { getLocalizedPath } = useLocaleRouter()
 
 // Check if user has access to a specific tab
 const hasAccessToTab = (tabId) => {
