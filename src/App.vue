@@ -5,18 +5,16 @@
     :lang="currentLocale"
     class="min-h-screen bg-white text-gray-900"
   >
-    <div class="flex min-h-screen">
-      <!-- Global Admin Sidebar -->
-      <AdminSidebar ref="adminSidebar" :sidebar-open="adminSidebarOpen" @close-sidebar="handleAdminSidebarClose" />
-      
-      <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col">
-        <Header @toggle-admin-sidebar="handleAdminSidebarToggle" />
-        <main class="flex-1">
-          <router-view />
-        </main>
-        <Footer />
-      </div>
+    <!-- Global Admin Sidebar (fixed position, doesn't affect layout) -->
+    <AdminSidebar ref="adminSidebar" :sidebar-open="adminSidebarOpen" @close-sidebar="handleAdminSidebarClose" />
+    
+    <!-- Main Content Area -->
+    <div class="flex flex-col min-h-screen w-full">
+      <Header @toggle-admin-sidebar="handleAdminSidebarToggle" />
+      <main class="flex-1 w-full">
+        <router-view />
+      </main>
+      <Footer />
     </div>
   </div>
 </template>
