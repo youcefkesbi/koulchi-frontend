@@ -68,7 +68,7 @@ const baseRoutes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/',
+    path: '',
     name: 'Home',
     component: Home
   },
