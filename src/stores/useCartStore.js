@@ -777,6 +777,31 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   /**
+   * Main clear cart method - determines whether to use Supabase or localStorage
+   * @returns {Promise<void>}
+   */
+  const clearCart = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      if (authStore.isAuthenticated) {
+        await clearSupabaseCart()
+        await fetchCart() // Refresh cart after clearing
+      } else {
+        await clearLocalCartData()
+        await fetchCart() // Refresh cart after clearing
+      }
+    } catch (err) {
+      error.value = err.message
+      console.error('❌ Error clearing cart:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
    * Clears error state
    */
   const clearError = () => {
@@ -797,6 +822,14 @@ export const useCartStore = defineStore('cart', () => {
       isGuest: isGuest.value,
       cartId: cartId.value
     }
+  }
+
+  /**
+   * Subscribe to cart changes (placeholder for future implementation)
+   */
+  const subscribeToCartChanges = () => {
+    // Placeholder for future real-time cart updates
+    console.log('Cart changes subscription not yet implemented')
   }
 
   // Watch for authentication state changes

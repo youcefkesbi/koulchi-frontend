@@ -214,7 +214,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 
-
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useCartStore } from '../stores/useCartStore'
@@ -235,6 +234,7 @@ const wishlistStore = useWishlistStore()
 const productStore = useProductStore()
 const storeStore = useStoreStore()
 const notificationStore = useNotificationStore()
+const { getLocalizedPath, navigateToPath } = useLocaleRouter()
 
 // Define emits
 const emit = defineEmits(['toggle-admin-sidebar'])
@@ -251,6 +251,13 @@ const adminSidebarOpen = ref(false)
 
 // Get localized route path (using the composable method)
 const getLocalizedRoutePath = (path) => {
+  const result = getLocalizedPath(path)
+  // getLocalizedPath returns an object with path and query, but router-link needs just the path string
+  return typeof result === 'string' ? result : result.path
+}
+
+// Get localized route (for router-link :to)
+const getLocalizedRoute = (path) => {
   return getLocalizedPath(path)
 }
 

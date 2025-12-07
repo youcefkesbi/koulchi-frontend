@@ -48,12 +48,12 @@
 
       <!-- Wishlist Button (Floating) -->
       <button
-        @click="toggleWishlist"
+        @click="handleToggleWishlist"
         class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl"
-        :class="{ 'text-red-500 bg-red-50': isInWishlist, 'text-gray-600 hover:text-red-500': !isInWishlist }"
-        :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
+        :class="{ 'text-red-500 bg-red-50': isProductInWishlist, 'text-gray-600 hover:text-red-500': !isProductInWishlist }"
+        :title="isProductInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
       >
-        <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isInWishlist }"></i>
+        <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isProductInWishlist }"></i>
       </button>
     </div>
 
@@ -127,9 +127,9 @@
             @click="handleToggleWishlist"
             :disabled="wishlistLoading"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
-            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
+            :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
-            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isProductInWishlist }"></i>
             <i v-else class="fas fa-spinner fa-spin"></i>
           </button>
           
@@ -161,9 +161,9 @@
             @click="handleToggleWishlist"
             :disabled="wishlistLoading"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-sm py-4 px-6 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
-            :class="{ 'text-red-500 bg-red-50': isInWishlist }"
+            :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
-            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
+            <i v-if="!wishlistLoading" class="fas fa-heart" :class="{ 'text-red-500': isProductInWishlist }"></i>
             <i v-else class="fas fa-spinner fa-spin"></i>
           </button>
           
@@ -225,10 +225,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '../stores/useCartStore'
-import { useWishlistStore } from '../stores/useWishlistStore'
+import { useWishlist } from '../composables/useWishlist'
+import { useProduct } from '../composables/useProduct'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const props = defineProps({
   product: {
@@ -241,10 +244,15 @@ const props = defineProps({
   }
 })
 
-const { t } = useI18n()
-const cartStore = useCartStore()
-const wishlistStore = useWishlistStore()
+const emit = defineEmits(['product-deleted'])
 
+const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
+const cartStore = useCartStore()
+const authStore = useAuthStore()
+
+// Use composables
 const { 
   toggleWishlist, 
   isInWishlist, 
@@ -262,6 +270,8 @@ const {
 
 // Local state
 const error = ref('')
+const cartLoading = ref(false)
+const cartFeedback = ref(null)
 
 const productImage = computed(() => {
   // Handle both old single image and new image_urls array
@@ -288,7 +298,10 @@ const formatPrice = (price) => {
   return price.toLocaleString('ar-DZ')
 }
 
-// isInWishlist is now provided by useWishlist composable
+// Check if product is in wishlist
+const isProductInWishlist = computed(() => {
+  return isInWishlist(props.product.id)
+})
 
 // Authentication and ownership computed properties
 const isAuthenticated = computed(() => !!authStore.user)
@@ -316,9 +329,20 @@ const getCartButtonText = () => {
   return t('product.addToCart')
 }
 
-// Handler functions using new composables
+// Handler functions
 const handleAddToCart = async () => {
-  await addToCart(props.product)
+  try {
+    cartLoading.value = true
+    cartFeedback.value = null
+    await cartStore.addToCart(props.product.id, 1)
+    cartFeedback.value = { type: 'success', message: t('product.addedToCart') }
+    setTimeout(() => { cartFeedback.value = null }, 3000)
+  } catch (err) {
+    cartFeedback.value = { type: 'error', message: err.message || t('product.failedToAddToCart') }
+    setTimeout(() => { cartFeedback.value = null }, 3000)
+  } finally {
+    cartLoading.value = false
+  }
 }
 
 const handleToggleWishlist = async () => {
@@ -361,20 +385,17 @@ watch(viewState, (newState, oldState) => {
 })
 
 // Listen for global auth state changes
+const handleAuthStateChange = (event) => {
+  // Force reactivity update
+  nextTick()
+}
+
 onMounted(() => {
-  const handleAuthStateChange = (event) => {
-    // Force reactivity update
-    nextTick()
-  }
-  
   window.addEventListener('auth-state-changed', handleAuthStateChange)
-  
-  // Cleanup listener on unmount
-  onUnmounted(() => {
-    window.removeEventListener('auth-state-changed', handleAuthStateChange)
-  })
-  
-  // Wishlist is now handled by the useWishlist composable
+})
+
+onUnmounted(() => {
+  window.removeEventListener('auth-state-changed', handleAuthStateChange)
 })
 </script>
 
