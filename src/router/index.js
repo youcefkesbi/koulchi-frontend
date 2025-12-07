@@ -38,31 +38,31 @@ const defaultLocale = 'en'
 // Note: Using relative paths (no leading slash) so they inherit the locale param from parent
 const baseRoutes = [
   {
-    path: '/subscription',
+    path: 'subscription',
     name: 'subscription',
     component: Subscription,
     meta: { requiresAuth: true }
   },
   {
-    path: '/notifications',
+    path: 'notifications',
     name: 'notifications',
     component: Notifications,
     meta: { requiresAuth: true }
   },
   {
-    path: '/users',
+    path: 'users',
     name: 'users',
     component: ManageUsers,
     meta: { requiresAuth: true }
   },
   {
-    path: '/admintab',
+    path: 'admintab',
     name: 'AdminTab',
     component: AdminTab,
     meta: { requiresAuth: true }
   },
   {
-    path: '/productCard',
+    path: 'productCard',
     name: 'productCard',
     component: () => import('../components/ProductCard.vue'),
     meta: { requiresAuth: true }
@@ -106,19 +106,19 @@ const baseRoutes = [
     beforeEnter: authGuard
   },
   {
-    path: '/myaccount',
+    path: 'myaccount',
     name: 'Account',
     component: Account,
     meta: { requiresAuth: true }
   },
   {
-    path: '/profile/:ownerId?',
+    path: 'profile/:ownerId?',
     name: 'Profile',
     component: Profile,
     props: true
   },
   {
-    path: '/wishlist',
+    path: 'wishlist',
     name: 'Wishlist',
     component: Wishlist,
     meta: { requiresAuth: true }
@@ -181,33 +181,33 @@ const baseRoutes = [
     beforeEnter: adminGuard
   },
   {
-    path: '/shipping',
+    path: 'shipping',
     name: 'ShippingManagement',
     component: () => import('../views/ShippingManagement.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
   },
   {
-    path: '/webhooks',
+    path: 'webhooks',
     name: 'Webhooks',
     component: () => import('../views/Webhooks.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
   },
   {
-    path: '/stores/:id',
+    path: 'stores/:id',
     name: 'StoreDetail',
     component: StoreDetail,
     props: true
   },
   {
-    path: '/store-profile/:id',
+    path: 'store-profile/:id',
     name: 'StoreProfile',
     component: StoreProfile,
     props: true
   },
   {
-    path: '/dashboard/store/create',
+    path: 'dashboard/store/create',
     name: 'CreateStore',
     component: () => import('../views/CreateStore.vue'),
     meta: { requiresAuth: true }
@@ -220,21 +220,21 @@ const baseRoutes = [
     beforeEnter: storeOwnerGuard
   },
   {
-    path: '/store/:id/upgrade',
+    path: 'store/:id/upgrade',
     name: 'StoreUpgrade',
     component: () => import('../components/StoreUpgrade.vue'),
     meta: { requiresAuth: true },
     props: true
   },
   {
-    path: '/store/:id/downgrade',
+    path: 'store/:id/downgrade',
     name: 'StoreDowngrade',
     component: () => import('../components/StoreDowngrade.vue'),
     meta: { requiresAuth: true },
     props: true
   },
   {
-    path: '/mypurchases',
+    path: 'mypurchases',
     name: 'MyPurchases',
     component: () => import('../views/MyPurchases.vue'),
     meta: { requiresAuth: true }
@@ -265,24 +265,6 @@ const baseRoutes = [
     component: () => import('../views/AdRequest.vue'),
     meta: { requiresAuth: true },
     beforeEnter: authGuard
-  },
-  {
-    path: 'users',
-    name: 'ManageUsers',
-    component: ManageUsers,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: 'admintab',
-    name: 'AdminTab',
-    component: AdminTab,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: 'productCard',
-    name: 'ProductCard',
-    component: () => import('../components/ProductCard.vue'),
-    meta: { requiresAuth: true }
   }
 ]
 

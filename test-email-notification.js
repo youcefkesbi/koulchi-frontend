@@ -3,7 +3,7 @@
 
 const testEmailNotification = async () => {
   const supabaseUrl = 'YOUR_SUPABASE_URL'
-  const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'
+  const supabaseKey = 'YOUR_SUPABASE_PUBLISHABLE_KEY'
   
   // Initialize Supabase client
   const { createClient } = supabase
@@ -62,7 +62,7 @@ const testEmailNotification = async () => {
 console.log(`
 🧪 Email Notification Test Instructions:
 
-1. Replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY with your actual values
+1. Replace YOUR_SUPABASE_URL and YOUR_SUPABASE_PUBLISHABLE_KEY with your actual values
 2. Replace YOUR_USER_ID with an actual user ID (employee/admin)
 3. Make sure you have:
    - Deployed the Edge Function: supabase functions deploy send-store-notification

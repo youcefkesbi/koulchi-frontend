@@ -63,15 +63,15 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Create Supabase client using anon key with user JWT (RLS policies will enforce security)
+    // Create Supabase client using publishable key with user JWT (RLS policies will enforce security)
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY') 
+    const supabasePublishableKey = Deno.env.get('SUPABASE_PUBLISHABLE_KEY') 
     
-    if (!supabaseUrl || !supabaseAnon) {
-      throw new Error('Missing environment variables: SUPABASE_URL and SUPABASE_ANON_KEY')
+    if (!supabaseUrl || !supabasePublishableKey) {
+      throw new Error('Missing environment variables: SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnon, {
+    const supabase = createClient(supabaseUrl, supabasePublishableKey, {
       global: {
         headers: {
           Authorization: authHeader

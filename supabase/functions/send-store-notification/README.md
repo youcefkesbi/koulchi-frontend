@@ -13,7 +13,7 @@ supabase functions deploy send-store-notification
 In your Supabase dashboard, go to Settings > Edge Functions and set:
 - `RESEND_API_KEY`: Your Resend API key
 - `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anon key
+- `SUPABASE_PUBLISHABLE_KEY`: Your Supabase publishable key
 
 ### 3. Create Database Webhook
 In your Supabase dashboard, go to Database > Webhooks and create a new webhook:

@@ -173,7 +173,7 @@ POST /api/stores/{id}/reject
 ```env
 # Supabase Configuration
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 
 # Storage Buckets
 VITE_STORAGE_BUCKET_VERIFICATIONS=verification-documents

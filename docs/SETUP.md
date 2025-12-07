@@ -15,7 +15,7 @@ cp .env.example .env
 3. Configure environment variables in `.env`:
 ```
 VITE_SUPABASE_URL=your_supabase_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key_here
 ```
 
 4. Start development server:
@@ -28,7 +28,7 @@ npm run dev
 The app requires the following environment variables:
 
 - `VITE_SUPABASE_URL`: Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: Your Supabase publishable key
 
 ## Development Mode
 

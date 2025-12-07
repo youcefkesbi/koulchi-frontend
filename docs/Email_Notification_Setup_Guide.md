@@ -28,7 +28,7 @@ In your Supabase dashboard:
 3. Add these environment variables:
    - `RESEND_API_KEY`: Your Resend API key
    - `SUPABASE_URL`: Your Supabase project URL
-   - `SUPABASE_ANON_KEY`: Your Supabase anon key
+   - `SUPABASE_PUBLISHABLE_KEY`: Your Supabase publishable key
 
 ### 3. Set Up Database Webhook
 
