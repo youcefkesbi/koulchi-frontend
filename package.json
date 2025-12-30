@@ -12,26 +12,26 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
-    "@supabase/supabase-js": "^2.58.0",
-    "axios": "^1.12.2",
-    "chart.js": "^4.5.0",
-    "pinia": "^3.0.3",
-    "tailwindcss": "^4.1.13",
-    "vue": "^3.5.22",
-    "vue-chartjs": "^5.3.2",
-    "vue-i18n": "^11.1.12",
-    "vue-router": "^4.5.1"
+    "@supabase/supabase-js": "^2.89.0",
+    "axios": "^1.13.2",
+    "chart.js": "^4.5.1",
+    "pinia": "^3.0.4",
+    "tailwindcss": "^4.1.18",
+    "vue": "^3.5.26",
+    "vue-chartjs": "^5.3.3",
+    "vue-i18n": "^11.2.7",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.13",
-    "@tailwindcss/vite": "^4.1.13",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
+    "@vitejs/plugin-vue": "^6.0.3",
     "@vue/test-utils": "^2.4.6",
-    "autoprefixer": "^10.4.21",
-    "jsdom": "^27.0.0",
+    "autoprefixer": "^10.4.23",
+    "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
-    "vite": "^7.1.7",
-    "vitest": "^3.2.4"
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
   },
   "keywords": [
     "vue",

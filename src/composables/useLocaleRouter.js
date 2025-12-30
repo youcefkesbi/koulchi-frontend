@@ -43,13 +43,14 @@ export function useLocaleRouter() {
    */
   const navigateTo = async (routeConfig, options = {}) => {
     const {
-      locale: targetLocale = currentLocale.value,
+      locale: localeOption = currentLocale.value,
       params = {},
       query = {},
       replace = false
     } = options
 
     // Ensure locale is supported
+    let targetLocale = localeOption
     if (!supportedLocales.includes(targetLocale)) {
       console.warn(`Unsupported locale: ${targetLocale}, falling back to ${defaultLocale}`)
       targetLocale = defaultLocale
@@ -106,12 +107,13 @@ export function useLocaleRouter() {
    */
   const navigateToPath = async (path, options = {}) => {
     const {
-      locale: targetLocale = currentLocale.value,
+      locale: localeOption = currentLocale.value,
       query = {},
       replace = false
     } = options
 
     // Ensure locale is supported
+    let targetLocale = localeOption
     if (!supportedLocales.includes(targetLocale)) {
       console.warn(`Unsupported locale: ${targetLocale}, falling back to ${defaultLocale}`)
       targetLocale = defaultLocale
@@ -160,12 +162,13 @@ export function useLocaleRouter() {
    */
   const getLocalizedRoute = (routeConfig, options = {}) => {
     const {
-      locale: targetLocale = currentLocale.value,
+      locale: localeOption = currentLocale.value,
       params = {},
       query = {}
     } = options
 
     // Ensure locale is supported
+    let targetLocale = localeOption
     if (!supportedLocales.includes(targetLocale)) {
       console.warn(`Unsupported locale: ${targetLocale}, falling back to ${defaultLocale}`)
       targetLocale = defaultLocale
@@ -199,11 +202,12 @@ export function useLocaleRouter() {
    */
   const getLocalizedPath = (path, options = {}) => {
     const {
-      locale: targetLocale = currentLocale.value,
+      locale: localeOption = currentLocale.value,
       query = {}
     } = options
 
     // Ensure locale is supported
+    let targetLocale = localeOption
     if (!supportedLocales.includes(targetLocale)) {
       console.warn(`Unsupported locale: ${targetLocale}, falling back to ${defaultLocale}`)
       targetLocale = defaultLocale
