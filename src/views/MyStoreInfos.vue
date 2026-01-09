@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen w-[90%] mx-auto ">
+  <div class="min-h-screen w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
 
     <!-- Loading State -->
-    <div v-if="storeStore.loading" class="container mx-auto px-4 py-8">
+    <div v-if="storeStore.loading" class="container mx-auto px-4 sm:px-6 py-8">
       <div class="text-center">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <p class="mt-2 text-gray-600">{{ $t('stores.loading') }}</p>
@@ -11,7 +11,7 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="storeStore.error" class="container mx-auto px-4 py-8">
+    <div v-else-if="storeStore.error" class="container mx-auto px-4 sm:px-6 py-8">
       <div class="text-center">
         <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Store Status Display (shown when user has a store but not vendor) -->
-    <div v-else-if="storeStore.currentStore && !hasVendorRole" class="container mx-auto px-4 py-8">
+    <div v-else-if="storeStore.currentStore && !hasVendorRole" class="container mx-auto px-4 sm:px-6 py-8">
       <!-- Pending Status -->
       <div v-if="storeStatus && storeStatus.status === 'pending'" class="text-center">
         <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -70,12 +70,12 @@
     </div>
 
     <!-- Store Dashboard Content (Only for vendor role / approved stores) -->
-    <div v-else-if="storeStore.currentStore && hasVendorRole && !storeStore.loading" class="min-h-screen pt-5 ">
+    <div v-else-if="storeStore.currentStore && hasVendorRole && !storeStore.loading" class="min-h-screen pt-6">
       
       <!-- Banner -->
       <div class="relative">
         <!-- Banner Section (Pro Pack only) -->
-        <div v-if="isProPack" class="relative h-60 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mx-4 mt-4">
+        <div v-if="isProPack" class="relative h-60 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mx-4 sm:mx-6 mt-4 sm:mt-6">
           <!-- Banner Image -->
           <div v-if="storeStore.currentStore?.hasBanner || editForm.banner" class="absolute inset-0 rounded-2xl overflow-hidden">
             <img 
@@ -113,7 +113,7 @@
         </div>
 
         <!-- Store Info Section -->
-        <div class="px-4 pb-20 bg-white shadow-lg rounded-2xl mx-4 -mt-16 relative">
+        <div class="px-4 sm:px-6 pb-20 bg-white shadow-lg rounded-2xl mx-4 sm:mx-6 -mt-16 relative">
           <div class="container mx-auto py-6">
             <!-- Logo Section  -->
             <div class="relative flex -mt-20 mb-6">
@@ -137,7 +137,7 @@
                 </button>
               </div>
               <!-- Store Stats -->
-                <div class="mt-8 ml-8 flex items-center space-x-6 text-sm text-gray-500">
+                <div class="mt-8 ml-4 sm:ml-8 flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500">
               <span>
                 <i class="fas fa-calendar-alt mr-1"></i>
                     {{ $t('stores.createdOn') }} {{ storeStore.currentStore?.created_at ? formatDate(storeStore.currentStore.created_at) : '' }}
@@ -171,12 +171,12 @@
             </div>
             
              <!-- Store details grid -->
-             <div class="grid grid-cols-[0.5fr_1fr] gap-16 items-start text-center relative">
+             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-start relative">
              <div>
               <!-- Store Details -->
               <div class="w-full text-left">
                 <!-- Location Section -->
-                <div class="w-full max-w-md text-left">
+                <div class="w-full max-w-md text-left mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.location') }}</label>
                   <div class="relative">
                     <i class="fas fa-map-marker-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -185,7 +185,7 @@
                       @blur="updateLocation"
                       @keydown.enter.prevent="updateLocation"
                       type="text"
-                      class="w-full pl-10 pr-12 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors text-center"
+                      class="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
                       :class="{ 'border-red-500': validationErrors.location }"
                       :placeholder="$t('stores.location')"
                     />
@@ -265,16 +265,16 @@
               </div>
               <div class="">
               
-               <div class="w-1 top-0 h-120 bg-green-600 rounded-md absolute left-[51%]"></div>
+               <div class="hidden lg:block w-1 top-0 bottom-0 bg-green-600 rounded-md absolute left-1/2 transform -translate-x-1/2"></div>
                 <!-- Description Section -->
-                <div class="w-full max-w-md text-left">
+                <div class="w-full max-w-md text-left mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.storeDescription') }}</label>
                   <div class="relative">
                     <textarea
                       v-model="editForm.description"
                       @blur="updateDescription"
                       @keydown.enter.prevent="updateDescription"
-                      class="text-sm w-full py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none text-left pl-2"
+                      class="text-sm w-full py-3 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none"
                       :class="{ 'border-red-500': validationErrors.description }"
                       :placeholder="$t('stores.storeDescriptionPlaceholder')"
                       rows="3"
@@ -292,7 +292,7 @@
                 </div>
 
                 <!-- Color Picker (Pro Pack only) -->
-                <div v-if="isProPack" class="w-full mt-4 max-w-md text-left">
+                <div v-if="isProPack" class="w-full mt-6 max-w-md text-left">
                   <label class="block text-sm font-medium text-gray-700 mb-2">{{ $t('stores.selectColor') }}</label>
                   <div class="flex items-center space-x-3">
                     <button
@@ -319,7 +319,7 @@
 
 
                 <!-- Save Button -->
-                <div class="w-full mt-6 text-center">
+                <div class="w-full mt-8 text-center">
                   <button
                     @click="saveAllChanges"
                     :disabled="updateLoading"
@@ -332,7 +332,7 @@
                 </div>
 
                 <!-- Update Message -->
-                <div v-if="updateMessage" class="w-full mt-4 text-center">
+                <div v-if="updateMessage" class="w-full mt-4 max-w-md mx-auto text-center">
                   <div 
                     class="px-4 py-3 rounded-lg font-medium"
                     :class="{
@@ -367,18 +367,18 @@
       </div>
 
       <!-- Quick Actions -->
-      <div class="container mx-auto px-4 py-8">
-      <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
-        <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="container mx-auto px-4 sm:px-6 py-8">
+        <div class="bg-white rounded-xl shadow-soft p-6 mb-8">
+          <h3 class="text-xl font-bold text-gray-800 mb-6">{{ $t('stores.quickActions') }}</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
             <router-link v-if="storeStore.currentStore?.id" :to="getLocalizedPath(`/stores/${storeStore.currentStore.id}`)" class="btn-secondary text-center py-4">
-            <i class="fas fa-eye text-2xl mb-2 block"></i>
-            {{ $t('stores.viewPublicStore') }}
-          </router-link>
-          <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
-            <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
-            {{ $t('stores.analytics') }}
-          </button>
+              <i class="fas fa-eye text-2xl mb-2 block"></i>
+              {{ $t('stores.viewPublicStore') }}
+            </router-link>
+            <button @click="showAnalytics = !showAnalytics" class="btn-outline text-center py-4">
+              <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
+              {{ $t('stores.analytics') }}
+            </button>
           </div>
         </div>
       </div>
@@ -393,7 +393,7 @@
             <h3 class="text-xl font-bold text-gray-800">{{ $t('stores.editStore') }}</h3>
             <button
               @click="closeEditModal"
-              class=" p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <i class="fas fa-times"></i>
             </button>

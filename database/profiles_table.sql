@@ -200,13 +200,13 @@ language plpgsql
 security definer
 as $$
 begin
-  insert into public.profiles (id, email, role)
-  values (
-    new.id,
-    new.email,
-    'customer'
-  );
+  insert into public.profiles (id)
+  values (new.id);
   return new;
+exception
+  when others then
+    raise log 'handle_new_user error: %', sqlerrm;
+    return new;
 end;
 $$;
 
