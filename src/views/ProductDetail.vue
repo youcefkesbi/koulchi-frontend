@@ -1,24 +1,26 @@
 <template>
-  <div v-if="product" class="space-y-8">
+  <div v-if="product" class="space-y-4 sm:space-y-6 lg:space-y-8 px-4 sm:px-6 lg:px-8">
     <!-- Breadcrumb -->
-    <nav class="text-sm text-gray-600">
-      <router-link to="/" class="hover:text-primary">الرئيسية</router-link>
-      <span class="mx-2">/</span>
-      <router-link to="/products" class="hover:text-primary">المنتجات</router-link>
-      <span class="mx-2">/</span>
-      <span class="text-dark">{{ product.name }}</span>
+    <nav class="text-xs sm:text-sm text-gray-600 overflow-x-auto">
+      <div class="flex items-center whitespace-nowrap">
+        <router-link to="/" class="hover:text-primary">الرئيسية</router-link>
+        <span class="mx-2">/</span>
+        <router-link to="/products" class="hover:text-primary">المنتجات</router-link>
+        <span class="mx-2">/</span>
+        <span class="text-dark truncate max-w-[200px] sm:max-w-none">{{ product.name }}</span>
+      </div>
     </nav>
 
     <!-- Product Details -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
       <!-- Product Images -->
-      <div class="space-y-4">
+      <div class="space-y-3 sm:space-y-4">
         <!-- Main Image -->
         <div class="relative overflow-hidden rounded-lg">
           <img 
             :src="mainImage" 
             :alt="product.name"
-            class="w-full h-96 object-cover"
+            class="w-full h-64 sm:h-80 lg:h-96 object-cover"
           />
           
           <!-- Image Navigation -->
@@ -71,22 +73,22 @@
       </div>
 
       <!-- Product Info -->
-      <div class="space-y-6">
+      <div class="space-y-4 sm:space-y-5 lg:space-y-6">
         <!-- Title and Stock Status -->
         <div>
-          <h1 class="text-3xl font-bold text-dark mb-2">{{ product.name }}</h1>
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-dark mb-2">{{ product.name }}</h1>
           
-          <div class="flex items-center space-x-4 space-x-reverse mb-4">
-            <div class="flex items-center">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4 space-x-0 space-x-reverse mb-4">
+            <div class="flex items-center text-sm sm:text-base">
               <i class="fas fa-box text-primary"></i>
               <span class="text-gray-700 mr-1">{{ product.stock_quantity || 0 }}</span>
             </div>
-            <span class="text-gray-500">متوفر</span>
-            <span v-if="(product.stock_quantity || 0) > 0" class="text-green-600 font-semibold">
+            <span class="text-gray-500 text-sm sm:text-base hidden sm:inline">متوفر</span>
+            <span v-if="(product.stock_quantity || 0) > 0" class="text-green-600 font-semibold text-sm sm:text-base">
               <i class="fas fa-check-circle ml-1"></i>
               متوفر
             </span>
-            <span v-else class="text-red-600 font-semibold">
+            <span v-else class="text-red-600 font-semibold text-sm sm:text-base">
               <i class="fas fa-times-circle ml-1"></i>
               غير متوفر
             </span>
@@ -96,7 +98,7 @@
         <!-- Price -->
         <div class="space-y-2">
           <div class="flex items-center space-x-4 space-x-reverse">
-            <span class="text-3xl font-bold text-primary">
+            <span class="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
               {{ formatPrice(product.price) }} دج
             </span>
           </div>
@@ -104,8 +106,8 @@
 
         <!-- Description -->
         <div>
-          <h3 class="text-lg font-semibold mb-2">الوصف</h3>
-          <p class="text-gray-700 leading-relaxed">{{ product.description || 'لا يوجد وصف متاح' }}</p>
+          <h3 class="text-base sm:text-lg font-semibold mb-2">الوصف</h3>
+          <p class="text-sm sm:text-base text-gray-700 leading-relaxed">{{ product.description || 'لا يوجد وصف متاح' }}</p>
         </div>
 
         <!-- Features -->
@@ -132,31 +134,31 @@
         </div>
 
         <!-- Add to Cart -->
-        <div class="space-y-4">
-          <div class="flex items-center space-x-4 space-x-reverse">
-            <label class="font-semibold">الكمية:</label>
+        <div class="space-y-3 sm:space-y-4">
+          <div class="flex items-center space-x-3 sm:space-x-4 space-x-reverse">
+            <label class="font-semibold text-sm sm:text-base">الكمية:</label>
             <div class="flex items-center border border-gray-300 rounded-lg">
               <button
                 @click="decreaseQuantity"
-                class="px-3 py-2 hover:bg-gray-100 transition-colors"
+                class="px-3 sm:px-4 py-2 hover:bg-gray-100 transition-colors"
                 :disabled="quantity <= 1"
               >
-                <i class="fas fa-minus"></i>
+                <i class="fas fa-minus text-sm"></i>
               </button>
-              <span class="px-4 py-2 border-x border-gray-300">{{ quantity }}</span>
+              <span class="px-3 sm:px-4 py-2 border-x border-gray-300 text-sm sm:text-base min-w-[3rem] text-center">{{ quantity }}</span>
               <button
                 @click="increaseQuantity"
-                class="px-3 py-2 hover:bg-gray-100 transition-colors"
+                class="px-3 sm:px-4 py-2 hover:bg-gray-100 transition-colors"
               >
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-plus text-sm"></i>
               </button>
             </div>
           </div>
 
-          <div class="flex space-x-4 space-x-reverse">
+          <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:space-x-0 sm:space-x-reverse">
             <button
               @click="addToCart"
-              class="flex-1 btn-primary text-lg py-4"
+              class="flex-1 btn-primary text-sm sm:text-base lg:text-lg py-3 sm:py-3.5 lg:py-4"
               :disabled="(product.stock_quantity || 0) <= 0"
             >
               <i class="fas fa-shopping-cart ml-2"></i>
@@ -164,7 +166,7 @@
             </button>
             <button 
               @click="toggleWishlist"
-              class="btn-outline text-lg py-4 px-6"
+              class="btn-outline text-sm sm:text-base lg:text-lg py-3 sm:py-3.5 lg:py-4 px-4 sm:px-6 flex items-center justify-center"
               :class="{ 'text-red-500 border-red-300': isInWishlist }"
               :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
             >
@@ -189,9 +191,9 @@
     </div>
 
     <!-- Related Products -->
-    <section class="mt-12">
-      <h2 class="text-2xl font-bold text-dark mb-6">منتجات مشابهة</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <section class="mt-8 sm:mt-10 lg:mt-12">
+      <h2 class="text-xl sm:text-2xl font-bold text-dark mb-4 sm:mb-6">منتجات مشابهة</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <ProductCard
           v-for="relatedProduct in relatedProducts"
           :key="relatedProduct.id"

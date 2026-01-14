@@ -5,28 +5,28 @@
     <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
     
     <!-- Modal Content -->
-    <div class="flex min-h-full items-center justify-center p-4">
-      <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 relative">
+    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
+      <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
 
 
         
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <div class="flex justify-between items-center mb-4 sm:mb-6">
+          <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
             {{ isSignup ? t('signup') : t('login') }}
           </h3>
           <button
             @click="closeModal"
-            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
           >
-            <i class="fas fa-times text-xl"></i>
+            <i class="fas fa-times text-lg sm:text-xl"></i>
           </button>
         </div>
 
               <!-- Toggle Mode Button -->
-              <div class="text-center mb-6">
+              <div class="text-center mb-4 sm:mb-6">
                 <button
-                  class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
+                  class="text-primary hover:text-primary-dark underline text-xs sm:text-sm focus:outline-none transition-colors"
                   @click="toggleMode"
                 >
                   {{ isSignup ? t('haveAccount') : t('noAccount') }}
@@ -94,38 +94,38 @@
               </div>
 
               <!-- Signup Form -->
-              <form v-if="isSignup" @submit.prevent="handleSignup" class="space-y-4">
+              <form v-if="isSignup" @submit.prevent="handleSignup" class="space-y-3 sm:space-y-4">
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('fullName') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('fullName') }}</label>
                   <input 
                     v-model="signupForm.fullName" 
                     type="text" 
                     name="signup-fullname"
                     required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                    class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('fullNamePlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('email') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('email') }}</label>
                   <input 
                     v-model="signupForm.email" 
                     type="email" 
                     name="signup-email"
                     required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                    class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('emailPlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('password') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('password') }}</label>
                   <div class="relative">
                     <input 
                       v-model="signupForm.password" 
                       :type="showSignupPassword ? 'text' : 'password'" 
                       name="signup-password"
                       required 
-                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
                       :placeholder="t('passwordPlaceholder')"
                     />
                     <button
@@ -138,14 +138,14 @@
                   </div>
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('confirmPassword') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('confirmPassword') }}</label>
                   <div class="relative">
                     <input 
                       v-model="signupForm.confirmPassword" 
                       :type="showSignupConfirmPassword ? 'text' : 'password'" 
                       name="signup-confirm-password"
                       required 
-                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
                       :placeholder="t('confirmPasswordPlaceholder')"
                     />
                     <button
@@ -160,7 +160,7 @@
                 <button 
                   type="submit" 
                   :disabled="authStore.loading || !isFormValid" 
-                  class="w-full bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                  class="w-full bg-primary text-white py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
                   {{ t('signup') }}
@@ -168,26 +168,26 @@
               </form>
 
               <!-- Login Form -->
-              <form v-else @submit.prevent="handleLogin" class="space-y-4">
+              <form v-else @submit.prevent="handleLogin" class="space-y-3 sm:space-y-4">
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('email') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('email') }}</label>
                   <input 
                     v-model="loginForm.email" 
                     type="email" 
                     name="login-email"
                     required 
-                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
+                    class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" 
                     :placeholder="t('emailPlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('password') }}</label>
+                  <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('password') }}</label>
                   <div class="relative">
                     <input 
                       v-model="loginForm.password" 
                       :type="showLoginPassword ? 'text' : 'password'" 
                       required 
-                      class="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
+                      class="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300" 
                       :placeholder="t('passwordPlaceholder')"
                     />
                     <button
@@ -202,7 +202,7 @@
                 <button 
                   type="submit" 
                   :disabled="authStore.loading || !loginForm.email || !loginForm.password" 
-                  class="w-full bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+                  class="w-full bg-primary text-white py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   <i v-if="authStore.loading" class="fas fa-spinner fa-spin mr-2"></i>
                   {{ t('login') }}
@@ -212,7 +212,7 @@
                 <div class="text-center">
                   <button
                     @click="openForgotPassword"
-                    class="text-primary hover:text-primary-dark underline text-sm focus:outline-none transition-colors"
+                    class="text-primary hover:text-primary-dark underline text-xs sm:text-sm focus:outline-none transition-colors"
                   >
                     {{ t('errors.forgotPassword') }}
                   </button>

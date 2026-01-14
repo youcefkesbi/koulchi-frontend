@@ -1,45 +1,62 @@
 <template>
-  <header class="h-20 bg-white shadow-soft sticky top-0 z-50 border-b border-neutral-200">
-    <div class="px-8">
-      <!-- Main header -->
-      <div class="py-4 sm:py-6  h-20">
-        <div class="h-10 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+  <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-neutral-200">
+    <div class="px-4 sm:px-6 lg:px-8">
+      <!-- Mobile Header (visible on small screens) -->
+      <div class="flex items-center justify-between h-16 sm:hidden">
+        <!-- Logo -->
+        <router-link :to="getLocalizedRoutePath('/')" class="group flex-shrink-0">
+          <Logo size="default" />
+        </router-link>
+
+        <!-- Mobile Menu Button -->
+        <button
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          class="p-2 text-neutral-700 hover:text-primary transition-colors"
+          aria-label="Toggle menu"
+        >
+          <i class="fas text-xl" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+        </button>
+      </div>
+
+      <!-- Desktop Header (hidden on small screens) -->
+      <div class="hidden sm:flex items-center justify-between h-20 py-4">
+        <div class="flex items-center justify-between w-full space-x-4 lg:space-x-6">
           <!-- Logo -->
-          <router-link :to="getLocalizedRoutePath('/')" class="group">
+          <router-link :to="getLocalizedRoutePath('/')" class="group flex-shrink-0">
             <Logo size="large" />
           </router-link>
 
           <!-- Search bar -->
-          <div class="w-full sm:flex-1 sm:max-w-2xl sm:mx-8 order-3 sm:order-2">
+          <div class="flex-1 max-w-2xl mx-4 lg:mx-8">
             <div class="relative group">
               <input
                 v-model="searchQuery"
                 @input="handleSearch"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
-                class="w-full pl-12 pr-4 py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600"
+                class="w-full pl-12 pr-4 py-2.5 lg:py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm lg:text-base"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
             </div>
           </div>
 
           <!-- Categories Dropdown -->
-          <div class="relative categories-dropdown order-2 sm:order-3">
+          <div class="relative categories-dropdown hidden md:block">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
-              class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
+              class="flex items-center space-x-2 space-x-reverse px-4 py-2.5 lg:py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
             >
               <i class="fas fa-layer-group text-lg"></i>
-              <span class="font-medium text-neutral-700">{{ t('header.categories') }}</span>
+              <span class="font-medium text-neutral-700 hidden lg:inline">{{ t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
 
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-56 sm:w-64 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50"
+              class="absolute top-full right-0 mt-2 w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50"
             >
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
                 <router-link
                   v-for="category in categories"
                   :key="category.id"
@@ -59,7 +76,7 @@
           </div>
 
           <!-- Navigation and Auth -->
-          <div class="flex items-center space-x-4 sm:space-x-6 space-x-reverse order-1 sm:order-4">
+          <div class="flex items-center space-x-3 lg:space-x-4 space-x-reverse flex-shrink-0">
             <!-- Navigation Icons -->
             <nav class="flex items-center space-x-4 sm:space-x-6 space-x-reverse">
               <!-- Notifications Bell -->
@@ -91,22 +108,22 @@
             <button
               v-if="shouldShowProductButton"
               @click="handlePostAnnouncement"
-              class="w-28 flex gap-2 items-center text-xs sm:text-sm  sm:px-3 py-1 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+              class="hidden md:flex gap-2 items-center text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
-              <i class="fas fa-plus mr-1"></i>
-              <span class="hidden sm:inline">{{ t('header.addProduct') }}</span>
-              <span class="sm:hidden">Post</span>
+              <i class="fas fa-plus"></i>
+              <span class="hidden lg:inline">{{ t('header.addProduct') }}</span>
+              <span class="lg:hidden">Post</span>
             </button>
 
             <!-- Create a store btn -->
             <button
               v-if="shouldShowCreateStoreButton"
               @click="handleSwitchToVendor"
-              class="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+              class="hidden md:flex text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
             >
-              <i class="fas fa-store mr-1"></i>
-              <span class="hidden sm:inline">{{ t('seller.createStore') }}</span>
-              <span class="sm:hidden">Store</span>
+              <i class="fas fa-store"></i>
+              <span class="hidden lg:inline">{{ t('seller.createStore') }}</span>
+              <span class="lg:hidden">Store</span>
             </button>
             
 
@@ -127,21 +144,21 @@
             <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
               <button
                 @click="userMenuOpen = !userMenuOpen"
-                class="flex items-center space-x-2 space-x-reverse px-2 sm:px-4 py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
+                class="flex items-center space-x-2 space-x-reverse px-2 lg:px-3 py-1.5 lg:py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
                 <img
                   :src="authStore.userAvatar || '/user-avatar.png'"
                   :alt="authStore.userDisplayName || authStore.userEmail"
-                  class="w-8 h-8 rounded-full object-cover"
+                  class="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover"
                 />
-                <span class="font-medium hidden sm:block text-gray-700">{{ authStore.userDisplayName || authStore.userEmail }}</span>
-                <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': userMenuOpen }"></i>
+                <span class="font-medium hidden xl:block text-gray-700 text-sm">{{ authStore.userDisplayName || authStore.userEmail }}</span>
+                <i class="fas fa-chevron-down text-xs transition-transform duration-300 hidden lg:inline" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-40 sm:w-48 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+                class="absolute top-full right-0 mt-2 w-48 lg:w-56 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
               >
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
@@ -188,17 +205,122 @@
               </div>
             </div>
 
-            <div v-else class="flex items-center space-x-4 space-x-reverse">
+            <div v-else class="flex items-center space-x-3 space-x-reverse">
               <button
                 @click="handleLoginClick"
-                class="btn-outline text-xs sm:text-sm px-3 sm:px-6 py-2 sm:py-3"
+                class="btn-outline text-xs lg:text-sm px-3 lg:px-6 py-1.5 lg:py-2"
               >
-                <i class="fas fa-sign-in-alt mr-2"></i>
-                <span class="hidden sm:inline">{{ t('header.login') }}</span>
-                <span class="sm:hidden">Login</span>
+                <i class="fas fa-sign-in-alt mr-1 lg:mr-2"></i>
+                <span class="hidden lg:inline">{{ t('header.login') }}</span>
+                <span class="lg:hidden">Login</span>
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Mobile Menu (visible when mobileMenuOpen is true) -->
+      <div 
+        v-if="mobileMenuOpen"
+        class="sm:hidden border-t border-neutral-200 py-4 space-y-4"
+      >
+        <!-- Mobile Search -->
+        <div class="relative group">
+          <input
+            v-model="searchQuery"
+            @input="handleSearch"
+            type="text"
+            :placeholder="t('header.searchPlaceholder')"
+            class="w-full pl-12 pr-4 py-2.5 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm"
+          />
+          <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
+        </div>
+
+        <!-- Mobile Categories -->
+        <div class="relative">
+          <button
+            @click="categoriesMenuOpen = !categoriesMenuOpen"
+            class="w-full flex items-center justify-between px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
+          >
+            <div class="flex items-center space-x-2 space-x-reverse">
+              <i class="fas fa-layer-group text-lg"></i>
+              <span class="font-medium text-neutral-700">{{ t('header.categories') }}</span>
+            </div>
+            <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
+          </button>
+
+          <!-- Mobile Categories Menu -->
+          <div 
+            v-if="categoriesMenuOpen"
+            class="mt-2 bg-neutral-50 rounded-2xl p-2 space-y-1"
+          >
+            <router-link
+              v-for="category in categories"
+              :key="category.id"
+              :to="getLocalizedRoutePath(`/category/${category.id}`)"
+              @click="categoriesMenuOpen = false; mobileMenuOpen = false"
+              class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-white transition-all duration-300 group"
+            >
+              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-accent transition-all duration-300">
+                <i :class="getCategoryIcon(category.id)" class="text-white text-sm"></i>
+              </div>
+              <span class="text-sm font-medium text-neutral-700 group-hover:text-primary transition-colors">
+                {{ getCategoryName(category.id) }}
+              </span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Mobile Action Buttons -->
+        <div class="space-y-2">
+          <button
+            v-if="shouldShowProductButton"
+            @click="handlePostAnnouncement; mobileMenuOpen = false"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+          >
+            <i class="fas fa-plus"></i>
+            <span>{{ t('header.addProduct') }}</span>
+          </button>
+
+          <button
+            v-if="shouldShowCreateStoreButton"
+            @click="handleSwitchToVendor; mobileMenuOpen = false"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+          >
+            <i class="fas fa-store"></i>
+            <span>{{ t('seller.createStore') }}</span>
+          </button>
+        </div>
+
+        <!-- Mobile User Menu -->
+        <div v-if="authStore.isAuthenticated" class="border-t border-neutral-200 pt-4 space-y-2">
+          <router-link
+            v-for="link in mobileUserLinks"
+            :key="link.path"
+            :to="getLocalizedRoutePath(link.path)"
+            @click="mobileMenuOpen = false"
+            class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-xl transition-all duration-300"
+          >
+            <i :class="link.icon" class="text-lg"></i>
+            <span class="font-medium">{{ link.label }}</span>
+          </router-link>
+          <button
+            @click="handleLogout; mobileMenuOpen = false"
+            class="w-full flex items-center space-x-2 space-x-reverse px-4 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
+          >
+            <i class="fas fa-sign-out-alt text-lg"></i>
+            <span class="font-medium">{{ t('header.logout') }}</span>
+          </button>
+        </div>
+
+        <div v-else class="border-t border-neutral-200 pt-4">
+          <button
+            @click="handleLoginClick; mobileMenuOpen = false"
+            class="w-full btn-primary text-sm py-3"
+          >
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            {{ t('header.login') }}
+          </button>
         </div>
       </div>
     </div>
@@ -242,6 +364,7 @@ const emit = defineEmits(['toggle-admin-sidebar'])
 const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
+const mobileMenuOpen = ref(false)
 const showLoginModal = ref(false)
 const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
 const hasVendorRole = ref(false)
@@ -266,6 +389,30 @@ const closeDropdown = () => {
   userMenuOpen.value = false
 }
 
+// Mobile user links
+const mobileUserLinks = computed(() => {
+  const links = []
+  if (hasApprovedStore.value) {
+    links.push({ path: '/dashboard', icon: 'fas fa-chart-line', label: t('header.dashboard') })
+  }
+  links.push({ path: '/myaccount', icon: 'fas fa-user', label: t('header.myProfile') })
+  links.push({ path: '/wishlist', icon: 'fas fa-heart', label: t('wishlist.title') })
+  links.push({ path: '/mypurchases', icon: 'fas fa-shopping-bag', label: t('header.myPurchases') })
+  if (hasApprovedStore.value) {
+    links.push({ path: '/mystoreproducts', icon: 'fas fa-clipboard-list', label: t('header.myStoreProducts') })
+  }
+  if (hasApprovedStore.value || hasPendingStore.value) {
+    links.push({ path: '/subscription', icon: 'fas fa-crown', label: t('header.subscription') || 'Subscription' })
+  }
+  if (userStoreStatus.value.store_id) {
+    links.push({ path: `/store/${userStoreStatus.value.store_id}`, icon: 'fas fa-store', label: t('stores.myStore') })
+  }
+  if (isEmployee.value) {
+    links.push({ path: '/employee', icon: 'fas fa-gavel', label: t('header.moderation') })
+  }
+  return links
+})
+
 // Handle click outside dropdown
 const handleClickOutside = (event) => {
   // Close user dropdown if clicking outside
@@ -278,6 +425,12 @@ const handleClickOutside = (event) => {
   const categoriesDropdown = event.target.closest('.categories-dropdown')
   if (!categoriesDropdown && categoriesMenuOpen.value) {
     categoriesMenuOpen.value = false
+  }
+
+  // Close mobile menu if clicking outside
+  const header = event.target.closest('header')
+  if (!header && mobileMenuOpen.value) {
+    mobileMenuOpen.value = false
   }
 }
 

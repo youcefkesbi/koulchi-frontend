@@ -1,7 +1,7 @@
 <template>
   <footer class="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white shadow-2xl">
-    <div class="container mx-auto px-4 py-8 sm:py-12">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-6 lg:gap-8">
         <!-- Company Info -->
         <div class="space-y-4">
           <Logo variant="footer" size="large" />
@@ -104,14 +104,14 @@
       </div>
 
       <!-- Bottom Bar -->
-      <div class="border-t border-green-600 mt-6 sm:mt-8 pt-4 sm:pt-6">
-        <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-          <p class="text-primary-100 text-sm">
+      <div class="border-t border-green-600 mt-4 sm:mt-6 lg:mt-8 pt-4 sm:pt-5 lg:pt-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 text-center sm:text-left">
+          <p class="text-primary-100 text-xs sm:text-sm">
             {{ t('footer.copyright') }}
           </p>
-          <div class="flex items-center space-x-6 space-x-reverse">
-            <div class="bg-primary text-white rounded-lg px-4 py-2 shadow-soft">
-              <span class="font-bold text-sm">{{ t('footer.cod') }}</span>
+          <div class="flex items-center justify-center sm:justify-end space-x-4 sm:space-x-6 space-x-reverse">
+            <div class="bg-primary text-white rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 shadow-soft">
+              <span class="font-bold text-xs sm:text-sm">{{ t('footer.cod') }}</span>
               <span class="text-xs opacity-90 block">{{ t('footer.cashOnDelivery') }}</span>
             </div>
           </div>
