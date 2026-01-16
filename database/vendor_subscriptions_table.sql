@@ -209,18 +209,33 @@ GRANT EXECUTE ON FUNCTION public.has_active_subscription(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.expire_old_subscriptions() TO authenticated;
 
 
+-- Youcef 1/16/26
 
+create or replace function handle_store_approval()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.status = 'approved' and old.status <> 'approved' then
 
+    insert into vendor_subscription (
+      vendor_id,
+      plan_type,
+      start_date,
+      end_date
+    )
+    values (
+      new.vendor_id,
+      new.plan_type,
+      now(),
+      case
+        when new.plan_type = 'basic' then null
+        when new.plan_type = 'pro' then now() + interval '1 year'
+      end
+    );
 
+  end if;
 
-
-
-
-
-
-
-
-
-
-
-
+  return new;
+end;
+$$;

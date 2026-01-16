@@ -208,3 +208,15 @@ $function$;
 GRANT EXECUTE ON FUNCTION public.debug_admin_permissions() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.test_pack_update(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.has_role_debug(UUID, TEXT) TO authenticated;
+
+-- Youcef 1/17/26
+
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.user_roles (user_id, role)
+  values (new.id, 'customer');
+
+  return new;
+end;
+$$ language plpgsql security definer;
