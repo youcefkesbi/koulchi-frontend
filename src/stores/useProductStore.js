@@ -186,6 +186,58 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
+  const fetchProductById = async (productId) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      if (!productId) {
+        throw new Error('Product ID is required')
+      }
+      
+      // Validate that the ID is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(productId)) {
+        throw new Error(`Invalid product ID format: ${productId}. Expected UUID format.`)
+      }
+      
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories (
+            id,
+            name_en,
+            name_ar,
+            name_fr
+          ),
+          stores (
+            id,
+            name,
+            owner_id
+          )
+        `)
+        .eq('id', productId)
+        .single()
+
+      if (fetchError) {
+        if (fetchError.code === 'PGRST116') {
+          throw new Error('Product not found')
+        }
+        throw fetchError
+      }
+      
+      currentProduct.value = data
+      return data
+    } catch (err) {
+      error.value = err?.message || 'Failed to fetch product'
+      console.error('Error fetching product by ID:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     products,
@@ -206,6 +258,7 @@ export const useProductStore = defineStore('product', () => {
     deleteProduct,
     fetchCategories,
     fetchApprovedProducts,
+    fetchProductById,
     clearError,
     clearCurrentProduct
   }
