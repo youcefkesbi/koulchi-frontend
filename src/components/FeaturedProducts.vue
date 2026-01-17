@@ -212,7 +212,7 @@ const refreshProducts = () => {
 /* Loading State */
 .products-loading {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
 
@@ -309,8 +309,13 @@ const refreshProducts = () => {
 /* Products Grid */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
+}
+
+/* Ensure grid items don't exceed their column width */
+.products-grid > * {
+  max-width: 100%;
 }
 
 /* Empty State */
@@ -350,17 +355,22 @@ const refreshProducts = () => {
 /* Responsive Design */
 @media (max-width: 1200px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .products-loading {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
   }
   
   .products-loading {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
   }
   

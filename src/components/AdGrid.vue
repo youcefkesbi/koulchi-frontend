@@ -227,7 +227,7 @@ const navigateToStore = (storeId) => {
 .grid-loading {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .skeleton-item {
@@ -324,7 +324,7 @@ const navigateToStore = (storeId) => {
 .ad-grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 /* Grid Items */
@@ -335,6 +335,8 @@ const navigateToStore = (storeId) => {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  max-width: 100%;
+  width: 100%;
 }
 
 .grid-item:hover {
@@ -579,17 +581,22 @@ const navigateToStore = (storeId) => {
 /* Responsive Design */
 @media (max-width: 1200px) {
   .ad-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+  
+  .grid-loading {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .ad-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
   }
   
   .grid-loading {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1rem;
   }
   
