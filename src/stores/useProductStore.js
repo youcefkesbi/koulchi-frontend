@@ -9,6 +9,10 @@ export const useProductStore = defineStore('product', () => {
   const loading = ref(false)
   const error = ref(null)
   const currentProduct = ref(null)
+  
+  // Search and filter state
+  const searchQuery = ref('')
+  const selectedCategory = ref('all')
 
   // Getters
   const getProductById = computed(() => {
@@ -17,6 +21,28 @@ export const useProductStore = defineStore('product', () => {
 
   const getProductsByCategory = computed(() => {
     return (categoryId) => products.value.filter(product => product.category_id === categoryId)
+  })
+
+  // Filtered products based on search and category
+  const filteredProducts = computed(() => {
+    let filtered = products.value
+
+    // Filter by category
+    if (selectedCategory.value && selectedCategory.value !== 'all') {
+      filtered = filtered.filter(product => product.category_id === selectedCategory.value)
+    }
+
+    // Filter by search query
+    if (searchQuery.value && searchQuery.value.trim()) {
+      const query = searchQuery.value.toLowerCase().trim()
+      filtered = filtered.filter(product => {
+        const name = (product.name || '').toLowerCase()
+        const description = (product.description || '').toLowerCase()
+        return name.includes(query) || description.includes(query)
+      })
+    }
+
+    return filtered
   })
 
   // Actions
@@ -238,6 +264,129 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
+  // Search products from database
+  const searchProducts = async (query, categoryId = null) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      if (!query || !query.trim()) {
+        // If no query, fetch all approved products
+        return await fetchApprovedProducts(100)
+      }
+      
+      const searchTerm = query.trim().toLowerCase()
+      
+      let queryBuilder = supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          description,
+          price,
+          thumbnail_url,
+          image_urls,
+          category_id,
+          stock_quantity,
+          sold_count,
+          is_new,
+          is_on_sale,
+          status,
+          created_at,
+          store_id,
+          seller_id,
+          stores(owner_id)
+        `)
+        .eq('status', 'approved')
+        .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+        .order('created_at', { ascending: false })
+        .limit(100)
+
+      // Add category filter if provided
+      if (categoryId && categoryId !== 'all') {
+        queryBuilder = queryBuilder.eq('category_id', categoryId)
+      }
+
+      const { data, error: fetchError } = await queryBuilder
+
+      if (fetchError) throw fetchError
+      
+      const fetchedProducts = Array.isArray(data) ? data : []
+      return fetchedProducts
+    } catch (err) {
+      error.value = err?.message || 'Failed to search products'
+      console.error('Error searching products:', err)
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Initialize store - fetch products and categories
+  const initializeStore = async () => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      // Fetch categories if not already loaded
+      if (categories.value.length === 0) {
+        await fetchCategories()
+      }
+      
+      // Fetch all approved products
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          description,
+          price,
+          thumbnail_url,
+          image_urls,
+          category_id,
+          stock_quantity,
+          sold_count,
+          is_new,
+          is_on_sale,
+          status,
+          created_at,
+          store_id,
+          seller_id,
+          stores(owner_id)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(500) // Limit to prevent performance issues
+
+      if (fetchError) throw fetchError
+      
+      products.value = Array.isArray(data) ? data : []
+      console.log('✅ Initialized product store with', products.value.length, 'products')
+    } catch (err) {
+      error.value = err?.message || 'Failed to initialize store'
+      console.error('Error initializing product store:', err)
+      products.value = []
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Set search query
+  const setSearchQuery = (query) => {
+    searchQuery.value = query || ''
+  }
+
+  // Set selected category
+  const setCategory = (categoryId) => {
+    selectedCategory.value = categoryId || 'all'
+  }
+
+  // Clear all filters
+  const clearFilters = () => {
+    searchQuery.value = ''
+    selectedCategory.value = 'all'
+  }
+
   return {
     // State
     products,
@@ -245,10 +394,13 @@ export const useProductStore = defineStore('product', () => {
     loading,
     error,
     currentProduct,
+    searchQuery,
+    selectedCategory,
     
     // Getters
     getProductById,
     getProductsByCategory,
+    filteredProducts,
     
     // Actions
     fetchProducts,
@@ -259,6 +411,11 @@ export const useProductStore = defineStore('product', () => {
     fetchCategories,
     fetchApprovedProducts,
     fetchProductById,
+    searchProducts,
+    initializeStore,
+    setSearchQuery,
+    setCategory,
+    clearFilters,
     clearError,
     clearCurrentProduct
   }

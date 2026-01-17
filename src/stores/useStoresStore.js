@@ -13,6 +13,39 @@ export const useStoreStore = defineStore('store', () => {
   const totalStores = computed(() => stores.value.length)
   const userTotalStores = computed(() => userStores.value.length)
 
+  // Search stores by name or description
+  const searchStores = async (query) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      if (!query || !query.trim()) {
+        // If no query, return all stores
+        return await fetchAllStores()
+      }
+      
+      const searchTerm = query.trim()
+      
+      const { data, error: fetchError } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('status', 'approved')
+        .or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (fetchError) throw fetchError
+      
+      return Array.isArray(data) ? data : []
+    } catch (err) {
+      error.value = err?.message || 'Failed to search stores'
+      console.error('Error searching stores:', err)
+      return []
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Actions
   const fetchAllStores = async () => {
     try {
@@ -776,6 +809,7 @@ export const useStoreStore = defineStore('store', () => {
     // Actions
     fetchAllStores,
     fetchUserStores,
+    searchStores,
     fetchStoreById,
     createStore,
     createStoreWithImages,

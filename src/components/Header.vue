@@ -31,7 +31,7 @@
             <div class="relative group">
               <input
                 v-model="searchQuery"
-                @input="handleSearch"
+                @keydown.enter="handleSearch"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
                 class="w-full pl-12 pr-4 py-2.5 lg:py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm lg:text-base"
@@ -230,7 +230,7 @@
         <div class="relative group">
           <input
             v-model="searchQuery"
-            @input="handleSearch"
+            @keydown.enter="handleSearch"
             type="text"
             :placeholder="t('header.searchPlaceholder')"
             class="w-full pl-12 pr-4 py-2.5 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm"
@@ -586,9 +586,21 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    navigateToPath('/products', { query: { search: searchQuery.value.trim() } })
+const handleSearch = (event) => {
+  // Handle Enter key or input change
+  if (event && event.type === 'keydown' && event.key !== 'Enter') {
+    return
+  }
+  
+  const query = searchQuery.value.trim()
+  
+  // Navigate to products page with search query
+  // If query is empty, just go to products page
+  if (query) {
+    navigateToPath('/products', { query: { search: query } })
+  } else {
+    // Clear search - navigate to products without query
+    navigateToPath('/products')
   }
 }
 
