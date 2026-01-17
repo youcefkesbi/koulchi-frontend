@@ -209,24 +209,30 @@ GRANT EXECUTE ON FUNCTION public.debug_admin_permissions() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.test_pack_update(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.has_role_debug(UUID, TEXT) TO authenticated;
 
--- Youcef 1/17/26
+-- Youcef 1/17/2026 Fixed signup, this is for both profiles and user_roles tables
 
 create or replace function public.handle_new_user()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+as $$
 begin
+  insert into public.profiles (id)
+  values (new.id);
+
   insert into public.user_roles (user_id, role)
   values (new.id, 'customer');
 
   return new;
+exception
+  when others then
+    raise exception 'handle_new_user failed: %', sqlerrm;
 end;
-$$ language plpgsql security definer;
+$$;
 
--- not run yet
+drop trigger if exists on_auth_user_created on auth.users;
+
 create trigger on_auth_user_created
 after insert on auth.users
-for each row execute function public.handle_new_user();
-
--- user_roles now depends on auth.users table instead of profiles
-alter table public.user_roles
-add constraint user_roles_user_id_fkey
-foreign key (user_id) references auth.users(id) on delete cascade;
+for each row
+execute function public.handle_new_user();

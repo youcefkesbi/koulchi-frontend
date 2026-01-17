@@ -218,3 +218,33 @@ insert into public.profiles (id)
 select id
 from auth.users
 where id not in (select id from public.profiles);
+
+
+
+-- Youcef 1/17/2026 Fixed signup, this is for both profiles and user_roles tables
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+as $$
+begin
+  insert into public.profiles (id)
+  values (new.id);
+
+  insert into public.user_roles (user_id, role)
+  values (new.id, 'customer');
+
+  return new;
+exception
+  when others then
+    raise exception 'handle_new_user failed: %', sqlerrm;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute function public.handle_new_user();
