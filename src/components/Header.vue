@@ -32,12 +32,116 @@
               <input
                 v-model="searchQuery"
                 @input="handleSearch"
-                @keydown.enter="handleSearch"
+                @keydown.enter="handleSearchEnter"
+                @focus="showSearchResults = true"
+                @blur="handleSearchBlur"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
                 class="w-full pl-12 pr-4 py-2.5 lg:py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm lg:text-base"
               />
               <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
+              
+              <!-- Search Results Panel -->
+              <div 
+                v-if="showSearchResults && (searchQuery.trim() || searchResultsProducts.length > 0 || searchResultsStores.length > 0)"
+                @mousedown.prevent
+                class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-50 max-h-[600px] overflow-y-auto"
+              >
+                <!-- Loading State -->
+                <div v-if="searchLoading" class="p-6 text-center">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+                  <p class="text-sm text-gray-600">جاري البحث...</p>
+                </div>
+                
+                <!-- Error State -->
+                <div v-else-if="searchError" class="p-6 text-center">
+                  <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
+                  <p class="text-sm text-red-600">{{ searchError }}</p>
+                </div>
+                
+                <!-- Results -->
+                <div v-else class="divide-y divide-neutral-200">
+                  <!-- Products Section -->
+                  <div v-if="searchResultsProducts.length > 0" class="p-4">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">المنتجات ({{ searchResultsProducts.length }})</h3>
+                    <div class="space-y-2">
+                      <router-link
+                        v-for="product in searchResultsProducts.slice(0, 5)"
+                        :key="product.id"
+                        :to="`/product/${product.id}`"
+                        @click="closeSearchResults"
+                        class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 transition-colors group"
+                      >
+                        <img 
+                          v-if="product.thumbnail_url || (product.image_urls && product.image_urls[0])"
+                          :src="product.thumbnail_url || product.image_urls[0]"
+                          :alt="product.name"
+                          class="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div v-else class="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center">
+                          <i class="fas fa-image text-neutral-400"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-gray-900 group-hover:text-primary truncate">{{ product.name }}</p>
+                          <p class="text-xs text-gray-500 truncate">{{ product.description }}</p>
+                        </div>
+                        <div class="text-sm font-semibold text-primary">{{ product.price }} دج</div>
+                      </router-link>
+                      <router-link
+                        v-if="searchResultsProducts.length > 5"
+                        :to="`/products?search=${encodeURIComponent(searchQuery.trim())}`"
+                        @click="closeSearchResults"
+                        class="block text-center text-sm text-primary hover:underline py-2"
+                      >
+                        عرض جميع المنتجات ({{ searchResultsProducts.length }})
+                      </router-link>
+                    </div>
+                  </div>
+                  
+                  <!-- Stores Section -->
+                  <div v-if="searchResultsStores.length > 0" class="p-4">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">المتاجر ({{ searchResultsStores.length }})</h3>
+                    <div class="space-y-2">
+                      <router-link
+                        v-for="store in searchResultsStores.slice(0, 5)"
+                        :key="store.id"
+                        :to="`/stores/${store.id}`"
+                        @click="closeSearchResults"
+                        class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 transition-colors group"
+                      >
+                        <img 
+                          v-if="store.logo_url"
+                          :src="store.logo_url"
+                          :alt="store.name"
+                          class="w-12 h-12 object-cover rounded-lg"
+                        />
+                        <div v-else class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                          <i class="fas fa-store text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-gray-900 group-hover:text-primary truncate">{{ store.name }}</p>
+                          <p v-if="store.description" class="text-xs text-gray-500 truncate">{{ store.description }}</p>
+                        </div>
+                        <i class="fas fa-arrow-left text-gray-400 group-hover:text-primary"></i>
+                      </router-link>
+                      <router-link
+                        v-if="searchResultsStores.length > 5"
+                        :to="`/products?search=${encodeURIComponent(searchQuery.trim())}`"
+                        @click="closeSearchResults"
+                        class="block text-center text-sm text-primary hover:underline py-2"
+                      >
+                        عرض جميع المتاجر ({{ searchResultsStores.length }})
+                      </router-link>
+                    </div>
+                  </div>
+                  
+                  <!-- No Results -->
+                  <div v-if="searchQuery.trim() && !searchLoading && searchResultsProducts.length === 0 && searchResultsStores.length === 0" class="p-6 text-center">
+                    <i class="fas fa-search text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-sm text-gray-600">لم يتم العثور على نتائج</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -232,12 +336,91 @@
           <input
             v-model="searchQuery"
             @input="handleSearch"
-            @keydown.enter="handleSearch"
+            @keydown.enter="handleSearchEnter"
+            @focus="showSearchResults = true"
+            @blur="handleSearchBlur"
             type="text"
             :placeholder="t('header.searchPlaceholder')"
             class="w-full pl-12 pr-4 py-2.5 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm"
           />
           <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
+          
+          <!-- Mobile Search Results Panel -->
+          <div 
+            v-if="showSearchResults && (searchQuery.trim() || searchResultsProducts.length > 0 || searchResultsStores.length > 0)"
+            @mousedown.prevent
+            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-50 max-h-[400px] overflow-y-auto"
+          >
+            <!-- Loading State -->
+            <div v-if="searchLoading" class="p-4 text-center">
+              <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary mb-2"></div>
+              <p class="text-xs text-gray-600">جاري البحث...</p>
+            </div>
+            
+            <!-- Results -->
+            <div v-else class="divide-y divide-neutral-200">
+              <!-- Products Section -->
+              <div v-if="searchResultsProducts.length > 0" class="p-3">
+                <h3 class="text-xs font-semibold text-gray-700 mb-2">المنتجات ({{ searchResultsProducts.length }})</h3>
+                <div class="space-y-1">
+                  <router-link
+                    v-for="product in searchResultsProducts.slice(0, 3)"
+                    :key="product.id"
+                    :to="`/product/${product.id}`"
+                    @click="closeSearchResults"
+                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50"
+                  >
+                    <img 
+                      v-if="product.thumbnail_url || (product.image_urls && product.image_urls[0])"
+                      :src="product.thumbnail_url || product.image_urls[0]"
+                      :alt="product.name"
+                      class="w-10 h-10 object-cover rounded"
+                    />
+                    <div v-else class="w-10 h-10 bg-neutral-100 rounded flex items-center justify-center">
+                      <i class="fas fa-image text-neutral-400 text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-900 truncate">{{ product.name }}</p>
+                      <p class="text-xs text-primary font-semibold">{{ product.price }} دج</p>
+                    </div>
+                  </router-link>
+                </div>
+              </div>
+              
+              <!-- Stores Section -->
+              <div v-if="searchResultsStores.length > 0" class="p-3">
+                <h3 class="text-xs font-semibold text-gray-700 mb-2">المتاجر ({{ searchResultsStores.length }})</h3>
+                <div class="space-y-1">
+                  <router-link
+                    v-for="store in searchResultsStores.slice(0, 3)"
+                    :key="store.id"
+                    :to="`/stores/${store.id}`"
+                    @click="closeSearchResults"
+                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50"
+                  >
+                    <img 
+                      v-if="store.logo_url"
+                      :src="store.logo_url"
+                      :alt="store.name"
+                      class="w-10 h-10 object-cover rounded"
+                    />
+                    <div v-else class="w-10 h-10 bg-primary rounded flex items-center justify-center">
+                      <i class="fas fa-store text-white text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-medium text-gray-900 truncate">{{ store.name }}</p>
+                    </div>
+                  </router-link>
+                </div>
+              </div>
+              
+              <!-- No Results -->
+              <div v-if="searchQuery.trim() && !searchLoading && searchResultsProducts.length === 0 && searchResultsStores.length === 0" class="p-4 text-center">
+                <i class="fas fa-search text-gray-400 text-xl mb-1"></i>
+                <p class="text-xs text-gray-600">لم يتم العثور على نتائج</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Mobile Categories -->
@@ -372,7 +555,13 @@ const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const mobileMenuOpen = ref(false)
 const showLoginModal = ref(false)
+const showSearchResults = ref(false)
+const searchResultsProducts = ref([])
+const searchResultsStores = ref([])
+const searchLoading = ref(false)
+const searchError = ref(null)
 let searchDebounceTimer = null
+let searchBlurTimer = null
 const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
 const hasVendorRole = ref(false)
 
@@ -589,29 +778,71 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
-const handleSearch = (event) => {
-  // If Enter key is pressed, navigate immediately
-  if (event && event.type === 'keydown' && event.key === 'Enter') {
-    const query = searchQuery.value.trim()
-    if (query) {
-      navigateToPath('/products', { query: { search: query } })
-    } else {
-      navigateToPath('/products')
-    }
+const performSearch = async (query) => {
+  if (!query || !query.trim()) {
+    searchResultsProducts.value = []
+    searchResultsStores.value = []
+    searchError.value = null
     return
   }
   
-  // For input events, debounce the navigation
+  try {
+    searchLoading.value = true
+    searchError.value = null
+    
+    // Search products and stores in parallel
+    const [products, stores] = await Promise.all([
+      productStore.searchProducts(query.trim()),
+      storeStore.searchStores(query.trim())
+    ])
+    
+    searchResultsProducts.value = products || []
+    searchResultsStores.value = stores || []
+  } catch (err) {
+    console.error('Error searching:', err)
+    searchError.value = err?.message || 'Failed to search'
+    searchResultsProducts.value = []
+    searchResultsStores.value = []
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+const handleSearch = (event) => {
+  // Only handle input events for real-time search
   if (event && event.type === 'input') {
+    showSearchResults.value = true
     clearTimeout(searchDebounceTimer)
+    
+    // Debounce the search
     searchDebounceTimer = setTimeout(() => {
-      const query = searchQuery.value.trim()
-      if (query) {
-        navigateToPath('/products', { query: { search: query } })
-      } else {
-        navigateToPath('/products')
-      }
+      performSearch(searchQuery.value)
     }, 300) // 300ms debounce
+  }
+}
+
+const handleSearchEnter = (event) => {
+  if (event && event.key === 'Enter') {
+    const query = searchQuery.value.trim()
+    if (query) {
+      // Navigate to products page with search query
+      navigateToPath('/products', { query: { search: query } })
+      closeSearchResults()
+    }
+  }
+}
+
+const handleSearchBlur = () => {
+  // Delay closing to allow clicks on results
+  searchBlurTimer = setTimeout(() => {
+    showSearchResults.value = false
+  }, 200)
+}
+
+const closeSearchResults = () => {
+  showSearchResults.value = false
+  if (searchBlurTimer) {
+    clearTimeout(searchBlurTimer)
   }
 }
 
@@ -790,9 +1021,12 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   // Unsubscribe from notifications
   notificationStore.unsubscribeFromNotifications()
-  // Clear search debounce timer
+  // Clear timers
   if (searchDebounceTimer) {
     clearTimeout(searchDebounceTimer)
+  }
+  if (searchBlurTimer) {
+    clearTimeout(searchBlurTimer)
   }
 })
 </script> 
