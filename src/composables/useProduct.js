@@ -55,8 +55,13 @@ export function useProduct() {
   }
 
   // Navigate to product detail page
-  const viewProduct = (productId) => {
-    navigateToPath(`/product/${productId}`)
+  const viewProduct = async (productId) => {
+    try {
+      await navigateToPath(`/product/${productId}`)
+    } catch (error) {
+      console.error('Failed to navigate to product:', error)
+      showFeedback('Failed to navigate to product page', 'error')
+    }
   }
 
   // Show feedback message
