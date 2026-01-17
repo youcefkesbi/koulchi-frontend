@@ -106,9 +106,10 @@
 
             <!-- Post Announcement Button -->
             <button
-              v-if="shouldShowProductButton"
-              @click="handlePostAnnouncement"
-              class="hidden md:flex gap-2 items-center text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+              v-show="shouldShowProductButton"
+              @click.stop="handlePostAnnouncement"
+              :disabled="!shouldShowProductButton"
+              class="hidden md:flex gap-2 items-center text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-plus"></i>
               <span class="hidden lg:inline">{{ t('header.addProduct') }}</span>
@@ -117,9 +118,10 @@
 
             <!-- Create a store btn -->
             <button
-              v-if="shouldShowCreateStoreButton"
-              @click="handleSwitchToVendor"
-              class="hidden md:flex text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+              v-show="shouldShowCreateStoreButton"
+              @click.stop="handleSwitchToVendor"
+              :disabled="!shouldShowCreateStoreButton"
+              class="hidden md:flex text-xs lg:text-sm px-2 lg:px-3 py-1.5 lg:py-2 rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-store"></i>
               <span class="hidden lg:inline">{{ t('seller.createStore') }}</span>
@@ -274,18 +276,20 @@
         <!-- Mobile Action Buttons -->
         <div class="space-y-2">
           <button
-            v-if="shouldShowProductButton"
-            @click="handlePostAnnouncement; mobileMenuOpen = false"
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+            v-show="shouldShowProductButton"
+            @click.stop="handlePostAnnouncementMobile"
+            :disabled="!shouldShowProductButton"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i class="fas fa-plus"></i>
             <span>{{ t('header.addProduct') }}</span>
           </button>
 
           <button
-            v-if="shouldShowCreateStoreButton"
-            @click="handleSwitchToVendor; mobileMenuOpen = false"
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300"
+            v-show="shouldShowCreateStoreButton"
+            @click.stop="handleSwitchToVendorMobile"
+            :disabled="!shouldShowCreateStoreButton"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i class="fas fa-store"></i>
             <span>{{ t('seller.createStore') }}</span>
@@ -588,7 +592,38 @@ const handleSearch = () => {
   }
 }
 
-const handlePostAnnouncement = () => {
+const handlePostAnnouncement = (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Ensure button is enabled
+  if (!shouldShowProductButton.value) {
+    return
+  }
+  
+  if (authStore.isAuthenticated) {
+    navigateToPath('/myannouncements/new')
+  } else {
+    showLoginModal.value = true
+  }
+}
+
+// Mobile version with menu close
+const handlePostAnnouncementMobile = (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Ensure button is enabled
+  if (!shouldShowProductButton.value) {
+    return
+  }
+  
+  mobileMenuOpen.value = false
+  
   if (authStore.isAuthenticated) {
     navigateToPath('/myannouncements/new')
   } else {
@@ -650,7 +685,33 @@ const loadUserStoreStatus = async () => {
 }
 
 //Navigate to the store creation page
-const handleSwitchToVendor = () => {
+const handleSwitchToVendor = (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Ensure button is enabled
+  if (!shouldShowCreateStoreButton.value) {
+    return
+  }
+  
+  navigateToPath('/dashboard/store/create')
+}
+
+// Mobile version with menu close
+const handleSwitchToVendorMobile = (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Ensure button is enabled
+  if (!shouldShowCreateStoreButton.value) {
+    return
+  }
+  
+  mobileMenuOpen.value = false
   navigateToPath('/dashboard/store/create')
 }
 

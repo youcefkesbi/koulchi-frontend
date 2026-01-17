@@ -39,8 +39,8 @@
 
       <!-- Out of Stock Overlay -->
       <div v-if="(product.stock_quantity || 0) <= 0" 
-           class="absolute inset-0 bg-gradient-to-br from-red-500/80 to-red-600/90 backdrop-blur-sm flex items-center justify-center">
-        <div class="bg-white text-red-600 px-6 py-3 rounded-2xl font-bold text-lg shadow-2xl border-2 border-red-200">
+           class="absolute inset-0 bg-gradient-to-br from-red-500/80 to-red-600/90 backdrop-blur-sm flex items-center justify-center pointer-events-none z-10">
+        <div class="bg-white text-red-600 px-6 py-3 rounded-2xl font-bold text-lg shadow-2xl border-2 border-red-200 pointer-events-auto">
           <i class="fas fa-times-circle ml-2"></i>
           {{ $t('product.outOfStock') }}
         </div>
@@ -48,12 +48,14 @@
 
       <!-- Wishlist Button (Floating) -->
       <button
-        @click="handleToggleWishlist"
-        class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl"
+        @click.stop="handleToggleWishlist"
+        :disabled="wishlistLoading"
+        class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl z-20 disabled:opacity-50 disabled:cursor-not-allowed"
         :class="{ 'text-red-500 bg-red-50': isProductInWishlist, 'text-gray-600 hover:text-red-500': !isProductInWishlist }"
         :title="isProductInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
       >
-        <i class="fas fa-heart text-lg" :class="{ 'text-red-500': isProductInWishlist }"></i>
+        <i v-if="!wishlistLoading" class="fas fa-heart text-lg" :class="{ 'text-red-500': isProductInWishlist }"></i>
+        <i v-else class="fas fa-spinner fa-spin text-lg"></i>
       </button>
     </div>
 
@@ -90,8 +92,9 @@
         <!-- Owner View: Edit and Delete buttons -->
         <template v-if="viewState === 'owner'">
           <button
-            @click="handleEditProduct"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105"
+            @click.stop="handleEditProduct"
+            :disabled="productLoading"
+            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i class="fas fa-edit text-sm sm:text-base"></i>
             <span class="hidden sm:inline">Edit</span>
@@ -99,7 +102,7 @@
           </button>
           
           <button
-            @click="handleDeleteProduct"
+            @click.stop="handleDeleteProduct"
             :disabled="productLoading"
             class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -113,7 +116,7 @@
         <!-- Buyer View: Add to Cart, Add to Wishlist, and View buttons -->
         <template v-else-if="viewState === 'buyer'">
           <button
-            @click="handleAddToCart"
+            @click.stop="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
             class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
             :class="(product.stock_quantity || 0) <= 0 
@@ -127,9 +130,9 @@
           </button>
           
           <button
-            @click="handleToggleWishlist"
+            @click.stop="handleToggleWishlist"
             :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
             <i v-if="!wishlistLoading" class="fas fa-heart text-sm sm:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
@@ -137,7 +140,7 @@
           </button>
           
           <button
-            @click="handleViewProduct"
+            @click.stop="handleViewProduct"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             :title="$t('product.viewProduct')"
           >
@@ -148,7 +151,7 @@
         <!-- Guest View: Add to Cart, Add to Wishlist, and View buttons -->
         <template v-else-if="viewState === 'guest'">
           <button
-            @click="handleAddToCart"
+            @click.stop="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
             class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
             :class="(product.stock_quantity || 0) <= 0 
@@ -162,9 +165,9 @@
           </button>
           
           <button
-            @click="handleToggleWishlist"
+            @click.stop="handleToggleWishlist"
             :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
             <i v-if="!wishlistLoading" class="fas fa-heart text-sm sm:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
@@ -172,7 +175,7 @@
           </button>
           
           <button
-            @click="handleViewProduct"
+            @click.stop="handleViewProduct"
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
             :title="$t('product.viewProduct')"
           >
@@ -318,6 +321,11 @@ const isProductOwner = computed(() => {
 
 // View state logic - determines which buttons to show
 const viewState = computed(() => {
+  // Ensure we have valid product data
+  if (!props.product || !props.product.id) {
+    return 'guest' // Default to guest if product data is missing
+  }
+  
   if (!isAuthenticated.value) {
     return 'guest' // Not logged in
   } else if (isProductOwner.value) {
@@ -334,7 +342,18 @@ const getCartButtonText = () => {
 }
 
 // Handler functions
-const handleAddToCart = async () => {
+const handleAddToCart = async (event) => {
+  // Prevent event bubbling and ensure button is not disabled
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Check if already loading or out of stock
+  if (cartLoading.value || (props.product.stock_quantity || 0) <= 0) {
+    return
+  }
+  
   try {
     cartLoading.value = true
     cartFeedback.value = null
@@ -345,29 +364,95 @@ const handleAddToCart = async () => {
     cartFeedback.value = { type: 'error', message: err.message || t('product.failedToAddToCart') }
     setTimeout(() => { cartFeedback.value = null }, 3000)
   } finally {
+    // Ensure loading state is always reset
     cartLoading.value = false
   }
 }
 
-const handleToggleWishlist = async () => {
-  await toggleWishlist(props.product)
+const handleToggleWishlist = async (event) => {
+  // Prevent event bubbling
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Check if already loading
+  if (wishlistLoading.value) {
+    return
+  }
+  
+  try {
+    await toggleWishlist(props.product)
+  } catch (err) {
+    console.error('Failed to toggle wishlist:', err)
+  }
 }
 
-const handleEditProduct = () => {
+const handleEditProduct = (event) => {
+  // Prevent event bubbling
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Check if already loading
+  if (productLoading.value) {
+    return
+  }
+  
+  // Ensure product ID exists
+  if (!props.product?.id) {
+    console.error('Product ID is missing')
+    return
+  }
+  
   editProduct(props.product.id)
 }
 
-const handleDeleteProduct = async () => {
+const handleDeleteProduct = async (event) => {
+  // Prevent event bubbling
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Check if already loading
+  if (productLoading.value) {
+    return
+  }
+  
+  // Ensure product ID exists
+  if (!props.product?.id) {
+    console.error('Product ID is missing')
+    return
+  }
+  
   const confirmed = confirm('Are you sure you want to delete this product? This action cannot be undone.')
   if (confirmed) {
-    const success = await deleteProduct(props.product.id)
-    if (success) {
-      emit('product-deleted', props.product.id)
+    try {
+      const success = await deleteProduct(props.product.id)
+      if (success) {
+        emit('product-deleted', props.product.id)
+      }
+    } catch (err) {
+      console.error('Failed to delete product:', err)
     }
   }
 }
 
-const handleViewProduct = () => {
+const handleViewProduct = (event) => {
+  // Prevent event bubbling
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Ensure product ID exists
+  if (!props.product?.id) {
+    console.error('Product ID is missing')
+    return
+  }
+  
   viewProduct(props.product.id)
 }
 
