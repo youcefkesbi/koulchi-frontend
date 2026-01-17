@@ -31,6 +31,7 @@
             <div class="relative group">
               <input
                 v-model="searchQuery"
+                @input="handleSearch"
                 @keydown.enter="handleSearch"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
@@ -230,6 +231,7 @@
         <div class="relative group">
           <input
             v-model="searchQuery"
+            @input="handleSearch"
             @keydown.enter="handleSearch"
             type="text"
             :placeholder="t('header.searchPlaceholder')"
@@ -370,6 +372,7 @@ const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const mobileMenuOpen = ref(false)
 const showLoginModal = ref(false)
+let searchDebounceTimer = null
 const userStoreStatus = ref({ store_id: null, status: null, can_create: true })
 const hasVendorRole = ref(false)
 
@@ -587,20 +590,28 @@ const getCategoryName = (categoryId) => {
 }
 
 const handleSearch = (event) => {
-  // Handle Enter key or input change
-  if (event && event.type === 'keydown' && event.key !== 'Enter') {
+  // If Enter key is pressed, navigate immediately
+  if (event && event.type === 'keydown' && event.key === 'Enter') {
+    const query = searchQuery.value.trim()
+    if (query) {
+      navigateToPath('/products', { query: { search: query } })
+    } else {
+      navigateToPath('/products')
+    }
     return
   }
   
-  const query = searchQuery.value.trim()
-  
-  // Navigate to products page with search query
-  // If query is empty, just go to products page
-  if (query) {
-    navigateToPath('/products', { query: { search: query } })
-  } else {
-    // Clear search - navigate to products without query
-    navigateToPath('/products')
+  // For input events, debounce the navigation
+  if (event && event.type === 'input') {
+    clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = setTimeout(() => {
+      const query = searchQuery.value.trim()
+      if (query) {
+        navigateToPath('/products', { query: { search: query } })
+      } else {
+        navigateToPath('/products')
+      }
+    }, 300) // 300ms debounce
   }
 }
 
@@ -779,5 +790,9 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   // Unsubscribe from notifications
   notificationStore.unsubscribeFromNotifications()
+  // Clear search debounce timer
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
 })
 </script> 

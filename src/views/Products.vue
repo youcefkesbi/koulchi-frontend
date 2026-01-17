@@ -237,6 +237,11 @@ const handleSearch = async () => {
   const query = searchQuery.value.trim()
   productStore.setSearchQuery(query)
   
+  // If there's a search query and products aren't loaded, fetch them
+  if (query && productStore.products.length === 0) {
+    await productStore.initializeStore()
+  }
+  
   // Search stores if there's a query
   if (query) {
     await searchStores(query)
@@ -302,21 +307,38 @@ const initializeFromRoute = async () => {
 
 // Watch for route changes
 watch(() => route.query.search, async (newSearch) => {
-  if (newSearch !== searchQuery.value) {
-    searchQuery.value = newSearch || ''
-    productStore.setSearchQuery(newSearch || '')
+  const newQuery = newSearch || ''
+  if (newQuery !== searchQuery.value) {
+    searchQuery.value = newQuery
+    productStore.setSearchQuery(newQuery)
     // Search stores when route query changes
-    if (newSearch) {
-      await searchStores(newSearch)
+    if (newQuery) {
+      await searchStores(newQuery)
     } else {
       filteredStores.value = []
     }
   }
 })
 
+// Watch for search query changes in the input field (real-time filtering)
+watch(() => searchQuery.value, async (newQuery) => {
+  const trimmedQuery = newQuery.trim()
+  productStore.setSearchQuery(trimmedQuery)
+  
+  // Search stores if there's a query
+  if (trimmedQuery) {
+    await searchStores(trimmedQuery)
+  } else {
+    filteredStores.value = []
+  }
+})
+
 // Fetch products and categories on component mount
 onMounted(async () => {
-  await productStore.initializeStore()
+  // Always initialize store to load products
+  if (productStore.products.length === 0) {
+    await productStore.initializeStore()
+  }
   await initializeFromRoute()
 })
 </script> 
