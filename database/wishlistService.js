@@ -214,6 +214,7 @@ class WishlistService {
       const { data, error } = await supabase
         .from('wishlist')
         .select(`
+          id,
           product_id, 
           created_at, 
           products(id, name, price, image_urls, seller_id)
@@ -229,7 +230,8 @@ class WishlistService {
 
       const mappedData = (data || []).map(item => {
         const mappedItem = {
-          id: item.product_id,
+          id: item.id, // Wishlist entry ID
+          wishlistId: item.id, // Also store as wishlistId for clarity
           productId: item.product_id,
           name: item.products?.name || 'Unknown Product',
           price: item.products?.price || 0,

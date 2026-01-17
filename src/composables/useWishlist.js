@@ -125,7 +125,7 @@ export function useWishlist() {
       loading.value = true
 
       if (authStore.isAuthenticated) {
-        await wishlistStore.removeFromWishlist(productId)
+        await wishlistStore.removeProductFromWishlist(productId)
         showFeedback('Removed from wishlist')
       } else {
         removeFromGuestWishlist(productId)

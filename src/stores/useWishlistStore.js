@@ -19,14 +19,14 @@ export const useWishlistStore = defineStore('wishlist', () => {
       
       // Transform the data to match the expected format
       wishlistItems.value = items.map(item => ({
-        id: item.id,
-        product_id: item.productId,
+        id: item.wishlistId || item.id, // Wishlist entry ID
+        product_id: item.productId, // Product ID
         created_at: item.created_at,
         products: {
-          id: item.id,
+          id: item.productId, // Product ID
           name: item.name,
           price: item.price,
-          image_urls: item.image ? [item.image] : [],
+          image_urls: item.image ? (Array.isArray(item.image) ? item.image : [item.image]) : [],
           seller_id: item.seller_id,
           stock_quantity: 0, // Default value since not in wishlist data
           is_new: false, // Default value since not in wishlist data
@@ -88,7 +88,8 @@ export const useWishlistStore = defineStore('wishlist', () => {
       const itemsToRemove = wishlistItems.value.filter(item => item.product_id === productId);
       
       if (itemsToRemove.length === 0) {
-        throw new Error('Product not found in wishlist');
+        // Product not in wishlist - return false instead of throwing
+        return false;
       }
       
       // Remove from database
