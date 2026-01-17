@@ -66,8 +66,30 @@
         </button>
     </div>
 
-    <!-- Search Results: Products -->
-    <div v-if="hasSearchQuery && (filteredProducts.length > 0 || filteredStores.length > 0)" class="space-y-8">
+    <!-- Loading State -->
+    <div v-if="hasSearchQuery && (loadingProducts || loadingStores)" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+      <p class="text-gray-600">جاري البحث...</p>
+    </div>
+
+    <!-- Search Error State -->
+    <div v-else-if="hasSearchQuery && searchError" class="text-center py-12">
+      <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">خطأ في البحث</h3>
+      <p class="text-gray-500 mb-6">{{ searchError }}</p>
+      <button
+        @click="handleSearch"
+        class="btn-primary"
+      >
+        <i class="fas fa-refresh ml-2"></i>
+        إعادة المحاولة
+      </button>
+    </div>
+
+    <!-- Search Results: Products and Stores -->
+    <div v-else-if="hasSearchQuery && (filteredProducts.length > 0 || filteredStores.length > 0)" class="space-y-8">
       <!-- Products Section -->
       <div v-if="filteredProducts.length > 0">
         <h2 class="text-2xl font-bold text-dark mb-4">المنتجات ({{ filteredProducts.length }})</h2>
@@ -157,22 +179,38 @@
     </div>
 
     <!-- No Results Found -->
-    <div v-else class="text-center py-12">
+    <div v-else-if="hasSearchQuery && !loadingProducts && !loadingStores && filteredProducts.length === 0 && filteredStores.length === 0" class="text-center py-12">
       <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-search text-gray-400 text-3xl"></i>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">
-        {{ hasSearchQuery ? 'لم يتم العثور على نتائج' : 'لم يتم العثور على منتجات' }}
-      </h3>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">لم يتم العثور على نتائج</h3>
       <p class="text-gray-500 mb-6">
-        {{ hasSearchQuery ? 'جرب البحث بكلمات مختلفة' : 'جرب تغيير الفلاتر أو البحث بكلمات مختلفة' }}
+        لم نجد أي منتجات أو متاجر تطابق "{{ searchQuery }}"
       </p>
       <button
         @click="clearFilters"
         class="btn-primary"
       >
         <i class="fas fa-refresh ml-2"></i>
-        {{ hasSearchQuery ? 'عرض جميع المنتجات' : 'عرض جميع المنتجات' }}
+        عرض جميع المنتجات
+      </button>
+    </div>
+
+    <!-- No Products Found (when not searching) -->
+    <div v-else-if="!hasSearchQuery && filteredProducts.length === 0 && !productStore.loading" class="text-center py-12">
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-box text-gray-400 text-3xl"></i>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">لم يتم العثور على منتجات</h3>
+      <p class="text-gray-500 mb-6">
+        جرب تغيير الفلاتر أو البحث بكلمات مختلفة
+      </p>
+      <button
+        @click="clearFilters"
+        class="btn-primary"
+      >
+        <i class="fas fa-refresh ml-2"></i>
+        عرض جميع المنتجات
       </button>
     </div>
 
@@ -187,7 +225,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import i18n from '../i18n'
@@ -202,10 +240,23 @@ const storeStore = useStoreStore()
 const searchQuery = ref('')
 const filteredStores = ref([])
 const loadingStores = ref(false)
+const searchResults = ref([]) // Products from Supabase search
+const loadingProducts = ref(false)
+const searchError = ref(null)
 
-const filteredProducts = computed(() => productStore.filteredProducts)
 const hasSearchQuery = computed(() => {
   return searchQuery.value && searchQuery.value.trim().length > 0
+})
+
+// Use search results when there's a query, otherwise use filtered products
+const filteredProducts = computed(() => {
+  if (hasSearchQuery.value) {
+    // When searching, use results from Supabase
+    return searchResults.value
+  } else {
+    // When not searching, use local filtered products
+    return productStore.filteredProducts
+  }
 })
 
 const getCurrentCategoryName = computed(() => {
@@ -233,20 +284,42 @@ const getCategoryName = (categoryId) => {
   return categoryId
 }
 
+const searchProducts = async (query) => {
+  try {
+    loadingProducts.value = true
+    searchError.value = null
+    
+    if (!query || !query.trim()) {
+      // Empty query - clear search results
+      searchResults.value = []
+      return
+    }
+    
+    // Query Supabase directly for products
+    const results = await productStore.searchProducts(query.trim(), productStore.selectedCategory)
+    searchResults.value = results || []
+  } catch (err) {
+    console.error('Error searching products:', err)
+    searchError.value = err?.message || 'Failed to search products'
+    searchResults.value = []
+  } finally {
+    loadingProducts.value = false
+  }
+}
+
 const handleSearch = async () => {
   const query = searchQuery.value.trim()
   productStore.setSearchQuery(query)
   
-  // If there's a search query and products aren't loaded, fetch them
-  if (query && productStore.products.length === 0) {
-    await productStore.initializeStore()
-  }
-  
-  // Search stores if there's a query
+  // Search products and stores from Supabase
   if (query) {
-    await searchStores(query)
+    await Promise.all([
+      searchProducts(query),
+      searchStores(query)
+    ])
   } else {
-    // Clear stores when search is empty
+    // Clear search results when query is empty
+    searchResults.value = []
     filteredStores.value = []
   }
 }
@@ -280,7 +353,9 @@ const selectCategory = (categoryId) => {
 const clearFilters = () => {
   productStore.clearFilters()
   searchQuery.value = ''
+  searchResults.value = []
   filteredStores.value = []
+  searchError.value = null
 }
 
 // Initialize search query from URL params
@@ -289,12 +364,16 @@ const initializeFromRoute = async () => {
   if (routeSearchQuery) {
     searchQuery.value = routeSearchQuery
     productStore.setSearchQuery(routeSearchQuery)
-    // Search stores when initializing from route
-    await searchStores(routeSearchQuery)
+    // Search products and stores when initializing from route
+    await Promise.all([
+      searchProducts(routeSearchQuery),
+      searchStores(routeSearchQuery)
+    ])
   } else {
     // Clear search if no query param
     searchQuery.value = ''
     productStore.setSearchQuery('')
+    searchResults.value = []
     filteredStores.value = []
   }
   
@@ -311,34 +390,57 @@ watch(() => route.query.search, async (newSearch) => {
   if (newQuery !== searchQuery.value) {
     searchQuery.value = newQuery
     productStore.setSearchQuery(newQuery)
-    // Search stores when route query changes
+    // Search products and stores when route query changes
     if (newQuery) {
-      await searchStores(newQuery)
+      await Promise.all([
+        searchProducts(newQuery),
+        searchStores(newQuery)
+      ])
     } else {
+      searchResults.value = []
       filteredStores.value = []
     }
   }
 })
 
-// Watch for search query changes in the input field (real-time filtering)
+// Watch for search query changes in the input field (real-time search with debouncing)
+let searchDebounceTimer = null
 watch(() => searchQuery.value, async (newQuery) => {
   const trimmedQuery = newQuery.trim()
   productStore.setSearchQuery(trimmedQuery)
   
-  // Search stores if there's a query
-  if (trimmedQuery) {
-    await searchStores(trimmedQuery)
-  } else {
-    filteredStores.value = []
+  // Clear previous debounce timer
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
   }
+  
+  // Debounce the search to avoid too many queries
+  searchDebounceTimer = setTimeout(async () => {
+    if (trimmedQuery) {
+      await Promise.all([
+        searchProducts(trimmedQuery),
+        searchStores(trimmedQuery)
+      ])
+    } else {
+      searchResults.value = []
+      filteredStores.value = []
+    }
+  }, 300) // 300ms debounce
 })
 
 // Fetch products and categories on component mount
 onMounted(async () => {
-  // Always initialize store to load products
+  // Always initialize store to load products (for non-search view)
   if (productStore.products.length === 0) {
     await productStore.initializeStore()
   }
   await initializeFromRoute()
+})
+
+// Cleanup debounce timer on unmount
+onUnmounted(() => {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
 })
 </script> 

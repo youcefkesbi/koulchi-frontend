@@ -275,7 +275,7 @@ export const useProductStore = defineStore('product', () => {
         return await fetchApprovedProducts(100)
       }
       
-      const searchTerm = query.trim().toLowerCase()
+      const searchTerm = query.trim()
       
       let queryBuilder = supabase
         .from('products')

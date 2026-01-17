@@ -1427,4 +1427,6 @@ end;
 $$;
 
 
+-- Youcef 1/17/2026 Search
 
+create index if not exists stores_name_idx on public.stores (name);

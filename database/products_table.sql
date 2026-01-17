@@ -181,3 +181,8 @@ $$;
 
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION public.get_products_without_store() TO authenticated;
+
+
+-- Youcef 1/17/2026 Search
+
+create index if not exists products_name_idx on public.products (name);
