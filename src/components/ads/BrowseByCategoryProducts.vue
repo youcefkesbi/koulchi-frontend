@@ -92,10 +92,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAdsStore } from '../../stores/useAdsStore'
 import { useProductStore } from '../../stores/useProductStore'
+import { supabase } from '../../lib/supabase'
 import AdGrid from '../AdGrid.vue'
 
 const props = defineProps({
@@ -119,25 +120,148 @@ const { t, locale } = useI18n()
 const adsStore = useAdsStore()
 const productStore = useProductStore()
 
+// State for category products
+const categoryProductsMap = ref({})
+const loadingProducts = ref(false)
+const productsError = ref(null)
+
+// Fetch products for each category
+const fetchProductsByCategory = async () => {
+  try {
+    loadingProducts.value = true
+    productsError.value = null
+    
+    const categories = productStore.categories.filter(cat => cat.id !== 'all' && cat.is_active)
+    
+    // Fetch products for all categories in parallel
+    const productPromises = categories.map(async (category) => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('products')
+          .select(`
+            id,
+            name,
+            description,
+            price,
+            thumbnail_url,
+            image_urls,
+            category_id,
+            stock_quantity,
+            sold_count,
+            is_new,
+            is_on_sale,
+            status,
+            created_at,
+            store_id,
+            seller_id,
+            stores(owner_id)
+          `)
+          .eq('category_id', category.id)
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false })
+          .limit(props.maxProductsPerCategory)
+
+        if (fetchError) throw fetchError
+        
+        return {
+          categoryId: category.id,
+          products: Array.isArray(data) ? data : []
+        }
+      } catch (err) {
+        console.error(`Error fetching products for category ${category.id}:`, err)
+        return {
+          categoryId: category.id,
+          products: []
+        }
+      }
+    })
+    
+    const results = await Promise.all(productPromises)
+    
+    // Build the map
+    const newMap = {}
+    results.forEach(result => {
+      newMap[result.categoryId] = result.products.map(product => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        image: product.thumbnail_url || (Array.isArray(product.image_urls) && product.image_urls.length > 0 ? product.image_urls[0] : null),
+        image_urls: product.image_urls || [],
+        thumbnail_url: product.thumbnail_url,
+        category_id: product.category_id,
+        stock_quantity: product.stock_quantity,
+        sold_count: product.sold_count || 0,
+        is_new: product.is_new,
+        is_on_sale: product.is_on_sale,
+        status: product.status,
+        store_id: product.store_id,
+        seller_id: product.seller_id,
+        stores: product.stores,
+        type: 'product'
+      }))
+    })
+    
+    categoryProductsMap.value = newMap
+  } catch (err) {
+    productsError.value = err?.message || 'Failed to load category products'
+    console.error('Error fetching category products:', err)
+  } finally {
+    loadingProducts.value = false
+  }
+}
+
 // Computed properties
 const categoriesWithProducts = computed(() => {
-  const categories = productStore.categories.filter(cat => cat.id !== 'all')
-  const browseByCategoryAds = adsStore.homepageBrowseByCategoryProducts
+  const categories = productStore.categories.filter(cat => cat.id !== 'all' && cat.is_active)
   
   return categories.map(category => {
+    // Get products from database first, then fallback to ads
+    const dbProducts = categoryProductsMap.value[category.id] || []
+    const browseByCategoryAds = adsStore.homepageBrowseByCategoryProducts || []
     const categoryAds = browseByCategoryAds.filter(ad => ad.category_id === category.id)
-    const transformedProducts = adsStore.transformAdsForDisplay(categoryAds)
+    const transformedAds = adsStore.transformAdsForDisplay(categoryAds)
+    
+    // Combine database products with ads, prioritizing database products
+    const allProducts = [...dbProducts, ...transformedAds]
+    
+    // Remove duplicates by product ID
+    const uniqueProducts = []
+    const seenIds = new Set()
+    for (const product of allProducts) {
+      if (product.id && !seenIds.has(product.id)) {
+        seenIds.add(product.id)
+        uniqueProducts.push(product)
+      }
+    }
+    
+    // Limit to maxProductsPerCategory
+    const limitedProducts = uniqueProducts.slice(0, props.maxProductsPerCategory)
     
     return {
       id: category.id,
       name: category.name_en,
-      products: transformedProducts
+      products: limitedProducts
     }
   }).filter(category => category.products.length > 0)
 })
 
-const loading = computed(() => adsStore.loading || productStore.loading)
-const error = computed(() => adsStore.error || productStore.error)
+const loading = computed(() => adsStore.loading || productStore.loading || loadingProducts.value)
+const error = computed(() => adsStore.error || productStore.error || productsError.value)
+
+// Watch for categories changes
+watch(() => productStore.categories, (newCategories) => {
+  if (newCategories && newCategories.length > 0) {
+    fetchProductsByCategory()
+  }
+}, { immediate: true })
+
+onMounted(async () => {
+  // Wait for categories to be loaded
+  if (productStore.categories && productStore.categories.length > 0) {
+    await fetchProductsByCategory()
+  }
+})
 
 // Helper function to get localized category name
 const getCategoryName = (categoryId) => {
