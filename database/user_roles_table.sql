@@ -221,7 +221,12 @@ begin
 end;
 $$ language plpgsql security definer;
 
-
+-- not run yet
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+-- user_roles now depends on auth.users table instead of profiles
+alter table public.user_roles
+add constraint user_roles_user_id_fkey
+foreign key (user_id) references auth.users(id) on delete cascade;
