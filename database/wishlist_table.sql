@@ -67,3 +67,23 @@ CREATE TRIGGER update_wishlists_updated_at
     BEFORE UPDATE ON public.wishlists 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+
+
+-- Youcef 1/17/2026 fixing the feature
+
+create or replace function public.add_to_wishlist(
+  p_product_id uuid
+)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  insert into public.wishlist (user_id, product_id)
+  values (auth.uid(), p_product_id)
+  on conflict do nothing;
+end;
+$$;
+
+grant execute on function public.add_to_wishlist(uuid) to authenticated;

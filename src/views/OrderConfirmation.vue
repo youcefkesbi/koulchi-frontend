@@ -149,7 +149,7 @@
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-      <router-link :to="getLocalizedPath('/products')" class="btn-outline">
+      <router-link :to="getLocalizedPath('/')" class="btn-outline">
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ t('orderConfirmation.continueShopping') }}
       </router-link>

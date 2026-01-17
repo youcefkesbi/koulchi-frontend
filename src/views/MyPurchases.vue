@@ -119,7 +119,7 @@
           <h4 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('dashboard.noOrders') }}</h4>
           <p class="text-gray-600 mb-4">{{ $t('dashboard.noOrdersMessage') }}</p>
           <router-link 
-            :to="getLocalizedRoute('/products')" 
+            :to="getLocalizedRoute('/')" 
             class="btn-primary"
           >
             {{ $t('dashboard.startShopping') }}

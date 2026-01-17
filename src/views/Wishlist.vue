@@ -20,7 +20,7 @@
           {{ $t('wishlist.clearWishlist') }}
         </button>
         
-        <router-link to="/products" class="btn-primary">
+        <router-link to="/" class="btn-primary">
           <i class="fas fa-shopping-bag ml-2"></i>
           {{ $t('wishlist.continueShopping') }}
         </router-link>
@@ -121,7 +121,7 @@
       <p class="text-gray-500 mb-6">
         {{ $t('wishlist.emptyMessage') }}
       </p>
-      <router-link to="/products" class="btn-primary">
+      <router-link to="/" class="btn-primary">
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ $t('wishlist.browseProducts') }}
       </router-link>

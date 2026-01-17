@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
       <h1 class="text-2xl sm:text-3xl font-bold text-dark">{{ $t('cartPage.title') }}</h1>
-      <router-link to="/products" class="btn-outline text-xs sm:text-sm px-3 sm:px-4 py-2">
+      <router-link to="/" class="btn-outline text-xs sm:text-sm px-3 sm:px-4 py-2">
         <i class="fas fa-arrow-left ml-2"></i>
         <span class="hidden sm:inline">{{ $t('cartPage.continueShopping') }}</span>
         <span class="sm:hidden">Continue</span>
@@ -160,7 +160,7 @@
       <p class="text-neutral-500 mb-6">
         {{ $t('cartPage.emptyCartMessage') }}
       </p>
-      <router-link to="/products" class="btn-primary">
+      <router-link to="/" class="btn-primary">
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ $t('cartPage.startShopping') }}
       </router-link>
