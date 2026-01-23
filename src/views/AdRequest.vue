@@ -55,12 +55,13 @@
                 {{ $t('adRequest.itemType') }} *
               </label>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <label class="relative cursor-pointer">
+                <label class="relative cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': route.query.product_id || route.query.store_id }">
                   <input
                     v-model="form.item_type"
                     type="radio"
                     value="product"
                     class="sr-only"
+                    :disabled="!!route.query.product_id || !!route.query.store_id"
                   />
                   <div class="p-6 border-2 rounded-xl transition-all duration-300"
                        :class="form.item_type === 'product' 
@@ -76,12 +77,13 @@
                   </div>
                 </label>
                 
-                <label class="relative cursor-pointer">
+                <label class="relative cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': route.query.product_id || route.query.store_id }">
                   <input
                     v-model="form.item_type"
                     type="radio"
                     value="store"
                     class="sr-only"
+                    :disabled="!!route.query.product_id || !!route.query.store_id"
                   />
                   <div class="p-6 border-2 rounded-xl transition-all duration-300"
                        :class="form.item_type === 'store' 
@@ -107,7 +109,8 @@
               <select
                 v-model="form.item_id"
                 required
-                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
+                :disabled="!!route.query.product_id || !!route.query.store_id"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 @change="onItemChange"
               >
                 <option value="">{{ $t('adRequest.pleaseSelect') }}</option>
@@ -119,6 +122,10 @@
                   {{ item.name }}
                 </option>
               </select>
+              <p v-if="route.query.product_id || route.query.store_id" class="mt-2 text-sm text-gray-600">
+                <i class="fas fa-info-circle mr-1"></i>
+                Product pre-selected from promotion request
+              </p>
             </div>
           </div>
 
@@ -376,16 +383,17 @@ const submitForm = async () => {
 
     // Prepare the ad request data
     const adRequestData = {
-      requester_id: user.id,
+      requester_id: user.id, // Owner/requester ID
       item_type: form.item_type,
       slot_type: form.slot_type,
       priority: form.priority || 0,
       status: 'pending'
+      // created_at is automatically set by database DEFAULT now()
     }
 
     // Add item-specific ID
     if (form.item_type === 'product') {
-      adRequestData.product_id = form.item_id
+      adRequestData.product_id = form.item_id // Product ID from form
     } else {
       adRequestData.store_id = form.item_id
     }
@@ -413,9 +421,14 @@ const submitForm = async () => {
 
     showSuccess.value = true
     
-    // Redirect to dashboard after 3 seconds
+    // Redirect to dashboard after 3 seconds with success message
     setTimeout(() => {
-      navigateToPath('/dashboard')
+      navigateToPath('/dashboard', { 
+        query: { 
+          success: 'ad_request_submitted',
+          message: 'Your promotion request has been submitted successfully!' 
+        } 
+      })
     }, 3000)
     
   } catch (err) {
@@ -436,15 +449,53 @@ watch(() => form.item_type, () => {
 })
 
 // Initialize form from query parameters
-const initializeForm = () => {
+const initializeForm = async () => {
   const query = route.query
   
-  if (query.type) {
+  // Handle product_id from query (for Promote button)
+  if (query.product_id) {
+    form.item_type = 'product'
+    form.item_id = query.product_id
+    
+    // Verify the product belongs to the current user
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        error.value = 'User not authenticated'
+        return
+      }
+      
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('id, name, seller_id')
+        .eq('id', query.product_id)
+        .eq('seller_id', user.id)
+        .single()
+      
+      if (productError || !product) {
+        error.value = 'Product not found or you do not have permission to promote this product'
+        return
+      }
+      
+      // Product is valid and belongs to user, form is pre-filled
+    } catch (err) {
+      console.error('Error verifying product ownership:', err)
+      error.value = 'Failed to verify product ownership'
+    }
+  } else if (query.store_id) {
+    form.item_type = 'store'
+    form.item_id = query.store_id
+  } else if (query.type) {
     form.item_type = query.type
   }
   
-  if (query.id) {
+  if (query.id && !query.product_id && !query.store_id) {
     form.item_id = query.id
+  }
+  
+  // Fetch available items if item_type is set
+  if (form.item_type) {
+    await fetchAvailableItems()
   }
 }
 

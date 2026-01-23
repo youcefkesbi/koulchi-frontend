@@ -89,7 +89,7 @@
 
       <!-- Actions -->
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 space-y-0">
-        <!-- Owner View: Edit and Delete buttons -->
+        <!-- Owner View: Edit, Delete, and Promote buttons -->
         <template v-if="viewState === 'owner'">
           <button
             @click.stop="handleEditProduct"
@@ -99,6 +99,16 @@
             <i class="fas fa-edit text-sm sm:text-base"></i>
             <span class="hidden sm:inline">Edit</span>
             <span class="sm:hidden">Edit</span>
+          </button>
+          
+          <button
+            @click.stop="handlePromoteProduct"
+            :disabled="productLoading"
+            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i class="fas fa-bullhorn text-sm sm:text-base"></i>
+            <span class="hidden sm:inline">Promote</span>
+            <span class="sm:hidden">Promote</span>
           </button>
           
           <button
@@ -239,6 +249,7 @@ import { useCartStore } from '../stores/useCartStore'
 import { useWishlist } from '../composables/useWishlist'
 import { useProduct } from '../composables/useProduct'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 
 const props = defineProps({
   product: {
@@ -258,6 +269,7 @@ const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const { navigateToPath } = useLocaleRouter()
 
 // Use composables
 const { 
@@ -454,6 +466,34 @@ const handleViewProduct = (event) => {
   }
   
   viewProduct(props.product.id)
+}
+
+const handlePromoteProduct = async (event) => {
+  // Prevent event bubbling
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  
+  // Check if already loading
+  if (productLoading.value) {
+    return
+  }
+  
+  // Ensure product ID exists
+  if (!props.product?.id) {
+    console.error('Product ID is missing')
+    return
+  }
+  
+  // Check if user is authenticated
+  if (!isAuthenticated.value || !currentUser.value) {
+    console.error('User not authenticated')
+    return
+  }
+  
+  // Navigate to ad request form with product_id
+  navigateToPath('/ad-request', { query: { product_id: props.product.id } })
 }
 
 const handleImageError = (event) => {
