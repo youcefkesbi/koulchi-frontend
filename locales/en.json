@@ -810,6 +810,7 @@
     "selectCategory": "Select a category",
     "markAsNew": "Mark as new product",
     "thumbnailImage": "Thumbnail Image",
+    "optional": "optional",
     "uploadThumbnail": "Upload thumbnail",
     "dragAndDrop": "or drag and drop",
     "imageFormats": "PNG, JPG, JPEG up to 2MB",

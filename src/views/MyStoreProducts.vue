@@ -91,7 +91,7 @@
         <!-- Add product button -->
         <button 
           v-if="hasVendorRole"
-          @click="showAddForm = true"
+          @click="addProduct"
           class="h-fit cursor-pointer text-semibold ml-4 bg-indigo-700 text-white px-10 py-2 rounded-md hover:bg-indigo-800 transition-colors"
         >
           {{ $t('stores.addProduct') }}
@@ -290,8 +290,19 @@
             </button>
           </div>
 
+          <!-- Error message inside modal (so user sees it when form fails) -->
+          <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+            <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-3"></i>
+            <div class="flex-1">
+              <p class="text-sm text-red-800">{{ errorMessage }}</p>
+            </div>
+            <button type="button" @click="clearFormError" class="text-red-600 hover:text-red-800 p-1">
+              <i class="fas fa-times text-sm"></i>
+            </button>
+          </div>
+
            <!-- Form -->
-           <form @submit.prevent="handleFormSubmit" @submit="console.log('Form submit event triggered')" class="space-y-6">
+           <form @submit.prevent="handleFormSubmit" class="space-y-6" novalidate>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Product Name -->
               <div class="md:col-span-2">
@@ -301,7 +312,6 @@
                 <input
                   v-model="newProduct.name"
                   type="text"
-                  required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   :placeholder="$t('storeProducts.productNamePlaceholder')"
                 />
@@ -314,7 +324,6 @@
                 </label>
                 <textarea
                   v-model="newProduct.description"
-                  required
                   rows="3"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   :placeholder="$t('storeProducts.descriptionPlaceholder')"
@@ -331,7 +340,6 @@
                   type="number"
                   step="0.01"
                   min="0"
-                  required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   :placeholder="$t('storeProducts.pricePlaceholder')"
                 />
@@ -346,7 +354,6 @@
                   v-model="newProduct.stock_quantity"
                   type="number"
                   min="0"
-                  required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   :placeholder="$t('storeProducts.stockPlaceholder')"
                 />
@@ -359,7 +366,6 @@
                 </label>
                 <select
                   v-model="newProduct.category_id"
-                  required
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option value="">{{ $t('storeProducts.selectCategory') }}</option>
@@ -383,10 +389,10 @@
               </div>
             </div>
 
-            <!-- Thumbnail Upload -->
+            <!-- Thumbnail Upload (optional) -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                {{ $t('storeProducts.thumbnailImage') }} <span class="text-red-500">*</span>
+                {{ $t('storeProducts.thumbnailImage') }} <span class="text-gray-400 text-xs">({{ $t('storeProducts.optional') }})</span>
               </label>
               <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
                 <div class="space-y-1 text-center">
@@ -490,7 +496,6 @@
                <button
                  type="submit"
                  :disabled="creating"
-                 @click="console.log('Submit button clicked')"
                  class="px-6 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  <i v-if="creating" class="fas fa-spinner fa-spin mr-2"></i>
@@ -717,6 +722,10 @@ const formatCurrency = (amount) => {
 }
 
 // Form methods
+const clearFormError = () => {
+  errorMessage.value = ''
+}
+
 const closeAddForm = () => {
   showAddForm.value = false
   editing.value = false
@@ -776,7 +785,7 @@ const handleThumbnailUpload = (event) => {
   if (file) {
     // Validate file size (2MB max)
     if (file.size > 2 * 1024 * 1024) {
-      error.value = 'Thumbnail image must be less than 2MB'
+      errorMessage.value = 'Thumbnail image must be less than 2MB'
       return
     }
     
@@ -794,14 +803,14 @@ const handleImagesUpload = (event) => {
   
   // Validate file count (max 10 total)
   if (imageFiles.value.length + files.length > 10) {
-    error.value = 'Maximum 10 images allowed'
+    errorMessage.value = 'Maximum 10 images allowed'
     return
   }
   
   // Validate file sizes (2MB max each)
   for (const file of files) {
     if (file.size > 2 * 1024 * 1024) {
-      error.value = 'Each image must be less than 2MB'
+      errorMessage.value = 'Each image must be less than 2MB'
       return
     }
   }
@@ -849,13 +858,16 @@ const uploadImage = async (file, bucket = 'product-images') => {
 }
 
 const handleFormSubmit = async (event) => {
-  event.preventDefault()
-  event.stopPropagation()
-  console.log('Form submitted, editing:', editing.value)
-  console.log('Form data before submission:', newProduct.value)
-  console.log('Thumbnail file:', thumbnailFile.value)
-  console.log('Image files:', imageFiles.value)
-  await createProduct()
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  try {
+    await createProduct()
+  } catch (e) {
+    console.error('handleFormSubmit error:', e)
+    errorMessage.value = getErrorMessage(e) || 'Unable to save product. Please try again.'
+  }
 }
 
 const createProduct = async () => {
@@ -883,26 +895,34 @@ const createProduct = async () => {
     console.log('Stock quantity:', newProduct.value.stock_quantity)
     console.log('Category ID:', newProduct.value.category_id)
     
-    if (!newProduct.value.name || !newProduct.value.description || !newProduct.value.price || !newProduct.value.stock_quantity || !newProduct.value.category_id) {
-      errorMessage.value = 'Please fill in all required fields'
+    if (!newProduct.value.name || !String(newProduct.value.name).trim()) {
+      errorMessage.value = 'Please enter a product name'
       creating.value = false
-      console.log('Validation failed: Missing required fields')
       return
     }
-
-    // For new products, thumbnail is required. For editing, it's optional if already exists
-    console.log('Checking thumbnail requirement:')
-    console.log('Editing mode:', editing.value)
-    console.log('Thumbnail file:', thumbnailFile.value)
-    
-    if (!editing.value && !thumbnailFile.value) {
-      errorMessage.value = 'Please upload a thumbnail image'
+    if (!newProduct.value.description || !String(newProduct.value.description).trim()) {
+      errorMessage.value = 'Please enter a description'
       creating.value = false
-      console.log('Validation failed: No thumbnail uploaded for new product')
       return
     }
-    
-    console.log('Validation passed, proceeding with product creation')
+    const priceNum = parseFloat(newProduct.value.price)
+    if (isNaN(priceNum) || priceNum < 0) {
+      errorMessage.value = 'Please enter a valid price'
+      creating.value = false
+      return
+    }
+    const stockNum = parseInt(newProduct.value.stock_quantity, 10)
+    if (isNaN(stockNum) || stockNum < 0) {
+      errorMessage.value = 'Please enter a valid stock quantity (0 or more)'
+      creating.value = false
+      return
+    }
+    if (!newProduct.value.category_id) {
+      errorMessage.value = 'Please select a category'
+      creating.value = false
+      return
+    }
+    // Thumbnail is optional: DB allows null. We use thumbnail_url or first of image_urls when missing.
 
     // Get current user
     console.log('Getting current user...')
@@ -1074,13 +1094,11 @@ const editProduct = (productId) => {
 }
 
 const addProduct = () => {
-  // Open the form for adding a new product
-  console.log('Opening add product form')
   editing.value = false
   editingProductId.value = null
-  showAddForm.value = true
+  errorMessage.value = ''
   resetForm()
-  console.log('Form opened, newProduct:', newProduct.value)
+  showAddForm.value = true
 }
 
 const confirmDeleteProduct = (productId, productName) => {
