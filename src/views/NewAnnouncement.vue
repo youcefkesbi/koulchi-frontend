@@ -384,132 +384,143 @@ const uploadImages = async (userId) => {
   }
 }
 
-const submitForm = async () => {
-  // Clear any previous errors
+const submitForm = async (event) => {
+  // Prevent default form submission (defensive; @submit.prevent already does this)
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault()
+  }
+
+  // Clear any previous errors and success
   error.value = ''
+  showSuccess.value = false
   uploadProgress.value = ''
-  
+
+  // Prevent double-submission: set loading immediately
+  if (loading.value) return
+  loading.value = true
+
   try {
-    // Basic form validation
-    if (!form.name || !form.name.trim()) {
+    // --- Validation (required fields) ---
+    if (!form.name || !String(form.name).trim()) {
       error.value = $t('announcement.validation.productNameRequired')
+      loading.value = false
       return
     }
-    
     if (!form.category_id) {
       error.value = 'Please select a category'
+      loading.value = false
       return
     }
-    
-    if (!form.price || parseFloat(form.price) <= 0) {
+    const priceNum = parseFloat(form.price)
+    if (isNaN(priceNum) || priceNum <= 0) {
       error.value = $t('announcement.validation.validPrice')
+      loading.value = false
       return
     }
-    
-    if (!form.stock_quantity || parseInt(form.stock_quantity) < 0) {
+    const stockNum = parseInt(form.stock_quantity, 10)
+    if (isNaN(stockNum) || stockNum < 0) {
       error.value = $t('announcement.validation.validStockQuantity')
+      loading.value = false
       return
     }
-
-    loading.value = true
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error($t('errors.userNotAuthenticated'))
+    if (!user) {
+      error.value = $t('errors.userNotAuthenticated')
+      loading.value = false
+      return
+    }
 
-    // Test storage bucket access
+    // Test storage bucket access when user has images
     if (imageFiles.value.length > 0) {
-
       try {
-        const { data: bucketData, error: bucketError } = await supabase.storage
+        const { error: bucketError } = await supabase.storage
           .from('product-images')
           .list('', { limit: 1 })
-        
+
         if (bucketError) {
-          if (bucketError.message.includes('does not exist')) {
+          if (bucketError.message && bucketError.message.includes('does not exist')) {
             error.value = $t('announcement.validation.storageBucketNotExist')
-          } else if (bucketError.message.includes('permission denied')) {
+          } else if (bucketError.message && bucketError.message.includes('permission denied')) {
             error.value = $t('announcement.validation.storageBucketNoPermission')
           } else {
             error.value = $t('announcement.validation.storageBucketAccessFailed')
           }
-          imageFiles.value = [] // Clear images to prevent upload attempt
-                      }
+          imageFiles.value = []
+          loading.value = false
+          return
+        }
       } catch (bucketTestError) {
         error.value = $t('announcement.validation.storageBucketNotAccessible')
-        imageFiles.value = [] // Clear images to prevent upload attempt
+        imageFiles.value = []
+        loading.value = false
+        return
       }
     }
 
-    // Upload images first
+    // --- Upload images ---
     let imageUrls = []
     if (imageFiles.value.length > 0) {
       try {
-        // Add overall timeout for image uploads
         const uploadTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error($t('announcement.validation.imageUploadTimeout'))), 60000) // 1 minute total
+          setTimeout(() => reject(new Error($t('announcement.validation.imageUploadTimeout'))), 60000)
         })
-        
         const uploadPromise = uploadImages(user.id)
         imageUrls = await Promise.race([uploadPromise, uploadTimeout])
       } catch (uploadError) {
         error.value = $t('announcement.validation.imagesFailedUpload')
-        // Continue without images rather than failing completely
         imageUrls = []
       }
     }
 
-    // Create product
+    // --- Map status: checkbox can be true/false or legacy 'approved'; DB needs 'approved'|'pending'|'rejected'|'inactive' ---
+    const statusValue = form.status
+    const statusForDb = (statusValue === true || statusValue === 'approved')
+      ? 'approved'
+      : 'pending'
+
     const productData = {
-      name: form.name,
-      description: form.description || null,
-      price: parseFloat(form.price),
-      image_urls: imageUrls,
+      name: String(form.name).trim(),
+      description: form.description ? String(form.description).trim() || null : null,
+      price: priceNum,
+      image_urls: Array.isArray(imageUrls) ? imageUrls : [],
       category_id: form.category_id,
       seller_id: user.id,
-      stock_quantity: parseInt(form.stock_quantity),
-      status: form.status,
-      is_new: form.is_new
+      stock_quantity: stockNum,
+      status: statusForDb,
+      is_new: !!form.is_new
     }
 
-    // Insert product
-    const { error: insertError } = await supabase
+    console.log('[NewAnnouncement] Before Supabase insert, productData:', JSON.stringify(productData, null, 2))
+    uploadProgress.value = 'Saving...'
+
+    // --- Supabase insert ---
+    const { data, error: insertError } = await supabase
       .from('products')
       .insert(productData)
 
+    console.log('[NewAnnouncement] Supabase insert response:', { data, error: insertError ? { message: insertError.message, code: insertError.code, details: insertError.details } : null })
+
     if (insertError) {
-      throw new Error($t('announcement.validation.failedToInsertProduct', { error: insertError.message }))
-    }
-
-    // Fetch the inserted product
-    const { data, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('seller_id', user.id)
-      .eq('name', form.name)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (fetchError) {
-      throw new Error($t('announcement.validation.failedToFetchProduct', { error: fetchError.message }))
+      const errMsg = insertError.message || (insertError.details && String(insertError.details)) || 'Unknown insert error'
+      console.error('[NewAnnouncement] Insert failed:', insertError)
+      throw new Error(errMsg)
     }
 
     showSuccess.value = true
-    
-    // Redirect to dashboard after 2 seconds
-    setTimeout(() => {
-      navigateToPath('/dashboard')
-    }, 2000)
-  } catch (err) {
-    error.value = err.message || $t('announcement.validation.errorCreatingProduct')
-    // Ensure loading is reset on error
     loading.value = false
     uploadProgress.value = ''
-  } finally {
-    // Always ensure loading is reset
-    if (loading.value) {
-      loading.value = false
-    }
+
+    // Redirect to homepage after a short delay
+    setTimeout(() => {
+      navigateToPath('/')
+    }, 2000)
+  } catch (err) {
+    const msg = err && err.message ? err.message : $t('announcement.validation.errorCreatingProduct')
+    error.value = msg
+    console.error('[NewAnnouncement] submitForm error:', err)
+    loading.value = false
+    uploadProgress.value = ''
   }
 }
 </script>
