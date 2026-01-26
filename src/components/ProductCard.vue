@@ -94,32 +94,29 @@
           <button
             @click.stop="handleEditProduct"
             :disabled="productLoading"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
-            <i class="fas fa-edit text-sm sm:text-base"></i>
-            <span class="hidden sm:inline">Edit</span>
-            <span class="sm:hidden">Edit</span>
+            <i class="fas fa-edit text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">Edit</span>
           </button>
           
           <button
             @click.stop="handlePromoteProduct"
             :disabled="productLoading"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
-            <i class="fas fa-bullhorn text-sm sm:text-base"></i>
-            <span class="hidden sm:inline">Promote</span>
-            <span class="sm:hidden">Promote</span>
+            <i class="fas fa-bullhorn text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">Promote</span>
           </button>
           
           <button
             @click.stop="handleDeleteProduct"
             :disabled="productLoading"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
-            <i v-if="!productLoading" class="fas fa-trash text-sm sm:text-base"></i>
-            <i v-else class="fas fa-spinner fa-spin text-sm sm:text-base"></i>
-            <span class="hidden sm:inline">Delete</span>
-            <span class="sm:hidden">Del</span>
+            <i v-if="!productLoading" class="fas fa-trash text-xs sm:text-sm lg:text-base"></i>
+            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">Delete</span>
           </button>
         </template>
         
@@ -128,33 +125,33 @@
           <button
             @click.stop="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl min-h-[44px]"
             :class="(product.stock_quantity || 0) <= 0 
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
               : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
           >
-            <i v-if="!cartLoading" class="fas fa-shopping-cart text-sm sm:text-base"></i>
-            <i v-else class="fas fa-spinner fa-spin text-sm sm:text-base"></i>
-            <span class="hidden sm:inline">{{ getCartButtonText() }}</span>
-            <span class="sm:hidden">Cart</span>
+            <i v-if="!cartLoading" class="fas fa-shopping-cart text-xs sm:text-sm lg:text-base"></i>
+            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">{{ getCartButtonText() }}</span>
+            <span class="xs:hidden">Cart</span>
           </button>
           
           <button
             @click.stop="handleToggleWishlist"
             :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
-            <i v-if="!wishlistLoading" class="fas fa-heart text-sm sm:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
-            <i v-else class="fas fa-spinner fa-spin text-sm sm:text-base"></i>
+            <i v-if="!wishlistLoading" class="fas fa-heart text-xs sm:text-sm lg:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
+            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
           </button>
           
           <button
             @click.stop="handleViewProduct"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 min-h-[44px]"
             :title="$t('product.viewProduct')"
           >
-            <i class="fas fa-eye text-sm sm:text-base"></i>
+            <i class="fas fa-eye text-xs sm:text-sm lg:text-base"></i>
           </button>
         </template>
         
@@ -163,33 +160,33 @@
           <button
             @click.stop="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-            class="flex-1 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center space-x-1 sm:space-x-2 space-x-reverse shadow-lg hover:shadow-xl"
+            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl min-h-[44px]"
             :class="(product.stock_quantity || 0) <= 0 
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
               : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
           >
-            <i v-if="!cartLoading" class="fas fa-shopping-cart text-sm sm:text-base"></i>
-            <i v-else class="fas fa-spinner fa-spin text-sm sm:text-base"></i>
-            <span class="hidden sm:inline">{{ getCartButtonText() }}</span>
-            <span class="sm:hidden">Cart</span>
+            <i v-if="!cartLoading" class="fas fa-shopping-cart text-xs sm:text-sm lg:text-base"></i>
+            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">{{ getCartButtonText() }}</span>
+            <span class="xs:hidden">Cart</span>
           </button>
           
           <button
             @click.stop="handleToggleWishlist"
             :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
-            <i v-if="!wishlistLoading" class="fas fa-heart text-sm sm:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
-            <i v-else class="fas fa-spinner fa-spin text-sm sm:text-base"></i>
+            <i v-if="!wishlistLoading" class="fas fa-heart text-xs sm:text-sm lg:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
+            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
           </button>
           
           <button
             @click.stop="handleViewProduct"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-6 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 min-h-[44px]"
             :title="$t('product.viewProduct')"
           >
-            <i class="fas fa-eye text-sm sm:text-base"></i>
+            <i class="fas fa-eye text-xs sm:text-sm lg:text-base"></i>
           </button>
         </template>
       </div>

@@ -1,21 +1,21 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-4 sm:space-y-6 lg:space-y-8 px-4 sm:px-6 lg:px-8">
     <!-- Page Header -->
-    <div class="flex justify-between items-center">
-              <h1 class="text-3xl font-bold text-dark">{{ t('checkout.title') }}</h1>
-        <router-link :to="getLocalizedPath('/cart')" class="btn-outline">
-          <i class="fas fa-arrow-left ml-2"></i>
-          {{ t('checkout.backToCart') }}
-        </router-link>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+      <h1 class="text-2xl sm:text-3xl font-bold text-dark">{{ t('checkout.title') }}</h1>
+      <router-link :to="getLocalizedPath('/cart')" class="btn-outline text-sm sm:text-base w-full sm:w-auto text-center sm:text-left">
+        <i class="fas fa-arrow-left ml-2"></i>
+        {{ t('checkout.backToCart') }}
+      </router-link>
     </div>
 
-    <div v-if="cartStore.hasItems" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div v-if="cartStore.hasItems" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
       <!-- Checkout Form -->
       <div class="space-y-6">
         <!-- Customer Information -->
         <div class="card checkout-form-card">
-          <h2 class="text-xl font-bold text-dark mb-4">{{ t('checkout.customerInfo') }}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 class="text-lg sm:text-xl font-bold text-dark mb-3 sm:mb-4">{{ t('checkout.customerInfo') }}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.fullName') || 'Full Name' }} *</label>
               <input
@@ -50,8 +50,8 @@
 
         <!-- Delivery Address -->
         <div class="card checkout-form-card">
-                  <h2 class="text-xl font-bold text-dark mb-4">{{ t('checkout.deliveryAddress') }}</h2>
-        <div class="space-y-4">
+          <h2 class="text-lg sm:text-xl font-bold text-dark mb-3 sm:mb-4">{{ t('checkout.deliveryAddress') }}</h2>
+          <div class="space-y-3 sm:space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.wilaya') }} *</label>
             <select 
@@ -111,7 +111,7 @@
               />
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('checkout.postalCode') }}</label>
               <input
@@ -205,29 +205,29 @@
       </div>
 
       <!-- Order Summary -->
-      <div class="space-y-6">
-        <div class="card checkout-order-summary">
-          <h2 class="text-xl font-bold text-dark mb-6">{{ t('checkout.orderSummary') }}</h2>
+      <div class="space-y-4 sm:space-y-6">
+        <div class="card checkout-order-summary sticky top-4">
+          <h2 class="text-lg sm:text-xl font-bold text-dark mb-4 sm:mb-6">{{ t('checkout.orderSummary') }}</h2>
           
           <!-- Order Items -->
-          <div class="space-y-4 mb-6">
+          <div class="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
             <div
               v-for="item in cartStore.items"
               :key="item.id"
-              class="flex items-center space-x-4 space-x-reverse"
+              class="flex items-center gap-3 sm:gap-4 space-x-0 space-x-reverse"
             >
               <img
                 :src="item.image"
                 :alt="item.name"
-                class="w-16 h-16 rounded-lg object-cover"
+                class="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover flex-shrink-0"
               />
-              <div class="flex-1">
-                <h4 class="font-semibold text-dark">{{ item.name }}</h4>
-                <p class="text-gray-600 text-sm">{{ t('checkout.quantity') }}: {{ item.quantity }}</p>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-dark text-sm sm:text-base truncate">{{ item.name }}</h4>
+                <p class="text-gray-600 text-xs sm:text-sm">{{ t('checkout.quantity') }}: {{ item.quantity }}</p>
               </div>
-              <div class="text-right">
-                <p class="font-semibold text-dark">{{ formatPrice(item.price * item.quantity) }} دج</p>
-                <p class="text-gray-500 text-sm">{{ formatPrice(item.price) }} {{ t('checkout.perPiece') }}</p>
+              <div class="text-right flex-shrink-0">
+                <p class="font-semibold text-dark text-sm sm:text-base">{{ formatPrice(item.price * item.quantity) }} دج</p>
+                <p class="text-gray-500 text-xs sm:text-sm">{{ formatPrice(item.price) }} {{ t('checkout.perPiece') }}</p>
               </div>
             </div>
           </div>
@@ -269,7 +269,7 @@
           <button
             @click="placeOrder"
             :disabled="!isFormValid || ordersStore.loading"
-            class="btn-primary checkout-confirm-btn w-full text-lg py-4 disabled:opacity-50"
+            class="btn-primary checkout-confirm-btn w-full text-base sm:text-lg py-3 sm:py-4 disabled:opacity-50"
           >
             <i v-if="ordersStore.loading" class="fas fa-spinner fa-spin ml-2"></i>
             <i v-else class="fas fa-check ml-2"></i>

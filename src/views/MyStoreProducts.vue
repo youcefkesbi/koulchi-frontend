@@ -52,53 +52,52 @@
         <div class="relative px-6 py-4 border-b border-gray-200"> 
 
       <!-- Manage products -->
-      <div class="bg-white rounded-lg  ">
-        <div class="flex items-center gap-8">
-        <h3 
-        class="ml-4 mt-3 text-lg font-semibold text-gray-800 mb-4">{{ $t('storeProducts.storeOrders') }}</h3>
-        <!-- Products Filtering tab -->
-        <div class="flex justify-center gap-4">
-        <!-- Price Sort Button -->
-        <button 
-          @click="setSortFilter('price')"
-          :class="sortFilter === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-          class="h-fit rounded-md px-12 py-2 transition-colors">
-           <span>{{ $t('storeProducts.price') }}</span><span class="ml-1">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
-        </button>
+      <div class="bg-white rounded-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 px-4 sm:px-6 py-4">
+          <h3 class="text-lg font-semibold text-gray-800">{{ $t('storeProducts.storeOrders') }}</h3>
+          <!-- Products Filtering tab -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+            <!-- Price Sort Button -->
+            <button 
+              @click="setSortFilter('price')"
+              :class="sortFilter === 'price' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+              class="h-fit rounded-md px-4 sm:px-6 lg:px-12 py-2 text-sm sm:text-base transition-colors whitespace-nowrap">
+              <span>{{ $t('storeProducts.price') }}</span><span class="ml-1">{{ sortOrder === 'desc' ? '↓' : '↑' }}</span>
+            </button>
 
-        
-        <!-- Category Filter -->
-                <select 
-          @change="setCategoryFilter($event.target.value)"
-          :value="categoryFilter"
-         class="h-fit rounded-md pl-2  py-2 transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <option value="">{{ $t('dashboard.categories') }}</option>
-          <option v-for="category in (categories || [])" :key="category.id" :value="category.id">
-            {{ getCategoryDisplayName(category) }}
-          </option>
-        </select>
-        <!-- Stock Filter -->
-        <select 
-          @change="setStockFilter($event.target.value)"
-          :value="stockFilter"
-          class="h-fit rounded-md px-4 py-2 transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <option value="">{{ $t('storeProducts.allStock') }}</option>
-          <option value="in_stock">{{ $t('storeProducts.inStockFilter') }}</option>
-          <option value="low_stock">{{ $t('storeProducts.lowStockFilter') }}</option>
-          <option value="out_of_stock">{{ $t('storeProducts.outOfStockFilter') }}</option>
-        </select>
+            <!-- Category Filter -->
+            <select 
+              @change="setCategoryFilter($event.target.value)"
+              :value="categoryFilter"
+              class="h-fit rounded-md pl-2 pr-8 sm:pr-10 py-2 text-sm sm:text-base transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none min-w-[120px] sm:min-w-[150px]">
+              <option value="">{{ $t('dashboard.categories') }}</option>
+              <option v-for="category in (categories || [])" :key="category.id" :value="category.id">
+                {{ getCategoryDisplayName(category) }}
+              </option>
+            </select>
+            
+            <!-- Stock Filter -->
+            <select 
+              @change="setStockFilter($event.target.value)"
+              :value="stockFilter"
+              class="h-fit rounded-md px-3 sm:px-4 py-2 text-sm sm:text-base transition-colors bg-gray-100 text-gray-700 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none min-w-[120px] sm:min-w-[140px]">
+              <option value="">{{ $t('storeProducts.allStock') }}</option>
+              <option value="in_stock">{{ $t('storeProducts.inStockFilter') }}</option>
+              <option value="low_stock">{{ $t('storeProducts.lowStockFilter') }}</option>
+              <option value="out_of_stock">{{ $t('storeProducts.outOfStockFilter') }}</option>
+            </select>
 
-        <!-- Add product button -->
-        <button 
-          v-if="hasVendorRole"
-          @click="addProduct"
-          class="h-fit cursor-pointer text-semibold ml-4 bg-indigo-700 text-white px-10 py-2 rounded-md hover:bg-indigo-800 transition-colors"
-        >
-          {{ $t('stores.addProduct') }}
-        </button>
-        </div> 
+            <!-- Add product button -->
+            <button 
+              v-if="hasVendorRole"
+              @click="addProduct"
+              class="h-fit cursor-pointer text-semibold bg-indigo-700 text-white px-4 sm:px-6 lg:px-10 py-2 text-sm sm:text-base rounded-md hover:bg-indigo-800 transition-colors whitespace-nowrap"
+            >
+              {{ $t('stores.addProduct') }}
+            </button>
+          </div> 
         </div>
-        </div>
+      </div>
         </div>
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-12">
@@ -123,22 +122,22 @@
           <p class="text-gray-600">{{ $t('storeProducts.vendorAccessMessage') }}</p>
         </div>
 
-        <!-- Products Table -->
-        <div v-else-if="products && products.length > 0" class="overflow-x-auto">
+        <!-- Products Table - Desktop -->
+        <div v-else-if="products && products.length > 0" class="hidden md:block overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.product') }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.price') }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.category') }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.stock') }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.actions') }}</th>
+                <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.product') }}</th>
+                <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.price') }}</th>
+                <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.category') }}</th>
+                <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.stock') }}</th>
+                <th class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('storeProducts.actions') }}</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr v-for="product in (products || [])" :key="product.product_id" class="hover:bg-gray-50">
                 <!-- Product Info (Image + Name) -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-12 w-12">
                       <img 
@@ -153,13 +152,12 @@
                     </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">{{ product.product_name }}</div>
-                
                     </div>
                   </div>
                 </td>
                 
                 <!-- Price -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">{{ formatCurrency(product.product_price) }}</div>
                   <div v-if="product.sold_count > 0" class="text-sm text-gray-500">
                     {{ product.sold_count }} {{ $t('storeProducts.sold') }}
@@ -167,14 +165,14 @@
                 </td>
                 
                 <!-- Category -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                     {{ getProductCategoryName(product) }}
                   </span>
                 </td>
                 
                 <!-- Stock Quantity -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <span class="text-sm font-medium text-gray-900">{{ product.stock_quantity }}</span>
                     <span 
@@ -191,12 +189,12 @@
                 </td>
                 
                 <!-- Actions -->
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-3">
                     <!-- Promote Button -->
                     <button 
                       @click="promoteProduct(product.product_id)"
-                      class="text-green-600 hover:text-green-900 transition-colors duration-200"
+                      class="text-green-600 hover:text-green-900 transition-colors duration-200 p-1"
                       title="Promote Product"
                     >
                       <i class="fas fa-bullhorn text-lg"></i>
@@ -205,7 +203,7 @@
                     <!-- Edit Button -->
                     <button 
                       @click="editProduct(product.product_id)"
-                      class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"
+                      class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200 p-1"
                       title="Edit Product"
                     >
                       <i class="fas fa-edit text-lg"></i>
@@ -214,7 +212,7 @@
                     <!-- Delete Button -->
                     <button 
                       @click="confirmDeleteProduct(product.product_id, product.product_name)"
-                      class="text-red-600 hover:text-red-900 transition-colors duration-200"
+                      class="text-red-600 hover:text-red-900 transition-colors duration-200 p-1"
                       title="Delete Product"
                     >
                       <i class="fas fa-trash text-lg"></i>
@@ -224,6 +222,90 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Products Cards - Mobile/Tablet -->
+        <div v-else-if="products && products.length > 0" class="md:hidden space-y-4 px-4 pb-4">
+          <div 
+            v-for="product in (products || [])" 
+            :key="product.product_id"
+            class="bg-white rounded-lg shadow-md p-4 border border-gray-200"
+          >
+            <div class="flex items-start gap-4">
+              <!-- Product Image -->
+              <div class="flex-shrink-0">
+                <img 
+                  v-if="product.product_image" 
+                  :src="product.product_image" 
+                  :alt="product.product_name" 
+                  class="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                >
+                <div v-else class="h-20 w-20 rounded-lg bg-gray-200 flex items-center justify-center border border-gray-200">
+                  <i class="fas fa-image text-gray-400 text-2xl"></i>
+                </div>
+              </div>
+              
+              <!-- Product Info -->
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-semibold text-gray-900 mb-2 truncate">{{ product.product_name }}</h3>
+                
+                <!-- Price -->
+                <div class="mb-2">
+                  <div class="text-lg font-bold text-primary">{{ formatCurrency(product.product_price) }}</div>
+                  <div v-if="product.sold_count > 0" class="text-xs text-gray-500">
+                    {{ product.sold_count }} {{ $t('storeProducts.sold') }}
+                  </div>
+                </div>
+                
+                <!-- Category and Stock -->
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {{ getProductCategoryName(product) }}
+                  </span>
+                  <span 
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-800': product.stock_quantity > 10,
+                      'bg-yellow-100 text-yellow-800': product.stock_quantity > 0 && product.stock_quantity <= 10,
+                      'bg-red-100 text-red-800': product.stock_quantity === 0
+                    }"
+                  >
+                    {{ product.stock_quantity > 10 ? $t('storeProducts.inStock') : product.stock_quantity > 0 ? $t('storeProducts.lowStock') : $t('storeProducts.outOfStock') }}
+                  </span>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-3 pt-2 border-t border-gray-200">
+                  <button 
+                    @click="promoteProduct(product.product_id)"
+                    class="flex-1 px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-sm font-medium"
+                    title="Promote Product"
+                  >
+                    <i class="fas fa-bullhorn mr-1"></i>
+                    <span class="hidden xs:inline">Promote</span>
+                  </button>
+                  
+                  <button 
+                    @click="editProduct(product.product_id)"
+                    class="flex-1 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium"
+                    title="Edit Product"
+                  >
+                    <i class="fas fa-edit mr-1"></i>
+                    <span class="hidden xs:inline">Edit</span>
+                  </button>
+                  
+                  <button 
+                    @click="confirmDeleteProduct(product.product_id, product.product_name)"
+                    class="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors text-sm font-medium"
+                    title="Delete Product"
+                  >
+                    <i class="fas fa-trash mr-1"></i>
+                    <span class="hidden xs:inline">Delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- No Products State -->
@@ -240,8 +322,8 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <div class="relative w-full max-w-md mx-auto p-5 border shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
           <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
             <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
@@ -274,17 +356,18 @@
     </div>
 
     <!-- Add Product Form Modal -->
-    <div v-if="showAddForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+    <div v-if="showAddForm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-2 sm:p-4">
+      <div class="relative w-full max-w-4xl mx-auto my-4 sm:my-8 p-4 sm:p-5 lg:p-6 border shadow-lg rounded-md bg-white max-h-[95vh] overflow-y-auto">
         <div class="mt-3">
           <!-- Header -->
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">
+          <div class="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-900">
               {{ editing ? $t('storeProducts.editProduct') : $t('storeProducts.addNewProduct') }}
             </h3>
             <button 
               @click="closeAddForm"
-              class="text-gray-400 hover:text-gray-600 text-2xl"
+              class="text-gray-400 hover:text-gray-600 text-xl sm:text-2xl p-1"
+              aria-label="Close"
             >
               <i class="fas fa-times"></i>
             </button>
@@ -485,18 +568,18 @@
             </div>
 
             <!-- Form Actions -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4 pt-4 sm:pt-6 border-t border-gray-200">
               <button
                 type="button"
                 @click="closeAddForm"
-                class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                class="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-800 text-sm sm:text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
                 {{ $t('storeProducts.cancel') }}
               </button>
                <button
                  type="submit"
                  :disabled="creating"
-                 class="px-6 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                 class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white text-sm sm:text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  <i v-if="creating" class="fas fa-spinner fa-spin mr-2"></i>
                  {{ editing ? (creating ? $t('storeProducts.updating') : $t('storeProducts.updateProduct')) : (creating ? $t('storeProducts.creating') : $t('storeProducts.createProduct')) }}

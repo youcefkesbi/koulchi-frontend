@@ -27,7 +27,7 @@
           </router-link>
 
           <!-- Search bar -->
-          <div class="flex-1 max-w-2xl mx-4 lg:mx-8">
+          <div class="flex-1 max-w-xl lg:max-w-2xl mx-2 sm:mx-4 lg:mx-8">
             <div class="relative group">
               <input
                 v-model="searchQuery"
@@ -37,9 +37,9 @@
                 @blur="handleSearchBlur"
                 type="text"
                 :placeholder="t('header.searchPlaceholder')"
-                class="w-full pl-12 pr-4 py-2.5 lg:py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm lg:text-base"
+                class="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-2.5 lg:py-3 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-xs sm:text-sm lg:text-base"
               />
-              <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
+              <i class="fas fa-search absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors text-sm sm:text-base"></i>
               
               <!-- Search Results Panel -->
               <div 
@@ -149,17 +149,17 @@
           <div class="relative categories-dropdown hidden md:block">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
-              class="flex items-center space-x-2 space-x-reverse px-4 py-2.5 lg:py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
+              class="flex items-center space-x-2 space-x-reverse px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
             >
-              <i class="fas fa-layer-group text-lg"></i>
-              <span class="font-medium text-neutral-700 hidden lg:inline">{{ t('header.categories') }}</span>
+              <i class="fas fa-layer-group text-base sm:text-lg"></i>
+              <span class="font-medium text-neutral-700 hidden lg:inline text-sm sm:text-base">{{ t('header.categories') }}</span>
               <i class="fas fa-chevron-down text-xs transition-transform duration-300" :class="{ 'rotate-180': categoriesMenuOpen }"></i>
             </button>
 
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50"
+              class="absolute top-full right-0 mt-2 w-56 sm:w-64 lg:w-72 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50 max-h-[70vh] overflow-y-auto"
             >
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
                 <router-link
@@ -265,7 +265,7 @@
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-48 lg:w-56 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50"
+                class="absolute top-full right-0 mt-2 w-48 sm:w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50 max-h-[80vh] overflow-y-auto"
               >
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
