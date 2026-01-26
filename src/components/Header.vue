@@ -10,8 +10,9 @@
 
         <!-- Mobile Menu Button -->
         <button
-          @click="mobileMenuOpen = !mobileMenuOpen"
-          class="p-2 text-neutral-700 hover:text-primary transition-colors"
+          @click.stop="mobileMenuOpen = !mobileMenuOpen"
+          class="p-2 text-neutral-700 hover:text-primary transition-colors cursor-pointer touch-manipulation"
+          style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-width: 44px; min-height: 44px;"
           aria-label="Toggle menu"
         >
           <i class="fas text-xl" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
@@ -329,19 +330,23 @@
       <!-- Mobile Menu (visible when mobileMenuOpen is true) -->
       <div 
         v-if="mobileMenuOpen"
-        class="sm:hidden border-t border-neutral-200 py-4 space-y-4"
+        class="mobile-menu-container sm:hidden border-t border-neutral-200 py-4 space-y-4 relative z-50 bg-white"
+        style="pointer-events: auto;"
+        @click.stop
       >
         <!-- Mobile Search -->
-        <div class="relative group">
+        <div class="relative group" style="pointer-events: auto;">
           <input
             v-model="searchQuery"
             @input="handleSearch"
             @keydown.enter="handleSearchEnter"
             @focus="showSearchResults = true"
             @blur="handleSearchBlur"
+            @click.stop
             type="text"
             :placeholder="t('header.searchPlaceholder')"
-            class="w-full pl-12 pr-4 py-2.5 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm"
+            class="w-full pl-12 pr-4 py-2.5 border-2 border-neutral-200 rounded-2xl focus:ring-4 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300 shadow-soft bg-white text-neutral-900 placeholder-neutral-600 text-sm touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
           />
           <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-500 group-hover:text-primary transition-colors"></i>
           
@@ -349,7 +354,9 @@
           <div 
             v-if="showSearchResults && (searchQuery.trim() || searchResultsProducts.length > 0 || searchResultsStores.length > 0)"
             @mousedown.prevent
-            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-50 max-h-[400px] overflow-y-auto"
+            @touchstart.prevent
+            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-[60] max-h-[400px] overflow-y-auto"
+            style="pointer-events: auto;"
           >
             <!-- Loading State -->
             <div v-if="searchLoading" class="p-4 text-center">
@@ -367,8 +374,9 @@
                     v-for="product in searchResultsProducts.slice(0, 3)"
                     :key="product.id"
                     :to="`/product/${product.id}`"
-                    @click="closeSearchResults"
-                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50"
+                    @click.stop="closeSearchResultsAndMobileMenu"
+                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50 cursor-pointer touch-manipulation"
+                    style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
                   >
                     <img 
                       v-if="product.thumbnail_url || (product.image_urls && product.image_urls[0])"
@@ -395,8 +403,9 @@
                     v-for="store in searchResultsStores.slice(0, 3)"
                     :key="store.id"
                     :to="`/stores/${store.id}`"
-                    @click="closeSearchResults"
-                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50"
+                    @click.stop="closeSearchResultsAndMobileMenu"
+                    class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50 cursor-pointer touch-manipulation"
+                    style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
                   >
                     <img 
                       v-if="store.logo_url"
@@ -426,8 +435,9 @@
         <!-- Mobile Categories -->
         <div class="relative">
           <button
-            @click="categoriesMenuOpen = !categoriesMenuOpen"
-            class="w-full flex items-center justify-between px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
+            @click.stop="categoriesMenuOpen = !categoriesMenuOpen"
+            class="w-full flex items-center justify-between px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50 cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
           >
             <div class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-layer-group text-lg"></i>
@@ -445,8 +455,9 @@
               v-for="category in categories"
               :key="category.id"
               :to="getLocalizedRoutePath(`/category/${category.id}`)"
-              @click="categoriesMenuOpen = false; mobileMenuOpen = false"
-              class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-white transition-all duration-300 group"
+              @click.stop="closeMobileMenuAndCategories"
+              class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-white transition-all duration-300 group cursor-pointer touch-manipulation"
+              style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
             >
               <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-accent transition-all duration-300">
                 <i :class="getCategoryIcon(category.id)" class="text-white text-sm"></i>
@@ -464,7 +475,8 @@
             v-show="shouldShowProductButton"
             @click.stop="handlePostAnnouncementMobile"
             :disabled="!shouldShowProductButton"
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
           >
             <i class="fas fa-plus"></i>
             <span>{{ t('header.addProduct') }}</span>
@@ -474,7 +486,8 @@
             v-show="shouldShowCreateStoreButton"
             @click.stop="handleSwitchToVendorMobile"
             :disabled="!shouldShowCreateStoreButton"
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-md border border-neutral-300 text-neutral-700 hover:bg-neutral-50 hover:border-primary hover:text-primary transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
           >
             <i class="fas fa-store"></i>
             <span>{{ t('seller.createStore') }}</span>
@@ -487,15 +500,17 @@
             v-for="link in mobileUserLinks"
             :key="link.path"
             :to="getLocalizedRoutePath(link.path)"
-            @click="mobileMenuOpen = false"
-            class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-xl transition-all duration-300"
+            @click.stop="closeMobileMenu"
+            class="flex items-center space-x-2 space-x-reverse px-4 py-3 text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-xl transition-all duration-300 cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
           >
             <i :class="link.icon" class="text-lg"></i>
             <span class="font-medium">{{ link.label }}</span>
           </router-link>
           <button
-            @click="handleLogout; mobileMenuOpen = false"
-            class="w-full flex items-center space-x-2 space-x-reverse px-4 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
+            @click.stop="handleLogoutMobile"
+            class="w-full flex items-center space-x-2 space-x-reverse px-4 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300 cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
           >
             <i class="fas fa-sign-out-alt text-lg"></i>
             <span class="font-medium">{{ t('header.logout') }}</span>
@@ -504,8 +519,9 @@
 
         <div v-else class="border-t border-neutral-200 pt-4">
           <button
-            @click="handleLoginClick; mobileMenuOpen = false"
-            class="w-full btn-primary text-sm py-3"
+            @click.stop="handleLoginClickMobile"
+            class="w-full btn-primary text-sm py-3 cursor-pointer touch-manipulation"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
           >
             <i class="fas fa-sign-in-alt mr-2"></i>
             {{ t('header.login') }}
@@ -611,6 +627,12 @@ const mobileUserLinks = computed(() => {
 
 // Handle click outside dropdown
 const handleClickOutside = (event) => {
+  // Don't close if clicking inside mobile menu
+  const mobileMenu = event.target.closest('.mobile-menu-container')
+  if (mobileMenu) {
+    return
+  }
+  
   // Close user dropdown if clicking outside
   const userDropdown = event.target.closest('.user-dropdown')
   if (!userDropdown && userMenuOpen.value) {
@@ -623,7 +645,7 @@ const handleClickOutside = (event) => {
     categoriesMenuOpen.value = false
   }
 
-  // Close mobile menu if clicking outside
+  // Close mobile menu if clicking outside header (but not inside mobile menu)
   const header = event.target.closest('header')
   if (!header && mobileMenuOpen.value) {
     mobileMenuOpen.value = false
@@ -846,6 +868,11 @@ const closeSearchResults = () => {
   }
 }
 
+const closeSearchResultsAndMobileMenu = () => {
+  closeSearchResults()
+  mobileMenuOpen.value = false
+}
+
 const handlePostAnnouncement = (event) => {
   if (event) {
     event.preventDefault()
@@ -887,6 +914,39 @@ const handlePostAnnouncementMobile = (event) => {
 
 const handleLoginClick = () => {
   showLoginModal.value = true
+}
+
+// Mobile-specific handlers
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
+}
+
+const closeMobileMenuAndCategories = () => {
+  categoriesMenuOpen.value = false
+  mobileMenuOpen.value = false
+}
+
+const handleLoginClickMobile = (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  mobileMenuOpen.value = false
+  showLoginModal.value = true
+}
+
+const handleLogoutMobile = async (event) => {
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+  mobileMenuOpen.value = false
+  try {
+    await authStore.logout()
+    navigateToPath('/')
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
 }
 
 const handleLogout = async () => {
@@ -1003,6 +1063,18 @@ watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
   }
 }, { immediate: true })
 
+// Watch mobile menu state to manage body scroll
+watch(mobileMenuOpen, (isOpen) => {
+  if (isOpen) {
+    document.body.classList.add('mobile-menu-open')
+    // Prevent body scroll on mobile
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.classList.remove('mobile-menu-open')
+    document.body.style.overflow = ''
+  }
+})
+
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   await loadUserStoreStatus()
@@ -1027,6 +1099,11 @@ onUnmounted(() => {
   }
   if (searchBlurTimer) {
     clearTimeout(searchBlurTimer)
+  }
+  // Clean up mobile menu state
+  if (mobileMenuOpen.value) {
+    document.body.classList.remove('mobile-menu-open')
+    document.body.style.overflow = ''
   }
 })
 </script> 
