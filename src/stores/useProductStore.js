@@ -45,7 +45,7 @@ export const useProductStore = defineStore('product', () => {
     return filtered
   })
 
-  // Actions
+  // Actions — fetches from products table only (used by category page Products section)
   const fetchProducts = async (filters = {}) => {
     try {
       loading.value = true
@@ -75,6 +75,7 @@ export const useProductStore = defineStore('product', () => {
         `)
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
+        .limit(5000)
 
       if (categoryId && categoryId !== 'all') {
         query = query.eq('category_id', categoryId)

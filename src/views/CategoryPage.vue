@@ -171,7 +171,6 @@ import { useAdsStore } from '../stores/useAdsStore'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 import CategoryBanner from '../components/ads/CategoryBanner.vue'
 import CategoryFeaturedProducts from '../components/ads/CategoryFeaturedProducts.vue'
-import FeaturedProducts from '../components/FeaturedProducts.vue'
 import ProductCard from '../components/ProductCard.vue'
 
 const { t } = useI18n()
@@ -205,7 +204,7 @@ const loadAds = async () => {
   }
 }
 
-// Get products for this category
+// Products section data: from products table only (productStore), filtered by current category
 const products = computed(() => {
   if (categoryId.value === 'all') {
     return productStore.products
@@ -336,11 +335,11 @@ const scrollToProducts = () => {
 }
 
 
-// Validate category ID
+// Validate category ID (allow 'all'; otherwise must be a known category UUID)
 const validateCategory = () => {
+  if (categoryId.value === 'all') return
   const validCategories = productStore.categories.map(cat => cat.id)
   if (!validCategories.includes(categoryId.value)) {
-    // Use router to go back to home instead of hardcoded 404
     navigateToPath('/')
   }
 }
@@ -351,10 +350,8 @@ watch(() => route.params.categoryId, async (newCategoryId) => {
   currentPage.value = 1 // Reset pagination
   try {
     validateCategory()
-    // Refetch products for the new category
-    if (newCategoryId && newCategoryId !== 'all') {
-      await productStore.fetchProducts({ category_id: newCategoryId })
-    }
+    // Products section: fetch from products table only (not ads), filtered by category
+    await productStore.fetchProducts({ category_id: newCategoryId || 'all' })
   } catch (error) {
     console.error('Error loading new category:', error)
   } finally {
@@ -375,8 +372,8 @@ onMounted(async () => {
       await productStore.fetchCategories()
     }
     
-    // Fetch products for this specific category
-    await productStore.fetchProducts({ category_id: categoryId.value })
+    // Products section: fetch from products table only (not ads), filtered by current category
+    await productStore.fetchProducts({ category_id: categoryId.value || 'all' })
     
     // Load ads data
     await loadAds()
