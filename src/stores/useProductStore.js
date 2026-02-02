@@ -50,20 +50,46 @@ export const useProductStore = defineStore('product', () => {
     try {
       loading.value = true
       error.value = null
-      
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/products', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(filters)
-      // })
-      // const data = await response.json()
-      // products.value = data
-      
-      console.log('Fetching products with filters:', filters)
+
+      const { category_id: categoryId } = filters
+
+      let query = supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          description,
+          price,
+          thumbnail_url,
+          image_urls,
+          category_id,
+          stock_quantity,
+          sold_count,
+          is_new,
+          is_on_sale,
+          status,
+          created_at,
+          store_id,
+          seller_id,
+          stores(owner_id)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+
+      if (categoryId && categoryId !== 'all') {
+        query = query.eq('category_id', categoryId)
+      }
+
+      const { data, error: fetchError } = await query
+
+      if (fetchError) throw fetchError
+      products.value = Array.isArray(data) ? data : []
+      return products.value
     } catch (err) {
-      error.value = err.message
+      error.value = err?.message || 'Failed to fetch products'
       console.error('Error fetching products:', err)
+      products.value = []
+      throw err
     } finally {
       loading.value = false
     }
