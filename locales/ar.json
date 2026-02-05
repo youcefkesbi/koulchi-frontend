@@ -162,14 +162,6 @@
     "searchError": "خطأ في البحث",
     "retry": "إعادة المحاولة"
   },
-  "common": {
-    "currencyShort": "دج",
-    "available": "متوفر",
-    "unavailable": "غير متوفر",
-    "new": "جديد",
-    "discount": "تخفيض",
-    "addToCart": "أضف للسلة"
-  },
   "products": "المنتجات",
   "profile": "الملف الشخصي",
   "profile.wilaya": "الولاية",
@@ -711,6 +703,12 @@
     }
   },
   "common": {
+    "currencyShort": "دج",
+    "available": "متوفر",
+    "unavailable": "غير متوفر",
+    "new": "جديد",
+    "discount": "تخفيض",
+    "addToCart": "أضف للسلة",
     "cancel": "إلغاء",
     "back": "رجوع",
     "goHome": "العودة للرئيسية",

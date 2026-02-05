@@ -229,14 +229,6 @@
     "searchError": "Erreur de recherche",
     "retry": "Réessayer"
   },
-  "common": {
-    "currencyShort": "DA",
-    "available": "Disponible",
-    "unavailable": "Indisponible",
-    "new": "Nouveau",
-    "discount": "Réduction",
-    "addToCart": "Ajouter au panier"
-  },
   "products": "Produits",
   "profile": "Profil",
   "profile.wilaya": "Wilaya (Province)",
@@ -632,6 +624,12 @@
     }
   },
   "common": {
+    "currencyShort": "DA",
+    "available": "Disponible",
+    "unavailable": "Indisponible",
+    "new": "Nouveau",
+    "discount": "Réduction",
+    "addToCart": "Ajouter au panier",
     "cancel": "Annuler",
     "back": "Retour",
     "goHome": "Retour à l'Accueil",
@@ -643,7 +641,7 @@
     "connecting": "Connexion en cours...",
     "loading": "Chargement...",
     "price": "Prix",
-    "currency": "DZD",
+    "currency": "DA",
     "manage": "Gérer",
     "active": "Actif",
     "inactive": "Inactif",

@@ -241,14 +241,6 @@
     "searchError": "Search error",
     "retry": "Retry"
   },
-  "common": {
-    "currencyShort": "DA",
-    "available": "Available",
-    "unavailable": "Unavailable",
-    "new": "New",
-    "discount": "Discount",
-    "addToCart": "Add to Cart"
-  },
   "stores": {
     "currency": "DZD",
     "discoverStores": "Discover Stores",
@@ -474,6 +466,12 @@
   }
 },
   "common": {
+    "currencyShort": "DA",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "new": "New",
+    "discount": "Discount",
+    "addToCart": "Add to Cart",
     "cancel": "Cancel",
     "saving": "Saving...",
     "save": "Save",
@@ -485,7 +483,7 @@
     "connecting": "Connecting...",
     "loading": "Loading...",
     "price": "Price",
-    "currency": "DZD",
+    "currency": "DA",
     "manage": "Manage",
     "active": "Active",
     "inactive": "Inactive",
