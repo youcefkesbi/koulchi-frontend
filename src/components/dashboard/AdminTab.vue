@@ -356,27 +356,11 @@ const fetchChartsData = async () => {
   }
 }
 
-// Format currency function using i18n
+// Format currency: number localized, symbol from i18n (EN/FR: DA, AR: دج)
 const formatCurrency = (amount) => {
-  const currentLocale = route.meta.locale || 'en'
-  
-  // Get currency symbol from translations
-  const currencySymbol = $t('dashboard.currency.dzdSymbol')
-  
-  // For Arabic locale, use custom formatting with Arabic currency symbol
-  if (currentLocale === 'ar') {
-    return `${amount.toLocaleString('ar-DZ')} ${currencySymbol}`
-  }
-  
-  // For other locales, use standard currency formatting
-  const currencyCode = 'DZD'
-  const formatted = new Intl.NumberFormat(currentLocale, {
-    style: 'currency',
-    currency: currencyCode,
-    minimumFractionDigits: 0
-  }).format(amount)
-  
-  return formatted
+  const localeMap = { en: 'en-US', fr: 'fr-FR', ar: 'ar-DZ' }
+  const numLocale = localeMap[route.meta.locale] || 'en-US'
+  return `${Number(amount).toLocaleString(numLocale)} ${$t('common.currencyShort')}`
 }
 
 // Lifecycle

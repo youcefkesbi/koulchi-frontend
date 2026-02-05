@@ -66,7 +66,7 @@
                 <div class="ad-content">
                   <h3 class="ad-title">{{ item.data.name }}</h3>
                   <div class="ad-price">
-                    {{ formatPrice(item.data.price) }} {{ $t('product.currency') }}
+                    {{ formatPrice(item.data.price) }} {{ $t('common.currencyShort') }}
                   </div>
                   <button 
                     @click="navigateToProduct(item.data.id)"

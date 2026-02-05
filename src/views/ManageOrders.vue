@@ -254,7 +254,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { supabase } from '../lib/supabase'
+
+const { t } = useI18n()
 
 // Reactive data
 const orders = ref([])
@@ -345,7 +348,7 @@ const fetchOrderDetails = async (orderId) => {
 
 const formatPrice = (price) => {
   if (price === null || price === undefined) return 'N/A'
-  return `${price.toLocaleString()} DZD`
+  return `${price.toLocaleString()} ${t('common.currencyShort')}`
 }
 
 const formatDate = (dateString) => {

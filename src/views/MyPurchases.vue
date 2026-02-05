@@ -101,7 +101,7 @@
                   <div class="flex items-center gap-2">
                     <i class="fas fa-tag text-gray-400"></i>
                     <span class="text-gray-600">{{ $t('common.price') }}:</span>
-                    <span class="font-medium text-gray-800">{{ getOrderTotalPrice(order) }} {{ $t('common.currency') }}</span>
+                    <span class="font-medium text-gray-800">{{ getOrderTotalPrice(order) }} {{ $t('common.currencyShort') }}</span>
                   </div>
                 </div>
 

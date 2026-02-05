@@ -210,14 +210,10 @@ const fetchProfileData = async () => {
 }
 
 const formatCurrency = (amount) => {
-  if (!amount) return '0.00'
-  const currentLocale = locale.value || 'en'
-  return new Intl.NumberFormat(currentLocale, {
-    style: 'currency',
-    currency: 'DZD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
+  if (!amount) return `0 ${t('common.currencyShort')}`
+  const localeMap = { en: 'en-US', fr: 'fr-FR', ar: 'ar-DZ' }
+  const numLocale = localeMap[locale.value] || 'en-US'
+  return `${Number(amount).toLocaleString(numLocale)} ${t('common.currencyShort')}`
 }
 
 const getInitials = (name) => {

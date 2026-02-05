@@ -70,10 +70,10 @@
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="flex flex-col space-y-1">
           <span class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
-            {{ formatPrice(product.price) }} {{ $t('product.currency') }}
+            {{ formatPrice(product.price) }} {{ $t('common.currencyShort') }}
           </span>
           <span v-if="product.is_on_sale" class="text-xs sm:text-sm text-gray-500 line-through">
-            {{ formatPrice(product.original_price || product.price) }} {{ $t('product.currency') }}
+            {{ formatPrice(product.original_price || product.price) }} {{ $t('common.currencyShort') }}
           </span>
         </div>
         <div class="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm" 

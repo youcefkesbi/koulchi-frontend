@@ -66,7 +66,7 @@
               <div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ $t('subscription.price') || 'Price' }}</h3>
                 <p class="text-2xl font-bold text-gray-900">
-                  {{ currentSubscription.pack_price === 0 ? ($t('subscription.free') || 'Free') : `${currentSubscription.pack_price} DZD` }}
+                  {{ currentSubscription.pack_price === 0 ? ($t('subscription.free') || 'Free') : `${currentSubscription.pack_price} ${$t('common.currencyShort')}` }}
                 </p>
               </div>
 

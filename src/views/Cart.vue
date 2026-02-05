@@ -47,7 +47,7 @@
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
               <div class="flex items-center space-x-2 sm:space-x-4 space-x-reverse">
                 <span class="text-base sm:text-lg font-bold text-primary">
-                  {{ formatPrice(item.price) }} {{ $t('product.currency') }}
+                  {{ formatPrice(item.price) }} {{ $t('common.currencyShort') }}
                 </span>
                 <span class="text-xs sm:text-sm text-neutral-600">
                   {{ $t('cartPage.perPiece') }}
@@ -76,7 +76,7 @@
               <!-- Total Price -->
               <div class="text-left sm:text-right">
                 <div class="text-base sm:text-lg font-bold text-primary">
-                  {{ formatPrice(item.price * item.quantity) }} {{ $t('product.currency') }}
+                  {{ formatPrice(item.price * item.quantity) }} {{ $t('common.currencyShort') }}
                 </div>
               </div>
             </div>
@@ -107,13 +107,13 @@
             
             <div class="flex justify-between text-sm sm:text-base">
               <span class="text-neutral-600">{{ $t('cartPage.subtotal') }}:</span>
-              <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} {{ $t('product.currency') }}</span>
+              <span class="font-semibold">{{ formatPrice(cartStore.subtotal) }} {{ $t('common.currencyShort') }}</span>
             </div>
             
             <div class="border-t pt-3 sm:pt-4">
               <div class="flex justify-between text-base sm:text-lg font-bold">
                 <span>{{ $t('cartPage.total') }}:</span>
-                <span class="text-primary">{{ formatPrice(cartStore.total) }} {{ $t('product.currency') }}</span>
+                <span class="text-primary">{{ formatPrice(cartStore.total) }} {{ $t('common.currencyShort') }}</span>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@
               <div>
                 <h4 class="font-semibold text-green-800 mb-1 text-sm sm:text-base">{{ $t('product.cod') }}</h4>
                 <p class="text-green-700 text-xs sm:text-sm">
-                  {{ $t('cartPage.payOnDelivery', { amount: formatPrice(cartStore.total), currency: $t('product.currency') }) }}
+                  {{ $t('cartPage.payOnDelivery', { amount: formatPrice(cartStore.total), currency: $t('common.currencyShort') }) }}
                 </p>
               </div>
             </div>

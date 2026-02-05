@@ -599,7 +599,7 @@ import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 
-const { t: $t } = useI18n()
+const { t: $t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { navigateTo } = useLocaleRouter()
@@ -795,13 +795,11 @@ const fetchCategories = async () => {
 
 const formatCurrency = (amount) => {
   if (amount === null || amount === undefined || isNaN(amount)) {
-    return '0 DZD'
+    return `0 ${$t('common.currencyShort')}`
   }
-  return new Intl.NumberFormat('en-DZ', {
-    style: 'currency',
-    currency: 'DZD',
-    minimumFractionDigits: 0
-  }).format(amount)
+  const localeMap = { en: 'en-US', fr: 'fr-FR', ar: 'ar-DZ' }
+  const numLocale = localeMap[locale.value] || 'en-US'
+  return `${Number(amount).toLocaleString(numLocale)} ${$t('common.currencyShort')}`
 }
 
 // Form methods

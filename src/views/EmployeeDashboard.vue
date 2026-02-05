@@ -568,7 +568,7 @@
                     <label class="text-sm font-medium text-gray-600 mb-2 block">{{ $t('employee.price') }}:</label>
                     <div class="flex items-start justify-between">
                       <div class="flex-1">
-                        <p class="text-gray-800 mb-2">{{ selectedProduct.product_price }} DZD</p>
+                        <p class="text-gray-800 mb-2">{{ selectedProduct.product_price }} {{ $t('common.currencyShort') }}</p>
                       </div>
                     </div>
                   </div>

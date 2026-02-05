@@ -263,7 +263,7 @@
               
               <div class="space-y-3">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Price (DZD)</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">{{ $t('admin.packs.priceDZD') }}</label>
                   <input v-model.number="editingPack.price" type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                 </div>
                 <div>
@@ -679,7 +679,7 @@ const formatPrice = (price) => {
   if (price === 0) {
     return t('admin.packs.free') || 'Free'
   }
-  return `${price.toLocaleString()} ${t('admin.packs.currency') || 'DZD'}`
+  return `${price.toLocaleString()} ${t('common.currencyShort')}`
 }
 
 // API functions

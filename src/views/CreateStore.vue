@@ -556,7 +556,7 @@ const localizedPacks = computed(() => {
           : currentLocale === 'ar'
           ? pack.description_ar || pack.description_en
           : pack.description_en,
-      price: Number(pack.price) === 0 ? t('stores.free') : `${pack.price} ${t('stores.currency')}`,
+      price: Number(pack.price) === 0 ? t('stores.free') : `${pack.price} ${t('common.currencyShort')}`,
       maxAnnouncements: pack.max_announcements,
       maxImages: pack.max_images,
       features: features[currentLocale] || features['en'] || [],

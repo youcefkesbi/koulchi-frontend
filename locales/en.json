@@ -242,7 +242,7 @@
     "retry": "Retry"
   },
   "common": {
-    "currencyShort": "DZD",
+    "currencyShort": "DA",
     "available": "Available",
     "unavailable": "Unavailable",
     "new": "New",
@@ -854,7 +854,7 @@
     "productNamePlaceholder": "Enter product name",
     "description": "Description",
     "descriptionPlaceholder": "Enter product description",
-    "priceDZD": "Price (DZD)",
+    "priceDZD": "Price (DA)",
     "pricePlaceholder": "0.00",
     "stockQuantity": "Stock Quantity",
     "stockPlaceholder": "0",

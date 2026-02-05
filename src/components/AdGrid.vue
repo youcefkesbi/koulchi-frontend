@@ -71,7 +71,7 @@
           <div class="item-content">
             <h3 class="item-title">{{ item.data.name }}</h3>
             <div class="item-price">
-              {{ formatPrice(item.data.price) }} {{ $t('product.currency') }}
+              {{ formatPrice(item.data.price) }} {{ $t('common.currencyShort') }}
             </div>
             <div class="item-actions">
               <button 

@@ -80,7 +80,7 @@
               
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-3">
-                  {{ $t('announcement.price') }} (DZD) *
+                  {{ $t('announcement.price') }} ({{ $t('common.currencyShort') }}) *
                 </label>
                 <div class="relative">
                   <input
