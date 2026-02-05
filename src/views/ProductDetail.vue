@@ -3,9 +3,9 @@
     <!-- Breadcrumb -->
     <nav class="text-xs sm:text-sm text-gray-600 overflow-x-auto">
       <div class="flex items-center whitespace-nowrap">
-        <router-link to="/" class="hover:text-primary">الرئيسية</router-link>
+        <router-link :to="`/${$i18n.locale}/`" class="hover:text-primary">{{ $t('productDetail.home') }}</router-link>
         <span class="mx-2">/</span>
-        <router-link to="/products" class="hover:text-primary">المنتجات</router-link>
+        <router-link :to="`/${$i18n.locale}/products`" class="hover:text-primary">{{ $t('productDetail.products') }}</router-link>
         <span class="mx-2">/</span>
         <span class="text-dark truncate max-w-[200px] sm:max-w-none">{{ product.name }}</span>
       </div>
@@ -55,10 +55,10 @@
           <!-- Badges -->
           <div class="absolute top-4 right-4 flex flex-col space-y-2">
             <span v-if="product.isNew" class="badge badge-new">
-              جديد
+              {{ $t('productDetail.new') }}
             </span>
             <span v-if="product.isOnSale" class="badge badge-sale">
-              تخفيض {{ getDiscountPercentage }}%
+              {{ $t('productDetail.discount') }} {{ getDiscountPercentage }}%
             </span>
           </div>
           
@@ -66,7 +66,7 @@
           <div class="absolute top-4 left-4">
             <span class="badge badge-cod">
               <i class="fas fa-money-bill-wave ml-1"></i>
-              دفع عند الاستلام
+              {{ $t('productDetail.cod') }}
             </span>
           </div>
         </div>
@@ -83,14 +83,14 @@
               <i class="fas fa-box text-primary"></i>
               <span class="text-gray-700 mr-1">{{ product.stock_quantity || 0 }}</span>
             </div>
-            <span class="text-gray-500 text-sm sm:text-base hidden sm:inline">متوفر</span>
+            <span class="text-gray-500 text-sm sm:text-base hidden sm:inline">{{ $t('productDetail.available') }}</span>
             <span v-if="(product.stock_quantity || 0) > 0" class="text-green-600 font-semibold text-sm sm:text-base">
               <i class="fas fa-check-circle ml-1"></i>
-              متوفر
+              {{ $t('productDetail.available') }}
             </span>
             <span v-else class="text-red-600 font-semibold text-sm sm:text-base">
               <i class="fas fa-times-circle ml-1"></i>
-              غير متوفر
+              {{ $t('productDetail.unavailable') }}
             </span>
           </div>
         </div>
@@ -99,36 +99,36 @@
         <div class="space-y-2">
           <div class="flex items-center space-x-4 space-x-reverse">
             <span class="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary">
-              {{ formatPrice(product.price) }} دج
+              {{ formatPrice(product.price) }} {{ $t('common.currencyShort') }}
             </span>
           </div>
         </div>
 
         <!-- Description -->
         <div>
-          <h3 class="text-base sm:text-lg font-semibold mb-2">الوصف</h3>
-          <p class="text-sm sm:text-base text-gray-700 leading-relaxed">{{ product.description || 'لا يوجد وصف متاح' }}</p>
+          <h3 class="text-base sm:text-lg font-semibold mb-2">{{ $t('productDetail.description') }}</h3>
+          <p class="text-sm sm:text-base text-gray-700 leading-relaxed">{{ product.description || $t('productDetail.noDescription') }}</p>
         </div>
 
         <!-- Features -->
         <div class="bg-gray-50 rounded-lg p-4">
-          <h3 class="font-semibold mb-3">مميزات المنتج</h3>
+          <h3 class="font-semibold mb-3">{{ $t('productDetail.features') }}</h3>
           <ul class="space-y-2">
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>
-              <span>دفع آمن عند الاستلام</span>
+              <span>{{ $t('productDetail.secureCod') }}</span>
             </li>
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>
-              <span>توصيل سريع في جميع أنحاء الجزائر</span>
+              <span>{{ $t('productDetail.fastDelivery') }}</span>
             </li>
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>
-              <span>اكتشف المزيد، ادفع أقل</span>
+              <span>{{ $t('productDetail.discoverMore') }}</span>
             </li>
             <li class="flex items-center space-x-2 space-x-reverse">
               <i class="fas fa-check text-green-500"></i>
-              <span>إمكانية الإرجاع خلال 14 يوم</span>
+              <span>{{ $t('productDetail.returnPolicy') }}</span>
             </li>
           </ul>
         </div>
@@ -136,7 +136,7 @@
         <!-- Add to Cart -->
         <div class="space-y-3 sm:space-y-4">
           <div class="flex items-center space-x-3 sm:space-x-4 space-x-reverse">
-            <label class="font-semibold text-sm sm:text-base">الكمية:</label>
+            <label class="font-semibold text-sm sm:text-base">{{ $t('productDetail.quantity') }}:</label>
             <div class="flex items-center border border-gray-300 rounded-lg">
               <button
                 @click="decreaseQuantity"
@@ -162,13 +162,13 @@
               :disabled="(product.stock_quantity || 0) <= 0"
             >
               <i class="fas fa-shopping-cart ml-2"></i>
-              {{ (product.stock_quantity || 0) > 0 ? 'أضف للسلة' : 'غير متوفر' }}
+              {{ (product.stock_quantity || 0) > 0 ? $t('productDetail.addToCart') : $t('productDetail.unavailable') }}
             </button>
             <button 
               @click="toggleWishlist"
               class="btn-outline text-sm sm:text-base lg:text-lg py-3 sm:py-3.5 lg:py-4 px-4 sm:px-6 flex items-center justify-center"
               :class="{ 'text-red-500 border-red-300': isInWishlist }"
-              :title="isInWishlist ? 'إزالة من قائمة الأمنيات' : 'إضافة لقائمة الأمنيات'"
+              :title="isInWishlist ? $t('productDetail.removeFromWishlist') : $t('productDetail.addToWishlist')"
             >
               <i class="fas fa-heart" :class="{ 'text-red-500': isInWishlist }"></i>
             </button>
@@ -180,9 +180,9 @@
           <div class="flex items-start space-x-3 space-x-reverse">
             <i class="fas fa-money-bill-wave text-green-600 text-xl mt-1"></i>
             <div>
-              <h4 class="font-semibold text-green-800 mb-1">دفع عند الاستلام</h4>
+              <h4 class="font-semibold text-green-800 mb-1">{{ $t('productDetail.codInfo') }}</h4>
               <p class="text-green-700 text-sm">
-                ادفع عند استلام طلبك وفحصه. لا تدفع شيئاً مقدماً!
+                {{ $t('productDetail.codInfoText') }}
               </p>
             </div>
           </div>
@@ -192,7 +192,7 @@
 
     <!-- Related Products -->
     <section class="mt-8 sm:mt-10 lg:mt-12">
-      <h2 class="text-xl sm:text-2xl font-bold text-dark mb-4 sm:mb-6">منتجات مشابهة</h2>
+      <h2 class="text-xl sm:text-2xl font-bold text-dark mb-4 sm:mb-6">{{ $t('productDetail.relatedProducts') }}</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <ProductCard
           v-for="relatedProduct in relatedProducts"
@@ -206,7 +206,7 @@
   <!-- Loading State -->
   <div v-else-if="loading" class="text-center py-12">
     <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-    <p class="text-gray-600">جاري تحميل المنتج...</p>
+    <p class="text-gray-600">{{ $t('productDetail.loading') }}</p>
   </div>
 
   <!-- Error State -->
@@ -215,8 +215,8 @@
       <i class="fas fa-exclamation-triangle text-4xl"></i>
     </div>
     <p class="text-gray-600 mb-4">{{ error }}</p>
-    <router-link to="/products" class="btn-primary">
-      العودة للمنتجات
+    <router-link :to="`/${$i18n.locale}/products`" class="btn-primary">
+      {{ $t('productDetail.backToProducts') }}
     </router-link>
   </div>
 </template>
@@ -224,12 +224,14 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useProductStore } from '../stores/useProductStore'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlistStore } from '../stores/useWishlistStore'
 import ProductCard from '../components/ProductCard.vue'
 
 const route = useRoute()
+const { locale, t } = useI18n()
 const productStore = useProductStore()
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
@@ -260,7 +262,8 @@ const getDiscountPercentage = computed(() => {
 })
 
 const formatPrice = (price) => {
-  return price.toLocaleString('ar-DZ')
+  const localeMap = { en: 'en-US', fr: 'fr-FR', ar: 'ar-DZ' }
+  return Number(price).toLocaleString(localeMap[locale.value] || 'en-US')
 }
 
 const increaseQuantity = () => {
@@ -341,7 +344,7 @@ const fetchProduct = async () => {
     if (fetchedProduct) {
       product.value = fetchedProduct
       // Update page title
-      document.title = `${fetchedProduct.name} - كولشي`
+      document.title = `${fetchedProduct.name} - ${t('productDetail.brandName')}`
     } else {
       error.value = 'Product not found'
     }

@@ -64,12 +64,12 @@
                 <div v-else class="divide-y divide-neutral-200">
                   <!-- Products Section -->
                   <div v-if="searchResultsProducts.length > 0" class="p-4">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">المنتجات ({{ searchResultsProducts.length }})</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ $t('header.searchProductsLabel', { count: searchResultsProducts.length }) }}</h3>
                     <div class="space-y-2">
                       <router-link
                         v-for="product in searchResultsProducts.slice(0, 5)"
                         :key="product.id"
-                        :to="`/product/${product.id}`"
+                        :to="`/${$i18n.locale}/product/${product.id}`"
                         @click="closeSearchResults"
                         class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 transition-colors group"
                       >
@@ -86,7 +86,7 @@
                           <p class="text-sm font-medium text-gray-900 group-hover:text-primary truncate">{{ product.name }}</p>
                           <p class="text-xs text-gray-500 truncate">{{ product.description }}</p>
                         </div>
-                        <div class="text-sm font-semibold text-primary">{{ product.price }} دج</div>
+                        <div class="text-sm font-semibold text-primary">{{ product.price }} {{ $t('common.currencyShort') }}</div>
                       </router-link>
                       <router-link
                         v-if="searchResultsProducts.length > 5"
@@ -94,14 +94,14 @@
                         @click="closeSearchResults"
                         class="block text-center text-sm text-primary hover:underline py-2"
                       >
-                        عرض جميع المنتجات ({{ searchResultsProducts.length }})
+                        {{ $t('header.searchViewAllProducts', { count: searchResultsProducts.length }) }}
                       </router-link>
                     </div>
                   </div>
                   
                   <!-- Stores Section -->
                   <div v-if="searchResultsStores.length > 0" class="p-4">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">المتاجر ({{ searchResultsStores.length }})</h3>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3">{{ $t('header.searchStoresLabel', { count: searchResultsStores.length }) }}</h3>
                     <div class="space-y-2">
                       <router-link
                         v-for="store in searchResultsStores.slice(0, 5)"
@@ -131,7 +131,7 @@
                         @click="closeSearchResults"
                         class="block text-center text-sm text-primary hover:underline py-2"
                       >
-                        عرض جميع المتاجر ({{ searchResultsStores.length }})
+                        {{ $t('header.searchViewAllStores', { count: searchResultsStores.length }) }}
                       </router-link>
                     </div>
                   </div>
@@ -368,12 +368,12 @@
             <div v-else class="divide-y divide-neutral-200">
               <!-- Products Section -->
               <div v-if="searchResultsProducts.length > 0" class="p-3">
-                <h3 class="text-xs font-semibold text-gray-700 mb-2">المنتجات ({{ searchResultsProducts.length }})</h3>
+                <h3 class="text-xs font-semibold text-gray-700 mb-2">{{ $t('header.searchProductsLabel', { count: searchResultsProducts.length }) }}</h3>
                 <div class="space-y-1">
                   <router-link
                     v-for="product in searchResultsProducts.slice(0, 3)"
                     :key="product.id"
-                    :to="`/product/${product.id}`"
+                    :to="`/${$i18n.locale}/product/${product.id}`"
                     @click.stop="closeSearchResultsAndMobileMenu"
                     class="flex items-center gap-2 p-1.5 rounded hover:bg-neutral-50 cursor-pointer touch-manipulation"
                     style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
@@ -389,7 +389,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                       <p class="text-xs font-medium text-gray-900 truncate">{{ product.name }}</p>
-                      <p class="text-xs text-primary font-semibold">{{ product.price }} دج</p>
+                      <p class="text-xs text-primary font-semibold">{{ product.price }} {{ $t('common.currencyShort') }}</p>
                     </div>
                   </router-link>
                 </div>
@@ -397,7 +397,7 @@
               
               <!-- Stores Section -->
               <div v-if="searchResultsStores.length > 0" class="p-3">
-                <h3 class="text-xs font-semibold text-gray-700 mb-2">المتاجر ({{ searchResultsStores.length }})</h3>
+                <h3 class="text-xs font-semibold text-gray-700 mb-2">{{ $t('header.searchStoresLabel', { count: searchResultsStores.length }) }}</h3>
                 <div class="space-y-1">
                   <router-link
                     v-for="store in searchResultsStores.slice(0, 3)"

@@ -7,6 +7,16 @@ import ar from '../locales/ar.json'
 export const supportedLocales = ['en', 'fr', 'ar']
 export const defaultLocale = 'en'
 
+// Initial locale from localStorage so first paint respects user choice (before router runs)
+function getInitialLocale() {
+  try {
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('locale') : null
+    return saved && supportedLocales.includes(saved) ? saved : defaultLocale
+  } catch {
+    return defaultLocale
+  }
+}
+
 // Language metadata for UI display and RTL support
 export const languages = {
   en: {
@@ -26,10 +36,10 @@ export const languages = {
   }
 }
 
-// Create i18n instance
+// Create i18n instance (locale from localStorage so language is consistent on load/refresh)
 const i18n = createI18n({
   legacy: false,
-  locale: defaultLocale,
+  locale: getInitialLocale(),
   fallbackLocale: defaultLocale,
   messages: {
     en,

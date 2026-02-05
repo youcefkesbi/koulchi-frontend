@@ -151,7 +151,7 @@
                 />
                 <div class="flex-1">
                   <div class="font-medium">{{ option.name }}</div>
-                  <div class="text-sm text-gray-600">{{ formatPrice(option.price) }} دج</div>
+                  <div class="text-sm text-gray-600">{{ formatPrice(option.price) }} {{ $t('common.currencyShort') }}</div>
                 </div>
               </label>
             </div>
@@ -226,7 +226,7 @@
                 <p class="text-gray-600 text-xs sm:text-sm">{{ t('checkout.quantity') }}: {{ item.quantity }}</p>
               </div>
               <div class="text-right flex-shrink-0">
-                <p class="font-semibold text-dark text-sm sm:text-base">{{ formatPrice(item.price * item.quantity) }} دج</p>
+                <p class="font-semibold text-dark text-sm sm:text-base">{{ formatPrice(item.price * item.quantity) }} {{ $t('common.currencyShort') }}</p>
                 <p class="text-gray-500 text-xs sm:text-sm">{{ formatPrice(item.price) }} {{ t('checkout.perPiece') }}</p>
               </div>
             </div>
@@ -236,16 +236,16 @@
           <div class="space-y-3 border-t pt-4">
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('checkout.subtotal') }}:</span>
-              <span>{{ formatPrice(cartStore.subtotal) }} دج</span>
+              <span>{{ formatPrice(cartStore.subtotal) }} {{ $t('common.currencyShort') }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">{{ t('checkout.deliveryFee') }}:</span>
-              <span>{{ formatPrice(cartStore.deliveryFee) }} دج</span>
+              <span>{{ formatPrice(cartStore.deliveryFee) }} {{ $t('common.currencyShort') }}</span>
             </div>
             <div class="border-t pt-3">
               <div class="flex justify-between text-lg font-bold">
                 <span>{{ t('checkout.total') }}:</span>
-                <span class="text-primary">{{ formatPrice(cartStore.total) }} دج</span>
+                <span class="text-primary">{{ formatPrice(cartStore.total) }} {{ $t('common.currencyShort') }}</span>
               </div>
             </div>
           </div>
@@ -259,7 +259,7 @@
                 <ul class="text-yellow-700 text-sm space-y-1">
                   <li>• {{ t('checkout.confirmationCall') }}</li>
                   <li>• {{ t('checkout.deliveryTime') }}</li>
-                  <li>• {{ t('checkout.payOnDelivery', { amount: formatPrice(cartStore.total), currency: 'دج' }) }}</li>
+                  <li>• {{ t('checkout.payOnDelivery', { amount: formatPrice(cartStore.total), currency: $t('common.currencyShort') }) }}</li>
                 </ul>
               </div>
             </div>

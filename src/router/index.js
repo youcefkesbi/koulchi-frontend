@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '../lib/supabase'
 import { environment } from '../config/environment'
 import i18n from '../i18n'
+import { useLocaleStore } from '../stores/useLocaleStore'
 import { authGuard, adminGuard, employeeGuard, vendorGuard, storeOwnerGuard } from './guards'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
@@ -353,17 +354,16 @@ const getBestLocale = () => {
   }
 }
 
-// Set locale in localStorage and update i18n
+// Set locale: store + localStorage + i18n (single place so language stays consistent)
 const setLocale = (locale) => {
-  if (supportedLocales.includes(locale)) {
+  if (!supportedLocales.includes(locale)) return
+  try {
+    const localeStore = useLocaleStore()
+    localeStore.setLocale(locale)
+  } catch (_) {
     localStorage.setItem('locale', locale)
-    i18n.global.locale.value = locale
-    
-    // Update document direction for RTL support
-    const dir = locale === 'ar' ? 'rtl' : 'ltr'
-    document.documentElement.dir = dir
-    document.documentElement.lang = locale
   }
+  i18n.global.locale.value = locale
 }
 
 const routes = createLocalizedRoutes()

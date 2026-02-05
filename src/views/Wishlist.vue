@@ -51,10 +51,10 @@
           <!-- Badges -->
           <div class="absolute top-2 right-2 flex flex-col space-y-1">
             <span v-if="item.products.is_new" class="badge badge-new">
-              جديد
+              {{ $t('common.new') }}
             </span>
             <span v-if="item.products.is_on_sale" class="badge badge-sale">
-              تخفيض
+              {{ $t('common.discount') }}
             </span>
           </div>
           
@@ -62,7 +62,7 @@
           <button
             @click="removeFromWishlist(item.id)"
             class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-            title="إزالة من قائمة الأمنيات"
+            :title="$t('productDetail.removeFromWishlist')"
           >
             <i class="fas fa-times text-sm"></i>
           </button>
@@ -81,13 +81,13 @@
               <i class="fas fa-box text-primary text-sm"></i>
               <span class="text-sm text-gray-600 mr-1">{{ item.products.stock_quantity || 0 }}</span>
             </div>
-            <span class="text-sm text-gray-500">متوفر</span>
+            <span class="text-sm text-gray-500">{{ $t('common.available') }}</span>
           </div>
 
           <!-- Price -->
           <div class="flex items-center space-x-2 space-x-reverse">
             <span class="text-xl font-bold text-primary">
-              {{ formatPrice(item.products.price) }} دج
+              {{ formatPrice(item.products.price) }} {{ $t('common.currencyShort') }}
             </span>
           </div>
 
@@ -99,10 +99,10 @@
               :disabled="(item.products.stock_quantity || 0) <= 0"
             >
               <i class="fas fa-shopping-cart ml-2"></i>
-              {{ (item.products.stock_quantity || 0) > 0 ? 'أضف للسلة' : 'غير متوفر' }}
+              {{ (item.products.stock_quantity || 0) > 0 ? $t('common.addToCart') : $t('common.unavailable') }}
             </button>
             <router-link
-              :to="`/product/${item.products.id}`"
+              :to="`/${$i18n.locale}/product/${item.products.id}`"
               class="btn-outline text-sm py-2 px-4"
             >
               <i class="fas fa-eye"></i>

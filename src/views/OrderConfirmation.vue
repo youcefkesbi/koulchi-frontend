@@ -58,7 +58,7 @@
             
             <div v-if="order.total_amount" class="flex justify-between">
               <span class="text-gray-600">{{ t('orderConfirmation.total') }}:</span>
-              <span class="text-xl font-bold text-primary">{{ formatPrice(order.total_amount) }} دج</span>
+              <span class="text-xl font-bold text-primary">{{ formatPrice(order.total_amount) }} {{ $t('common.currencyShort') }}</span>
             </div>
           </div>
 
@@ -76,7 +76,7 @@
                 <div v-if="item.product">
                   <h4 class="font-semibold text-dark">{{ item.product.name }}</h4>
                   <p class="text-gray-600 text-sm">{{ t('orderConfirmation.quantity') }}: {{ item.quantity || 1 }}</p>
-                  <p class="text-gray-600 text-sm">{{ t('orderConfirmation.price') }}: {{ formatPrice(item.price || item.product.price || 0) }} دج</p>
+                  <p class="text-gray-600 text-sm">{{ t('orderConfirmation.price') }}: {{ formatPrice(item.price || item.product.price || 0) }} {{ $t('common.currencyShort') }}</p>
                 </div>
               </div>
             </div>

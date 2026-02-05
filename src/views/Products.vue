@@ -4,16 +4,16 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
       <div>
         <h1 class="text-3xl font-bold text-dark">
-          {{ hasSearchQuery ? 'نتائج البحث' : 'المنتجات' }}
+          {{ hasSearchQuery ? $t('productsPage.searchResults') : $t('productsPage.products') }}
         </h1>
         <p class="text-gray-600 mt-2">
           <span v-if="hasSearchQuery">
-            {{ filteredProducts.length }} منتج، {{ filteredStores.length }} متجر
+            {{ $t('productsPage.searchCount', { products: filteredProducts.length, stores: filteredStores.length }) }}
           </span>
           <span v-else>
-            {{ filteredProducts.length }} منتج متوفر
+            {{ $t('productsPage.productsCount', { count: filteredProducts.length }) }}
             <span v-if="productStore.selectedCategory !== 'all'">
-              في فئة {{ getCurrentCategoryName }}
+              {{ $t('productsPage.inCategory', { name: getCurrentCategoryName }) }}
             </span>
           </span>
         </p>
@@ -26,7 +26,7 @@
             v-model="searchQuery"
             @input="handleSearch"
             type="text"
-            placeholder="ابحث في المنتجات..."
+            :placeholder="$t('productsPage.searchPlaceholder')"
             class="input-field pr-10"
           />
           <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -37,7 +37,7 @@
           class="btn-outline"
         >
           <i class="fas fa-times ml-2"></i>
-          مسح الفلاتر
+          {{ $t('productsPage.clearFilters') }}
         </button>
       </div>
     </div>
@@ -69,7 +69,7 @@
     <!-- Loading State -->
     <div v-if="hasSearchQuery && (loadingProducts || loadingStores)" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-      <p class="text-gray-600">جاري البحث...</p>
+      <p class="text-gray-600">{{ $t('productsPage.searching') }}</p>
     </div>
 
     <!-- Search Error State -->
@@ -77,14 +77,14 @@
       <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">خطأ في البحث</h3>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">{{ $t('productsPage.searchError') }}</h3>
       <p class="text-gray-500 mb-6">{{ searchError }}</p>
       <button
         @click="handleSearch"
         class="btn-primary"
       >
         <i class="fas fa-refresh ml-2"></i>
-        إعادة المحاولة
+        {{ $t('productsPage.retry') }}
       </button>
     </div>
 
@@ -92,7 +92,7 @@
     <div v-else-if="hasSearchQuery && (filteredProducts.length > 0 || filteredStores.length > 0)" class="space-y-8">
       <!-- Products Section -->
       <div v-if="filteredProducts.length > 0">
-        <h2 class="text-2xl font-bold text-dark mb-4">المنتجات ({{ filteredProducts.length }})</h2>
+        <h2 class="text-2xl font-bold text-dark mb-4">{{ $t('productsPage.products') }} ({{ filteredProducts.length }})</h2>
         <div class="grid-responsive">
           <ProductCard
             v-for="product in filteredProducts"
@@ -192,7 +192,7 @@
         class="btn-primary"
       >
         <i class="fas fa-refresh ml-2"></i>
-        عرض جميع المنتجات
+        {{ $t('productsPage.viewAll') }}
       </button>
     </div>
 
@@ -210,7 +210,7 @@
         class="btn-primary"
       >
         <i class="fas fa-refresh ml-2"></i>
-        عرض جميع المنتجات
+        {{ $t('productsPage.viewAll') }}
       </button>
     </div>
 

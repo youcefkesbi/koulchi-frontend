@@ -24,12 +24,14 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/useAuthStore'
+import { useLocaleStore } from './stores/useLocaleStore'
 import { languages } from './i18n'
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 import AdminSidebar from './components/AdminSidebar.vue'
 
 const authStore = useAuthStore()
+const localeStore = useLocaleStore()
 const { locale } = useI18n()
 const route = useRoute()
 
@@ -64,19 +66,16 @@ const handleAdminSidebarClose = () => {
   adminSidebarOpen.value = false
 }
 
-// Computed properties for language direction and locale
-const currentDir = computed(() => {
-  const currentLocale = route.meta.locale || locale.value || 'en'
-  return languages[currentLocale]?.dir || 'ltr'
+// Single source: route (after guard) > persisted store > i18n
+const effectiveLocale = computed(() => {
+  return route.meta.locale || localeStore.locale || locale.value || 'en'
 })
 
-const currentLocale = computed(() => {
-  const currentLocale = route.meta.locale || locale.value || 'en'
-  return languages[currentLocale]?.locale || 'en-US'
-})
+const currentDir = computed(() => languages[effectiveLocale.value]?.dir || 'ltr')
+const currentLocale = computed(() => languages[effectiveLocale.value]?.locale || 'en-US')
 
-// Watch for route changes and update i18n locale
-watch(() => route.meta.locale, (newLocale) => {
+// Keep i18n in sync with route/store so all components see correct locale
+watch(effectiveLocale, (newLocale) => {
   if (newLocale && newLocale !== locale.value) {
     locale.value = newLocale
   }
@@ -89,8 +88,8 @@ watch(locale, (newLocale) => {
   document.documentElement.lang = newLocale
 }, { immediate: true })
 
-// Watch for route locale changes and update document attributes
-watch(() => route.meta.locale, (newLocale) => {
+// Sync document attributes with effective locale
+watch(effectiveLocale, (newLocale) => {
   if (newLocale) {
     const dir = languages[newLocale]?.dir || 'ltr'
     document.documentElement.dir = dir

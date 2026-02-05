@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useLocaleStore } from '../stores/useLocaleStore'
 import { supportedLocales, defaultLocale, languages } from '../i18n'
 
 /**
@@ -12,14 +13,13 @@ export function useLocaleRouter() {
   const route = useRoute()
   const { locale } = useI18n()
 
-  // Current locale from route or i18n
+  // Current locale: route params > store (persisted) > i18n
+  const localeStore = useLocaleStore()
   const currentLocale = computed(() => {
-    // First try to get from route params
     if (route.params.locale && supportedLocales.includes(route.params.locale)) {
       return route.params.locale
     }
-    // Fallback to i18n locale
-    return locale.value
+    return localeStore.locale || locale.value
   })
 
   // Get language info for current locale
@@ -258,7 +258,8 @@ export function useLocaleRouter() {
         query: currentQuery
       })
 
-      // Update i18n locale
+      // Persist and sync: store + i18n (guard also does this; ensure consistency)
+      localeStore.setLocale(newLocale)
       locale.value = newLocale
       updateDocumentAttributes(newLocale)
 
