@@ -99,12 +99,6 @@
             <div v-else class="item-image-placeholder">
               <i class="fas fa-store"></i>
             </div>
-            
-            <!-- Store Status -->
-            <div class="store-status" :class="item.data.status">
-              <i class="fas fa-circle"></i>
-              <span>{{ $t(`store.status.${item.data.status}`) }}</span>
-            </div>
           </div>
           
           <div class="item-content">
@@ -456,33 +450,6 @@ const navigateToStore = (storeId) => {
 }
 
 .stock-status.out-of-stock {
-  background: rgba(220, 38, 38, 0.8);
-}
-
-/* Store Status */
-.store-status {
-  position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.store-status.active {
-  background: rgba(5, 150, 105, 0.8);
-}
-
-.store-status.pending {
-  background: rgba(245, 158, 11, 0.8);
-}
-
-.store-status.rejected {
   background: rgba(220, 38, 38, 0.8);
 }
 

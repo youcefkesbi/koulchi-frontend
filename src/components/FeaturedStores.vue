@@ -77,12 +77,6 @@
             <i class="fas fa-star"></i>
             {{ $t('store.featured') }}
           </div>
-          
-          <!-- Store Status -->
-          <div class="store-status" :class="store.data.status">
-            <i class="fas fa-circle"></i>
-            <span>{{ $t(`store.status.${store.data.status}`) }}</span>
-          </div>
         </div>
 
         <!-- Store Info -->
@@ -118,10 +112,9 @@
           <button 
             @click="navigateToStore(store.data.id)"
             class="visit-store-btn"
-            :disabled="store.data.status !== 'active'"
           >
             <i class="fas fa-store"></i>
-            {{ store.data.status === 'active' ? $t('store.visitStore') : $t('store.comingSoon') }}
+            {{ $t('store.visitStore') }}
           </button>
         </div>
       </div>
@@ -467,36 +460,6 @@ const truncateText = (text, maxLength) => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-}
-
-/* Store Status */
-.store-status {
-  position: absolute;
-  bottom: -0.5rem;
-  right: 50%;
-  transform: translateX(50%);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.store-status.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.store-status.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.store-status.rejected {
-  background: #fee2e2;
-  color: #991b1b;
 }
 
 /* Store Info */
