@@ -61,7 +61,7 @@
           <div class="category-header">
             <h3 class="category-title">{{ getCategoryName(category.id) }}</h3>
             <router-link 
-              :to="`/category/${category.id}`" 
+              :to="`/${currentLocale}/category/${category.id}`" 
               class="view-all-link"
             >
               {{ $t('sections.viewAll') }}
@@ -94,6 +94,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useAdsStore } from '../../stores/useAdsStore'
 import { useProductStore } from '../../stores/useProductStore'
 import AdGrid from '../AdGrid.vue'
@@ -116,34 +117,62 @@ const props = defineProps({
 const emit = defineEmits(['retry'])
 
 const { t, locale } = useI18n()
+const route = useRoute()
 const adsStore = useAdsStore()
 const productStore = useProductStore()
 
-// Browse by Category uses only ads with slot_type = 'homepage_browse_by_category_products'.
-// Product data comes from the ads table join (products relation), not from direct products table fetch.
+// Current locale for view-all links
+const currentLocale = computed(() => route.params.locale || locale.value || 'en')
+
+// Helper function to get localized category name (used for sorting and display)
+function getCategoryNameForSort(categoryId) {
+  const category = productStore.categories?.find(cat => String(cat.id) === String(categoryId))
+  if (category) {
+    const loc = locale.value
+    if (loc === 'ar' && category.name_ar) return category.name_ar
+    if (loc === 'fr' && category.name_fr) return category.name_fr
+    return category.name_en || categoryId
+  }
+  return String(categoryId)
+}
+
+// Browse by Category: only ads from ads table where slot_type = 'homepage_browse_by_category_products',
+// grouped by category_id. Only product-type ads with valid category_id and product data.
 const categoriesWithProducts = computed(() => {
   const browseByCategoryAds = adsStore.homepageBrowseByCategoryProducts || []
   if (!browseByCategoryAds.length) return []
 
-  // Group ads by category_id
+  // Only product ads with valid category_id and product data
+  const validProductAds = browseByCategoryAds.filter(
+    ad => ad.slot_type === 'homepage_browse_by_category_products' &&
+          ad.item_type === 'product' &&
+          ad.category_id != null &&
+          ad.products != null
+  )
+
+  // Group by category_id (normalize to string for consistent grouping)
   const byCategory = {}
-  for (const ad of browseByCategoryAds) {
+  for (const ad of validProductAds) {
     const categoryId = ad.category_id
-    if (!categoryId) continue
-    if (!byCategory[categoryId]) byCategory[categoryId] = []
-    byCategory[categoryId].push(ad)
+    const key = String(categoryId)
+    if (!byCategory[key]) byCategory[key] = []
+    byCategory[key].push(ad)
   }
 
-  // Build category sections: transform ads to display format and limit per category
-  return Object.entries(byCategory).map(([categoryId, categoryAds]) => {
-    const transformed = adsStore.transformAdsForDisplay(categoryAds)
+  // Build category sections: transform ads to display format, limit per category, sort by category name
+  const sections = Object.entries(byCategory).map(([categoryId, categoryAds]) => {
+    const transformed = adsStore.transformAdsForDisplay(categoryAds).filter(Boolean)
     const limited = transformed.slice(0, props.maxProductsPerCategory)
     return {
       id: categoryId,
-      name: categoryId,
+      name: getCategoryNameForSort(categoryId),
       products: limited
     }
   }).filter(cat => cat.products.length > 0)
+
+  // Sort categories by localized name for stable order
+  sections.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
+  return sections
 })
 
 const loading = computed(() => adsStore.loading)
@@ -151,12 +180,12 @@ const error = computed(() => adsStore.error)
 
 // Helper function to get localized category name (from productStore.categories for display)
 const getCategoryName = (categoryId) => {
-  const category = productStore.categories?.find(cat => cat.id === categoryId)
+  const category = productStore.categories?.find(cat => String(cat.id) === String(categoryId))
   if (category) {
-    const currentLocale = locale.value
-    if (currentLocale === 'ar' && category.name_ar) return category.name_ar
-    if (currentLocale === 'fr' && category.name_fr) return category.name_fr
-    return category.name_en
+    const loc = locale.value
+    if (loc === 'ar' && category.name_ar) return category.name_ar
+    if (loc === 'fr' && category.name_fr) return category.name_fr
+    return category.name_en || categoryId
   }
   return categoryId
 }
