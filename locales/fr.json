@@ -516,6 +516,12 @@
     "shopNow": "Acheter maintenant",
     "learnMore": "En savoir plus"
   },
+  "carousel": {
+    "prevSlide": "Diapositive précédente",
+    "nextSlide": "Diapositive suivante",
+    "slideIndicators": "Indicateurs de diapositives",
+    "goToSlide": "Aller à la diapositive {index}"
+  },
   "features": {
     "fastDelivery": "Livraison rapide",
     "fastDeliveryDesc": "Livraison gratuite pour les commandes de plus de 5000 DZD",

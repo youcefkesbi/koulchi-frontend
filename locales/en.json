@@ -676,6 +676,12 @@
     "shopNow": "Shop Now",
     "learnMore": "Learn More"
   },
+  "carousel": {
+    "prevSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "slideIndicators": "Slide indicators",
+    "goToSlide": "Go to slide {index}"
+  },
   "features": {
     "fastDelivery": "Fast Delivery",
     "fastDeliveryDesc": "Free shipping for orders over 5000 DZD",

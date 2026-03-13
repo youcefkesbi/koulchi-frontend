@@ -1,5 +1,9 @@
 <template>
-  <div class="ad-carousel-container">
+  <div
+    class="ad-carousel-container"
+    @mouseenter="stopAutoPlay"
+    @mouseleave="startAutoPlay"
+  >
     <!-- Loading State -->
     <div v-if="loading" class="carousel-loading">
       <div class="skeleton-banner"></div>
@@ -8,10 +12,10 @@
     <!-- Error State -->
     <div v-else-if="error" class="carousel-error">
       <div class="error-message">
-        <i class="fas fa-exclamation-triangle"></i>
+        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
         <p>{{ error }}</p>
-        <button @click="$emit('retry')" class="retry-btn">
-          <i class="fas fa-redo"></i>
+        <button @click="$emit('retry')" class="retry-btn" type="button">
+          <i class="fas fa-redo" aria-hidden="true"></i>
           {{ $t('common.retry') }}
         </button>
       </div>
@@ -19,28 +23,29 @@
 
     <!-- Carousel Content -->
     <div v-else-if="carouselItems.length > 0" class="carousel-wrapper">
-      <div class="carousel-container" ref="carouselContainer">
-        <div 
-          class="carousel-track" 
-          :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
+      <div class="carousel-viewport" ref="carouselContainer">
+        <div
+          class="carousel-track"
+          :style="trackStyle"
         >
-          <div 
-            v-for="(item, index) in carouselItems" 
+          <div
+            v-for="(item, index) in carouselItems"
             :key="`${item.type}-${item.id}-${index}`"
             class="carousel-slide"
           >
             <!-- Main Banner (Static) -->
             <div v-if="index === 0 && showMainBanner" class="main-banner">
+              <div class="main-banner-bg"></div>
               <div class="banner-content">
                 <h1 class="banner-title">{{ mainBannerTitle }}</h1>
                 <p class="banner-subtitle">{{ mainBannerSubtitle }}</p>
                 <div class="banner-actions">
-                  <button @click="scrollToContent" class="btn-primary">
-                    <i class="fas fa-shopping-bag"></i>
+                  <button @click="scrollToContent" class="carousel-cta carousel-cta--primary" type="button">
+                    <i class="fas fa-shopping-bag" aria-hidden="true"></i>
                     {{ $t('hero.shopNow') }}
                   </button>
-                  <button class="btn-secondary">
-                    <i class="fas fa-info-circle"></i>
+                  <button class="carousel-cta carousel-cta--secondary" type="button">
+                    <i class="fas fa-info-circle" aria-hidden="true"></i>
                     {{ $t('hero.learnMore') }}
                   </button>
                 </div>
@@ -50,59 +55,61 @@
             <!-- Ad Items -->
             <div v-else class="ad-slide">
               <!-- Product Ad -->
-              <div v-if="item.type === 'product'" class="product-ad">
-                <div class="ad-image-container">
-                  <img 
-                    v-if="item.data.image" 
-                    :src="item.data.image" 
+              <div v-if="item.type === 'product'" class="ad-card ad-card--product">
+                <div class="ad-card-media">
+                  <img
+                    v-if="item.data.image"
+                    :src="item.data.image"
                     :alt="item.data.name"
-                    class="ad-image"
+                    class="ad-card-img"
                     @error="handleImageError"
                   />
-                  <div v-else class="ad-image-placeholder">
-                    <i class="fas fa-image"></i>
+                  <div v-else class="ad-card-placeholder">
+                    <i class="fas fa-image" aria-hidden="true"></i>
                   </div>
                 </div>
-                <div class="ad-content">
-                  <h3 class="ad-title">{{ item.data.name }}</h3>
-                  <div class="ad-price">
+                <div class="ad-card-body">
+                  <h3 class="ad-card-title">{{ item.data.name }}</h3>
+                  <p class="ad-card-meta ad-card-price">
                     {{ formatPrice(item.data.price) }} {{ $t('common.currencyShort') }}
-                  </div>
-                  <button 
+                  </p>
+                  <button
                     @click="navigateToProduct(item.data.id)"
-                    class="ad-action-btn"
+                    class="ad-card-btn"
+                    type="button"
                   >
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-eye" aria-hidden="true"></i>
                     {{ $t('product.viewProduct') }}
                   </button>
                 </div>
               </div>
 
               <!-- Store Ad -->
-              <div v-else-if="item.type === 'store'" class="store-ad">
-                <div class="ad-image-container">
-                  <img 
-                    v-if="item.data.image" 
-                    :src="item.data.image" 
+              <div v-else-if="item.type === 'store'" class="ad-card ad-card--store">
+                <div class="ad-card-media">
+                  <img
+                    v-if="item.data.image"
+                    :src="item.data.image"
                     :alt="item.data.name || 'Store'"
-                    class="ad-image"
+                    class="ad-card-img"
                     @error="handleImageError"
                   />
-                  <div v-else class="ad-image-placeholder">
-                    <i class="fas fa-store"></i>
+                  <div v-else class="ad-card-placeholder">
+                    <i class="fas fa-store" aria-hidden="true"></i>
                   </div>
                 </div>
-                <div class="ad-content">
-                  <h3 class="ad-title">{{ item.data.name || `Store #${item.data.id?.slice(-8)}` }}</h3>
-                  <div class="ad-location">
-                    <i class="fas fa-map-marker-alt"></i>
+                <div class="ad-card-body">
+                  <h3 class="ad-card-title">{{ item.data.name || `Store #${item.data.id?.slice(-8)}` }}</h3>
+                  <p class="ad-card-meta ad-card-location">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                     {{ item.data.location }}
-                  </div>
-                  <button 
+                  </p>
+                  <button
                     @click="navigateToStore(item.data.id)"
-                    class="ad-action-btn"
+                    class="ad-card-btn"
+                    type="button"
                   >
-                    <i class="fas fa-store"></i>
+                    <i class="fas fa-store" aria-hidden="true"></i>
                     {{ $t('store.visitStore') }}
                   </button>
                 </div>
@@ -112,40 +119,48 @@
         </div>
       </div>
 
-      <!-- Navigation Controls -->
-      <div v-if="carouselItems.length > 1" class="carousel-controls">
-        <button 
-          @click="prevSlide" 
-          class="carousel-btn prev-btn"
-          :disabled="currentIndex === 0"
+      <!-- Arrow navigation (sides) -->
+      <template v-if="carouselItems.length > 1">
+        <button
+          type="button"
+          class="carousel-arrow carousel-arrow--prev"
+          :disabled="!loop && currentIndex === 0"
+          :aria-label="$t('carousel.prevSlide')"
+          @click="prevSlide"
         >
-          <i class="fas fa-chevron-left"></i>
+          <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        
-        <div class="carousel-dots">
-          <button 
-            v-for="(item, index) in carouselItems" 
+        <button
+          type="button"
+          class="carousel-arrow carousel-arrow--next"
+          :disabled="!loop && currentIndex === carouselItems.length - 1"
+          :aria-label="$t('carousel.nextSlide')"
+          @click="nextSlide"
+        >
+          <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </button>
+
+        <!-- Dots (bottom center) -->
+        <div class="carousel-dots" role="tablist" :aria-label="$t('carousel.slideIndicators')">
+          <button
+            v-for="(item, index) in carouselItems"
             :key="index"
-            @click="goToSlide(index)"
+            type="button"
+            role="tab"
+            :aria-selected="currentIndex === index"
+            :aria-label="$t('carousel.goToSlide', { index: index + 1 })"
             class="carousel-dot"
-            :class="{ active: currentIndex === index }"
-          ></button>
+            :class="{ 'carousel-dot--active': currentIndex === index }"
+            @click="goToSlide(index)"
+          />
         </div>
-        
-        <button 
-          @click="nextSlide" 
-          class="carousel-btn next-btn"
-          :disabled="currentIndex === carouselItems.length - 1"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
+      </template>
     </div>
 
     <!-- Empty State -->
     <div v-else class="carousel-empty">
       <div class="empty-message">
-        <i class="fas fa-image"></i>
+        <i class="fas fa-image" aria-hidden="true"></i>
         <p>{{ $t('ads.noAdsAvailable') }}</p>
       </div>
     </div>
@@ -190,6 +205,10 @@ const props = defineProps({
   autoPlayInterval: {
     type: Number,
     default: 5000
+  },
+  loop: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -206,17 +225,16 @@ const autoPlayTimer = ref(null)
 // Computed properties
 const carouselItems = computed(() => {
   const items = []
-  
-  // Add main banner as first item if enabled
   if (props.showMainBanner) {
     items.push({ type: 'banner', id: 'main-banner' })
   }
-  
-  // Add ads
   items.push(...props.ads)
-  
   return items
 })
+
+const trackStyle = computed(() => ({
+  transform: `translate3d(-${currentIndex.value * 100}%, 0, 0)`
+}))
 
 // Methods
 const formatPrice = (price) => {
@@ -297,430 +315,453 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ---- Container: aspect-ratio + responsive height ---- */
 .ad-carousel-container {
   position: relative;
   width: 100%;
-  height: 400px;
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  aspect-ratio: 32 / 10;
+  min-height: 280px;
+  max-height: 420px;
+}
+@media (max-width: 1024px) {
+  .ad-carousel-container {
+    aspect-ratio: 3 / 1;
+    min-height: 220px;
+    max-height: 320px;
+  }
+}
+@media (max-width: 640px) {
+  .ad-carousel-container {
+    aspect-ratio: 4 / 3;
+    min-height: 240px;
+    max-height: 320px;
+    border-radius: 1rem;
+  }
 }
 
-/* Loading State */
+/* ---- Loading ---- */
 .carousel-loading {
   width: 100%;
   height: 100%;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  border-radius: inherit;
 }
-
 .skeleton-banner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%);
   background-size: 200% 100%;
-  animation: loading 1.5s infinite;
+  animation: carouselShimmer 1.4s ease-in-out infinite;
+  border-radius: inherit;
 }
-
-@keyframes loading {
+@keyframes carouselShimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* Error State */
+/* ---- Error ---- */
 .carousel-error {
   width: 100%;
-  height: 100%;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  border-radius: inherit;
 }
-
 .error-message {
   text-align: center;
-  color: #dc2626;
+  color: #b91c1c;
+  padding: 1rem;
 }
-
 .error-message i {
   font-size: 2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  display: block;
 }
-
 .retry-btn {
   margin-top: 1rem;
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1.25rem;
   background: #dc2626;
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
 }
-
 .retry-btn:hover {
   background: #b91c1c;
+  transform: translateY(-1px);
 }
 
-/* Carousel Wrapper */
+/* ---- Wrapper + viewport + track ---- */
 .carousel-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
+  min-height: inherit;
 }
-
-.carousel-container {
+.carousel-viewport {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 1.5rem;
+  border-radius: inherit;
 }
-
 .carousel-track {
   display: flex;
   width: 100%;
   height: 100%;
-  transition: transform 0.5s ease-in-out;
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
 }
-
 .carousel-slide {
-  min-width: 100%;
+  flex: 0 0 100%;
+  width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* Main Banner */
+/* ---- Main hero banner ---- */
 .main-banner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #059669, #047857, #065f46);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
 }
-
-.main-banner::before {
+.main-banner-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #047857 0%, #059669 40%, #10b981 100%);
+}
+.main-banner-bg::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
-  animation: shimmer 3s infinite;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 70% 50%, rgba(255,255,255,0.12) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 40%);
+  pointer-events: none;
 }
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
 .banner-content {
   text-align: center;
   color: white;
   z-index: 1;
   position: relative;
-  max-width: 600px;
-  padding: 2rem;
+  max-width: 560px;
+  padding: 1.5rem 1.25rem 2rem;
 }
-
 .banner-title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  font-size: clamp(1.5rem, 4vw + 1rem, 2.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.02em;
 }
-
 .banner-subtitle {
-  font-size: 1.25rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  font-size: clamp(0.9375rem, 2vw + 0.5rem, 1.25rem);
+  margin: 0 0 1.5rem;
+  opacity: 0.95;
+  line-height: 1.5;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
-
 .banner-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: center;
   flex-wrap: wrap;
 }
-
-.btn-primary, .btn-secondary {
-  padding: 0.75rem 1.5rem;
+.carousel-cta {
+  padding: 0.75rem 1.25rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  font-size: 0.9375rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   border: none;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
 }
-
-.btn-primary {
+.carousel-cta--primary {
   background: white;
-  color: #059669;
+  color: #047857;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
-
-.btn-primary:hover {
-  background: #f9fafb;
+.carousel-cta--primary:hover {
+  background: #f0fdf4;
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
-
-.btn-secondary {
-  background: rgba(255,255,255,0.2);
+.carousel-cta--secondary {
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.carousel-cta--secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: translateY(-2px);
 }
 
-.btn-secondary:hover {
-  background: rgba(255,255,255,0.3);
-  border-color: rgba(255,255,255,0.5);
-}
-
-/* Ad Slides */
+/* ---- Ad slides (product / store cards) ---- */
 .ad-slide {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+  padding: 1rem;
 }
-
-.product-ad, .store-ad {
+@media (min-width: 640px) {
+  .ad-slide {
+    padding: 1.5rem;
+  }
+}
+.ad-card {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  max-width: 800px;
-  padding: 2rem;
+  gap: 1.25rem;
+  max-width: 720px;
+  width: 100%;
+  padding: 1.25rem;
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  margin: 1rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
-
-.ad-image-container {
+.ad-card:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+@media (max-width: 640px) {
+  .ad-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+}
+.ad-card-media {
   flex-shrink: 0;
-  width: 200px;
-  height: 200px;
+  width: 140px;
+  height: 140px;
   border-radius: 1rem;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #f1f5f9;
 }
-
-.ad-image {
+@media (min-width: 640px) {
+  .ad-card-media {
+    width: 180px;
+    height: 180px;
+  }
+}
+.ad-card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
-.ad-image-placeholder {
+.ad-card-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
-  font-size: 3rem;
+  color: #94a3b8;
+  font-size: 2.5rem;
 }
-
-.ad-content {
+.ad-card-body {
   flex: 1;
+  min-width: 0;
 }
-
-.ad-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #1f2937;
-}
-
-.ad-price {
+.ad-card-title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #059669;
-  margin-bottom: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.375rem;
+  line-height: 1.3;
 }
-
-.ad-location {
+@media (min-width: 640px) {
+  .ad-card-title {
+    font-size: 1.375rem;
+  }
+}
+.ad-card-meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  color: #64748b;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #6b7280;
-  margin-bottom: 1rem;
+  gap: 0.375rem;
+  flex-wrap: wrap;
 }
-
-.ad-action-btn {
-  padding: 0.75rem 1.5rem;
+.ad-card-price {
+  font-weight: 700;
+  color: #059669;
+  font-size: 1.125rem;
+}
+.ad-card-btn {
+  padding: 0.625rem 1.125rem;
   background: #059669;
   color: white;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-weight: 600;
+  font-size: 0.9375rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
 }
-
-.ad-action-btn:hover {
+.ad-card-btn:hover {
   background: #047857;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
 }
 
-/* Carousel Controls */
-.carousel-controls {
+/* ---- Arrows (left/right) ---- */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f766e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.carousel-arrow:hover:not(:disabled) {
+  background: white;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+.carousel-arrow:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.98);
+}
+.carousel-arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.carousel-arrow:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: 2px;
+}
+.carousel-arrow--prev {
+  left: 1rem;
+}
+.carousel-arrow--next {
+  right: 1rem;
+}
+@media (max-width: 640px) {
+  .carousel-arrow {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.75rem;
+  }
+  .carousel-arrow--prev {
+    left: 0.5rem;
+  }
+  .carousel-arrow--next {
+    right: 0.5rem;
+  }
+}
+
+/* ---- Dots ---- */
+.carousel-dots {
   position: absolute;
   bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: rgba(0,0,0,0.5);
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  backdrop-filter: blur(10px);
-}
-
-.carousel-btn {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel-btn:hover:not(:disabled) {
-  background: rgba(255,255,255,0.3);
-  transform: scale(1.1);
-}
-
-.carousel-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.carousel-dots {
-  display: flex;
   gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
 }
-
 .carousel-dot {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+  padding: 0;
 }
-
-.carousel-dot.active {
-  background: white;
-  transform: scale(1.2);
-}
-
 .carousel-dot:hover {
-  background: rgba(255,255,255,0.6);
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.15);
+}
+.carousel-dot--active {
+  background: white;
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+}
+.carousel-dot:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .carousel-dots {
+    bottom: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  .carousel-dot {
+    width: 6px;
+    height: 6px;
+  }
+  .carousel-dot--active {
+    transform: scale(1.2);
+  }
 }
 
-/* Empty State */
+/* ---- Empty ---- */
 .carousel-empty {
   width: 100%;
-  height: 100%;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  border-radius: inherit;
 }
-
 .empty-message {
   text-align: center;
-  color: #6b7280;
+  color: #64748b;
+  padding: 1rem;
 }
-
 .empty-message i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .ad-carousel-container {
-    height: 300px;
-  }
-  
-  .banner-title {
-    font-size: 2rem;
-  }
-  
-  .banner-subtitle {
-    font-size: 1rem;
-  }
-  
-  .banner-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .product-ad, .store-ad {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-  
-  .ad-image-container {
-    width: 150px;
-    height: 150px;
-  }
-  
-  .carousel-controls {
-    bottom: 0.5rem;
-    padding: 0.25rem 0.75rem;
-  }
-  
-  .carousel-btn {
-    width: 2rem;
-    height: 2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .ad-carousel-container {
-    height: 250px;
-  }
-  
-  .banner-title {
-    font-size: 1.5rem;
-  }
-  
-  .banner-subtitle {
-    font-size: 0.875rem;
-  }
-  
-  .product-ad, .store-ad {
-    padding: 1rem;
-    margin: 0.5rem;
-  }
-  
-  .ad-image-container {
-    width: 120px;
-    height: 120px;
-  }
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+  display: block;
 }
 </style>
