@@ -92,9 +92,16 @@ export const getAuthRedirectUrl = (path = '') => {
 }
 
 export const getOAuthRedirectUrl = () => {
-  // Supabase handles OAuth redirects through its own fixed endpoint
-  // Return the base app URL for general auth redirects
   return environment.baseUrl
+}
+
+/**
+ * Full URL for OAuth callback - must be whitelisted in Supabase Dashboard > Auth > URL Configuration.
+ * Uses default locale path so one URL works for all users; AuthCallback then redirects to home.
+ */
+export const getAuthCallbackUrl = () => {
+  const base = environment.baseUrl.replace(/\/$/, '')
+  return `${base}/en/auth/callback`
 }
 
 export const getPasswordResetRedirectUrl = () => {

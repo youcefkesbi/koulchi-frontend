@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase, verifySupabaseAuth } from '../lib/supabase'
-import { oauthConfig } from '../config/oauth'
-import { getPasswordResetRedirectUrl } from '../config/environment.js'
+import { getPasswordResetRedirectUrl, getAuthCallbackUrl } from '../config/environment.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -329,16 +328,28 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      // Note: Supabase handles OAuth redirects internally
-      // The redirectTo URL is for Supabase's internal routing, not user-facing
-      // Users will see a clean OAuth flow without exposure to backend URLs
-      const { data, error: authError } = await supabase.auth.signInWithOAuth(oauthConfig.google)
+      const redirectTo = getAuthCallbackUrl()
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account',
+            include_granted_scopes: 'true'
+          }
+        }
+      })
 
       if (authError) {
         error.value = authError.message
         throw authError
       }
 
+      if (data?.url) {
+        window.location.href = data.url
+        return data
+      }
       return data
     } catch (err) {
       // If error wasn't set above, set a generic OAuth error
@@ -356,13 +367,25 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      // Note: Supabase handles OAuth redirects internally
-      // The redirectTo URL is for Supabase's internal routing, not user-facing
-      // Users will see a clean OAuth flow without exposure to backend URLs
-      const { data, error: authError } = await supabase.auth.signInWithOAuth(oauthConfig.facebook)
+      const redirectTo = getAuthCallbackUrl()
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo,
+          queryParams: {
+            scope: 'email,public_profile',
+            display: 'popup',
+            auth_type: 'rerequest'
+          }
+        }
+      })
 
       if (authError) throw authError
 
+      if (data?.url) {
+        window.location.href = data.url
+        return data
+      }
       return data
     } catch (err) {
       error.value = err.message

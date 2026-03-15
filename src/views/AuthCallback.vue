@@ -66,11 +66,16 @@ const oauthProvider = ref('your account')
 
 onMounted(async () => {
   try {
-    // Get the current session after OAuth redirect
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError) {
-      throw sessionError
+    // Supabase PKCE may still be exchanging the code from the URL; allow a short wait for session
+    let session = null
+    for (let i = 0; i < 10; i++) {
+      const { data: { session: s }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) throw sessionError
+      if (s?.user) {
+        session = s
+        break
+      }
+      await new Promise(r => setTimeout(r, 200))
     }
 
     if (session?.user) {
