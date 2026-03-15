@@ -43,9 +43,9 @@ try {
 
   const authStore = useAuthStore()
 
-  // Initialize stores with error handling
+  // Initialize auth and restore session before first paint so navbar shows correct state (especially on mobile/refresh)
   try {
-    authStore.initAuth()
+    await authStore.initAuth()
   } catch (error) {
     console.warn('Auth initialization failed:', error)
   }

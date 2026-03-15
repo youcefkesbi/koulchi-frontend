@@ -1,8 +1,8 @@
 <template>
   <header class="bg-white shadow-soft sticky top-0 z-50 border-b border-neutral-200">
     <div class="px-4 sm:px-6 lg:px-8">
-      <!-- Mobile Header (visible on small screens) -->
-      <div class="flex items-center justify-between h-16 sm:hidden">
+      <!-- Mobile Header (visible on mobile + tablet: < 1024px) -->
+      <div class="flex items-center justify-between h-16 lg:hidden">
         <!-- Logo -->
         <router-link :to="getLocalizedRoutePath('/')" class="group flex-shrink-0">
           <Logo size="default" />
@@ -19,8 +19,8 @@
         </button>
       </div>
 
-      <!-- Desktop Header (hidden on small screens) -->
-      <div class="hidden sm:flex items-center justify-between h-20 py-4">
+      <!-- Desktop Header (visible on desktop only: 1024px+) -->
+      <div class="hidden lg:flex items-center justify-between h-20 py-4">
         <div class="flex items-center justify-between w-full space-x-4 lg:space-x-6">
           <!-- Logo -->
           <router-link :to="getLocalizedRoutePath('/')" class="group flex-shrink-0">
@@ -146,8 +146,8 @@
             </div>
           </div>
 
-          <!-- Categories Dropdown -->
-          <div class="relative categories-dropdown hidden md:block">
+          <!-- Categories Dropdown (desktop only) -->
+          <div class="relative categories-dropdown">
             <button
               @click="categoriesMenuOpen = !categoriesMenuOpen"
               class="flex items-center space-x-2 space-x-reverse px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
@@ -160,7 +160,7 @@
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
-              class="absolute top-full right-0 mt-2 w-56 sm:w-64 lg:w-72 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50 max-h-[70vh] overflow-y-auto"
+              class="categories-dropdown-panel absolute top-full right-0 mt-2 w-56 sm:w-64 lg:w-72 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50 max-h-[70vh] overflow-y-auto"
             >
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
                 <router-link
@@ -187,7 +187,7 @@
             <nav class="flex items-center space-x-4 sm:space-x-6 space-x-reverse">
               <!-- Notifications Bell -->
               <router-link 
-                v-if="authStore.isAuthenticated"
+                v-if="isAuthenticatedRef"
                 :to="getLocalizedRoute('/notifications')" 
                 class="relative text-neutral-700 hover:text-primary transition-all duration-300 hover:scale-110" 
                 title="Notifications"
@@ -249,7 +249,7 @@
               </button>
 
               <!-- User Menu (auth) -->
-            <div v-if="authStore.isAuthenticated" class="relative user-dropdown">
+            <div v-if="isAuthenticatedRef" class="relative user-dropdown">
               <button
                 @click="userMenuOpen = !userMenuOpen"
                 class="flex items-center space-x-2 space-x-reverse px-2 lg:px-3 py-1.5 lg:py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
@@ -266,13 +266,16 @@
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="absolute top-full right-0 mt-2 w-48 sm:w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50 max-h-[80vh] overflow-y-auto"
+                class="user-dropdown-panel absolute top-full right-0 mt-2 w-48 sm:w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50 max-h-[80vh] overflow-y-auto"
               >
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
                 </router-link>
                 <router-link :to="getLocalizedRoute('/myaccount')" class="dropdown-item">
                   <i class="fas fa-user mr-3"></i>{{ t('header.myProfile') }}
+                </router-link>
+                <router-link :to="getLocalizedRoute('/myaccount')" class="dropdown-item">
+                  <i class="fas fa-cog mr-3"></i>{{ t('header.settings') }}
                 </router-link>
                 <router-link :to="getLocalizedRoutePath('/wishlist')" class="dropdown-item flex items-center justify-between">
                   <div class="flex items-center">
@@ -284,7 +287,7 @@
                   </span>
                 </router-link>
                 <router-link :to="getLocalizedRoutePath('/mypurchases')" class="dropdown-item">
-                  <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.myPurchases') }}
+                  <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.orders') }}
                 </router-link>
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/mystoreproducts')" class="dropdown-item">
                   <i class="fas fa-clipboard-list mr-3"></i>{{ t('header.myStoreProducts') }}
@@ -327,10 +330,10 @@
         </div>
       </div>
 
-      <!-- Mobile Menu (visible when mobileMenuOpen is true) -->
+      <!-- Mobile Menu (visible when mobileMenuOpen is true; shown on mobile + tablet < 1024px) -->
       <div 
         v-if="mobileMenuOpen"
-        class="mobile-menu-container sm:hidden border-t border-neutral-200 py-4 space-y-4 relative z-50 bg-white"
+        class="mobile-menu-container lg:hidden border-t border-neutral-200 py-4 space-y-4 relative z-50 bg-white"
         style="pointer-events: auto;"
         @click.stop
       >
@@ -494,8 +497,8 @@
           </button>
         </div>
 
-        <!-- Mobile User Menu -->
-        <div v-if="authStore.isAuthenticated" class="border-t border-neutral-200 pt-4 space-y-2">
+        <!-- Mobile User Menu (key forces re-render when auth state changes so Login/Profile switch is immediate) -->
+        <div v-if="isAuthenticatedRef" key="mobile-auth-in" class="border-t border-neutral-200 pt-4 space-y-2">
           <router-link
             v-for="link in mobileUserLinks"
             :key="link.path"
@@ -517,11 +520,13 @@
           </button>
         </div>
 
-        <div v-else class="border-t border-neutral-200 pt-4">
+        <div v-else key="mobile-auth-out" class="border-t border-neutral-200 pt-4">
           <button
-            @click.stop="handleLoginClickMobile"
+            type="button"
             class="w-full btn-primary text-sm py-3 cursor-pointer touch-manipulation"
-            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1);"
+            style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
+            @click.stop.prevent="handleLoginClickMobile"
+            @touchend.stop.prevent="handleLoginClickMobile"
           >
             <i class="fas fa-sign-in-alt mr-2"></i>
             {{ t('header.login') }}
@@ -536,7 +541,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
@@ -556,6 +562,8 @@ const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+// Keep auth state as refs so template updates reliably when session changes (e.g. after login on mobile)
+const { isAuthenticated: isAuthenticatedRef } = storeToRefs(authStore)
 const cartStore = useCartStore()
 const wishlistStore = useWishlistStore()
 const productStore = useProductStore()
@@ -601,15 +609,16 @@ const closeDropdown = () => {
   userMenuOpen.value = false
 }
 
-// Mobile user links
+// Mobile user links (Profile, Orders, Settings, etc. for mobile/tablet menu)
 const mobileUserLinks = computed(() => {
   const links = []
   if (hasApprovedStore.value) {
     links.push({ path: '/dashboard', icon: 'fas fa-chart-line', label: t('header.dashboard') })
   }
   links.push({ path: '/myaccount', icon: 'fas fa-user', label: t('header.myProfile') })
+  links.push({ path: '/mypurchases', icon: 'fas fa-shopping-bag', label: t('header.orders') })
+  links.push({ path: '/myaccount', icon: 'fas fa-cog', label: t('header.settings') })
   links.push({ path: '/wishlist', icon: 'fas fa-heart', label: t('wishlist.title') })
-  links.push({ path: '/mypurchases', icon: 'fas fa-shopping-bag', label: t('header.myPurchases') })
   if (hasApprovedStore.value) {
     links.push({ path: '/mystoreproducts', icon: 'fas fa-clipboard-list', label: t('header.myStoreProducts') })
   }
@@ -931,8 +940,13 @@ const handleLoginClickMobile = (event) => {
     event.preventDefault()
     event.stopPropagation()
   }
-  mobileMenuOpen.value = false
+  // Avoid double-run when both touchend and click fire on some devices
+  if (showLoginModal.value) return
+  // Open modal first so it is visible before menu unmounts (fixes mobile tap/click loss when menu closes)
   showLoginModal.value = true
+  nextTick(() => {
+    mobileMenuOpen.value = false
+  })
 }
 
 const handleLogoutMobile = async (event) => {
@@ -1106,4 +1120,90 @@ onUnmounted(() => {
     document.body.style.overflow = ''
   }
 })
-</script> 
+</script>
+
+<style scoped>
+/* Prevent header content from overflowing */
+header {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* User dropdown: keep inside viewport, touch-friendly items */
+.user-dropdown {
+  position: relative;
+}
+.user-dropdown-panel {
+  right: 0;
+  left: auto;
+  min-width: 12rem;
+  max-height: min(80vh, 28rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+[dir="rtl"] .user-dropdown-panel {
+  right: auto;
+  left: 0;
+}
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #374151;
+  transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+.dropdown-item:hover {
+  background-color: #f9fafb;
+  color: #10b981;
+}
+
+/* Categories dropdown: viewport-safe */
+.categories-dropdown-panel {
+  right: 0;
+  left: auto;
+  max-height: min(70vh, 24rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+[dir="rtl"] .categories-dropdown-panel {
+  right: auto;
+  left: 0;
+}
+.categories-dropdown a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile menu: no overflow, no layout shift, scrollable */
+.mobile-menu-container {
+  max-height: calc(100vh - 4rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.mobile-menu-container a,
+.mobile-menu-container button {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Search dropdown: prevent overflow on small viewports */
+@media (max-width: 1023px) {
+  .mobile-menu-container .absolute.top-full {
+    max-height: min(400px, 60vh);
+  }
+}
+</style> 

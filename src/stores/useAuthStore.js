@@ -685,7 +685,7 @@ const loadUserWithProfile = async (authUser) => {
       }
 
       // Get initial session with enhanced error handling
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError) {
         console.error('❌ Session error during initialization:', sessionError)
@@ -693,7 +693,13 @@ const loadUserWithProfile = async (authUser) => {
         return null
       }
       
-      if (session?.user) {
+      // If no session (e.g. after redirect or mobile), try refresh to recover
+      if (!session?.user) {
+        const refreshed = await refreshAuth()
+        if (!refreshed) {
+          user.value = null
+        }
+      } else {
         // Found existing session, loading user profile
         await loadUserWithProfile(session.user)
 
@@ -704,9 +710,6 @@ const loadUserWithProfile = async (authUser) => {
             await loadUserWithProfile(session.user)
           }
         }, 1000)
-      } else {
-        // No existing session found
-        user.value = null
       }
 
       // Set up auth state change listener with enhanced handling

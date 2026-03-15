@@ -3,15 +3,15 @@
     id="app" 
     :dir="currentDir"
     :lang="currentLocale"
-    class="min-h-screen bg-white text-gray-900"
+    class="min-h-screen bg-white text-gray-900 overflow-x-hidden"
   >
     <!-- Global Admin Sidebar (fixed position, doesn't affect layout) -->
     <AdminSidebar ref="adminSidebar" :sidebar-open="adminSidebarOpen" @close-sidebar="handleAdminSidebarClose" />
     
     <!-- Main Content Area -->
-    <div class="flex flex-col min-h-screen w-full">
+    <div class="flex flex-col min-h-screen w-full overflow-x-hidden max-w-[100vw]">
       <Header @toggle-admin-sidebar="handleAdminSidebarToggle" />
-      <main class="flex-1 w-full">
+      <main class="flex-1 w-full min-w-0 overflow-x-hidden">
         <router-view />
       </main>
       <Footer />
@@ -131,6 +131,16 @@ onUnmounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--color-primary-dark);
+}
+
+/* Prevent horizontal scroll and layout shift */
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Smooth transitions */

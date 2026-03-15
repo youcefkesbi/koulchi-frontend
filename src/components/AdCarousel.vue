@@ -319,6 +319,7 @@ onUnmounted(() => {
 .ad-carousel-container {
   position: relative;
   width: 100%;
+  min-width: 0;
   border-radius: 1.25rem;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);

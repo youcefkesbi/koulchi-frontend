@@ -221,6 +221,8 @@ onMounted(async () => {
 /* Section layout: children (e.g. ad components) can be full width; section itself is centered */
 .homepage-section {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Features section */
@@ -382,9 +384,9 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Section padding (page-level) */
+/* Section padding (page-level): mobile 1.5rem, tablet 3rem, desktop 4rem */
 .section-padding {
-  padding: 2rem 0;
+  padding: 1.5rem 0;
 }
 @media (min-width: 640px) {
   .section-padding {

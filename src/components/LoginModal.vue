@@ -332,7 +332,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useI18n } from 'vue-i18n'
 
@@ -474,6 +474,7 @@ const handleSignup = async () => {
         // Don't close modal automatically - user needs to confirm email
       } else {
         // User is logged in immediately (shouldn't happen with email confirmation enabled)
+        await nextTick()
         setTimeout(() => {
           closeModal()
         }, 1500)
@@ -489,6 +490,8 @@ const handleLogin = async () => {
     await authStore.login(loginForm.email, loginForm.password)
     if (!authStore.error) {
       await authStore.createProfileIfNotExists()
+      // Ensure navbar (and mobile menu) re-renders with authenticated state before closing modal
+      await nextTick()
       closeModal()
     }
   } catch (error) {

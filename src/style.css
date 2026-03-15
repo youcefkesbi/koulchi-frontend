@@ -351,6 +351,14 @@
     margin-right: auto;
     padding-left: 1rem;
     padding-right: 1rem;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  @media (min-width: 320px) and (max-width: 639px) {
+    .homepage-container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
   }
   @media (min-width: 640px) {
     .homepage-container {

@@ -215,6 +215,8 @@ const navigateToStore = (storeId) => {
 <style scoped>
 .ad-grid-container {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* Loading State */
@@ -319,6 +321,18 @@ const navigateToStore = (storeId) => {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+@media (max-width: 639px) {
+  .ad-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .ad-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+  }
 }
 
 /* Grid Items */
@@ -494,9 +508,11 @@ const navigateToStore = (storeId) => {
 .action-btn {
   flex: 1;
   padding: 0.75rem 1rem;
+  min-height: 44px;
   border: none;
   border-radius: 0.5rem;
   font-weight: 600;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;

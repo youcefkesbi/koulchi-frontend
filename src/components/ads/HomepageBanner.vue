@@ -90,6 +90,8 @@ const error = computed(() => adsStore.error)
 <style scoped>
 .homepage-banner-container {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   margin-bottom: 2rem;
 }
 
@@ -186,11 +188,12 @@ const error = computed(() => adsStore.error)
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .banner-loading,
   .banner-error,
   .banner-empty {
-    height: 300px;
+    height: 280px;
+    border-radius: 1rem;
   }
 }
 
@@ -198,7 +201,15 @@ const error = computed(() => adsStore.error)
   .banner-loading,
   .banner-error,
   .banner-empty {
-    height: 250px;
+    height: 240px;
+  }
+}
+
+@media (max-width: 320px) {
+  .banner-loading,
+  .banner-error,
+  .banner-empty {
+    height: 200px;
   }
 }
 </style>

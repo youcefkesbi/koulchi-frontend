@@ -74,7 +74,8 @@ onMounted(async () => {
     }
 
     if (session?.user) {
-      // User is authenticated, the auth store will handle loading profile data automatically
+      // Explicitly set user in auth store so navbar and UI update (critical for mobile/OAuth redirect)
+      await authStore.loadUserWithProfile(session.user)
       
       // Determine OAuth provider for user-friendly messaging
       const provider = session.user.app_metadata?.provider || 'your account'
