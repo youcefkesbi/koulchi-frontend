@@ -20,8 +20,8 @@
       </div>
 
       <!-- Desktop Header (visible on desktop only: 1024px+) -->
-      <div class="hidden lg:flex items-center justify-between h-20 py-4">
-        <div class="flex items-center justify-between w-full space-x-4 lg:space-x-6">
+      <div class="hidden lg:flex items-center justify-between h-20 py-4 overflow-visible">
+        <div class="flex items-center justify-between w-full space-x-4 lg:space-x-6 overflow-visible">
           <!-- Logo -->
           <router-link :to="getLocalizedRoutePath('/')" class="group flex-shrink-0">
             <Logo size="large" />
@@ -146,10 +146,16 @@
             </div>
           </div>
 
-          <!-- Categories Dropdown (desktop only) -->
-          <div class="relative categories-dropdown">
+          <!-- Categories Dropdown (desktop only) — z-index above flex siblings; panel must not be clipped by header overflow -->
+          <div class="relative z-60 categories-dropdown">
             <button
-              @click="categoriesMenuOpen = !categoriesMenuOpen"
+              type="button"
+              @click.stop="toggleCategoriesMenu"
+              @keydown.enter.prevent="toggleCategoriesMenu"
+              @keydown.space.prevent="toggleCategoriesMenu"
+              :aria-expanded="categoriesMenuOpen"
+              aria-haspopup="menu"
+              aria-controls="desktop-categories-menu"
               class="flex items-center space-x-2 space-x-reverse px-3 sm:px-4 py-2 sm:py-2.5 lg:py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50"
             >
               <i class="fas fa-layer-group text-base sm:text-lg"></i>
@@ -160,6 +166,9 @@
             <!-- Categories Dropdown Menu -->
             <div 
               v-if="categoriesMenuOpen"
+              id="desktop-categories-menu"
+              role="menu"
+              @click.stop
               class="categories-dropdown-panel absolute top-full right-0 mt-2 w-56 sm:w-64 lg:w-72 bg-white rounded-2xl shadow-soft border border-neutral-200 py-2 z-50 max-h-[70vh] overflow-y-auto"
             >
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 p-2">
@@ -249,9 +258,15 @@
               </button>
 
               <!-- User Menu (auth) -->
-            <div v-if="isAuthenticatedRef" class="relative user-dropdown">
+            <div v-if="isAuthenticatedRef" class="relative z-60 user-dropdown">
               <button
-                @click="userMenuOpen = !userMenuOpen"
+                type="button"
+                @click.stop="toggleUserMenu"
+                @keydown.enter.prevent="toggleUserMenu"
+                @keydown.space.prevent="toggleUserMenu"
+                :aria-expanded="userMenuOpen"
+                aria-haspopup="menu"
+                aria-controls="desktop-user-menu"
                 class="flex items-center space-x-2 space-x-reverse px-2 lg:px-3 py-1.5 lg:py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
                 <img
@@ -266,7 +281,10 @@
               <!-- User Dropdown Menu -->
               <div 
                 v-if="userMenuOpen"
-                class="user-dropdown-panel absolute top-full right-0 mt-2 w-48 sm:w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-50 max-h-[80vh] overflow-y-auto"
+                id="desktop-user-menu"
+                role="menu"
+                @click.stop
+                class="user-dropdown-panel absolute top-full right-0 mt-2 w-48 sm:w-56 lg:w-64 bg-white rounded-2xl shadow-soft border border-gray-100 py-2 z-60 max-h-[80vh] overflow-y-auto"
               >
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/dashboard')" class="dropdown-item">
                   <i class="fas fa-chart-line mr-3"></i>{{ t('header.dashboard') }}
@@ -358,7 +376,7 @@
             v-if="showSearchResults && (searchQuery.trim() || searchResultsProducts.length > 0 || searchResultsStores.length > 0)"
             @mousedown.prevent
             @touchstart.prevent
-            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-[60] max-h-[400px] overflow-y-auto"
+            class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-soft border border-neutral-200 z-60 max-h-[400px] overflow-y-auto"
             style="pointer-events: auto;"
           >
             <!-- Loading State -->
@@ -609,6 +627,24 @@ const closeDropdown = () => {
   userMenuOpen.value = false
 }
 
+// Desktop dropdown toggles (click-based, mutually exclusive)
+const toggleUserMenu = () => {
+  const next = !userMenuOpen.value
+  userMenuOpen.value = next
+  if (next) categoriesMenuOpen.value = false
+}
+
+const toggleCategoriesMenu = () => {
+  const next = !categoriesMenuOpen.value
+  categoriesMenuOpen.value = next
+  if (next) userMenuOpen.value = false
+}
+
+const closeDesktopDropdowns = () => {
+  userMenuOpen.value = false
+  categoriesMenuOpen.value = false
+}
+
 // Mobile user links (Profile, Orders, Settings, etc. for mobile/tablet menu)
 const mobileUserLinks = computed(() => {
   const links = []
@@ -634,30 +670,35 @@ const mobileUserLinks = computed(() => {
   return links
 })
 
-// Handle click outside dropdown
+// Close desktop dropdowns on outside click. Use capture phase so this runs before
+// bubble-phase listeners (e.g. LanguageSwitcher) and doesn't fight @click.stop on toggles.
 const handleClickOutside = (event) => {
-  // Don't close if clicking inside mobile menu
-  const mobileMenu = event.target.closest('.mobile-menu-container')
-  if (mobileMenu) {
+  const t = event.target
+  if (!(t instanceof Element)) return
+
+  if (t.closest('.mobile-menu-container')) {
     return
   }
-  
-  // Close user dropdown if clicking outside
-  const userDropdown = event.target.closest('.user-dropdown')
-  if (!userDropdown && userMenuOpen.value) {
-    userMenuOpen.value = false
-  }
-  
-  // Close categories dropdown if clicking outside
-  const categoriesDropdown = event.target.closest('.categories-dropdown')
-  if (!categoriesDropdown && categoriesMenuOpen.value) {
-    categoriesMenuOpen.value = false
+
+  // Clicks on toggles / panels stay inside these roots — do not close here (toggle handles open/close).
+  if (t.closest('.user-dropdown') || t.closest('.categories-dropdown')) {
+    return
   }
 
-  // Close mobile menu if clicking outside header (but not inside mobile menu)
-  const header = event.target.closest('header')
-  if (!header && mobileMenuOpen.value) {
+  if (userMenuOpen.value) userMenuOpen.value = false
+  if (categoriesMenuOpen.value) categoriesMenuOpen.value = false
+
+  if (!t.closest('header') && mobileMenuOpen.value) {
     mobileMenuOpen.value = false
+  }
+}
+
+const handleEscapeKey = (event) => {
+  if (event.key === 'Escape') {
+    closeDesktopDropdowns()
+    if (mobileMenuOpen.value) {
+      mobileMenuOpen.value = false
+    }
   }
 }
 
@@ -1090,7 +1131,8 @@ watch(mobileMenuOpen, (isOpen) => {
 })
 
 onMounted(async () => {
-  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleClickOutside, true)
+  document.addEventListener('keydown', handleEscapeKey)
   await loadUserStoreStatus()
   await loadVendorRole()
   await fetchAdminRoleForToggle()
@@ -1104,7 +1146,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleClickOutside, true)
+  document.removeEventListener('keydown', handleEscapeKey)
   // Unsubscribe from notifications
   notificationStore.unsubscribeFromNotifications()
   // Clear timers
@@ -1123,10 +1166,17 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Prevent header content from overflowing */
+/* Prevent horizontal overflow without clipping desktop dropdowns:
+   overflow-x: hidden on header forces overflow-y to compute to auto, which clips
+   absolute dropdowns (Categories, user menu). Use clip + visible on lg+. */
 header {
   max-width: 100vw;
   overflow-x: hidden;
+}
+@media (min-width: 1024px) {
+  header {
+    overflow: visible;
+  }
 }
 
 /* User dropdown: keep inside viewport, touch-friendly items */

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="language-switcher-root relative">
     <button
       @click="isOpen = !isOpen"
       :title="`Language: ${currentLanguage.name}`"
@@ -100,7 +100,9 @@ const selectLanguage = async (newLocale) => {
 
 // Close dropdown when clicking outside
 const handleClickOutside = (event) => {
-  if (!event.target.closest('.relative')) {
+  const t = event.target
+  if (!(t instanceof Element)) return
+  if (!t.closest('.language-switcher-root')) {
     isOpen.value = false
   }
 }
