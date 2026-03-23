@@ -34,6 +34,27 @@ export const useAuthStore = defineStore('auth', () => {
     
     return fullName || user.value?.email || 'User'
   })
+
+  /** Trimmed full name from profile + Supabase user_metadata (OAuth: given/family name, name). Empty when none. */
+  const userFullName = computed(() => {
+    if (!user.value) return ''
+    const u = user.value
+    const meta = u.user_metadata || {}
+    const raw = u.raw_user_meta_data || {}
+    const fromParts =
+      [meta.given_name, meta.family_name].filter(Boolean).join(' ').trim() ||
+      [raw.given_name, raw.family_name].filter(Boolean).join(' ').trim()
+    const name =
+      (typeof u.full_name === 'string' && u.full_name.trim()) ||
+      (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
+      (typeof raw.full_name === 'string' && raw.full_name.trim()) ||
+      fromParts ||
+      (typeof meta.name === 'string' && meta.name.trim()) ||
+      (typeof raw.name === 'string' && raw.name.trim()) ||
+      ''
+    return typeof name === 'string' ? name.trim() : ''
+  })
+
   const userEmail = computed(() => user.value?.email || '')
   const userPhotoURL = computed(() => '/user-avatar.png') // Always use default avatar
   const userRole = computed(() => {
@@ -798,6 +819,7 @@ const loadUserWithProfile = async (authUser) => {
     // Getters
     isAuthenticated,
     userDisplayName,
+    userFullName,
     userEmail,
     userPhotoURL,
     userRole,

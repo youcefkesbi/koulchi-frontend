@@ -267,15 +267,17 @@
                 :aria-expanded="userMenuOpen"
                 aria-haspopup="menu"
                 aria-controls="desktop-user-menu"
-                class="flex items-center space-x-2 space-x-reverse px-2 lg:px-3 py-1.5 lg:py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
+                class="flex items-center space-x-2 space-x-reverse min-w-0 max-w-full px-2 lg:px-3 py-1.5 lg:py-2 text-gray-700 hover:text-primary transition-all duration-300 rounded-xl hover:bg-gray-50"
               >
                 <img
-                  :src="authStore.userAvatar || '/user-avatar.png'"
-                  :alt="authStore.userDisplayName || authStore.userEmail"
-                  class="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover"
+                  :src="authStore.userPhotoURL"
+                  :alt="authStore.userFullName || authStore.userEmail || authStore.userDisplayName"
+                  class="shrink-0 w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover"
                 />
-                <span class="font-medium hidden xl:block text-gray-700 text-sm">{{ authStore.userDisplayName || authStore.userEmail }}</span>
-                <i class="fas fa-chevron-down text-xs transition-transform duration-300 hidden lg:inline" :class="{ 'rotate-180': userMenuOpen }"></i>
+                <span
+                  class="hidden lg:block min-w-0 max-w-40 xl:max-w-56 2xl:max-w-72 truncate font-medium text-gray-700 text-sm leading-tight text-start"
+                >{{ authStore.userFullName || authStore.userEmail }}</span>
+                <i class="fas fa-chevron-down shrink-0 text-xs transition-transform duration-300 hidden lg:inline" :class="{ 'rotate-180': userMenuOpen }"></i>
               </button>
 
               <!-- User Dropdown Menu -->
