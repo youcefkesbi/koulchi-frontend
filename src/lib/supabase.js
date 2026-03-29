@@ -15,7 +15,7 @@ try {
 // Create Supabase client using environment configuration
 let supabase = null;
 
-try {
+// try {
   supabase = createClient(
     environment.supabase.url,
     environment.supabase.anonKey,
@@ -42,33 +42,32 @@ try {
       }
     }
   );
-} catch (error) {
-  console.warn('Supabase client creation failed:', error);
-  // Create a mock client for development
-  supabase = {
-    auth: {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
-      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
-      signOut: () => Promise.resolve({ error: null }),
-      refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signInWithOAuth: () => Promise.resolve({ data: { provider: null, url: null }, error: { message: 'Supabase not configured' } }),
-      signInWithOtp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } })
-    },
-    from: () => ({
-      select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }) }) }),
-      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
-    }),
-    rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    channel: () => ({
-      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) })
-    })
-  };
-}
+// catch (error) {
+//   console.warn('Supabase client creation failed:', error);
+//   // Create a mock client for development
+//   supabase = {
+//     auth: {
+//       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+//       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+//       signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+//       signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+//       signOut: () => Promise.resolve({ error: null }),
+//       refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+//       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+//       signInWithOAuth: () => Promise.resolve({ data: { provider: null, url: null }, error: { message: 'Supabase not configured' } }),
+//       signInWithOtp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } })
+//     },
+//     from: () => ({
+//       select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }) }) }),
+//       insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+//       update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+//       delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+//     }),
+//     rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+//     channel: () => ({
+//       on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) })
+//     })
+//   };
 
 // Verify Supabase client is properly initialized with auth
 export const verifySupabaseAuth = async () => {
