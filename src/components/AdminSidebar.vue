@@ -54,21 +54,6 @@
             </li>
             <li>
               <router-link 
-                :to="`/${$route.meta.locale || 'en'}/webhooks`"
-                @click="closeSidebarOnMobile"
-                :class="[
-                  'w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                  $route.path.includes('/webhooks') 
-                    ? 'bg-primary-100 text-primary-700' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                ]"
-              >
-                <i class="fas fa-plug mr-3"></i>
-                Webhooks
-              </router-link>
-            </li>
-            <li>
-              <router-link 
                 :to="`/${$route.meta.locale || 'en'}/users`"
                 @click="closeSidebarOnMobile"
                 :class="[

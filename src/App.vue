@@ -98,18 +98,18 @@ watch(effectiveLocale, (newLocale) => {
 }, { immediate: true })
 
 // Initialize auth on mount with enhanced error handling
-onMounted(async () => {
-  try {
-    await authStore.initAuth()
-  } catch (error) {
-    console.error('Failed to initialize authentication:', error)
-  }
-})
+// onMounted(async () => {
+//   try {
+//     await authStore.initAuth()
+//   } catch (error) {
+//     console.error('Failed to initialize authentication:', error)
+//   }
+// })
 
 // Cleanup on unmount
-onUnmounted(() => {
-  authStore.cleanup()
-})
+// onUnmounted(() => {
+//   authStore.cleanup()
+// })
 </script>
 
 <style>
