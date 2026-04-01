@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase, verifySupabaseAuth } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { getPasswordResetRedirectUrl, getAuthCallbackUrl } from '../config/environment.js'
 
 export const useAuthStore = defineStore('auth', () => {
