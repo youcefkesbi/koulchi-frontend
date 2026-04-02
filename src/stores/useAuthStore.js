@@ -9,6 +9,7 @@ export const useAuthStore = defineStore('auth', () => {
   const profileLoading = ref(false)
   const error = ref(null)
   const authSubscription = ref(null)
+  const initInProgress = ref(null)
 
   // Persistence configuration - enhanced for better session management
   const persist = {
@@ -105,6 +106,11 @@ export const useAuthStore = defineStore('auth', () => {
         // No valid session, clear local user state
         user.value = null
         return false
+      }
+
+      // Restore user state when session exists but store wasn't hydrated yet
+      if (!user.value?.id || user.value.id !== session.user.id) {
+        await loadUserWithProfile(session.user)
       }
       
       // Verify session is still valid (not expired)
@@ -719,14 +725,13 @@ const loadUserWithProfile = async (authUser) => {
   // Initialize auth state with enhanced session persistence
   // Compatible with new Supabase publishable key system
   const initAuth = async () => {
+    if (initInProgress.value) {
+      return initInProgress.value
+    }
+
+    initInProgress.value = (async () => {
     try {
       // Initializing authentication system
-      
-      // Verify Supabase client is properly initialized with auth
-      const isAuthReady = await verifySupabaseAuth()
-      if (!isAuthReady) {
-        console.warn('⚠️ Supabase auth not ready, some features may not work')
-      }
 
       // Get initial session with enhanced error handling
       let { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -757,6 +762,10 @@ const loadUserWithProfile = async (authUser) => {
       }
 
       // Set up auth state change listener with enhanced handling
+      if (authSubscription.value) {
+        authSubscription.value.unsubscribe()
+        authSubscription.value = null
+      }
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, newSession) => {
           // Auth state change: ${event}
@@ -804,7 +813,12 @@ const loadUserWithProfile = async (authUser) => {
       console.error('❌ Auth initialization failed:', err)
       user.value = null
       return null
+    } finally {
+      initInProgress.value = null
     }
+    })()
+
+    return initInProgress.value
   }
 
 
