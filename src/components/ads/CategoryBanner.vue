@@ -45,7 +45,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useAdsStore } from '../../stores/useAdsStore'
 import AdCarousel from '../AdCarousel.vue'
 
@@ -78,14 +77,12 @@ const props = defineProps({
 
 const emit = defineEmits(['retry', 'scroll-to-content'])
 
-const { t } = useI18n()
 const adsStore = useAdsStore()
 
-// Computed properties
-const bannerAds = computed(() => {
-  const rawAds = adsStore.categoryBannerAds.filter(ad => ad.category_id === props.categoryId)
-  return adsStore.transformAdsForDisplay(rawAds)
-})
+// Raw ads for AdCarousel (expects item_type, product, store — see useAdsStore)
+const bannerAds = computed(() =>
+  (adsStore.categoryBannerAds || []).filter(ad => ad.category_id === props.categoryId)
+)
 
 const loading = computed(() => adsStore.loading)
 const error = computed(() => adsStore.error)

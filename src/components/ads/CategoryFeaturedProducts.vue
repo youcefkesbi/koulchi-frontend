@@ -35,20 +35,19 @@
     </div>
 
     <!-- Products Content -->
-    <div v-else-if="featuredProducts.length > 0" class="products-wrapper">
+    <div v-else-if="featuredProductAds.length > 0" class="products-wrapper">
       <div class="section-header">
         <h2 class="section-title">{{ title }}</h2>
         <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
       </div>
       
-      <AdGrid
-        :ads="featuredProducts"
-        :loading="false"
-        :error="null"
-        :columns="4"
-        :max-items="maxProducts"
-        @retry="$emit('retry')"
-      />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <ProductCard
+          v-for="ad in featuredProductAds"
+          :key="ad.id"
+          :product="ad.product"
+        />
+      </div>
     </div>
 
     <!-- Empty State -->
@@ -63,9 +62,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useAdsStore } from '../../stores/useAdsStore'
-import AdGrid from '../AdGrid.vue'
+import ProductCard from '../ProductCard.vue'
 
 const props = defineProps({
   categoryId: {
@@ -88,23 +86,23 @@ const props = defineProps({
 
 const emit = defineEmits(['retry'])
 
-const { t } = useI18n()
 const adsStore = useAdsStore()
 
-// Computed properties
-const featuredProducts = computed(() => {
-  // Get products from both category_featured_products and homepage_browse_by_category_products
-  // This ensures consistency between homepage and category pages
-  const categoryFeaturedAds = adsStore.categoryFeaturedProducts.filter(ad => ad.category_id === props.categoryId)
-  const browseByCategoryAds = adsStore.homepageBrowseByCategoryProducts.filter(ad => ad.category_id === props.categoryId)
-  
-  // Combine and deduplicate by product_id
-  const allAds = [...categoryFeaturedAds, ...browseByCategoryAds]
-  const uniqueAds = allAds.filter((ad, index, self) => 
-    index === self.findIndex(a => a.product_id === ad.product_id)
+// Product ads with joined product; dedupe by product_id; cap at maxProducts
+const featuredProductAds = computed(() => {
+  const categoryFeaturedAds = (adsStore.categoryFeaturedProducts || []).filter(
+    ad => ad.category_id === props.categoryId
   )
-  
-  return adsStore.transformAdsForDisplay(uniqueAds)
+  const browseByCategoryAds = (adsStore.homepageBrowseByCategoryProducts || []).filter(
+    ad => ad.category_id === props.categoryId
+  )
+  const allAds = [...categoryFeaturedAds, ...browseByCategoryAds]
+  const uniqueAds = allAds.filter(
+    (ad, index, self) => index === self.findIndex(a => a.product_id === ad.product_id)
+  )
+  return uniqueAds
+    .filter(ad => ad.item_type === 'product' && ad.product?.id)
+    .slice(0, props.maxProducts)
 })
 
 const loading = computed(() => adsStore.loading)

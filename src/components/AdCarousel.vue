@@ -52,37 +52,14 @@
               </div>
             </div>
 
-            <!-- Ad Items -->
-            <div v-else class="ad-slide">
-              <!-- Product Ad -->
-              <div v-if="item.type === 'product'" class="ad-card ad-card--product">
-                <div class="ad-card-media">
-                  <img
-                    v-if="item.data.image"
-                    :src="item.data.image"
-                    :alt="item.data.name"
-                    class="ad-card-img"
-                    @error="handleImageError"
-                  />
-                  <div v-else class="ad-card-placeholder">
-                    <i class="fas fa-image" aria-hidden="true"></i>
-                  </div>
-                </div>
-                <div class="ad-card-body">
-                  <h3 class="ad-card-title">{{ item.data.name }}</h3>
-                  <p class="ad-card-meta ad-card-price">
-                    {{ formatPrice(item.data.price) }} {{ $t('common.currencyShort') }}
-                  </p>
-                  <button
-                    @click="navigateToProduct(item.data.id)"
-                    class="ad-card-btn"
-                    type="button"
-                  >
-                    <i class="fas fa-eye" aria-hidden="true"></i>
-                    {{ $t('product.viewProduct') }}
-                  </button>
-                </div>
-              </div>
+            <!-- Ad Items: raw ads with ad.product / ad.store from Supabase -->
+            <div v-else class="ad-slide" :class="{ 'ad-slide--product': item.type === 'product' }">
+              <!-- Product Ad → full ProductCard (same role/actions as rest of site) -->
+              <ProductCard
+                v-if="item.type === 'product'"
+                :product="item.product"
+                class="carousel-product-card"
+              />
 
               <!-- Store Ad -->
               <div v-else-if="item.type === 'store'" class="ad-card ad-card--store">
@@ -169,9 +146,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
+import ProductCard from './ProductCard.vue'
 
 const props = defineProps({
   ads: {
@@ -214,21 +190,32 @@ const props = defineProps({
 
 const emit = defineEmits(['retry', 'scroll-to-content'])
 
-const { t } = useI18n()
-const router = useRouter()
 const { navigateToPath } = useLocaleRouter()
 
 const carouselContainer = ref(null)
 const currentIndex = ref(0)
 const autoPlayTimer = ref(null)
 
-// Computed properties
+// Raw ads from store: each has item_type, product, store (see useAdsStore.fetchAds)
 const carouselItems = computed(() => {
   const items = []
   if (props.showMainBanner) {
     items.push({ type: 'banner', id: 'main-banner' })
   }
-  items.push(...props.ads)
+  for (const ad of props.ads || []) {
+    if (ad.item_type === 'product' && ad.product?.id) {
+      items.push({ type: 'product', id: ad.id, product: ad.product })
+    } else if (ad.item_type === 'store' && ad.store?.id) {
+      items.push({
+        type: 'store',
+        id: ad.id,
+        data: {
+          ...ad.store,
+          image: ad.store.logo_url
+        }
+      })
+    }
+  }
   return items
 })
 
@@ -237,17 +224,8 @@ const trackStyle = computed(() => ({
 }))
 
 // Methods
-const formatPrice = (price) => {
-  if (!price) return '0'
-  return price.toLocaleString('ar-DZ')
-}
-
 const handleImageError = (event) => {
   event.target.style.display = 'none'
-}
-
-const navigateToProduct = (productId) => {
-  navigateToPath(`/product/${productId}`)
 }
 
 const navigateToStore = (storeId) => {
@@ -528,6 +506,15 @@ onUnmounted(() => {
   justify-content: center;
   background: linear-gradient(145deg, #f8fafc, #f1f5f9);
   padding: 1rem;
+}
+.ad-slide--product {
+  overflow: auto;
+  align-items: stretch;
+}
+.carousel-product-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 }
 @media (min-width: 640px) {
   .ad-slide {
