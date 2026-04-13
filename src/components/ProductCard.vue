@@ -48,6 +48,7 @@
 
       <!-- Wishlist Button (Floating) -->
       <button
+        v-if="!isProductOwner"
         @click.stop="handleToggleWishlist"
         :disabled="wishlistLoading"
         class="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-2xl z-20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -62,7 +63,10 @@
     <!-- Product Info Container -->
     <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 bg-white">
       <!-- Title -->
-      <h3 class="font-bold text-base sm:text-lg lg:text-xl text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-300">
+      <h3
+        class="font-bold text-base sm:text-lg lg:text-xl text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-300 cursor-pointer"
+        @click.stop="handleViewProduct"
+      >
         {{ product.name }}
       </h3>
 
@@ -89,7 +93,7 @@
 
       <!-- Actions -->
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 space-y-0">
-        <!-- Owner View: Edit, Delete, and Promote buttons -->
+        <!-- Owner View: Edit, Promote, and Delete buttons -->
         <template v-if="viewState === 'owner'">
           <button
             @click.stop="handleEditProduct"
@@ -120,8 +124,8 @@
           </button>
         </template>
         
-        <!-- Buyer View: Add to Cart, Add to Wishlist, and View buttons -->
-        <template v-else-if="viewState === 'buyer'">
+        <!-- Non-owner view: Add to Cart and Add to Wishlist -->
+        <template v-else>
           <button
             @click.stop="handleAddToCart"
             :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
@@ -139,54 +143,13 @@
           <button
             @click.stop="handleToggleWishlist"
             :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
           >
             <i v-if="!wishlistLoading" class="fas fa-heart text-xs sm:text-sm lg:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
             <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
-          </button>
-          
-          <button
-            @click.stop="handleViewProduct"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 min-h-[44px]"
-            :title="$t('product.viewProduct')"
-          >
-            <i class="fas fa-eye text-xs sm:text-sm lg:text-base"></i>
-          </button>
-        </template>
-        
-        <!-- Guest View: Add to Cart, Add to Wishlist, and View buttons -->
-        <template v-else-if="viewState === 'guest'">
-          <button
-            @click.stop="handleAddToCart"
-            :disabled="(product.stock_quantity || 0) <= 0 || cartLoading"
-            class="flex-1 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 shadow-lg hover:shadow-xl min-h-[44px]"
-            :class="(product.stock_quantity || 0) <= 0 
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'"
-          >
-            <i v-if="!cartLoading" class="fas fa-shopping-cart text-xs sm:text-sm lg:text-base"></i>
-            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
-            <span class="hidden xs:inline">{{ getCartButtonText() }}</span>
-            <span class="xs:hidden">Cart</span>
-          </button>
-          
-          <button
-            @click.stop="handleToggleWishlist"
-            :disabled="wishlistLoading"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-            :class="{ 'text-red-500 bg-red-50': isProductInWishlist }"
-          >
-            <i v-if="!wishlistLoading" class="fas fa-heart text-xs sm:text-sm lg:text-base" :class="{ 'text-red-500': isProductInWishlist }"></i>
-            <i v-else class="fas fa-spinner fa-spin text-xs sm:text-sm lg:text-base"></i>
-          </button>
-          
-          <button
-            @click.stop="handleViewProduct"
-            class="bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 text-xs sm:text-sm py-2 sm:py-2.5 lg:py-3 px-3 sm:px-4 lg:px-6 rounded-lg sm:rounded-xl lg:rounded-2xl font-bold transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 min-h-[44px]"
-            :title="$t('product.viewProduct')"
-          >
-            <i class="fas fa-eye text-xs sm:text-sm lg:text-base"></i>
+            <span class="hidden xs:inline">{{ t('wishlist.title') }}</span>
+            <span class="xs:hidden">Wish</span>
           </button>
         </template>
       </div>
@@ -241,7 +204,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
 import { useCartStore } from '../stores/useCartStore'
 import { useWishlist } from '../composables/useWishlist'
 import { useProduct } from '../composables/useProduct'
@@ -262,8 +224,6 @@ const props = defineProps({
 const emit = defineEmits(['product-deleted'])
 
 const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const { navigateToPath } = useLocaleRouter()
@@ -322,32 +282,37 @@ const isProductInWishlist = computed(() => {
 // Authentication and ownership computed properties
 const isAuthenticated = computed(() => !!authStore.user)
 const currentUser = computed(() => authStore.user)
+const productOwnerId = computed(() => {
+  return props.product?.seller_id || props.product?.stores?.owner_id || null
+})
 const isProductOwner = computed(() => {
-  return isAuthenticated.value && 
-         currentUser.value && 
-         props.product.seller_id === currentUser.value.id
+  return (
+    isAuthenticated.value &&
+    currentUser.value &&
+    productOwnerId.value &&
+    String(productOwnerId.value) === String(currentUser.value.id)
+  )
 })
 
 // View state logic - determines which buttons to show
 const viewState = computed(() => {
   // Ensure we have valid product data
   if (!props.product || !props.product.id) {
-    return 'guest' // Default to guest if product data is missing
+    return 'buyer'
   }
-  
-  if (!isAuthenticated.value) {
-    return 'guest' // Not logged in
-  } else if (isProductOwner.value) {
-    return 'owner' // Logged in and owns the product
-  } else {
-    return 'buyer' // Logged in but doesn't own the product
-  }
+  return isProductOwner.value ? 'owner' : 'buyer'
 })
 
 const getCartButtonText = () => {
   if (cartLoading.value) return t('product.addingToCart')
   if ((props.product.stock_quantity || 0) <= 0) return t('product.outOfStock')
   return t('product.addToCart')
+}
+
+const requireAuth = async () => {
+  if (isAuthenticated.value) return true
+  await navigateToPath('/login')
+  return false
 }
 
 // Handler functions
@@ -360,6 +325,10 @@ const handleAddToCart = async (event) => {
   
   // Check if already loading or out of stock
   if (cartLoading.value || (props.product.stock_quantity || 0) <= 0) {
+    return
+  }
+
+  if (!(await requireAuth())) {
     return
   }
   
@@ -389,6 +358,10 @@ const handleToggleWishlist = async (event) => {
   if (wishlistLoading.value) {
     return
   }
+
+  if (!(await requireAuth())) {
+    return
+  }
   
   try {
     await toggleWishlist(props.product)
@@ -406,6 +379,10 @@ const handleEditProduct = (event) => {
   
   // Check if already loading
   if (productLoading.value) {
+    return
+  }
+
+  if (!isProductOwner.value) {
     return
   }
   
@@ -427,6 +404,10 @@ const handleDeleteProduct = async (event) => {
   
   // Check if already loading
   if (productLoading.value) {
+    return
+  }
+
+  if (!isProductOwner.value) {
     return
   }
   
@@ -476,6 +457,10 @@ const handlePromoteProduct = async (event) => {
   if (productLoading.value) {
     return
   }
+
+  if (!isProductOwner.value) {
+    return
+  }
   
   // Ensure product ID exists
   if (!props.product?.id) {
@@ -483,9 +468,7 @@ const handlePromoteProduct = async (event) => {
     return
   }
   
-  // Check if user is authenticated
-  if (!isAuthenticated.value || !currentUser.value) {
-    console.error('User not authenticated')
+  if (!(await requireAuth())) {
     return
   }
   

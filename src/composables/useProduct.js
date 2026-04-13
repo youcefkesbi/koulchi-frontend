@@ -51,7 +51,9 @@ export function useProduct() {
       return
     }
 
-    navigateToPath(`/products/${productId}/edit`)
+    navigateToPath('/myannouncements/new', {
+      query: { edit_product_id: productId }
+    })
   }
 
   // Navigate to product detail page

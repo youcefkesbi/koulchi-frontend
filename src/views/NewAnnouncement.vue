@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="text-center mb-12">
         <h1 class="text-3xl md:text-4xl font-bold text-dark mb-4">
-          {{ $t('announcement.postAnnouncement') }}
+          {{ isEditMode ? 'Edit Announcement' : $t('announcement.postAnnouncement') }}
         </h1>
       </div>
 
@@ -225,7 +225,7 @@
               </span>
               <span v-else>
                 <i class="fas fa-paper-plane mr-3"></i>
-                {{ $t('announcement.submit') }}
+                {{ isEditMode ? 'Update' : $t('announcement.submit') }}
               </span>
             </button>
           </div>
@@ -236,16 +236,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import i18n from '../i18n'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { supabase } from '../lib/supabase'
 import { useProductStore } from '../stores/useProductStore'
 
 const { t } = useI18n()
-const router = useRouter()
+const route = useRoute()
 const productStore = useProductStore()
 const { navigateToPath } = useLocaleRouter()
 
@@ -256,6 +256,9 @@ const categories = ref([])
 const imageFiles = ref([])
 const imageInput = ref(null)
 const uploadProgress = ref('')
+const existingImageUrls = ref([])
+const editingProductId = computed(() => route.query.edit_product_id || '')
+const isEditMode = computed(() => !!editingProductId.value)
 
 const getCategoryName = (categoryId) => {
   const category = categories.value.find(cat => cat.id === categoryId)
@@ -287,13 +290,43 @@ const form = reactive({
   status: 'approved'
 })
 
-// Fetch categories on component mount
+const loadProductForEdit = async () => {
+  if (!isEditMode.value) return
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    await navigateToPath('/login')
+    return
+  }
+
+  const { data, error: fetchError } = await supabase
+    .from('products')
+    .select('id, name, description, price, category_id, stock_quantity, is_new, status, image_urls, seller_id')
+    .eq('id', editingProductId.value)
+    .eq('seller_id', user.id)
+    .single()
+
+  if (fetchError || !data) {
+    throw new Error('Failed to load product for editing')
+  }
+
+  form.name = data.name || ''
+  form.description = data.description || ''
+  form.price = data.price ?? ''
+  form.category_id = data.category_id || ''
+  form.stock_quantity = data.stock_quantity ?? 0
+  form.is_new = !!data.is_new
+  form.status = data.status === 'approved'
+  existingImageUrls.value = Array.isArray(data.image_urls) ? data.image_urls : []
+}
+
+// Fetch categories and product (edit mode) on component mount
 onMounted(async () => {
   try {
     await productStore.fetchCategories()
     categories.value = productStore.categories
+    await loadProductForEdit()
   } catch (err) {
-    // Categories failed to load
+    error.value = err?.message || 'Failed to load product for editing'
   }
 })
 
@@ -483,7 +516,7 @@ const submitForm = async (event) => {
       name: String(form.name).trim(),
       description: form.description ? String(form.description).trim() || null : null,
       price: priceNum,
-      image_urls: Array.isArray(imageUrls) ? imageUrls : [],
+      image_urls: [...existingImageUrls.value, ...(Array.isArray(imageUrls) ? imageUrls : [])],
       category_id: form.category_id,
       seller_id: user.id,
       stock_quantity: stockNum,
@@ -491,15 +524,32 @@ const submitForm = async (event) => {
       is_new: !!form.is_new
     }
 
-    console.log('[NewAnnouncement] Before Supabase insert, productData:', JSON.stringify(productData, null, 2))
+    console.log('[NewAnnouncement] Before Supabase save, productData:', JSON.stringify(productData, null, 2))
     uploadProgress.value = 'Saving...'
 
-    // --- Supabase insert ---
-    const { data, error: insertError } = await supabase
-      .from('products')
-      .insert(productData)
+    let data = null
+    let insertError = null
+    if (isEditMode.value) {
+      const response = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', editingProductId.value)
+        .eq('seller_id', user.id)
+        .select('id')
+        .single()
+      data = response.data
+      insertError = response.error
+    } else {
+      const response = await supabase
+        .from('products')
+        .insert(productData)
+        .select('id')
+        .single()
+      data = response.data
+      insertError = response.error
+    }
 
-    console.log('[NewAnnouncement] Supabase insert response:', { data, error: insertError ? { message: insertError.message, code: insertError.code, details: insertError.details } : null })
+    console.log('[NewAnnouncement] Supabase save response:', { data, error: insertError ? { message: insertError.message, code: insertError.code, details: insertError.details } : null })
 
     if (insertError) {
       const errMsg = insertError.message || (insertError.details && String(insertError.details)) || 'Unknown insert error'
