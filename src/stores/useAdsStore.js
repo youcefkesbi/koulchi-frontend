@@ -61,29 +61,8 @@ export const useAdsStore = defineStore('ads', () => {
         .from('ads')
         .select(`
           *,
-          products:product_id(
-            id,
-            name,
-            description,
-            price,
-            thumbnail_url,
-            image_urls,
-            category_id,
-            stock_quantity,
-            sold_count,
-            is_new,
-            status,
-            created_at
-          ),
-          stores:store_id(
-            id,
-            name,
-            logo_url,
-            banner_url,
-            location,
-            status,
-            created_at
-          )
+          product:products(*),
+          store:stores(*)
         `)
         .order('priority', { ascending: false })
         .order('created_at', { ascending: false })
@@ -100,9 +79,23 @@ export const useAdsStore = defineStore('ads', () => {
         return startDate <= nowDate && (!endDate || endDate >= nowDate)
       })
 
-      ads.value = activeAds
+      ads.value = activeAds.map(ad => {
+        const product = ad.product || ad.products || null
+        const normalizedProduct = product
+          ? {
+              ...product,
+              owner_id: product.owner_id || product.seller_id || null
+            }
+          : null
+
+        return {
+          ...ad,
+          product: normalizedProduct,
+          store: ad.store || ad.stores || null
+        }
+      })
       lastFetch.value = Date.now()
-      return activeAds
+      return ads.value
     } catch (err) {
       error.value = err.message || 'Failed to fetch ads'
       console.error('Error fetching ads:', err)
@@ -136,7 +129,7 @@ export const useAdsStore = defineStore('ads', () => {
 
   const transformAdsForDisplay = (adsList) => {
     return adsList.map(ad => {
-      if (ad.item_type === 'product' && ad.products) {
+      if (ad.item_type === 'product' && ad.product) {
         return {
           id: ad.id,
           type: 'product',
@@ -144,12 +137,12 @@ export const useAdsStore = defineStore('ads', () => {
           slotType: ad.slot_type,
           categoryId: ad.category_id,
           data: {
-            ...ad.products,
+            ...ad.product,
             // Use thumbnail_url if available, otherwise first image from image_urls array
-            image: ad.products.thumbnail_url || (Array.isArray(ad.products.image_urls) && ad.products.image_urls.length > 0 ? ad.products.image_urls[0] : null)
+            image: ad.product.thumbnail_url || (Array.isArray(ad.product.image_urls) && ad.product.image_urls.length > 0 ? ad.product.image_urls[0] : null)
           }
         }
-      } else if (ad.item_type === 'store' && ad.stores) {
+      } else if (ad.item_type === 'store' && ad.store) {
         return {
           id: ad.id,
           type: 'store',
@@ -157,9 +150,9 @@ export const useAdsStore = defineStore('ads', () => {
           slotType: ad.slot_type,
           categoryId: ad.category_id,
           data: {
-            ...ad.stores,
+            ...ad.store,
             // Use logo as main image
-            image: ad.stores.logo_url
+            image: ad.store.logo_url
           }
         }
       }

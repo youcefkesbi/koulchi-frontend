@@ -69,14 +69,13 @@
             </router-link>
           </div>
           
-          <AdGrid
-            :ads="category.products"
-            :loading="false"
-            :error="null"
-            :columns="4"
-            :max-items="maxProductsPerCategory"
-            @retry="$emit('retry')"
-          />
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <ProductCard
+              v-for="ad in category.ads"
+              :key="ad.id"
+              :product="ad.product"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -97,7 +96,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useAdsStore } from '../../stores/useAdsStore'
 import { useProductStore } from '../../stores/useProductStore'
-import AdGrid from '../AdGrid.vue'
+import ProductCard from '../ProductCard.vue'
 
 const props = defineProps({
   title: {
@@ -136,18 +135,17 @@ function getCategoryNameForSort(categoryId) {
   return String(categoryId)
 }
 
-// Browse by Category: only ads from ads table where slot_type = 'homepage_browse_by_category_products',
-// grouped by category_id. Only product-type ads with valid category_id and product data.
+// Browse by Category: product ads grouped by category_id, passed as ad.product to ProductCard.
 const categoriesWithProducts = computed(() => {
   const browseByCategoryAds = adsStore.homepageBrowseByCategoryProducts || []
   if (!browseByCategoryAds.length) return []
 
-  // Only product ads with valid category_id and product data
+  // Only product ads with valid category_id and related product
   const validProductAds = browseByCategoryAds.filter(
     ad => ad.slot_type === 'homepage_browse_by_category_products' &&
           ad.item_type === 'product' &&
           ad.category_id != null &&
-          ad.products != null
+          ad.product?.id
   )
 
   // Group by category_id (normalize to string for consistent grouping)
@@ -159,16 +157,15 @@ const categoriesWithProducts = computed(() => {
     byCategory[key].push(ad)
   }
 
-  // Build category sections: transform ads to display format, limit per category, sort by category name
+  // Build category sections, limit per category, sort by localized category name.
   const sections = Object.entries(byCategory).map(([categoryId, categoryAds]) => {
-    const transformed = adsStore.transformAdsForDisplay(categoryAds).filter(Boolean)
-    const limited = transformed.slice(0, props.maxProductsPerCategory)
+    const limited = categoryAds.slice(0, props.maxProductsPerCategory)
     return {
       id: categoryId,
       name: getCategoryNameForSort(categoryId),
-      products: limited
+      ads: limited
     }
-  }).filter(cat => cat.products.length > 0)
+  }).filter(cat => cat.ads.length > 0)
 
   // Sort categories by localized name for stable order
   sections.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }))
