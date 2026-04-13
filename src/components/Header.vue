@@ -146,8 +146,8 @@
             </div>
           </div>
 
-          <!-- Categories Dropdown (desktop only) — z-index above flex siblings; panel must not be clipped by header overflow -->
-          <div class="relative z-60 categories-dropdown">
+          <!-- Categories Dropdown (desktop only) — hidden on dedicated login page -->
+          <div v-if="showHeaderCategories" class="relative z-60 categories-dropdown">
             <button
               type="button"
               @click.stop="toggleCategoriesMenu"
@@ -456,7 +456,7 @@
         </div>
 
         <!-- Mobile Categories -->
-        <div class="relative">
+        <div v-if="showHeaderCategories" class="relative">
           <button
             @click.stop="categoriesMenuOpen = !categoriesMenuOpen"
             class="w-full flex items-center justify-between px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50 cursor-pointer touch-manipulation"
@@ -555,8 +555,6 @@
       </div>
     </div>
 
-    <!-- Login Modal -->
-    <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
   </header>
 </template>
 
@@ -575,7 +573,6 @@ import { useProductStore } from '../stores/useProductStore'
 import { useStoreStore } from '../stores/useStoresStore'
 import { useNotificationStore } from '../stores/useNotificationStore'
 import LanguageSwitcher from './LanguageSwitcher.vue'
-import LoginModal from './LoginModal.vue'
 import Logo from './Logo.vue'
 
 const { t } = useI18n()
@@ -594,11 +591,12 @@ const { getLocalizedPath, navigateToPath } = useLocaleRouter()
 // Define emits
 const emit = defineEmits(['toggle-admin-sidebar'])
 
+const showHeaderCategories = computed(() => route.name !== 'Login')
+
 const searchQuery = ref('')
 const userMenuOpen = ref(false)
 const categoriesMenuOpen = ref(false)
 const mobileMenuOpen = ref(false)
-const showLoginModal = ref(false)
 const showSearchResults = ref(false)
 const searchResultsProducts = ref([])
 const searchResultsStores = ref([])
@@ -939,7 +937,7 @@ const handlePostAnnouncement = (event) => {
   if (authStore.isAuthenticated) {
     navigateToPath('/myannouncements/new')
   } else {
-    showLoginModal.value = true
+    navigateToPath('/login')
   }
 }
 
@@ -960,12 +958,12 @@ const handlePostAnnouncementMobile = (event) => {
   if (authStore.isAuthenticated) {
     navigateToPath('/myannouncements/new')
   } else {
-    showLoginModal.value = true
+    navigateToPath('/login')
   }
 }
 
 const handleLoginClick = () => {
-  showLoginModal.value = true
+  navigateToPath('/login')
 }
 
 // Mobile-specific handlers
@@ -983,10 +981,7 @@ const handleLoginClickMobile = (event) => {
     event.preventDefault()
     event.stopPropagation()
   }
-  // Avoid double-run when both touchend and click fire on some devices
-  if (showLoginModal.value) return
-  // Open modal first so it is visible before menu unmounts (fixes mobile tap/click loss when menu closes)
-  showLoginModal.value = true
+  navigateToPath('/login')
   nextTick(() => {
     mobileMenuOpen.value = false
   })

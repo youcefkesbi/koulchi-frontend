@@ -300,8 +300,6 @@
     </div>
   </div>
 
-  <!-- Login Modal for non-authenticated users -->
-  <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
 </template>
 
 <script setup>
@@ -313,7 +311,6 @@ import { useCartStore } from '../stores/useCartStore'
 import { useOrdersStore } from '../stores/useOrdersStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import { supabase } from '../lib/supabase'
-import LoginModal from '../components/LoginModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -322,8 +319,6 @@ const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 const authStore = useAuthStore()
 const { navigateToPath, getLocalizedPath } = useLocaleRouter()
-
-const showLoginModal = ref(false)
 
 const customerInfo = ref({
   fullName: '',
@@ -455,7 +450,7 @@ const getLocalizedRoute = (path) => {
 const placeOrder = async () => {
   // Check if user is authenticated
   if (!authStore.isAuthenticated) {
-    showLoginModal.value = true
+    navigateToPath('/login')
     return
   }
 

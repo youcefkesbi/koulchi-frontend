@@ -179,27 +179,24 @@
     </section>
   </div>
 
-  <!-- Login Modal for non-authenticated users -->
-  <LoginModal :isOpen="showLoginModal" @close="showLoginModal = false" />
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getLocalizedPath } from '../lib/i18n-utils'
+import { useLocaleRouter } from '../composables/useLocaleRouter'
 import { useCartStore } from '../stores/useCartStore'
 import { useProductStore } from '../stores/useProductStore'
 import { useAuthStore } from '../stores/useAuthStore'
 import ProductCard from '../components/ProductCard.vue'
-import LoginModal from '../components/LoginModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const authStore = useAuthStore()
-
-const showLoginModal = ref(false)
+const { navigateToPath } = useLocaleRouter()
 
 // Get localized route path
 const getLocalizedRoute = (path) => {
@@ -239,7 +236,7 @@ const removeItem = async (productId) => {
 
 const handleCheckout = () => {
   if (!authStore.isAuthenticated) {
-    showLoginModal.value = true
+    navigateToPath('/login')
   } else {
     // User is authenticated, proceed to checkout using router
     router.push(getLocalizedRoute('/checkout'))

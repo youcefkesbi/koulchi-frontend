@@ -13,6 +13,7 @@ import OrderConfirmation from '../views/OrderConfirmation.vue'
 import StoreDashboard from '../views/StoreDashboard.vue'
 import Account from '../views/Account.vue'
 import AuthCallback from '../views/AuthCallback.vue'
+import Login from '../views/Login.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
@@ -139,6 +140,11 @@ const baseRoutes = [
     path: 'reset-password',
     name: 'ResetPassword',
     component: ResetPassword
+  },
+  {
+    path: 'login',
+    name: 'Login',
+    component: Login
   },
   {
     path: 'category/:categoryId',
@@ -427,6 +433,21 @@ router.beforeEach(async (to, from, next) => {
   
   // Update route meta with locale
   to.meta.locale = locale
+
+  // Logged-in users should not stay on the login page
+  if (to.name === 'Login') {
+    try {
+      const { useAuthStore } = await import('../stores/useAuthStore')
+      const authStore = useAuthStore()
+      const hasSession = await authStore.checkAuthStatus()
+      if (hasSession && authStore.isAuthenticated) {
+        next({ path: `/${locale}`, replace: true })
+        return
+      }
+    } catch (_) {
+      /* continue to login */
+    }
+  }
   
   // Handle authentication requirements
   if (to.meta.requiresAuth) {

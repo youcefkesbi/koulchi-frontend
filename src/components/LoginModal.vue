@@ -1,12 +1,29 @@
 <template>
-  <!-- Simple Modal Structure -->
-  <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto">
-    <!-- Backdrop -->
-    <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
-    
-    <!-- Modal Content -->
-    <div class="flex min-h-full items-center justify-center p-4 sm:p-6">
-      <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
+  <!-- Modal: overlay + centered card. Page: flat on white (used by Login view). -->
+  <div
+    v-if="isVisible"
+    :class="isPageVariant ? 'w-full' : 'fixed inset-0 z-50 overflow-y-auto'"
+  >
+    <div
+      v-if="!isPageVariant"
+      class="fixed inset-0 bg-black bg-opacity-50"
+      @click="closeModal"
+    ></div>
+
+    <div
+      :class="
+        isPageVariant
+          ? 'w-full'
+          : 'flex min-h-full items-center justify-center p-4 sm:p-6'
+      "
+    >
+      <div
+        :class="
+          isPageVariant
+            ? 'w-full max-w-md mx-auto bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 relative'
+            : 'w-full max-w-md bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto'
+        "
+      >
 
 
         
@@ -16,6 +33,8 @@
             {{ isSignup ? t('signup') : t('login') }}
           </h3>
           <button
+            v-if="!isPageVariant"
+            type="button"
             @click="closeModal"
             class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
           >
@@ -340,6 +359,12 @@ const props = defineProps({
   isOpen: {
     type: Boolean,
     default: false
+  },
+  /** 'modal' = overlay dialog; 'page' = embedded on full white page (no dimmed backdrop). */
+  variant: {
+    type: String,
+    default: 'modal',
+    validator: (v) => ['modal', 'page'].includes(v)
   }
 })
 
@@ -348,17 +373,22 @@ const emit = defineEmits(['close'])
 const authStore = useAuthStore()
 const { t } = useI18n()
 
-// Watch for prop changes (optional)
-watch(() => props.isOpen, (newValue, oldValue) => {
-  if (newValue) {
-    // Reset forms when modal opens
+const isPageVariant = computed(() => props.variant === 'page')
+const isVisible = computed(() => props.isOpen || isPageVariant.value)
+
+// Reset when modal opens or page variant mounts
+watch(
+  isVisible,
+  (visible) => {
+    if (!visible) return
     Object.assign(signupForm, { fullName: '', email: '', password: '', confirmPassword: '' })
     Object.assign(loginForm, { email: '', password: '' })
     authStore.clearError()
     successMessage.value = ''
     emailConfirmationRequired.value = false
-  }
-})
+  },
+  { immediate: true }
+)
 
 const isSignup = ref(false)
 const showForgotPassword = ref(false)
