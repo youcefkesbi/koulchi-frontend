@@ -16,6 +16,7 @@ import AuthCallback from '../views/AuthCallback.vue'
 import Login from '../views/Login.vue'
 import Wishlist from '../views/Wishlist.vue'
 import ResetPassword from '../views/ResetPassword.vue'
+import ForgotPassword from '../views/ForgotPassword.vue'
 import CategoryPage from '../views/CategoryPage.vue'
 import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
@@ -140,6 +141,11 @@ const baseRoutes = [
     path: 'reset-password',
     name: 'ResetPassword',
     component: ResetPassword
+  },
+  {
+    path: 'forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword
   },
   {
     path: 'login',
@@ -288,6 +294,23 @@ const createLocalizedRoutes = () => {
       return `/${bestLocale}`
     }
   })
+
+  // Public auth routes without locale prefix (required by Supabase redirect URLs)
+  routes.push({
+    path: '/auth/callback',
+    name: 'AuthCallbackPublic',
+    component: AuthCallback
+  })
+  routes.push({
+    path: '/reset-password',
+    name: 'ResetPasswordPublic',
+    component: ResetPassword
+  })
+  routes.push({
+    path: '/forgot-password',
+    name: 'ForgotPasswordPublic',
+    component: ForgotPassword
+  })
   
   // Create main locale route with children
   routes.push({
@@ -405,6 +428,11 @@ async function getUser(next) {
 
 // Global router guard for locale handling and authentication
 router.beforeEach(async (to, from, next) => {
+  if (['AuthCallbackPublic', 'ResetPasswordPublic', 'ForgotPasswordPublic'].includes(to.name)) {
+    next()
+    return
+  }
+
   // Handle root redirect
   if (to.name === 'RootRedirect') {
     const bestLocale = getBestLocale()

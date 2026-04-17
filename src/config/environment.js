@@ -86,26 +86,25 @@ export const validateEnvironment = () => {
 }
 
 export const getAuthRedirectUrl = (path = '') => {
-  const baseUrl = environment.baseUrl
+  const baseUrl = window.location.origin
   const cleanPath = path.startsWith('/') ? path : `/${path}`
   return `${baseUrl}${cleanPath}`
 }
 
 export const getOAuthRedirectUrl = () => {
-  return environment.baseUrl
+  return window.location.origin
 }
 
 /**
  * Full URL for OAuth callback - must be whitelisted in Supabase Dashboard > Auth > URL Configuration.
- * Uses default locale path so one URL works for all users; AuthCallback then redirects to home.
+ * Uses runtime origin so dev/prod domains are selected automatically.
  */
 export const getAuthCallbackUrl = () => {
-  const base = environment.baseUrl.replace(/\/$/, '')
-  return `${base}/en/auth/callback`
+  return `${window.location.origin}/auth/callback`
 }
 
 export const getPasswordResetRedirectUrl = () => {
-  return getAuthRedirectUrl('reset-password')
+  return `${window.location.origin}/reset-password`
 }
 
 export const getAppBranding = () => {

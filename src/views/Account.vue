@@ -186,9 +186,9 @@
                 class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all duration-300"
                 :placeholder="$t('profile.currentPasswordPlaceholder')"
               />
-              <a href="/reset-password" class="text-xs text-primary hover:underline mt-1 inline-block">
+              <router-link to="/forgot-password" class="text-xs text-primary hover:underline mt-1 inline-block">
                 {{ $t('errors.forgotPassword') }}
-              </a>
+              </router-link>
             </div>
 
             <!-- New Password -->

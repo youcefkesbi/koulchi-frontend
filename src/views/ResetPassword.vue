@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-light-gray to-white flex items-center justify-center p-4">
+  <div class="min-h-screen bg-linear-to-br from-light-gray to-white flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <!-- Header -->
       <div class="text-center mb-8">
@@ -12,7 +12,32 @@
 
       <!-- Reset Password Form -->
       <div class="bg-white rounded-2xl shadow-soft p-8">
-        <form @submit.prevent="handleResetPassword" class="space-y-6" novalidate>
+        <!-- Session Check Loading -->
+        <div v-if="checkingSession" class="text-center py-8">
+          <i class="fas fa-spinner fa-spin text-primary text-2xl mb-3"></i>
+          <p class="text-gray-600">{{ t('please_wait') }}</p>
+        </div>
+
+        <!-- Invalid/Expired Link -->
+        <div v-else-if="sessionError" class="space-y-4">
+          <div class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+            <div class="flex items-start space-x-3 space-x-reverse">
+              <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 shrink-0"></i>
+              <div class="flex-1">
+                <p class="text-red-700 text-sm">{{ sessionError }}</p>
+              </div>
+            </div>
+          </div>
+          <router-link
+            to="/forgot-password"
+            class="block w-full text-center bg-primary text-white py-3 rounded-xl hover:bg-primary-dark transition-all duration-300 font-semibold"
+          >
+            {{ t('errors.forgotPassword') }}
+          </router-link>
+        </div>
+
+        <!-- Active Recovery Session -->
+        <form v-else @submit.prevent="handleResetPassword" class="space-y-6" novalidate>
           <!-- New Password -->
           <div>
             <label class="block mb-2 text-sm font-medium text-gray-700">{{ t('newPassword') }}</label>
@@ -56,7 +81,7 @@
           <!-- Error Message -->
           <div v-if="error" class="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
             <div class="flex items-start space-x-3 space-x-reverse">
-              <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 flex-shrink-0"></i>
+              <i class="fas fa-exclamation-triangle text-red-600 mt-0.5 shrink-0"></i>
               <div class="flex-1">
                 <p class="text-red-700 text-sm">{{ error }}</p>
               </div>
@@ -66,7 +91,7 @@
           <!-- Success Message -->
           <div v-if="successMessage" class="p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
             <div class="flex items-start space-x-3 space-x-reverse">
-              <i class="fas fa-check-circle text-green-600 mt-0.5 flex-shrink-0"></i>
+              <i class="fas fa-check-circle text-green-600 mt-0.5 shrink-0"></i>
               <div class="flex-1">
                 <p class="text-green-700 text-sm">{{ successMessage }}</p>
               </div>
@@ -76,7 +101,7 @@
           <!-- Submit Button -->
           <button 
             type="submit" 
-            :disabled="loading || !isFormValid" 
+            :disabled="loading || !isFormValid"
             class="w-full bg-primary text-white py-3 rounded-xl hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
@@ -96,25 +121,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/useAuthStore'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleRouter } from '../composables/useLocaleRouter'
+import { supabase } from '../lib/supabase'
 
-const router = useRouter()
-const route = useRoute()
-const authStore = useAuthStore()
 const { t } = useI18n()
 const { navigateToPath } = useLocaleRouter()
 
 const loading = ref(false)
 const error = ref('')
 const successMessage = ref('')
+const checkingSession = ref(true)
+const sessionError = ref('')
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
-const resetToken = ref('')
-const resetEmail = ref('')
 
 const form = reactive({
   newPassword: '',
@@ -130,31 +151,40 @@ const invalidLinkMessage = () => {
 
 // Form validation
 const isFormValid = computed(() => {
-  return form.newPassword && 
-         form.confirmPassword && 
+  return form.newPassword &&
+         form.confirmPassword &&
          form.newPassword === form.confirmPassword &&
-         form.newPassword.length >= 6 &&
-         !!resetToken.value &&
-         !!resetEmail.value
+         form.newPassword.length >= 6
 })
 
-const syncResetParams = () => {
-  resetToken.value = route.query.token || ''
-  resetEmail.value = route.query.email || ''
-}
+const ensureRecoverySession = async () => {
+  checkingSession.value = true
+  sessionError.value = ''
 
-watch(
-  () => route.query,
-  () => {
-    syncResetParams()
-    if (!resetToken.value || !resetEmail.value) {
-      error.value = invalidLinkMessage()
-    } else {
-      error.value = ''
+  try {
+    let session = null
+
+    // Supabase may need a brief time to hydrate the recovery session from URL hash.
+    for (let i = 0; i < 12; i++) {
+      const { data, error: sessionFetchError } = await supabase.auth.getSession()
+      if (sessionFetchError) throw sessionFetchError
+      if (data?.session?.user) {
+        session = data.session
+        break
+      }
+      await new Promise(resolve => setTimeout(resolve, 250))
     }
-  },
-  { immediate: true }
-)
+
+    if (!session?.user) {
+      sessionError.value = invalidLinkMessage()
+    }
+  } catch (err) {
+    console.error('Reset password session error:', err)
+    sessionError.value = invalidLinkMessage()
+  } finally {
+    checkingSession.value = false
+  }
+}
 
 const handleResetPassword = async () => {
   try {
@@ -162,7 +192,7 @@ const handleResetPassword = async () => {
     error.value = ''
     successMessage.value = ''
 
-    if (!resetToken.value || !resetEmail.value) {
+    if (checkingSession.value || sessionError.value) {
       error.value = invalidLinkMessage()
       return
     }
@@ -179,21 +209,17 @@ const handleResetPassword = async () => {
       return
     }
 
-    const result = await authStore.completePasswordReset({
-      email: resetEmail.value,
-      token: resetToken.value,
-      newPassword: form.newPassword
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: form.newPassword
     })
-    
-    if (result?.success) {
-      successMessage.value = t('passwordUpdatedSuccessfully')
-      
-      setTimeout(() => {
-        navigateToPath('/')
-      }, 2000)
-    } else if (result?.message) {
-      error.value = result.message
-    }
+
+    if (updateError) throw updateError
+
+    successMessage.value = t('passwordUpdatedSuccessfully')
+
+    setTimeout(() => {
+      navigateToPath('/login')
+    }, 1500)
   } catch (err) {
     error.value = err.message || t('passwordUpdateFailed')
   } finally {
@@ -202,11 +228,7 @@ const handleResetPassword = async () => {
 }
 
 onMounted(() => {
-  // Check if user is authenticated (should be after password reset)
-  if (!authStore.isAuthenticated) {
-    // If not authenticated, this might be a fresh password reset
-    // The user should be able to set their password
-  }
+  ensureRecoverySession()
 })
 </script>
 

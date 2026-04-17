@@ -5,6 +5,7 @@ import path from 'path'
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const devPort = Number(env.VITE_DEV_PORT || 5173)
   
   return {
     plugins: [
@@ -12,7 +13,7 @@ export default defineConfig(({ command, mode }) => {
       tailwindcss()
     ],
     server: {
-      port: 3000,
+      port: devPort,
       open: true,
       env: env
     },

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '../lib/supabase'
-import { getPasswordResetRedirectUrl, getAuthCallbackUrl } from '../config/environment.js'
+import { getPasswordResetRedirectUrl } from '../config/environment.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -128,6 +128,9 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
   }
+
+  // Use runtime origin so OAuth works in both dev and prod without env coupling.
+  const getOAuthRedirectTo = () => `${window.location.origin}/auth/callback`
 
   const refreshAuth = async () => {
     try {
@@ -355,11 +358,10 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
       
-      const redirectTo = getAuthCallbackUrl()
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
+          redirectTo: getOAuthRedirectTo(),
           queryParams: {
             access_type: 'offline',
             prompt: 'select_account',
@@ -394,11 +396,10 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = true
       error.value = null
 
-      const redirectTo = getAuthCallbackUrl()
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo,
+          redirectTo: getOAuthRedirectTo(),
           queryParams: {
             scope: 'email,public_profile',
             display: 'popup',
@@ -510,36 +511,6 @@ export const useAuthStore = defineStore('auth', () => {
     throw new Error('Profile updates should use the useProfile composable')
   }
 
-  const callAuthEndpoint = async (path, payload) => {
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-
-    const response = await fetch(`${apiBase}/api/auth${path}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    })
-
-    let responseBody = null
-    try {
-      responseBody = await response.json()
-    } catch (err) {
-      // ignore JSON parsing errors
-    }
-
-    if (!response.ok) {
-      const message = responseBody?.message || 'Unable to process password reset request.'
-      throw new Error(message)
-    }
-
-    return responseBody || { success: true }
-  }
-
-  const callForgotPasswordEndpoint = async (payload) => {
-    return callAuthEndpoint('/forgot-password', payload)
-  }
-
   const resetPasswordForEmail = async (email) => {
     try {
       loading.value = true
@@ -549,10 +520,16 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error('Email is required')
       }
 
-      return await callForgotPasswordEndpoint({
-        email,
+      const { data, error: authError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: getPasswordResetRedirectUrl()
       })
+
+      if (authError) throw authError
+
+      return {
+        success: true,
+        data
+      }
     } catch (err) {
       error.value = err.message
       throw err
@@ -570,11 +547,16 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error('No authenticated user email found')
       }
 
-      return await callForgotPasswordEndpoint({
-        email: user.value.email,
-        redirectTo: getPasswordResetRedirectUrl(),
-        authenticated: true
+      const { data, error: authError } = await supabase.auth.resetPasswordForEmail(user.value.email, {
+        redirectTo: getPasswordResetRedirectUrl()
       })
+
+      if (authError) throw authError
+
+      return {
+        success: true,
+        data
+      }
     } catch (err) {
       error.value = err.message
       throw err
@@ -595,28 +577,6 @@ export const useAuthStore = defineStore('auth', () => {
       if (authError) throw authError
 
       return { success: true }
-    } catch (err) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const completePasswordReset = async ({ email, token, newPassword }) => {
-    try {
-      loading.value = true
-      error.value = null
-
-      if (!email || !token || !newPassword) {
-        throw new Error('Missing required fields for password reset')
-      }
-
-      return await callAuthEndpoint('/reset-password', {
-        email,
-        token,
-        newPassword
-      })
     } catch (err) {
       error.value = err.message
       throw err
@@ -856,7 +816,6 @@ const loadUserWithProfile = async (authUser) => {
     createProfileIfNotExists,
     resetPasswordForEmail,
     resetPasswordForCurrentUser,
-    completePasswordReset,
     updatePassword,
     resendEmailConfirmation,
     initAuth,
