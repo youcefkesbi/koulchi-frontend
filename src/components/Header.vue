@@ -146,8 +146,8 @@
             </div>
           </div>
 
-          <!-- Categories Dropdown (desktop only) — hidden on dedicated login page -->
-          <div v-if="showHeaderCategories" class="relative z-60 categories-dropdown">
+          <!-- Categories Dropdown (desktop only) -->
+          <div class="relative z-60 categories-dropdown">
             <button
               type="button"
               @click.stop="toggleCategoriesMenu"
@@ -456,7 +456,7 @@
         </div>
 
         <!-- Mobile Categories -->
-        <div v-if="showHeaderCategories" class="relative">
+        <div class="relative">
           <button
             @click.stop="categoriesMenuOpen = !categoriesMenuOpen"
             class="w-full flex items-center justify-between px-4 py-3 text-neutral-700 hover:text-primary transition-all duration-300 rounded-2xl hover:bg-neutral-50 cursor-pointer touch-manipulation"
@@ -590,8 +590,6 @@ const { getLocalizedPath, navigateToPath } = useLocaleRouter()
 
 // Define emits
 const emit = defineEmits(['toggle-admin-sidebar'])
-
-const showHeaderCategories = computed(() => route.name !== 'Login')
 
 const searchQuery = ref('')
 const userMenuOpen = ref(false)
