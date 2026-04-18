@@ -7,12 +7,23 @@
         v-if="productImage" 
         :src="productImage" 
         :alt="product.name"
-        class="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+        class="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-700 ease-out cursor-pointer"
+        role="link"
+        tabindex="0"
+        @click.stop="handleViewProduct"
+        @keydown.enter.prevent="handleViewProduct"
         @error="handleImageError"
       />
       
       <!-- No Image Placeholder -->
-      <div v-else class="w-full h-64 sm:h-72 flex items-center justify-center">
+      <div
+        v-else
+        class="w-full h-64 sm:h-72 flex items-center justify-center cursor-pointer"
+        role="link"
+        tabindex="0"
+        @click.stop="handleViewProduct"
+        @keydown.enter.prevent="handleViewProduct"
+      >
         <div class="text-center text-gray-400">
           <i class="fas fa-image text-6xl mb-4 opacity-40"></i>
           <p class="text-sm font-medium text-gray-500">{{ $t('product.noImage') }}</p>

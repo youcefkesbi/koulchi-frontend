@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS public.stores (
     location TEXT,
     external_buttons JSONB DEFAULT '[]',
     customization_settings JSONB DEFAULT '{}',
-    shipping_account_id TEXT,
     current_announcements INTEGER DEFAULT 0,
     current_images INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,

@@ -1,6 +1,3 @@
--- Drop and recreate the view without features.name
-DROP VIEW IF EXISTS public.store_details CASCADE;
-
 CREATE VIEW public.store_details AS
 SELECT 
     s.*,
