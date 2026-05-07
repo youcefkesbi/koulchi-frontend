@@ -39,22 +39,16 @@
       <div class="section-header">
         <h2 class="section-title">{{ title }}</h2>
         <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
-        <router-link 
-          v-if="showViewAll" 
-          :to="viewAllLink" 
-          class="view-all-link"
-        >
-          {{ $t('sections.viewAll') }}
-          <i class="fas fa-arrow-left"></i>
-        </router-link>
       </div>
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <ProductCard
+      <div class="homepage-featured-products-grid">
+        <div
           v-for="ad in featuredProductAds"
           :key="ad.id"
-          :product="ad.product"
-        />
+          class="homepage-featured-product-item"
+        >
+          <ProductCard :product="ad.product" />
+        </div>
       </div>
     </div>
 
@@ -82,14 +76,6 @@ const props = defineProps({
   subtitle: {
     type: String,
     default: null
-  },
-  showViewAll: {
-    type: Boolean,
-    default: true
-  },
-  viewAllLink: {
-    type: String,
-    default: '/products'
   },
   maxProducts: {
     type: Number,
@@ -271,19 +257,30 @@ const handleRetry = async () => {
   margin-bottom: 1rem;
 }
 
-.view-all-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #059669;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
+.homepage-featured-products-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
 }
 
-.view-all-link:hover {
-  color: #047857;
-  text-decoration: underline;
+.homepage-featured-product-item {
+  max-width: 18rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.homepage-featured-product-item :deep(.product-card) {
+  border-radius: 1.25rem;
+}
+
+.homepage-featured-product-item :deep(.product-card img),
+.homepage-featured-product-item :deep(.product-card .no-image-placeholder) {
+  height: 14rem !important;
+}
+
+.homepage-featured-product-item :deep(.product-info-container) {
+  padding: 0.875rem;
+  gap: 0.625rem;
 }
 
 /* Empty State */
@@ -322,6 +319,30 @@ const handleRetry = async () => {
     width: 250px;
   }
   
+}
+
+@media (min-width: 640px) {
+  .homepage-featured-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .homepage-featured-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .homepage-featured-products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1536px) {
+  .homepage-featured-products-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 480px) {

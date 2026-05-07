@@ -69,12 +69,14 @@
             </router-link>
           </div>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <ProductCard
+          <div class="browse-by-category-products-grid">
+            <div
               v-for="ad in category.ads"
               :key="ad.id"
-              :product="ad.product"
-            />
+              class="browse-by-category-product-item"
+            >
+              <ProductCard :product="ad.product" />
+            </div>
           </div>
         </div>
       </div>
@@ -401,6 +403,32 @@ const getCategoryName = (categoryId) => {
   text-decoration: underline;
 }
 
+.browse-by-category-products-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.browse-by-category-product-item {
+  max-width: 17rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.browse-by-category-product-item :deep(.product-card) {
+  border-radius: 1.25rem;
+}
+
+.browse-by-category-product-item :deep(.product-card img),
+.browse-by-category-product-item :deep(.product-card .no-image-placeholder) {
+  height: 13.5rem !important;
+}
+
+.browse-by-category-product-item :deep(.product-info-container) {
+  padding: 0.875rem;
+  gap: 0.625rem;
+}
+
 /* Empty State */
 .categories-empty {
   display: flex;
@@ -447,6 +475,30 @@ const getCategoryName = (categoryId) => {
   
   .skeleton-title {
     width: 250px;
+  }
+}
+
+@media (min-width: 640px) {
+  .browse-by-category-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .browse-by-category-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .browse-by-category-products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1536px) {
+  .browse-by-category-products-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 

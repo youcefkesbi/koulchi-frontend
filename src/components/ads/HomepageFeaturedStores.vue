@@ -39,14 +39,6 @@
       <div class="section-header">
         <h2 class="section-title">{{ title }}</h2>
         <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
-        <router-link 
-          v-if="showViewAll" 
-          :to="viewAllLink" 
-          class="view-all-link"
-        >
-          {{ $t('sections.viewAll') }}
-          <i class="fas fa-arrow-left"></i>
-        </router-link>
       </div>
       
       <AdGrid
@@ -83,14 +75,6 @@ const props = defineProps({
   subtitle: {
     type: String,
     default: null
-  },
-  showViewAll: {
-    type: Boolean,
-    default: true
-  },
-  viewAllLink: {
-    type: String,
-    default: '/stores'
   },
   maxStores: {
     type: Number,
@@ -264,21 +248,6 @@ const error = computed(() => adsStore.error)
   font-size: 1.125rem;
   color: #6b7280;
   margin-bottom: 1rem;
-}
-
-.view-all-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #059669;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.view-all-link:hover {
-  color: #047857;
-  text-decoration: underline;
 }
 
 /* Empty State */

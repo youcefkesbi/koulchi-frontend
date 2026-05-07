@@ -16,8 +16,6 @@
       <section id="featured-products" class="homepage-section my-slide-up">
         <HomepageFeaturedProducts
           :title="t('sections.featuredProducts')"
-          :show-view-all="true"
-          view-all-link="/products"
           :max-products="8"
           @retry="loadAds"
         />
@@ -27,8 +25,6 @@
       <section class="homepage-section my-slide-up">
         <HomepageFeaturedStores
           :title="t('sections.featuredStores')"
-          :show-view-all="true"
-          view-all-link="/stores"
           :max-stores="6"
           @retry="loadAds"
         />
