@@ -660,7 +660,7 @@ const mobileUserLinks = computed(() => {
     links.push({ path: '/subscription', icon: 'fas fa-crown', label: t('header.subscription') || 'Subscription' })
   }
   if (userStoreStatus.value.store_id) {
-    links.push({ path: `/store/${userStoreStatus.value.store_id}`, icon: 'fas fa-store', label: t('stores.myStore') })
+    links.push({ path: '/vendor/store', icon: 'fas fa-store', label: t('stores.myStore') })
   }
   if (isEmployee.value) {
     links.push({ path: '/employee', icon: 'fas fa-gavel', label: t('header.moderation') })
@@ -1096,7 +1096,7 @@ const handleGoToStoreDashboard = async () => {
   try {
     // Check if user has a store using the optimized status
     if (userStoreStatus.value.store_id) {
-      navigateToPath(`/store/${userStoreStatus.value.store_id}`)
+      navigateToPath('/vendor/store')
     } else {
       // If no store exists, redirect to create store page
       navigateToPath('/dashboard/store/create')

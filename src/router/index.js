@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { environment } from '../config/environment'
 import i18n from '../i18n'
 import { useLocaleStore } from '../stores/useLocaleStore'
-import { authGuard, adminGuard, employeeGuard, vendorGuard, storeOwnerGuard } from './guards'
+import { authGuard, adminGuard, employeeGuard, vendorGuard, storeOwnerGuard, vendorStoreDashboardGuard } from './guards'
 import Home from '../views/Home.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
@@ -22,6 +22,9 @@ import Stores from '../views/Stores.vue'
 import StoreDetail from '../views/StoreDetail.vue'
 import StoreProfile from '../views/StoreProfile.vue'
 import MyStoreInfos from '../views/MyStoreInfos.vue'
+import PublicStorePage from '../views/PublicStorePage.vue'
+import VendorStoreLayout from '../views/VendorStoreLayout.vue'
+import VendorStoreSettings from '../views/VendorStoreSettings.vue'
 import Profile from '../views/Profile.vue'
 import NotFound from '../views/NotFound.vue'
 import AdminTab from '../components/dashboard/AdminTab.vue'
@@ -253,11 +256,49 @@ const baseRoutes = [
     meta: { requiresAuth: true }
   },
   {
-    path: 'store/:id',
+    path: 'dashboard/store/:id',
     name: 'MyStoreInfos',
     component: MyStoreInfos,
     meta: { requiresAuth: true },
     beforeEnter: storeOwnerGuard
+  },
+  {
+    path: 'store/:slug',
+    name: 'PublicStorePage',
+    component: PublicStorePage,
+    props: true
+  },
+  {
+    path: 'vendor/store',
+    component: VendorStoreLayout,
+    meta: { requiresAuth: true },
+    beforeEnter: vendorStoreDashboardGuard,
+    children: [
+      {
+        path: '',
+        name: 'VendorStoreDashboard',
+        component: StoreDashboard,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'products',
+        name: 'VendorStoreProducts',
+        component: () => import('../views/MyStoreProducts.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'orders',
+        name: 'VendorStoreOrders',
+        component: () => import('../views/OrdersSales.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'settings',
+        name: 'VendorStoreSettings',
+        component: VendorStoreSettings,
+        meta: { requiresAuth: true }
+      }
+    ]
   },
   {
     path: 'store/:id/upgrade',

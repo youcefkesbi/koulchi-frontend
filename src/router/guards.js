@@ -307,3 +307,43 @@ export const storeOwnerGuard = async (to, from, next) => {
     next('/dashboard')
   }
 }
+
+/**
+ * Vendor store dashboard guard.
+ * Protects /vendor/store routes and ensures the authenticated user owns a store.
+ */
+export const vendorStoreDashboardGuard = async (to, from, next) => {
+  const authStore = useAuthStore()
+  const loc = to.params.locale || to.meta.locale || 'en'
+
+  try {
+    const hasSession = await authStore.checkAuthStatus()
+    if (!hasSession || !authStore.user?.id) {
+      return next(`/${loc}/login`)
+    }
+
+    const { data: ownedStore, error } = await supabase
+      .from('stores')
+      .select('id, owner_id')
+      .eq('owner_id', authStore.user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error checking vendor store ownership:', error)
+      return next({ path: `/${loc}/dashboard`, query: { error: 'store_access_denied' } })
+    }
+
+    if (!ownedStore?.id) {
+      return next({ path: `/${loc}/dashboard/store/create`, query: { error: 'store_not_found' } })
+    }
+
+    // Expose the current owner's store id to child routes/components.
+    to.meta.vendorStoreId = ownedStore.id
+    return next()
+  } catch (error) {
+    console.error('Vendor store dashboard guard error:', error)
+    return next({ path: `/${loc}/dashboard`, query: { error: 'store_access_denied' } })
+  }
+}
