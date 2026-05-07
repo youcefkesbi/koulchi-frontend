@@ -321,6 +321,7 @@ const handleRetry = async () => {
   .skeleton-title {
     width: 250px;
   }
+  
 }
 
 @media (max-width: 480px) {
@@ -335,5 +336,6 @@ const handleRetry = async () => {
   .skeleton-title {
     width: 200px;
   }
+
 }
 </style>

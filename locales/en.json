@@ -97,6 +97,12 @@
     "moderation": "Moderation",
     "subscription": "Subscription"
   },
+  "ordersPage": {
+    "purchases": "Purchases",
+    "sales": "Sales",
+    "subtitle": "View orders you placed and orders from your customers.",
+    "salesHint": "Orders for products sold through your approved store."
+  },
   "notFound": {
     "title": "Page Not Found",
     "description": "Sorry, we couldn't find the page you're looking for.",

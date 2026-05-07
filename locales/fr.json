@@ -99,6 +99,12 @@
     "moderation": "Modération",
     "subscription": "Abonnement"
   },
+  "ordersPage": {
+    "purchases": "Achats",
+    "sales": "Ventes",
+    "subtitle": "Consultez vos commandes et celles de vos clients.",
+    "salesHint": "Commandes pour les produits vendus via votre boutique approuvée."
+  },
   "checkout": {
     "title": "Finaliser Votre Commande",
     "backToCart": "Retour au Panier",

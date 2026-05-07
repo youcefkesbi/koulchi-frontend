@@ -1,6 +1,11 @@
 <template>
-  <div class="product-card group hover:shadow-2xl transition-all duration-500 bg-white rounded-3xl border-0 overflow-hidden shadow-lg hover:-translate-y-2 hover:scale-[1.02] relative"
-       :class="{ 'opacity-60': (product.stock_quantity || 0) <= 0 }">
+  <div
+    class="product-card group hover:shadow-2xl transition-all duration-500 bg-white rounded-3xl border-0 overflow-hidden shadow-lg hover:-translate-y-2 hover:scale-[1.02] relative"
+    :class="[
+      { 'opacity-60': (product.stock_quantity || 0) <= 0 },
+      { 'product-card--carousel': layout === 'carousel' }
+    ]"
+  >
     <!-- Product Image Container -->
     <div class="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       <img 
@@ -18,7 +23,7 @@
       <!-- No Image Placeholder -->
       <div
         v-else
-        class="w-full h-64 sm:h-72 flex items-center justify-center cursor-pointer"
+        class="w-full h-64 sm:h-72 flex items-center justify-center cursor-pointer no-image-placeholder"
         role="link"
         tabindex="0"
         @click.stop="handleViewProduct"
@@ -40,14 +45,6 @@
         </span>
       </div>
       
-      <!-- COD Badge -->
-      <div class="absolute top-4 left-4">
-        <span class="badge-cod">
-          <i class="fas fa-money-bill-wave ml-2"></i>
-          {{ $t('product.cod') }}
-        </span>
-      </div>
-
       <!-- Out of Stock Overlay -->
       <div v-if="(product.stock_quantity || 0) <= 0" 
            class="absolute inset-0 bg-gradient-to-br from-red-500/80 to-red-600/90 backdrop-blur-sm flex items-center justify-center pointer-events-none z-10">
@@ -72,7 +69,7 @@
     </div>
 
     <!-- Product Info Container -->
-    <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 bg-white">
+    <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 bg-white product-info-container">
       <!-- Title -->
       <h3
         class="font-bold text-base sm:text-lg lg:text-xl text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-300 cursor-pointer"
@@ -103,7 +100,7 @@
       </div>
 
       <!-- Actions -->
-      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 space-y-0">
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 space-y-0 actions-container">
         <!-- Owner View: Edit, Promote, and Delete buttons -->
         <template v-if="viewState === 'owner'">
           <button
@@ -166,7 +163,7 @@
       </div>
 
       <!-- Feedback Messages -->
-      <div v-if="cartFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+      <div v-if="!isCarouselLayout && cartFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
            :class="{
              'bg-green-100 text-green-800': cartFeedback.type === 'success',
              'bg-red-100 text-red-800': cartFeedback.type === 'error',
@@ -175,7 +172,7 @@
         {{ cartFeedback.message }}
       </div>
       
-      <div v-if="wishlistFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+      <div v-if="!isCarouselLayout && wishlistFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
            :class="{
              'bg-green-100 text-green-800': wishlistFeedback.type === 'success',
              'bg-red-100 text-red-800': wishlistFeedback.type === 'error',
@@ -184,7 +181,7 @@
         {{ wishlistFeedback.message }}
       </div>
       
-      <div v-if="productFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
+      <div v-if="!isCarouselLayout && productFeedback" class="mt-3 p-3 rounded-lg text-sm font-medium"
            :class="{
              'bg-green-100 text-green-800': productFeedback.type === 'success',
              'bg-red-100 text-red-800': productFeedback.type === 'error',
@@ -194,13 +191,13 @@
       </div>
 
       <!-- Store Owner Info Link -->
-      <div v-if="storeOwnerId" class="mt-4 pt-4 border-t border-gray-200">
+      <div v-if="!isCarouselLayout && storeOwnerId" class="mt-4 pt-4 border-t border-gray-200">
         <router-link
           :to="`/${$i18n.locale.value}/profile/${storeOwnerId}`"
           class="flex items-center justify-center space-x-2 space-x-reverse text-sm text-gray-600 hover:text-primary transition-colors duration-300 group"
         >
           <i class="fas fa-store text-xs group-hover:scale-110 transition-transform"></i>
-          <span class="font-medium">{{ $t('product.viewStoreOwner') }}</span>
+          <span class="font-medium">{{ $t('store.visitStore') }}</span>
         </router-link>
       </div>
 
@@ -229,6 +226,11 @@ const props = defineProps({
   showOwnerControls: {
     type: Boolean,
     default: false
+  },
+  layout: {
+    type: String,
+    default: 'default',
+    validator: (value) => ['default', 'carousel'].includes(value)
   }
 })
 
@@ -313,6 +315,8 @@ const viewState = computed(() => {
   }
   return isProductOwner.value ? 'owner' : 'buyer'
 })
+
+const isCarouselLayout = computed(() => props.layout === 'carousel')
 
 const getCartButtonText = () => {
   if (cartLoading.value) return t('product.addingToCart')
@@ -565,20 +569,6 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.badge-cod {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.4), 0 4px 10px -2px rgba(59, 130, 246, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
 /* Modern product card hover effects */
 .product-card:hover {
   transform: translateY(-8px) scale(1.02);
@@ -586,6 +576,71 @@ onUnmounted(() => {
 
 .product-card:hover .product-image {
   transform: scale(1.05);
+}
+
+/* Carousel variant: horizontal card optimized for slider context */
+.product-card--carousel {
+  display: grid;
+  grid-template-columns: minmax(180px, 36%) 1fr;
+  border-radius: 1rem;
+}
+
+.product-card--carousel:hover {
+  transform: none;
+}
+
+.product-card--carousel > .relative {
+  min-height: 220px;
+  height: 100%;
+}
+
+.product-card--carousel > .relative img,
+.product-card--carousel > .relative > .no-image-placeholder {
+  width: 100%;
+  height: 100% !important;
+  min-height: 220px;
+}
+
+.product-card--carousel .badge-cod,
+.product-card--carousel .badge-new,
+.product-card--carousel .badge-sale {
+  transform: scale(0.9);
+  transform-origin: top right;
+}
+
+.product-card--carousel .product-info-container {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.product-card--carousel .product-info-container h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.product-card--carousel .product-info-container .actions-container {
+  margin-top: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.product-card--carousel .product-info-container .actions-container button {
+  min-height: 40px;
+}
+
+@media (max-width: 768px) {
+  .product-card--carousel {
+    grid-template-columns: 1fr;
+  }
+
+  .product-card--carousel > .relative,
+  .product-card--carousel > .relative img,
+  .product-card--carousel > .relative > div {
+    min-height: 180px;
+  }
 }
 
 /* Loading animation */

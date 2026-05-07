@@ -58,6 +58,7 @@
               <ProductCard
                 v-if="item.type === 'product'"
                 :product="item.product"
+                layout="carousel"
                 class="carousel-product-card"
               />
 
@@ -508,17 +509,22 @@ onUnmounted(() => {
   padding: 1rem;
 }
 .ad-slide--product {
-  overflow: auto;
-  align-items: stretch;
+  overflow: hidden;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
 }
 .carousel-product-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 @media (min-width: 640px) {
   .ad-slide {
     padding: 1.5rem;
+  }
+
+  .ad-slide--product {
+    padding: 1.5rem 2rem;
   }
 }
 .ad-card {

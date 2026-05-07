@@ -104,6 +104,12 @@
     "moderation": "الإشراف",
     "subscription": "الاشتراك"
   },
+  "ordersPage": {
+    "purchases": "المشتريات",
+    "sales": "المبيعات",
+    "subtitle": "اعرض طلباتك وطلبات عملائك.",
+    "salesHint": "طلبات المنتجات المباعة عبر متجرك المعتمد."
+  },
   "categoryPage": {
     "resultsCount": "عرض {count} من {total} منتج",
     "showingResults": "عرض {start}-{end} من {total} نتيجة",

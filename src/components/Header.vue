@@ -177,10 +177,10 @@
                   :key="category.id"
                   :to="getLocalizedRoutePath(`/category/${category.id}`)"
                   @click="categoriesMenuOpen = false"
-                  class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-neutral-50 transition-all duration-300 group"
+                  class="flex items-center gap-2 p-3 rounded-xl hover:bg-neutral-50 transition-all duration-300 group"
                 >
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-accent transition-all duration-300">
-                    <i :class="getCategoryIcon(category.id)" class="text-white text-sm"></i>
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary group-hover:bg-accent transition-all duration-300">
+                    <i :class="getCategoryIcon(category)" class="fa-fw text-[0.8125rem] leading-none text-white"></i>
                   </div>
                   <span class="text-sm font-medium text-neutral-700 group-hover:text-primary transition-colors">
                     {{ getCategoryName(category.id) }}
@@ -306,7 +306,7 @@
                     {{ wishlistStore.totalItems }}
                   </span>
                 </router-link>
-                <router-link :to="getLocalizedRoutePath('/mypurchases')" class="dropdown-item">
+                <router-link :to="getLocalizedRoutePath('/orders/purchases')" class="dropdown-item">
                   <i class="fas fa-shopping-bag mr-3"></i>{{ t('header.orders') }}
                 </router-link>
                 <router-link v-if="hasApprovedStore" :to="getLocalizedRoutePath('/mystoreproducts')" class="dropdown-item">
@@ -479,11 +479,11 @@
               :key="category.id"
               :to="getLocalizedRoutePath(`/category/${category.id}`)"
               @click.stop="closeMobileMenuAndCategories"
-              class="flex items-center space-x-2 space-x-reverse p-3 rounded-xl hover:bg-white transition-all duration-300 group cursor-pointer touch-manipulation"
+              class="flex items-center gap-2 p-3 rounded-xl hover:bg-white transition-all duration-300 group cursor-pointer touch-manipulation"
               style="pointer-events: auto; -webkit-tap-highlight-color: rgba(0,0,0,0.1); min-height: 44px;"
             >
-              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-accent transition-all duration-300">
-                <i :class="getCategoryIcon(category.id)" class="text-white text-sm"></i>
+              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary group-hover:bg-accent transition-all duration-300">
+                <i :class="getCategoryIcon(category)" class="fa-fw text-[0.8125rem] leading-none text-white"></i>
               </div>
               <span class="text-sm font-medium text-neutral-700 group-hover:text-primary transition-colors">
                 {{ getCategoryName(category.id) }}
@@ -650,7 +650,7 @@ const mobileUserLinks = computed(() => {
     links.push({ path: '/dashboard', icon: 'fas fa-chart-line', label: t('header.dashboard') })
   }
   links.push({ path: '/myaccount', icon: 'fas fa-user', label: t('header.myProfile') })
-  links.push({ path: '/mypurchases', icon: 'fas fa-shopping-bag', label: t('header.orders') })
+  links.push({ path: '/orders/purchases', icon: 'fas fa-shopping-bag', label: t('header.orders') })
   links.push({ path: '/myaccount', icon: 'fas fa-cog', label: t('header.settings') })
   links.push({ path: '/wishlist', icon: 'fas fa-heart', label: t('wishlist.title') })
   if (hasApprovedStore.value) {
@@ -813,18 +813,30 @@ const shouldShowProductButton = computed(() => {
 })
 
 // Get category icon based on category ID
-const getCategoryIcon = (categoryId) => {
-  const iconMap = {
-    'cars': 'fas fa-car',
-    'realestate': 'fas fa-home',
-    'electronics': 'fas fa-laptop',
-    'fashion': 'fas fa-tshirt',
-    'home': 'fas fa-couch',
-    'beauty': 'fas fa-spa',
-    'kids': 'fas fa-baby',
-    'food': 'fas fa-utensils'
-  }
-  return iconMap[categoryId] || 'fas fa-tag'
+const getCategoryIcon = (category) => {
+  const normalize = (value) => String(value || '').toLowerCase().trim()
+
+  const idText = normalize(category?.id)
+  const names = [
+    normalize(category?.name_en),
+    normalize(category?.name_ar),
+    normalize(category?.name_fr)
+  ].filter(Boolean)
+  const haystack = `${idText} ${names.join(' ')}`
+
+  const containsAny = (keywords) => keywords.some((keyword) => haystack.includes(keyword))
+
+  if (containsAny(['car', 'cars', 'vehicle', 'auto', 'سيار', 'voiture', 'vehicule'])) return 'fas fa-car'
+  if (containsAny(['real estate', 'realestate', 'property', 'house', 'home', 'عقار', 'منزل', 'immobilier', 'maison'])) return 'fas fa-home'
+  if (containsAny(['electronic', 'electronics', 'phone', 'mobile', 'laptop', 'computer', 'إلكترون', 'هاتف', 'الكترون', 'electronique'])) return 'fas fa-laptop'
+  if (containsAny(['fashion', 'clothing', 'apparel', 'dress', 'أزياء', 'ملابس', 'mode', 'vetement'])) return 'fas fa-shirt'
+  if (containsAny(['beauty', 'cosmetic', 'makeup', 'spa', 'جمال', 'مستحض', 'beaute'])) return 'fas fa-spa'
+  if (containsAny(['kids', 'kid', 'baby', 'children', 'اطفال', 'طفل', 'enfant', 'bebe'])) return 'fas fa-baby'
+  if (containsAny(['food', 'restaurant', 'grocery', 'غذاء', 'طعام', 'nourriture', 'aliment'])) return 'fas fa-utensils'
+  if (containsAny(['sport', 'fitness', 'رياض', 'sport'])) return 'fas fa-dumbbell'
+  if (containsAny(['book', 'books', 'livre', 'كتب', 'كتاب'])) return 'fas fa-book'
+
+  return 'fas fa-tag'
 }
 
 // Get category name from database

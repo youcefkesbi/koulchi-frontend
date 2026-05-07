@@ -153,7 +153,7 @@
         <i class="fas fa-shopping-bag ml-2"></i>
         {{ t('orderConfirmation.continueShopping') }}
       </router-link>
-      <router-link :to="getLocalizedRoute('/mypurchases')" class="btn-primary">
+      <router-link :to="getLocalizedRoute('/orders/purchases')" class="btn-primary">
         <i class="fas fa-chart-line ml-2"></i>
         {{ t('orderConfirmation.viewOrders') }}
       </router-link>

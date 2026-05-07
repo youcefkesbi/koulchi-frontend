@@ -41,12 +41,36 @@
         <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
       </div>
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <ProductCard
-          v-for="ad in featuredProductAds"
-          :key="ad.id"
-          :product="ad.product"
-        />
+      <div class="carousel-container">
+        <button
+          v-if="canScroll"
+          type="button"
+          class="carousel-nav prev-btn"
+          :aria-label="$t('common.back')"
+          @click="scrollCarousel(-1)"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <div ref="carouselTrack" class="carousel-track">
+          <div
+            v-for="ad in featuredProductAds"
+            :key="ad.id"
+            class="carousel-item"
+          >
+            <ProductCard :product="ad.product" layout="carousel" />
+          </div>
+        </div>
+
+        <button
+          v-if="canScroll"
+          type="button"
+          class="carousel-nav next-btn"
+          :aria-label="$t('common.next')"
+          @click="scrollCarousel(1)"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
       </div>
     </div>
 
@@ -61,7 +85,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAdsStore } from '../../stores/useAdsStore'
 import ProductCard from '../ProductCard.vue'
 
@@ -87,6 +111,7 @@ const props = defineProps({
 const emit = defineEmits(['retry'])
 
 const adsStore = useAdsStore()
+const carouselTrack = ref(null)
 
 // Product ads with joined product; dedupe by product_id; cap at maxProducts
 const featuredProductAds = computed(() => {
@@ -107,6 +132,18 @@ const featuredProductAds = computed(() => {
 
 const loading = computed(() => adsStore.loading)
 const error = computed(() => adsStore.error)
+const canScroll = computed(() => featuredProductAds.value.length > 1)
+
+const scrollCarousel = (direction = 1) => {
+  const track = carouselTrack.value
+  if (!track) return
+
+  const card = track.querySelector('.carousel-item')
+  const cardWidth = card?.getBoundingClientRect().width || 320
+  const gap = 24
+  const amount = cardWidth + gap
+  track.scrollBy({ left: amount * direction, behavior: 'smooth' })
+}
 </script>
 
 <style scoped>
@@ -243,6 +280,69 @@ const error = computed(() => adsStore.error)
   width: 100%;
 }
 
+.carousel-container {
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 0.5rem 0.25rem 1rem;
+}
+
+.carousel-track::-webkit-scrollbar {
+  height: 0.5rem;
+}
+
+.carousel-track::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+
+.carousel-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.carousel-item {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  scroll-snap-align: start;
+}
+
+.carousel-nav {
+  position: absolute;
+  top: 45%;
+  transform: translateY(-50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #111827;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+}
+
+.carousel-nav:hover {
+  background: #111827;
+  color: #ffffff;
+}
+
+.prev-btn {
+  right: -0.5rem;
+}
+
+.next-btn {
+  left: -0.5rem;
+}
+
 .section-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -295,6 +395,17 @@ const error = computed(() => adsStore.error)
   .skeleton-title {
     width: 250px;
   }
+
+  .carousel-track {
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .carousel-nav {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -308,6 +419,28 @@ const error = computed(() => adsStore.error)
   
   .skeleton-title {
     width: 200px;
+  }
+
+  .carousel-nav {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .carousel-item {
+    flex-basis: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-item {
+    flex-basis: 100%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .carousel-item {
+    flex-basis: calc((100% - 1.5rem) / 2);
   }
 }
 </style>

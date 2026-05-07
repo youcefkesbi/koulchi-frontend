@@ -180,11 +180,38 @@ const baseRoutes = [
     component: ManagePacks
   },
   {
-    path: 'orders',
-    name: 'Orders',
+    path: 'admin-orders',
+    name: 'AdminOrders',
     component: ManageOrders,
     meta: { requiresAuth: true, requiresAdmin: true },
     beforeEnter: adminGuard
+  },
+  {
+    path: 'orders',
+    name: 'Orders',
+    component: () => import('../views/Orders.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: to => ({
+          name: 'OrdersPurchases',
+          params: { locale: to.params.locale }
+        })
+      },
+      {
+        path: 'purchases',
+        name: 'OrdersPurchases',
+        component: () => import('../views/OrdersPurchases.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'sales',
+        name: 'OrdersSales',
+        component: () => import('../views/OrdersSales.vue'),
+        meta: { requiresAuth: true }
+      }
+    ]
   },
   {
     path: 'products',
@@ -249,8 +276,10 @@ const baseRoutes = [
   {
     path: 'mypurchases',
     name: 'MyPurchases',
-    component: () => import('../views/MyPurchases.vue'),
-    meta: { requiresAuth: true }
+    redirect: to => ({
+      name: 'OrdersPurchases',
+      params: { locale: to.params.locale }
+    })
   },
   {
     path: 'mystoreproducts',

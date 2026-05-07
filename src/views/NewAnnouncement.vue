@@ -336,7 +336,7 @@ const handleImageUpload = (event) => {
   
       // Validate file count
     if (imageFiles.value.length + files.length > 10) {
-      error.value = $t('announcement.maxImagesAllowed')
+      error.value = t('announcement.maxImagesAllowed')
       return
     }
   
@@ -344,13 +344,13 @@ const handleImageUpload = (event) => {
   files.forEach(file => {
     // Check file size (2MB = 2 * 1024 * 1024 bytes)
     if (file.size > 2 * 1024 * 1024) {
-      error.value = $t('announcement.fileTooLarge', { fileName: file.name })
+      error.value = t('announcement.fileTooLarge', { fileName: file.name })
       return
     }
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      error.value = $t('announcement.fileNotImage', { fileName: file.name })
+      error.value = t('announcement.fileNotImage', { fileName: file.name })
       return
     }
     
@@ -384,7 +384,7 @@ const uploadImages = async (userId) => {
       const imageFile = imageFiles.value[i]
       const fileName = `${userId}/${Date.now()}-${i}-${imageFile.name}`
       
-      uploadProgress.value = $t('announcement.uploadingImage', { current: i + 1, total: imageFiles.value.length })
+      uploadProgress.value = t('announcement.uploadingImage', { current: i + 1, total: imageFiles.value.length })
       
       // Add timeout for each upload
       const uploadPromise = supabase.storage
@@ -392,13 +392,13 @@ const uploadImages = async (userId) => {
         .upload(fileName, imageFile.file)
       
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error($t('announcement.validation.uploadTimeoutForFile', { fileName: imageFile.name }))), 30000)
+        setTimeout(() => reject(new Error(t('announcement.validation.uploadTimeoutForFile', { fileName: imageFile.name }))), 30000)
       })
       
       const { data, error: uploadError } = await Promise.race([uploadPromise, timeoutPromise])
       
       if (uploadError) {
-        throw new Error($t('announcement.validation.failedToUploadFile', { fileName: imageFile.name, error: uploadError.message }))
+        throw new Error(t('announcement.validation.failedToUploadFile', { fileName: imageFile.name, error: uploadError.message }))
       }
       
       // Get public URL
@@ -435,7 +435,7 @@ const submitForm = async (event) => {
   try {
     // --- Validation (required fields) ---
     if (!form.name || !String(form.name).trim()) {
-      error.value = $t('announcement.validation.productNameRequired')
+      error.value = t('announcement.validation.productNameRequired')
       loading.value = false
       return
     }
@@ -446,20 +446,20 @@ const submitForm = async (event) => {
     }
     const priceNum = parseFloat(form.price)
     if (isNaN(priceNum) || priceNum <= 0) {
-      error.value = $t('announcement.validation.validPrice')
+      error.value = t('announcement.validation.validPrice')
       loading.value = false
       return
     }
     const stockNum = parseInt(form.stock_quantity, 10)
     if (isNaN(stockNum) || stockNum < 0) {
-      error.value = $t('announcement.validation.validStockQuantity')
+      error.value = t('announcement.validation.validStockQuantity')
       loading.value = false
       return
     }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      error.value = $t('errors.userNotAuthenticated')
+      error.value = t('errors.userNotAuthenticated')
       loading.value = false
       return
     }
@@ -473,18 +473,18 @@ const submitForm = async (event) => {
 
         if (bucketError) {
           if (bucketError.message && bucketError.message.includes('does not exist')) {
-            error.value = $t('announcement.validation.storageBucketNotExist')
+            error.value = t('announcement.validation.storageBucketNotExist')
           } else if (bucketError.message && bucketError.message.includes('permission denied')) {
-            error.value = $t('announcement.validation.storageBucketNoPermission')
+            error.value = t('announcement.validation.storageBucketNoPermission')
           } else {
-            error.value = $t('announcement.validation.storageBucketAccessFailed')
+            error.value = t('announcement.validation.storageBucketAccessFailed')
           }
           imageFiles.value = []
           loading.value = false
           return
         }
       } catch (bucketTestError) {
-        error.value = $t('announcement.validation.storageBucketNotAccessible')
+        error.value = t('announcement.validation.storageBucketNotAccessible')
         imageFiles.value = []
         loading.value = false
         return
@@ -496,12 +496,12 @@ const submitForm = async (event) => {
     if (imageFiles.value.length > 0) {
       try {
         const uploadTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error($t('announcement.validation.imageUploadTimeout'))), 60000)
+          setTimeout(() => reject(new Error(t('announcement.validation.imageUploadTimeout'))), 60000)
         })
         const uploadPromise = uploadImages(user.id)
         imageUrls = await Promise.race([uploadPromise, uploadTimeout])
       } catch (uploadError) {
-        error.value = $t('announcement.validation.imagesFailedUpload')
+        error.value = t('announcement.validation.imagesFailedUpload')
         imageUrls = []
       }
     }
@@ -566,7 +566,7 @@ const submitForm = async (event) => {
       navigateToPath('/')
     }, 2000)
   } catch (err) {
-    const msg = err && err.message ? err.message : $t('announcement.validation.errorCreatingProduct')
+    const msg = err && err.message ? err.message : t('announcement.validation.errorCreatingProduct')
     error.value = msg
     console.error('[NewAnnouncement] submitForm error:', err)
     loading.value = false
