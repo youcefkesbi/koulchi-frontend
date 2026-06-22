@@ -41,63 +41,63 @@ A modern e-commerce web application built for the Algerian market using **Vue.js
 * Order history
 * Order status tracking
 
-🏪 Multi-Store Marketplace
+### 🏪 Multi-Store Marketplace
 
-Multiple independent stores
-Store profiles
-Store product listings
-Store ratings
-Browse products by store
+* Multiple independent stores
+* Store profiles
+* Store product listings
+* Store ratings
+* Browse products by store
 
-💼 Seller Dashboard
+### 💼 Seller Dashboard
 
-Manage store profile
-Add new products
-Edit products
-Delete products
-Upload product images
-Manage inventory
-View customer orders
-Track sales performance
-View earnings
-Product analytics
+* Manage store profile
+* Add new products
+* Edit products
+* Delete products
+* Upload product images
+* Manage inventory
+* View customer orders
+* Track sales performance
+* View earnings
+* Product analytics
 
-🛠️ Admin Dashboard
+### 🛠️ Admin Dashboard
 
-User management
-Seller management
-Product moderation
-Category management
-Store approval
-Order management
-Advertisement management
-Platform analytics
-Reports dashboard
-Role management
+* User management
+* Seller management
+* Product moderation
+* Category management
+* Store approval
+* Order management
+* Advertisement management
+* Platform analytics
+* Reports dashboard
+* Role management
 
-📢 Advertisements
+### 📢 Advertisements
 
-Homepage banners
-Featured products
-Promotional campaigns
-Sponsored stores
-Discount campaigns
+* Homepage banners
+* Featured products
+* Promotional campaigns
+* Sponsored stores
+* Discount campaigns
 
-🔔 Notifications
+### 🔔 Notifications
 
-Order updates
-New promotions
-Wishlist price changes
-Seller notifications
-System announcements
-In-app notifications
+* Order updates
+* New promotions
+* Wishlist price changes
+* Seller notifications
+* System announcements
+* In-app notifications
 
-🌍 Language Support
-English
-Arabic
-French
-Easy language switching
-Localized interface
+### 🌍 Language Support
+* English
+* Arabic
+* French
+* Easy language switching
+* Localized interface
 
 ### 👤 User Profile
 
