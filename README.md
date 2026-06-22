@@ -253,9 +253,21 @@ VITE_SUPABASE_ANON_KEY=
 # Screenshots
 
 * Home page
+  
+<img width="1440" height="704" alt="Screenshot 2026-05-22 at 13 37 03" src="https://github.com/user-attachments/assets/ba929cae-08b5-424e-9d88-81ed58651966" />
+
 * Product page
+
+  <img width="1440" height="848" alt="Screenshot 2026-06-22 at 12 52 23" src="https://github.com/user-attachments/assets/c9dbe36e-87c8-44b5-9485-ecc4c775d678" />
+
 * Shopping cart
+
+<img width="1440" height="846" alt="Screenshot 2026-06-22 at 12 53 35" src="https://github.com/user-attachments/assets/7b1e7603-7717-46c3-96da-47bee545c1db" />
+
 * Checkout
+
+<img width="1440" height="847" alt="Screenshot 2026-06-22 at 12 55 07" src="https://github.com/user-attachments/assets/8ce4c8ea-cfbd-4fbc-b4fe-e641195f5f3d" />
+
 * Profile
 * Orders
 
