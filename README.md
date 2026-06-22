@@ -250,7 +250,7 @@ VITE_SUPABASE_ANON_KEY=
 
 ---
 
-# Screenshots
+# Screenshots of Some Important Sections
 
 * Home page
   
@@ -269,7 +269,19 @@ VITE_SUPABASE_ANON_KEY=
 <img width="1440" height="847" alt="Screenshot 2026-06-22 at 12 55 07" src="https://github.com/user-attachments/assets/8ce4c8ea-cfbd-4fbc-b4fe-e641195f5f3d" />
 
 * Profile
-* Orders
+
+<img width="1440" height="776" alt="Screenshot 2026-06-22 at 12 58 58" src="https://github.com/user-attachments/assets/4231c12a-4054-4dcc-8ebc-f5ab86a459a0" />
+
+  
+* Admin Dashboard
+
+  <img width="1440" height="775" alt="Screenshot 2026-06-22 at 13 02 15" src="https://github.com/user-attachments/assets/b4dbcbda-6e9a-4eaf-a857-fee39c4e44c1" />
+
+
+* Seller Dashboard
+
+<img width="1440" height="773" alt="Screenshot 2026-06-22 at 13 05 00" src="https://github.com/user-attachments/assets/86d56927-4f2c-435d-aa4e-aa330cab528c" />
+
 
 ---
 
