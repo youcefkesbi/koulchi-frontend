@@ -2,6 +2,10 @@
 
 A modern e-commerce web application built for the Algerian market using **Vue.js** and **Supabase**. Koulchi allows users to browse products, search by category, manage a shopping cart, authenticate securely, and place orders through a fast and responsive interface.
 
+## Live Demo :
+
+https://koulchi-frontend.vercel.app/en
+
 ## Features
 
 ### 👤 Authentication
